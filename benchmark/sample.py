@@ -97,9 +97,6 @@ def select_function(l, r, T):
             if(l.data - a2) >= 0:
                 f = torch.min(C3, torch.div(torch.max(C2.sub(l), epsilon), torch.max(r.sub(l), epsilon)))
             else:
-                # print('here, c < ai output')
-                # print('C2.sub(C1)', C2.sub(C1).data)
-                # print('r.sub(l))', r.sub(l).data)
                 f = torch.min(C3, torch.div(torch.max(C2.sub(C1), epsilon), torch.max(r.sub(l), epsilon)))
         else:
             if(l.data - a2 >= 0):
