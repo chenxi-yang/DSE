@@ -18,7 +18,7 @@ def var(i, requires_grad=False):
 N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)
 
-BETA = var(99999.99)
+BETA = var(0.0)
 
 def run_next_stmt(next_stmt, symbol_table):
     if next_stmt is None:
@@ -144,7 +144,7 @@ def join(symbol_table_1, symbol_table_2):
         return symbol_table_2
     if p2.data.item() <= 0.0:
         return symbol_table_1
-    # print('p1, p2', p1, p2)
+    print('p1, p2', p1.data.item(), p2.data.item())
 
     p_out = torch.min(p1.add(p2), var(1.0))
     
@@ -153,9 +153,9 @@ def join(symbol_table_1, symbol_table_2):
         target1 = symbol_table_1[target_symbol]
         target2 = symbol_table_2[target_symbol]
 
-        # print('target', target_symbol)
-        # print(target1.left, target1.right)
-        # print(target2.left, target2.right)
+        print('target', target_symbol)
+        print(target1.left.data.item(), target1.right.data.item())
+        print(target2.left.data.item(), target2.right.data.item())
 
         if target1 is None:
             symbol_table[target_symbol] = target2
@@ -178,22 +178,27 @@ def join(symbol_table_1, symbol_table_2):
         l1_prime = p1_prime.mul(target1.getLength())
         l2_prime = p2_prime.mul(target2.getLength())
 
-        if target1.left.data.item() == target1.right.data.item() and target2.left.data.item() == target2.right.data.item():
-            target1.left = c1_prime
-            target1.right = c1_prime
-            target2.left = c2_prime
-            target2.right = c2_prime
-        else:
-            target1.left = c1_prime.sub(l1_prime.div(var(2.0)))
-            target1.right = c1_prime.add(l1_prime.div(var(2.0)))
-            target2.left = c2_prime.sub(l2_prime.div(var(2.0)))
-            target2.right = c2_prime.add(l2_prime.div(var(2.0)))
-        # print('Join')
-        # print('target1', target1.left, target1.right)
-        # print('target2', target2.left, target2.right)
+        if target1.left.data.item() == target1.right.data.item():
+            l1_prime = var(0.0)
+        
+        if target2.left.data.item() == target2.right.data.item():
+            l2_prime = var(0.0)
+
+        # if target1.left.data.item() == target1.right.data.item() and :
+        #     target1.left = c1_prime
+        #     target1.right = c1_prime
+        #     target2.left = c2_prime
+        #     target2.right = c2_prime
+        # else:
+        #     target1.left = c1_prime.sub(l1_prime.div(var(2.0)))
+        #     target1.right = c1_prime.add(l1_prime.div(var(2.0)))
+        #     target2.left = c2_prime.sub(l2_prime.div(var(2.0)))
+        #     target2.right = c2_prime.add(l2_prime.div(var(2.0)))
 
         symbol_table[target_symbol] = get_overapproximation(target1, target2)
-    
+        print('Join')
+        print('target', symbol_table[target_symbol].left.data.item(), symbol_table[target_symbol].right.data.item())
+
     symbol_table['probability'] = p_out
 
     return symbol_table
@@ -299,6 +304,7 @@ class WhileSimple:
             i_list.append(symbol_table['i'].left.data.item())
             l_list.append(symbol_table['x'].left.data.item())
             r_list.append(symbol_table['x'].right.data.item())
+            print('isOn', symbol_table['isOn'].left.data.item(), symbol_table['isOn'].right.data.item())
             # print('after execute')
             # show(body_symbol_table)
 
@@ -311,14 +317,14 @@ class WhileSimple:
             # print('---in end while block')
             # orelse_symbol_table = update_symbol_table_with_constraint(self.target, self.test, copy.deepcopy(tmp_symbol_table), '>')
 
-        # for i, value in enumerate(l_list):
-        #     print(l_list[i], r_list[i])
-        # plt.plot(i_list, l_list, label="left", marker='x')
-        # plt.plot(i_list, r_list, label="right", marker ='x')
-        # plt.xlabel('loop')
-        # plt.ylabel('l-r')
-        # plt.legend()
-        # plt.show()
+        for i, value in enumerate(l_list):
+            print(l_list[i], r_list[i])
+        plt.plot(i_list, l_list, label="left", marker='x')
+        plt.plot(i_list, r_list, label="right", marker ='x')
+        plt.xlabel('loop')
+        plt.ylabel('l-r')
+        plt.legend()
+        plt.show()
 
         return run_next_stmt(self.next_stmt, symbol_table)
 
@@ -375,7 +381,7 @@ def construct_syntax_tree(Theta):
     l12 = Assign('x', f12, l13)
     l5 = Ifelse('isOn', var(0.5), l6, l12, l18)
 
-    l4 = WhileSimple('i', var(40), l5, None)
+    l4 = WhileSimple('i', var(5), l5, None)
 
     return l4
 
@@ -482,35 +488,35 @@ if __name__ == "__main__":
 
     plot_func(root, Theta, target)
 
-    def myfunc(x, grad):
-        # print(x)
-        Theta = var(x)
-        root = construct_syntax_tree(Theta)
-        symbol_table = initialization()
-        symbol_table = root.execute(symbol_table)
-        # print(len(symbol_table_list))
+    # def myfunc(x, grad):
+    #     # print(x)
+    #     Theta = var(x)
+    #     root = construct_syntax_tree(Theta)
+    #     symbol_table = initialization()
+    #     symbol_table = root.execute(symbol_table)
+    #     # print(len(symbol_table_list))
 
-        f = distance_f_interval(symbol_table['x'], target)
-        print(Theta.data.item(), f.data.item())
-        f_value = f.data.item()
+    #     f = distance_f_interval(symbol_table['x'], target)
+    #     print(Theta.data.item(), f.data.item())
+    #     f_value = f.data.item()
 
-        if abs(f_value) < epsilon_value:
-            raise ValueError(str(x[0]) + ',' + str(f_value))
+    #     if abs(f_value) < epsilon_value:
+    #         raise ValueError(str(x[0]) + ',' + str(f_value))
 
-        return f_value
+    #     return f_value
 
-    x = np.array([66.0])
-    opt = nlopt.opt(nlopt.GN_DIRECT, 1)
-    opt.set_lower_bounds([45.0])
-    opt.set_upper_bounds([76.0])
-    opt.set_min_objective(myfunc)
-    opt.set_stopval(0.0)
-    opt.set_maxeval(1000)
-    try:
-        x = opt.optimize(x)
-    except ValueError as error:
-        error_list = str(error).split(',')
-        error_value = [float(err) for err in error_list]
+    # x = np.array([66.0])
+    # opt = nlopt.opt(nlopt.GN_DIRECT, 1)
+    # opt.set_lower_bounds([45.0])
+    # opt.set_upper_bounds([76.0])
+    # opt.set_min_objective(myfunc)
+    # opt.set_stopval(0.0)
+    # opt.set_maxeval(1000)
+    # try:
+    #     x = opt.optimize(x)
+    # except ValueError as error:
+    #     error_list = str(error).split(',')
+    #     error_value = [float(err) for err in error_list]
     #     print('theta, f', error_value[0], error_value[1])
 
     # def myfunc(x, grad):
