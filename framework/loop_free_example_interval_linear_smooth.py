@@ -335,6 +335,51 @@ class Assign:
         return run_next_stmt(self.next_stmt, symbol_table)
 
 
+def update_symbol_table_point(target, func, symbol_table):
+    symbol_table[target] = func(target)
+
+    return symbol_table
+
+
+class AssignPoint:
+    def __init__(self, target, value, next_stmt):
+        self.target = target
+        self.value = value
+        self.next_stmt = next_stmt
+    
+    def execute(self, symbol_table):
+        symbol_table = update_symbol_table_point(self.target, self.value, symbol_table)
+
+        return run_next_stmt(self.next_stmt, symbol_table)
+
+
+class IfelsePoint:
+    def __init__(self, target, test, body, orelse, next_stmt):
+        self.target = target
+        self.test = test
+        self.body = body
+        self.orelse = orelse
+        self.next_stmt = next_stmt
+    
+
+    def execute(self, symbol_table):
+        # no smoothing
+        if self.target.data.item() < self.test.data.item():
+
+
+class WhileSimplePoint:
+    #! not a real loop, just in the form of loop to operate several if-else stmt
+    def __init__(self, target, test, body, next_stmt):
+        # TODO: implement while & test
+        self.target = target
+        self.test = test
+        self.body = body
+        self.next_stmt = next_stmt
+    
+    
+
+
+
 def initialization():
 
     symbol_table = dict()
@@ -516,11 +561,9 @@ if __name__ == "__main__":
 
     # def myfunc(x, grad):
     #     Theta = var(x[0], requires_grad=True)
-        
 
-
+    
     for i in range(epoch):
-
         symbol_table = initialization()
         symbol_table = root.execute(symbol_table)
         # print('x', symbol_table['x'].left, symbol_table['x'].right)

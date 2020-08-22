@@ -10,6 +10,7 @@ import nlopt
 
 import domain
 from helper import *
+from generate_data import *
 
 
 def var(i, requires_grad=False):
@@ -144,7 +145,7 @@ def join(symbol_table_1, symbol_table_2):
         return symbol_table_2
     if p2.data.item() <= 0.0:
         return symbol_table_1
-    print('p1, p2', p1.data.item(), p2.data.item())
+    # print('p1, p2', p1.data.item(), p2.data.item())
 
     p_out = torch.min(p1.add(p2), var(1.0))
     
@@ -153,9 +154,9 @@ def join(symbol_table_1, symbol_table_2):
         target1 = symbol_table_1[target_symbol]
         target2 = symbol_table_2[target_symbol]
 
-        print('target', target_symbol)
-        print(target1.left.data.item(), target1.right.data.item())
-        print(target2.left.data.item(), target2.right.data.item())
+        # print('target', target_symbol)
+        # print(target1.left.data.item(), target1.right.data.item())
+        # print(target2.left.data.item(), target2.right.data.item())
 
         if target1 is None:
             symbol_table[target_symbol] = target2
@@ -196,8 +197,8 @@ def join(symbol_table_1, symbol_table_2):
         #     target2.right = c2_prime.add(l2_prime.div(var(2.0)))
 
         symbol_table[target_symbol] = get_overapproximation(target1, target2)
-        print('Join')
-        print('target', symbol_table[target_symbol].left.data.item(), symbol_table[target_symbol].right.data.item())
+        # print('Join')
+        # print('target', symbol_table[target_symbol].left.data.item(), symbol_table[target_symbol].right.data.item())
 
     symbol_table['probability'] = p_out
 
@@ -304,7 +305,7 @@ class WhileSimple:
             i_list.append(symbol_table['i'].left.data.item())
             l_list.append(symbol_table['x'].left.data.item())
             r_list.append(symbol_table['x'].right.data.item())
-            print('isOn', symbol_table['isOn'].left.data.item(), symbol_table['isOn'].right.data.item())
+            # print('isOn', symbol_table['isOn'].left.data.item(), symbol_table['isOn'].right.data.item())
             # print('after execute')
             # show(body_symbol_table)
 
@@ -317,14 +318,14 @@ class WhileSimple:
             # print('---in end while block')
             # orelse_symbol_table = update_symbol_table_with_constraint(self.target, self.test, copy.deepcopy(tmp_symbol_table), '>')
 
-        for i, value in enumerate(l_list):
-            print(l_list[i], r_list[i])
-        plt.plot(i_list, l_list, label="left", marker='x')
-        plt.plot(i_list, r_list, label="right", marker ='x')
-        plt.xlabel('loop')
-        plt.ylabel('l-r')
-        plt.legend()
-        plt.show()
+        # for i, value in enumerate(l_list):
+        #     print(l_list[i], r_list[i])
+        # plt.plot(i_list, l_list, label="left", marker='x')
+        # plt.plot(i_list, r_list, label="right", marker ='x')
+        # plt.xlabel('loop')
+        # plt.ylabel('l-r')
+        # plt.legend()
+        # plt.show()
 
         return run_next_stmt(self.next_stmt, symbol_table)
 
@@ -341,15 +342,78 @@ class Assign:
         return run_next_stmt(self.next_stmt, symbol_table)
 
 
-def initialization():
+def update_symbol_table_point(target, func, symbol_table):
+    symbol_table[target] = func(symbol_table[target])
+
+    return symbol_table
+
+
+class AssignPoint:
+    def __init__(self, target, value, next_stmt):
+        self.target = target
+        self.value = value
+        self.next_stmt = next_stmt
+    
+    def execute(self, symbol_table):
+        symbol_table = update_symbol_table_point(self.target, self.value, symbol_table)
+
+        return run_next_stmt(self.next_stmt, symbol_table)
+
+
+class IfelsePoint:
+    def __init__(self, target, test, body, orelse, next_stmt):
+        self.target = target
+        self.test = test
+        self.body = body
+        self.orelse = orelse
+        self.next_stmt = next_stmt
+    
+    def execute(self, symbol_table):
+        # no smoothing
+        if symbol_table[self.target].data.item() < self.test.data.item():
+            symbol_table = self.body.execute(symbol_table)
+        else:
+            symbol_table = self.orelse.execute(symbol_table)
+        
+        return run_next_stmt(self.next_stmt, symbol_table)
+
+
+class WhileSimplePoint:
+    #! not a real loop, just in the form of loop to operate several if-else stmt
+    def __init__(self, target, test, body, next_stmt):
+        # TODO: implement while & test
+        self.target = target
+        self.test = test
+        self.body = body
+        self.next_stmt = next_stmt
+    
+    def execute(self, symbol_table):
+        while(symbol_table[self.target].data.item() < self.test.data.item()):
+            # print('WhileSimplePoint: i, x', symbol_table['i'], symbol_table['x'])
+            symbol_table = self.body.execute(symbol_table)
+        
+        return run_next_stmt(self.next_stmt, symbol_table)
+# TODO: smooth & initialization
+
+
+def initialization(x_l, x_r):
 
     symbol_table = dict()
     symbol_table['i'] = domain.Interval(0, 0)
-    symbol_table['x'] = domain.Interval(65.0, 75.0)
+    symbol_table['x'] = domain.Interval(x_l, x_r)
     symbol_table['isOn'] = domain.Interval(0.0, 0.0)
     symbol_table['probability'] = var(1.0)
     
     return symbol_table
+
+
+def initialization_point(x):
+    symbol_table_point = dict()
+    symbol_table_point['i'] = var(0.0)
+    symbol_table_point['x'] = var(x)
+    symbol_table_point['isOn'] = var(0.0)
+
+    return symbol_table_point
 
 
 def f6(x):
@@ -381,19 +445,44 @@ def construct_syntax_tree(Theta):
     l12 = Assign('x', f12, l13)
     l5 = Ifelse('isOn', var(0.5), l6, l12, l18)
 
-    l4 = WhileSimple('i', var(5), l5, None)
+    l4 = WhileSimple('i', var(40), l5, None)
 
     return l4
 
 
-def distance_f_point(X, target):
-    X_length = X.getLength()
-    if target.data.item() < X.right.data.item() and target.data.item() > X.left.data.item():
-        res = C0
-    else:
-        res = torch.max(target.sub(X.right), X.left.sub(target)).div(X_length)
+def construct_syntax_tree_point(Theta):
+
+    l18 = AssignPoint('i', f18, None)
+
+    l8 = AssignPoint('isOn', f8, None)
+    l10 = AssignPoint('isOn', f10, None)
+    l7 = IfelsePoint('x', Theta, l8, l10, None)
+
+    l6 = AssignPoint('x', f6, l7)
+
+    l14 = AssignPoint('isOn', f8, None)
+    l16 = AssignPoint('isOn', f10, None)
+    l13 = IfelsePoint('x', var(80.0), l14, l16, None)
+
+    l12 = AssignPoint('x', f12, l13)
+    l5 = IfelsePoint('isOn', var(0.5), l6, l12, l18)
+
+    l4 = WhileSimplePoint('i', var(40), l5, None)
+
+    return l4
+
+
+# def distance_f_point(X, target):
+#     X_length = X.getLength()
+#     if target.data.item() < X.right.data.item() and target.data.item() > X.left.data.item():
+#         res = C0
+#     else:
+#         res = torch.max(target.sub(X.right), X.left.sub(target)).div(X_length)
     
-    return res
+#     return res
+
+def distance_f_point(pred_y, y):
+    return torch.abs(pred_y.sub(y))
 
 
 def distance_f_interval(X, target):
@@ -404,7 +493,6 @@ def distance_f_interval(X, target):
         res = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
     
     return res
-
 
 
 def show(symbol_table):
@@ -435,11 +523,13 @@ def plot_func(root, Theta, ltarget):
 
         Theta.data = var(x)
 
-        symbol_table = initialization()
+        symbol_table, symbol_table_point = initialization()
         symbol_table = root.execute(symbol_table)
+
+        penalty_f = distance_f_interval(symbol_table['x'], target)
+
         f_r = symbol_table['x'].right
         f_l = symbol_table['x'].left
-        f = distance_f_interval(symbol_table['x'], target)
         print('theta, left, right', x, f_l.data.item(), f_r.data.item())
 
         left_x.append(x)
@@ -466,8 +556,30 @@ def plot_func(root, Theta, ltarget):
     plt.legend()
     plt.show()
 
-    
 
+def test_point_func(root_point):
+    for idx, row in X_df.iterrows():
+        x, y = row['x'], row['y']
+        symbol_table_point = initialization_point(x)
+        symbol_table_point = root_point.execute(symbol_table_point)
+        
+        print('x, diff(pred_y, y)', x, symbol_table_point['x'].data.item(), y)
+
+
+def data_generator(l, r, root, num):
+    data_list = list()
+
+    for i in range(num):
+        x = random.uniform(l, r)
+
+        symbol_table_point = initialization_point(x)
+        symbol_table_point = root.execute(symbol_table_point)
+        y = symbol_table_point['x'].data.item()
+
+        data = [x, y]
+        data_list.append(data)
+    
+    return pd.DataFrame(data_list, columns=['x', 'y'])
 
 '''
 # Meta-test
@@ -480,44 +592,73 @@ if __name__ == "__main__":
 
     lr = 0.2
     epoch = 1000
-    Theta = var(68.0, requires_grad=True)
+    dataset_size = 500
+    Theta = var(70.0, requires_grad=True)
     # target = var(75.0, requires_grad=True)
     target = domain.Interval(68.0, 76.0)
+    lambda_ = 2.0
+    x_l = 65.0
+    x_r= 75.0
 
-    root = construct_syntax_tree(Theta)
+    root_point = construct_syntax_tree_point(Theta)
 
-    plot_func(root, Theta, target)
+    X_df = data_generator(x_r, x_l, root_point, dataset_size) # theta is the value of synthesized objective
+    
+    # symbol_table = initialization(x_l, x_r)
+    # symbol_table_point = initialization_point(random.uniform(x_l, x_r))
+    # root = construct_syntax_tree(Theta)
+    # root_point = construct_syntax_tree_point(Theta)
 
-    # def myfunc(x, grad):
-    #     # print(x)
-    #     Theta = var(x)
-    #     root = construct_syntax_tree(Theta)
-    #     symbol_table = initialization()
-    #     symbol_table = root.execute(symbol_table)
-    #     # print(len(symbol_table_list))
+    # test_point_func(root_point)
+    # plot_func(root, Theta, target)
 
-    #     f = distance_f_interval(symbol_table['x'], target)
-    #     print(Theta.data.item(), f.data.item())
-    #     f_value = f.data.item()
+    def myfunc(theta, grad):
+        # print(x)
+        Theta = var(theta)
+        # Theta = var(70.0)
+        root = construct_syntax_tree(Theta)
+        root_point = construct_syntax_tree_point(Theta)
+        symbol_table = initialization(x_l, x_r)
+        symbol_table_point = initialization_point(random.uniform(x_l, x_r))
 
-    #     if abs(f_value) < epsilon_value:
-    #         raise ValueError(str(x[0]) + ',' + str(f_value))
+        f = var(0.0)
 
-    #     return f_value
+        for idx, row in X_df.iterrows():
+            x, y = row['x'], row['y']
+            symbol_table_point = initialization_point(x)
+            symbol_table_point = root_point.execute(symbol_table_point)
 
-    # x = np.array([66.0])
-    # opt = nlopt.opt(nlopt.GN_DIRECT, 1)
-    # opt.set_lower_bounds([45.0])
-    # opt.set_upper_bounds([76.0])
-    # opt.set_min_objective(myfunc)
-    # opt.set_stopval(0.0)
-    # opt.set_maxeval(1000)
-    # try:
-    #     x = opt.optimize(x)
-    # except ValueError as error:
-    #     error_list = str(error).split(',')
-    #     error_value = [float(err) for err in error_list]
-    #     print('theta, f', error_value[0], error_value[1])
+            # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
+            f = f.add(distance_f_point(symbol_table_point['x'], var(y)))
+        print('quantitive f', f.data.item())
+
+        symbol_table = root.execute(symbol_table)
+        penalty_f = distance_f_interval(symbol_table['x'], target)
+        print('safe f', penalty_f.data.item())
+
+        f = f.add(penalty_f)
+
+        print(Theta.data.item(), f.data.item())
+        f_value = f.data.item()
+
+        if abs(f_value) < epsilon_value:
+            raise ValueError(str(x[0]) + ',' + str(f_value))
+
+        return f_value
+
+    theta = np.array([66.0])
+    opt = nlopt.opt(nlopt.GN_DIRECT, 1)
+    opt.set_lower_bounds([45.0])
+    opt.set_upper_bounds([76.0])
+    opt.set_min_objective(myfunc)
+    opt.set_stopval(10.0)
+    opt.set_maxeval(1000)
+    try:
+        theta = opt.optimize(theta)
+    except ValueError as error:
+        error_list = str(error).split(',')
+        error_value = [float(err) for err in error_list]
+        print('theta, f', error_value[0], error_value[1])
 
     # def myfunc(x, grad):
     #     Theta = var(x[0], requires_grad=True)
