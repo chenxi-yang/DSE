@@ -1,5 +1,7 @@
 import torch
+import random
 from torch.autograd import Variable
 
-epsilon_value = 0.00001
-epsilon = Variable(torch.tensor(epsilon_value, dtype=torch.float))
+def var(i, requires_grad=False):
+    return Variable(torch.tensor(i, dtype=torch.float), requires_grad=requires_grad)
+

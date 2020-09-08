@@ -4,7 +4,7 @@ def func3(x, theta):
     while(i < 40):
         if(isOn <  0.5):
             x = x - 0.1 * (x - 60)
-            if(x < theta):
+            if(x < theta): # 70.0
                 isOn = 1.0
             else:
                 isOn = 0.0

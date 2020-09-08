@@ -2,23 +2,33 @@ import torch
 import random
 from torch.autograd import Variable
 import copy
-import matplotlib.pyplot as plt
 import sys
+import queue
+import nlopt
 from numpy import *
 import numpy as np
-import nlopt
+import matplotlib.pyplot as plt
 
 import domain
+from constants import *
 from helper import *
+
+def show(symbol_table):
+    print('=======symbol table======')
+    if symbol_table['probability'].data.item() <= 0.0:
+        print('Not Exist')
+        return 
+    for symbol in symbol_table:
+        if symbol == 'probability':
+            print(symbol, symbol_table[symbol].data.item())
+        else:
+            print(symbol, symbol_table[symbol].left.data.item(), symbol_table[symbol].right.data.item())
+    return 
 
 
 def var(i, requires_grad=False):
     return Variable(torch.tensor(i, dtype=torch.float), requires_grad=requires_grad)
 
-N_INFINITY = var(-10000.0)
-P_INFINITY = var(10000.0)
-
-BETA = var(99999.99)
 
 def run_next_stmt(next_stmt, symbol_table):
     if next_stmt is None:
@@ -49,7 +59,7 @@ def pho(X, intersection):
     # else:
     #     partial_value = var(1.0).sub((var(1.0).sub(partial_intersection_value)).div(f_beta(BETA)))
 
-    partial_value = intersection.getVolumn().div(X.getVolumn().mul(f_beta(BETA)))
+    partial_value = intersection.getVolumn().div(X.getVolumn().mul(f_beta(INTERVAL_BETA)))
     # print('partial_value', partial_value)
 
     return torch.min(var(1.0), partial_value)
@@ -60,6 +70,7 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
     res_symbol_table = dict()
     # self-deepcopy symbol_table
     for symbol in symbol_table:
+        # print(symbol)
         if symbol == 'probability':
             res_symbol_table[symbol] = var(symbol_table[symbol].data.item())
         else:
@@ -102,11 +113,57 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
 
 
 def update_symbol_table(target, func, symbol_table):
-    #! assume only monotone function
-    target_value = symbol_table[target]
+    # print('----before assign')
+    # show(symbol_table)
 
-    symbol_table[target].left = func(target_value.left)
-    symbol_table[target].right = func(target_value.right)
+    #! assume only monotone function
+    # target_value = symbol_table[target[0]]
+    res_target = target[0]
+    value_length = len(target)
+    left_value = P_INFINITY
+    right_value = N_INFINITY
+
+    tmp_value_list = list()
+    tmp_idx_list = list()
+    def generate_idx(value_length, str=''):
+        if len(str) == value_length:
+            tmp_idx_list.append(str)
+            return 
+        for digit in '01':
+            generate_idx(value_length, str+digit)
+    
+    generate_idx(value_length)
+    
+    for idx_guide in tmp_idx_list:
+        value_list = list()
+        for idx, i in enumerate(idx_guide):
+            if i == '0':
+                value_list.append(symbol_table[target[idx]].left)
+            else:
+                value_list.append(symbol_table[target[idx]].right)
+        tmp_value_list.append(value_list)
+    
+    tmp_res_value_list = [func(value_list) for value_list in tmp_value_list]
+
+    for tmp_res in tmp_res_value_list:
+        left_value = torch.min(left_value, tmp_res)
+        right_value = torch.max(right_value, tmp_res)
+
+    symbol_table[res_target].left = left_value
+    symbol_table[res_target].right = right_value
+
+    # value_left_list = [symbol_table[symbol].left for symbol in target]
+    # value_right_list = [symbol_table[symbol].right for symbol in target]
+
+    # symbol_table[res_target].left = func(value_left_list)
+    # symbol_table[res_target].right = func(value_right_list)
+
+    # symbol_table[res_target].left = func(target_value.left)
+    # symbol_table[res_target].right = func(target_value.right)
+
+    # print('in update symbol table --- assign')
+    # show(symbol_table)
+
 
     return symbol_table
 
@@ -196,6 +253,8 @@ def join(symbol_table_1, symbol_table_2):
     
     symbol_table['probability'] = p_out
 
+    # print('=================end join================')
+
     return symbol_table
 
 
@@ -208,17 +267,19 @@ class Ifelse:
         self.next_stmt = next_stmt
     
     def execute(self, symbol_table):
-        # print('--- in ifelse target', self.target)
+        # print('--- in ifelse target, test', self.target, self.test)
         # show(symbol_table)
 
         this_block_p = symbol_table['probability'].data.item()
         body_symbol_table = update_symbol_table_with_constraint(self.target, self.test, symbol_table, '<')
         orelse_symbol_table = update_symbol_table_with_constraint(self.target, self.test, symbol_table, '>')
         # print('after if else split', self.target)
+        # print('probability', body_symbol_table['probability'], orelse_symbol_table['probability'])
         # print('--body')
         # show(body_symbol_table)
         # print('--orelse')
         # show(orelse_symbol_table)
+
 
         if body_symbol_table['probability'].data.item() > 0.0:
             body_symbol_table = self.body.execute(body_symbol_table)
@@ -299,6 +360,8 @@ class WhileSimple:
             i_list.append(symbol_table['i'].left.data.item())
             l_list.append(symbol_table['x'].left.data.item())
             r_list.append(symbol_table['x'].right.data.item())
+
+            # print('interval', symbol_table['x'].left.data.item(), symbol_table['x'].right.data.item())
             # print('after execute')
             # show(body_symbol_table)
 
@@ -333,275 +396,3 @@ class Assign:
         symbol_table = update_symbol_table(self.target, self.value, symbol_table)
 
         return run_next_stmt(self.next_stmt, symbol_table)
-
-
-def update_symbol_table_point(target, func, symbol_table):
-    symbol_table[target] = func(target)
-
-    return symbol_table
-
-
-class AssignPoint:
-    def __init__(self, target, value, next_stmt):
-        self.target = target
-        self.value = value
-        self.next_stmt = next_stmt
-    
-    def execute(self, symbol_table):
-        symbol_table = update_symbol_table_point(self.target, self.value, symbol_table)
-
-        return run_next_stmt(self.next_stmt, symbol_table)
-
-
-class IfelsePoint:
-    def __init__(self, target, test, body, orelse, next_stmt):
-        self.target = target
-        self.test = test
-        self.body = body
-        self.orelse = orelse
-        self.next_stmt = next_stmt
-    
-
-    def execute(self, symbol_table):
-        # no smoothing
-        if self.target.data.item() < self.test.data.item():
-
-
-class WhileSimplePoint:
-    #! not a real loop, just in the form of loop to operate several if-else stmt
-    def __init__(self, target, test, body, next_stmt):
-        # TODO: implement while & test
-        self.target = target
-        self.test = test
-        self.body = body
-        self.next_stmt = next_stmt
-    
-    
-
-
-
-def initialization():
-
-    symbol_table = dict()
-    symbol_table['i'] = domain.Interval(0, 0)
-    symbol_table['x'] = domain.Interval(65.0, 75.0)
-    symbol_table['isOn'] = domain.Interval(0.0, 0.0)
-    symbol_table['probability'] = var(1.0)
-    
-    return symbol_table
-
-
-def f6(x):
-    return x.sub(var(0.1).mul(x.sub(var(60))))
-def f18(x):
-    return x.add(var(1.0))
-def f8(x):
-    return var(1.0)
-def f10(x):
-    return var(0.0)
-def f12(x):
-    return x.sub(var(0.1).mul(x.sub(var(60)))).add(var(5.0))
-
-
-def construct_syntax_tree(Theta):
-    
-    l18 = Assign('i', f18, None)
-
-    l8 = Assign('isOn', f8, None)
-    l10 = Assign('isOn', f10, None)
-    l7 = Ifelse('x', Theta, l8, l10, None)
-
-    l6 = Assign('x', f6, l7)
-
-    l14 = Assign('isOn', f8, None)
-    l16 = Assign('isOn', f10, None)
-    l13 = Ifelse('x', var(80.0), l14, l16, None)
-
-    l12 = Assign('x', f12, l13)
-    l5 = Ifelse('isOn', var(0.5), l6, l12, l18)
-
-    l4 = WhileSimple('i', var(40), l5, None)
-
-    return l4
-
-
-def distance_f_point(X, target):
-    X_length = X.getLength()
-    if target.data.item() < X.right.data.item() and target.data.item() > X.left.data.item():
-        res = C0
-    else:
-        res = torch.max(target.sub(X.right), X.left.sub(target)).div(X_length)
-    
-    return res
-
-
-def distance_f_interval(X, target):
-    intersection_interval = get_intersection(X, target)
-    if intersection_interval.isEmpty():
-        res = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
-    else:
-        res = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
-    
-    return res
-
-
-
-def show(symbol_table):
-    print('symbol table:')
-    for symbol in symbol_table:
-        if symbol == 'probability':
-            print(symbol, symbol_table[symbol])
-        else:
-            if symbol_table[symbol] is None:
-                print(symbol, 'None')
-            else:
-                print(symbol, symbol_table[symbol].left, symbol_table[symbol].right)
-    
-    return 
-
-
-def plot_func(root, Theta, ltarget):
-    original_x = list()
-    original_y = list()
-
-    left_x = list()
-    left_y = list()    
-    right_x = list()
-    right_y = list()
-
-    for i in range(640, 760, 1):
-        x = i * 1.0 / 10
-
-        Theta.data = var(x)
-
-        symbol_table = initialization()
-        symbol_table = root.execute(symbol_table)
-        f_r = symbol_table['x'].right
-        f_l = symbol_table['x'].left
-        f = distance_f_interval(symbol_table['x'], target)
-        print('theta, left, right', x, f_l.data.item(), f_r.data.item())
-
-        left_x.append(x)
-        left_y.append(f_l.data.item())
-        right_x.append(x)
-        right_y.append(f_r.data.item())
-
-        # break
-
-        original_x.append(x)
-        original_y.append(f.data.item())
-    
-    # plt.plot(smooth_x, smooth_y, label = "beta = 10^6")
-    plt.plot(original_x, original_y, label = "beta")
-    plt.xlabel('theta')
-    plt.ylabel('f(x)')
-    plt.legend()
-    plt.show()
-
-    plt.plot(left_x, left_y, label="left", marker='x')
-    plt.plot(right_x, right_y, label="right", marker='x')
-    plt.xlabel('theta')
-    plt.ylabel('Interval')
-    plt.legend()
-    plt.show()
-
-    
-
-
-'''
-# Meta-test
-class Test:
-    def __init__(self, value):
-        self.value = value
-'''
-
-if __name__ == "__main__":
-
-    lr = 0.1
-    epoch = 1000
-    Theta = var(random.uniform(55.0, 76.0), requires_grad=True)
-    derivation = var(0.0)
-    # target = var(75.0, requires_grad=True)
-    target = domain.Interval(68.0, 76.0)
-
-    root = construct_syntax_tree(Theta)
-
-    # plot_func(root, Theta, target)
-
-    # def myfunc(x, grad):
-    #     # print(x)
-    #     Theta = var(x)
-    #     root = construct_syntax_tree(Theta)
-    #     symbol_table = initialization()
-    #     symbol_table = root.execute(symbol_table)
-    #     # print(len(symbol_table_list))
-
-    #     f = distance_f_interval(symbol_table['x'], target)
-    #     print(Theta.data.item(), f.data.item())
-    #     f_value = f.data.item()
-
-    #     if abs(f_value) < epsilon_value:
-    #         raise ValueError(str(x[0]) + ',' + str(f_value))
-
-    #     return f_value
-
-    # x = np.array([66.0])
-    # opt = nlopt.opt(nlopt.GN_DIRECT, 1)
-    # opt.set_lower_bounds([55.0])
-    # opt.set_upper_bounds([76.0])
-    # opt.set_min_objective(myfunc)
-    # opt.set_stopval(0.0)
-    # opt.set_maxeval(1000)
-    # try:
-    #     x = opt.optimize(x)
-    # except ValueError as error:
-    #     error_list = str(error).split(',')
-    #     error_value = [float(err) for err in error_list]
-    #     print('theta, f', error_value[0], error_value[1])
-
-    # def myfunc(x, grad):
-    #     Theta = var(x[0], requires_grad=True)
-
-    
-    for i in range(epoch):
-        symbol_table = initialization()
-        symbol_table = root.execute(symbol_table)
-        # print('x', symbol_table['x'].left, symbol_table['x'].right)
-        f = distance_f_interval(symbol_table['x'], target)
-
-        try:
-            dTheta = torch.autograd.grad(f, Theta, retain_graph=True)
-            derivation = dTheta[0]
-            print('f, theta, dTheta:', f.data, Theta.data, derivation)
-
-            if torch.abs(f.data) < epsilon:
-                print(f.data, Theta.data)
-                break
-        
-            Theta.data += lr * (derivation.data + var(random.uniform(-5.0, 5.0)))
-        
-        except RuntimeError:
-            print('RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn')
-            if torch.abs(f.data) < epsilon:
-                print(f.data, Theta.data)
-                break
-
-            Theta.data += lr * (derivation.data + var(random.uniform(-5.0, 5.0)))
-
-    print('GOT! Loss, theta', f.data, Theta.data)
-    # show(symbol_table)
-
-
-    '''
-    # Meta-test
-    a = var(1.0)
-
-    l = Test(a)
-
-    a.data += a.data
-
-    print(l.value)
-    '''
-    
-
-

@@ -8,7 +8,6 @@ Definition of different domains
 
 """
 from helper import *
-from constants import *
 
 import torch
 import random
@@ -25,13 +24,13 @@ class Interval:
         if self.right.data.item() < self.left.data.item():
             return Variable(torch.tensor(0.0, dtype=torch.float))
         else:
-            return torch.max(EPSILON, (self.right.sub(self.left)))
+            return torch.max(epsilon, (self.right.sub(self.left)))
     
     def getVolumn(self):
         if self.right.data.item() < self.left.data.item():
             return Variable(torch.tensor(0.0, dtype=torch.float))
         else:
-            return torch.max(EPSILON, (self.right.sub(self.left)))
+            return torch.max(epsilon, (self.right.sub(self.left)))
     
     def getLeft(self):
         return self.left
@@ -53,12 +52,6 @@ class Interval:
 
     def isEmpty(self):
         if self.right.data.item() < self.left.data.item():
-            return True
-        else:
-            return False
-    
-    def isPoint(self):
-        if self.right.data.item() == self.left.data.item():
             return True
         else:
             return False

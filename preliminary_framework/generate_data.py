@@ -21,6 +21,7 @@ def therostat(x, theta):
                 isOn = 0.0
 
         i = i + 1
+        # print(x)
     
     return x
 
@@ -37,6 +38,11 @@ def therostat(x, theta):
     
 #     return pd.DataFrame(data_list, columns=['x', 'y'])
 
+y_l = therostat(71.81971304892227, 70.0)
+print(y_l)
+# y_r = therostat(75.0, 70.0)
+
+# print(y_l, y_r)
 
 
 
