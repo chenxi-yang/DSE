@@ -46,6 +46,7 @@ def pho(X, intersection):
     # print('partial_value', partial_value)
 
     return torch.min(var(1.0), partial_intersection_value)
+    # return var(1.0)
 
 
 def update_symbol_table_with_constraint(target, test, symbol_table, direct):
@@ -73,11 +74,30 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
     intersection_interval = get_intersection(target_value, constraint_interval)
     # print('intersection', intersection_interval.left, intersection_interval.right)
 
+    # if intersection_interval.isEmpty():
+    #     intersection_interval = None
+    #     probability = var(0.0)
+    # else:
+    #     if intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
+    #         intersection_interval = None
+    #         probability = var(0.0)
+    #     else:
+    #         # print('beta', f_beta(BETA))
+    #         # print('pho', pho(target_value, intersection_interval))
+    #         probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
     if intersection_interval.isEmpty():
         intersection_interval = None
         probability = var(0.0)
     else:
-        if intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
+        if target_value.isPoint():
+            if direct == '<' and target_value.right.data.item() <= constraint_interval.right.data.item():
+                probability = symbol_table['probability']
+            elif direct == '>' and target_value.left.data.item() > constraint_interval.left.data.item():
+                probability = symbol_table['probability']
+            else:
+                intersection_interval = None
+                probability = var(0.0)
+        elif intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
             intersection_interval = None
             probability = var(0.0)
         else:
@@ -102,8 +122,10 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
 #     symbol_table[target].right = func(target_value.right)
 
 #     return symbol_table
+
+
 def update_symbol_table(target, func, symbol_table):
-    # print('----before assign')
+    # print('----before assign', target)
     # show(symbol_table)
 
     #! assume only monotone function
@@ -119,7 +141,7 @@ def update_symbol_table(target, func, symbol_table):
         if len(str) == value_length:
             tmp_idx_list.append(str)
             return 
-        for digit in '01':
+        for digit in '012':
             generate_idx(value_length, str+digit)
     
     generate_idx(value_length)
@@ -129,9 +151,19 @@ def update_symbol_table(target, func, symbol_table):
         for idx, i in enumerate(idx_guide):
             if i == '0':
                 value_list.append(symbol_table[target[idx]].left)
-            else:
+            elif i == '1':
                 value_list.append(symbol_table[target[idx]].right)
+            else:
+                if symbol_table[target[idx]].left.data.item() < 0.0 and symbol_table[target[idx]].right.data.item() > 0.0:
+                    value_list.append(var(0.0))
+                else:
+                    value_list.append(symbol_table[target[idx]].right)
         tmp_value_list.append(value_list)
+    # print('value_list')
+    # for value_list in tmp_value_list:
+    #     print('value')
+    #     for value in value_list:
+    #         print(value)
     
     tmp_res_value_list = [func(value_list) for value_list in tmp_value_list]
 
@@ -246,15 +278,29 @@ def join(symbol_table_1, symbol_table_2):
     return symbol_table
 
 
+def show(symbol_table):
+    # print('=======symbol table======')
+    if symbol_table['probability'].data.item() <= 0.0:
+        print('Not Exist')
+        return 
+    for symbol in symbol_table:
+        if symbol == 'probability':
+            print(symbol, symbol_table[symbol].data.item())
+        else:
+            print(symbol, symbol_table[symbol].left.data.item(), symbol_table[symbol].right.data.item())
+    return 
+
 def show_symbol_tabel_list(symbol_table_list):
     print('symbol table list:', len(symbol_table_list))
     # l_min = 100000
     # r_max = -10000
     for symbol_table in symbol_table_list:
-        p = symbol_table['probability'].data.item()
-        l = symbol_table['x'].left.data.item()
-        r = symbol_table['x'].right.data.item()
-        print('probability: ' + str(p) + ', interval: ' + str(l) + ',' + str(r))
+        show(symbol_table)
+        # p = symbol_table['probability'].data.item()
+        # l = symbol_table['x'].left.data.item()
+        # r = symbol_table['x'].right.data.item()
+
+        # print('probability: ' + str(p) + ', interval: ' + str(l) + ',' + str(r))
 
 
 class Ifelse:
@@ -266,8 +312,8 @@ class Ifelse:
         self.next_stmt = next_stmt
     
     def execute(self, symbol_table_list):
-        # print('--- in ifelse target', self.target)
-        # show(symbol_table)
+        # print('--- in ifelse target, test', self.target, self.test)
+        # show_symbol_tabel_list(symbol_table_list)
         res_symbol_table_list = list()
 
         for symbol_table in symbol_table_list:
@@ -276,9 +322,9 @@ class Ifelse:
             orelse_symbol_table_list = update_symbol_table_with_constraint(self.target, self.test, symbol_table, '>')
             # print('after if else split', self.target)
             # print('--body')
-            # show(body_symbol_table)
+            # show_symbol_tabel_list(body_symbol_table_list)
             # print('--orelse')
-            # show(orelse_symbol_table)
+            # show_symbol_tabel_list(orelse_symbol_table_list)
 
             if body_symbol_table_list[0]['probability'].data.item() > 0.0:
                 body_symbol_table_list = self.body.execute(body_symbol_table_list)
@@ -313,6 +359,8 @@ class Ifelse:
             # show(symbol_table)
 
             # print('---end if')
+        # print('end if')
+        # show_symbol_tabel_list(res_symbol_table_list)
 
         return run_next_stmt(self.next_stmt, res_symbol_table_list)
 
@@ -365,6 +413,7 @@ class WhileSimple:
             
                 body_symbol_table_list = self.body.execute([body_symbol_table])
 
+                # print('------------in while')
                 # show_symbol_tabel_list(body_symbol_table_list)
                 for tmp_body_symbol_table in body_symbol_table_list:
                     idx = int(tmp_body_symbol_table['i'].left.data.item())
@@ -397,7 +446,8 @@ class WhileSimple:
         # plt.legend()
         # plt.show()
         # show_symbol_tabel_list(res_symbol_table_list)
-
+        # print('while end')
+        # show_symbol_tabel_list(res_symbol_table_list)
         return run_next_stmt(self.next_stmt, res_symbol_table_list)
 
 
@@ -412,3 +462,13 @@ class Assign:
             symbol_table_list[idx] = update_symbol_table(self.target, self.value, symbol_table)
 
         return run_next_stmt(self.next_stmt, symbol_table_list)
+
+
+# class While:
+    # def __init__(self, target, test, body, next_stmt):
+    #     self.target = target
+    #     self.test = test
+    #     self.body = body
+    #     self.next_stmt = next_stmt
+    
+    # def exectue(self, symbol_table_list):

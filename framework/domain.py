@@ -18,18 +18,18 @@ from torch.autograd import Variable
 
 class Interval:
     def __init__(self, left=0.0, right=0.0):
-        self.left = Variable(torch.tensor(left, dtype=torch.float))
-        self.right = Variable(torch.tensor(right, dtype=torch.float))
+        self.left = var(left)
+        self.right = var(right)
     
     def getLength(self):
         if self.right.data.item() < self.left.data.item():
-            return Variable(torch.tensor(0.0, dtype=torch.float))
+            return var(0.0)
         else:
             return torch.max(EPSILON, (self.right.sub(self.left)))
     
     def getVolumn(self):
         if self.right.data.item() < self.left.data.item():
-            return Variable(torch.tensor(0.0, dtype=torch.float))
+            return var(0.0)
         else:
             return torch.max(EPSILON, (self.right.sub(self.left)))
     
@@ -40,7 +40,7 @@ class Interval:
         return self.right
 
     def getCenter(self):
-        C = Variable(torch.tensor(2.0, dtype=torch.float))
+        C = var(2.0)
         return (self.left.add(self.right)).div(C)
 
     def equal(self, interval_2):

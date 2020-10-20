@@ -41,7 +41,8 @@ def show_tmp_x_y(symbol_table):
 
 # For multiple inputs
 def update_symbol_table_point(target, func, symbol_table):
-
+    # if func.__name__ in ['f2', 'f17', 'f32']:
+    #     print(func.__name__)
     # show_symbol_table_point(symbol_table, '352')
     # print('line42-', symbol_table['i'])
     res_target = target[0]
@@ -61,7 +62,8 @@ def update_symbol_table_point(target, func, symbol_table):
     
     # show_symbol_table_point(res_symbol_table, '361')
     # print('line55-', symbol_table['i'])
-    # print(res_symbol_table[res_target])
+    # if func.__name__ in ['f2', 'f17', 'f32']:
+    #     print(res_symbol_table[res_target])
 
     return res_symbol_table
 
@@ -80,16 +82,17 @@ class AssignPoint:
 
 
 class IfelsePoint:
-    def __init__(self, target, test, body, orelse, next_stmt):
+    def __init__(self, target, test, f, body, orelse, next_stmt):
         self.target = target
         self.test = test
         self.body = body
         self.orelse = orelse
         self.next_stmt = next_stmt
+        self.f = f
     
     def execute(self, symbol_table):
         # print('if-else target', self.target)
-        if symbol_table[self.target].data.item() < self.test.data.item():
+        if symbol_table[self.target].data.item() < self.f(self.test).data.item():
             symbol_table = self.body.execute(symbol_table)
         else:
             symbol_table = self.orelse.execute(symbol_table)
@@ -108,7 +111,7 @@ class WhileSimplePoint:
     
     def execute(self, symbol_table):
         while(symbol_table[self.target].data.item() < self.test.data.item()):
-            # print('WhileSimplePoint: i, x, stage', symbol_table['i'], symbol_table['x'], symbol_table['stage'])
+            # print('WhileSimplePoint: i, x, stage', symbol_table['i'], symbol_table['x1'], symbol_table['y1'], symbol_table['x2'], symbol_table['y2'], symbol_table['dist'])
             symbol_table = self.body.execute(symbol_table)
             # print('WhileSimplePoint: i, x, stage', symbol_table['i'], symbol_table['x'], symbol_table['stage'])
             # show_tmp_x_y(symbol_table)
@@ -116,6 +119,32 @@ class WhileSimplePoint:
         
         return run_next_stmt(self.next_stmt, symbol_table)
 
+
+class WhilePoint:
+    def __init__(self, target, test, body, next_stmt):
+        self.target = target
+        self.test = test
+        self.body = body
+        self.next_stmt = next_stmt
+    
+    def execute(self, symbol_table):
+        # Protection Mechanism
+        count = 0
+        # print('stage', symbol_table['stage'].data.item())
+        # print('in WHilepoint', symbol_table['x1'].data.item(), symbol_table['tau'].data.item())
+ 
+        while(symbol_table[self.target].data.item() < self.test.data.item()):
+            # print('in WhilePoint', symbol_table[self.target].data.item(), symbol_table['v0'].data.item())
+            symbol_table = self.body.execute(symbol_table)
+            count += 1
+            if count > PROTECTION_LOOP_NUM:
+                break
+        #     print('count, stage', count, symbol_table['stage'].data.item())
+        # # #     # print('in WHilepoint', symbol_table['u'].data.item(), symbol_table['v'].data.item(), symbol_table['w'].data.item(), symbol_table['s'].data.item())
+        #     print('in WHilepoint', symbol_table['x1'].data.item(), symbol_table['tau'].data.item())
+        # print('out WHilepoint', symbol_table['x1'].data.item(), symbol_table['tau'].data.item())
+
+        return run_next_stmt(self.next_stmt, symbol_table)
 
 '''
 tanh smooth of if-else branch
@@ -165,16 +194,17 @@ class AssignPointSmooth:
 
 
 class IfelsePointSmooth:
-    def __init__(self, target, test, body, orelse, next_stmt):
+    def __init__(self, target, test, f, body, orelse, next_stmt):
         self.target = target
         self.test = test
         self.body = body
         self.orelse = orelse
         self.next_stmt = next_stmt
+        self.f = f
     
     def execute(self, symbol_table):
 
-        w_body, w_orelse = cal_branch_weight(self.target, self.test, symbol_table)
+        w_body, w_orelse = cal_branch_weight(self.target, self.f(self.test), symbol_table)
 
         symbol_table_body = self.body.execute(symbol_table)
         symbol_table_orelse = self.orelse.execute(symbol_table)
@@ -198,4 +228,38 @@ class WhileSimplePointSmooth:
             # print('WhileSimplePointSmooth: i, x', symbol_table['i'], symbol_table['x'])
             symbol_table = self.body.execute(symbol_table)
         
+        return run_next_stmt(self.next_stmt, symbol_table)
+    
+
+class WhilePointSmooth:
+    #! not a real loop, just in the form of loop to operate several if-else stmt
+    def __init__(self, target, test, body, next_stmt):
+        # TODO: implement while & test
+        self.target = target
+        self.test = test
+        self.body = body
+        self.next_stmt = next_stmt
+    
+    def execute(self, symbol_table):
+        # print('in while point smooth')
+        # Protection Mechanism
+        count = 0
+
+        while(symbol_table[self.target].data.item() < self.test.data.item()):
+            # print('in while point smooth', count)
+            # print(symbol_table[self.target].data.item(), symbol_table['v0'].data.item())
+            # print('h0', 'v0', symbol_table['h0'].data.item(), symbol_table['v0'].data.item())
+            # w_body, w_orelse = cal_branch_weight(self.target, self.test, symbol_table)
+            # symbol_table_body = self.body.execute(symbol_table)
+            # symbol_table = smooth_branch(symbol_table_body, symbol_table, w_body, w_orelse)
+            symbol_table = self.body.execute(symbol_table)
+            # print('h0', 'v0', symbol_table['h0'].data.item(), symbol_table['v0'].data.item())
+            count += 1
+            if count > PROTECTION_LOOP_NUM:
+                break
+        
+        w_body, w_orelse = cal_branch_weight(self.target, self.test, symbol_table)
+        symbol_table_body = self.body.execute(symbol_table)
+        symbol_table = smooth_branch(symbol_table_body, symbol_table, w_body, w_orelse)
+    
         return run_next_stmt(self.next_stmt, symbol_table)

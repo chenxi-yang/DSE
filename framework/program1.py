@@ -56,7 +56,7 @@ if MODE == 1:
         symbol_table['isOn'] = domain.Interval(0.0, 0.0)
         symbol_table['probability'] = var(1.0)
 
-        symbol_table['res'] = var(0.0)
+        symbol_table['res'] = domain.Interval(0.0, 0.0)
         
         return symbol_table    
 
@@ -104,9 +104,8 @@ def construct_syntax_tree(Theta):
     l12 = Assign(['x'], f12, l13)
     l5 = Ifelse('isOn', var(0.5), l6, l12, l18)
 
-    l4 = WhileSimple('i', var(40.0), l5, l19)
-
     l19 = Assign(['res', 'x'], f19, None)
+    l4 = WhileSimple('i', var(40.0), l5, l19)
 
     tree_dict = dict()
     tree_dict['entry'] = l4
@@ -132,8 +131,8 @@ def construct_syntax_tree_point(Theta):
     l12 = AssignPoint(['x'], f12, l13)
     l5 = IfelsePoint('isOn', var(0.5), l6, l12, l18)
 
-    l4 = WhileSimplePoint('i', var(40), l5, l19)
     l19 = AssignPoint(['res', 'x'], f19, None)
+    l4 = WhileSimplePoint('i', var(40), l5, l19)
 
     tree_dict = dict()
     tree_dict['entry'] = l4
@@ -159,8 +158,9 @@ def construct_syntax_tree_smooth_point(Theta):
     l12 = AssignPointSmooth(['x'], f12, l13)
     l5 = IfelsePointSmooth('isOn', var(0.5), l6, l12, l18)
 
-    l4 = WhileSimplePointSmooth('i', var(40.0), l5, l19)
+
     l19 = AssignPoint(['res', 'x'], f19, None)
+    l4 = WhileSimplePointSmooth('i', var(40.0), l5, l19)
 
     tree_dict = dict()
     tree_dict['entry'] = l4

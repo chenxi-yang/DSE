@@ -44,7 +44,10 @@ def show_symbol_tabel_list(symbol_table_list):
         l = symbol_table['x'].left.data.item()
         r = symbol_table['x'].right.data.item()
         i = symbol_table['i'].right.data.item()
-        print('i: ' + str(i) + 'probability: ' + str(p) + ', interval: ' + str(l) + ',' + str(r))
+        # isOn_l = symbol_table['isOn'].left.data.item()
+        # isOn_r = symbol_table['isOn'].right.data.item()
+
+        print('i: ' + str(i) + 'probability: ' + str(p) + ', interval: ' + str(l) + ',' + str(r))#  + ', isOn: ' + str(isOn_l) + ',' + str(isOn_r))
 
 
 def show(symbol_table):
@@ -99,12 +102,34 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
     intersection_interval = get_intersection(target_value, constraint_interval)
     # print('intersection', intersection_interval.left, intersection_interval.right)
 
+    # if intersection_interval.isEmpty():
+    #     intersection_interval = None
+    #     probability = var(0.0)
+    #     return None
+    # else:
+    #     if intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
+    #         intersection_interval = None
+    #         probability = var(0.0)
+    #         return None
+    #     else:
+    #         # print('beta', f_beta(BETA))
+    #         # print('pho', pho(target_value, intersection_interval))
+    #         probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
     if intersection_interval.isEmpty():
         intersection_interval = None
         probability = var(0.0)
         return None
     else:
-        if intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
+        if target_value.isPoint():
+            if direct == '<' and target_value.right.data.item() <= constraint_interval.right.data.item():
+                probability = symbol_table['probability']
+            elif direct == '>' and target_value.left.data.item() > constraint_interval.left.data.item():
+                probability = symbol_table['probability']
+            else:
+                intersection_interval = None
+                probability = var(0.0)
+                return None
+        elif intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
             intersection_interval = None
             probability = var(0.0)
             return None
@@ -160,7 +185,7 @@ def update_symbol_table_list_with_constraint(target, test, symbol_table_list, di
 #     return symbol_table
 
 def update_symbol_table(target, func, symbol_table):
-    # print('----before assign')
+    # print('----before assign', target)
     # show(symbol_table)
 
     #! assume only monotone function
@@ -176,7 +201,7 @@ def update_symbol_table(target, func, symbol_table):
         if len(str) == value_length:
             tmp_idx_list.append(str)
             return 
-        for digit in '01':
+        for digit in '012':
             generate_idx(value_length, str+digit)
     
     generate_idx(value_length)
@@ -186,9 +211,19 @@ def update_symbol_table(target, func, symbol_table):
         for idx, i in enumerate(idx_guide):
             if i == '0':
                 value_list.append(symbol_table[target[idx]].left)
-            else:
+            elif i == '1':
                 value_list.append(symbol_table[target[idx]].right)
+            else:
+                if symbol_table[target[idx]].left.data.item() < 0.0 and symbol_table[target[idx]].right.data.item() > 0.0:
+                    value_list.append(var(0.0))
+                else:
+                    value_list.append(symbol_table[target[idx]].right)
         tmp_value_list.append(value_list)
+    # print('value_list')
+    # for value_list in tmp_value_list:
+    #     print('value')
+    #     for value in value_list:
+    #         print(value)
     
     tmp_res_value_list = [func(value_list) for value_list in tmp_value_list]
 
@@ -314,6 +349,8 @@ def join(symbol_table_1, symbol_table_2):
 
 #TODO: join list
 def join_list(symbol_table_list):
+    # print('=========== join list ===========')
+    # show_symbol_tabel_list(symbol_table_list)
     target_symbol_list = list()
     res_symbol_table = dict()
 
@@ -321,7 +358,7 @@ def join_list(symbol_table_list):
     for symbol in first_symbol_table:
         if symbol == 'probability':
             continue
-        if all(first_symbol_table[symbol].equal(symbol_table[symbol]) for symbol_table in symbol_table_list):
+        if all([first_symbol_table[symbol].equal(symbol_table[symbol]) for symbol_table in symbol_table_list]):
             res_symbol_table[symbol] = first_symbol_table[symbol]
         else:
             target_symbol_list.append(symbol)
@@ -362,12 +399,19 @@ def join_list(symbol_table_list):
                 target_list[idx] = target
         else:
             for idx, target in enumerate(target_list):
-                target.left = c_prime_list[idx].sub(l_prime[idx].div(var(2.0)))
-                target.right = c_prime_list[idx].add(l_prime[idx].div(var(2.0)))
+                if target.isPoint():
+                    target.left = c_prime_list[idx]
+                    target.right = c_prime_list[idx]
+                else:
+                    target.left = c_prime_list[idx].sub(l_prime_list[idx].div(var(2.0)))
+                    target.right = c_prime_list[idx].add(l_prime_list[idx].div(var(2.0)))
                 target_list[idx] = target
         
         res_symbol_table[symbol] = get_overapproximation_list(target_list)
     res_symbol_table['probability'] = p_out
+
+    # show_symbol_tabel_list([res_symbol_table])
+    # print('===========end join list===========')
     
     return res_symbol_table
 
@@ -395,7 +439,8 @@ class Ifelse:
     
     def execute(self, symbol_table_list):
         # print('--- in ifelse target', self.target)
-        # show(symbol_table)
+        # show_symbol_tabel_list(symbol_table_list)
+
         res_symbol_table_list = list()
         body_symbol_table_list = update_symbol_table_list_with_constraint(self.target, self.test, symbol_table_list, '<')
         orelse_symbol_table_list = update_symbol_table_list_with_constraint(self.target, self.test, symbol_table_list, '>')
@@ -407,6 +452,9 @@ class Ifelse:
         if len(orelse_symbol_table_list) > 0:
             orelse_symbol_table_list = self.orelse.execute(orelse_symbol_table_list)
             res_symbol_table_list.extend(orelse_symbol_table_list)
+        
+        # print('len res', len(res_symbol_table_list))
+        # show_symbol_tabel_list(res_symbol_table_list)
         
         if len(res_symbol_table_list) > K_DISJUNCTS:
             symbol_table_list_to_join_list = divide_list(res_symbol_table_list, K_DISJUNCTS)
@@ -421,6 +469,8 @@ class Ifelse:
                 # print('after join')
                 # show(symbol_table_list_after_join)
                 res_symbol_table_list.append(symbol_table_list_after_join)
+        # print('len res after join', len(res_symbol_table_list))
+        # show_symbol_tabel_list(res_symbol_table_list)
 
         return run_next_stmt(self.next_stmt, res_symbol_table_list)
 

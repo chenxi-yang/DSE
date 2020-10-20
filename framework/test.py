@@ -54,7 +54,7 @@ def eval(X, Y, theta, target, category):
     quan_dist = quan_dist.div(len(X))
     # symbol_table_rep = initialization(x_l, x_r)
     # symbol_table_rep = root.execute(symbol_table_rep)
-    # print('real y interval', y_min, y_max)
+    print('real y interval', y_min, y_max)
     safe_res = domain.Interval(safe_min, safe_max)
     safe_dist = check_safety(safe_res, target)
 

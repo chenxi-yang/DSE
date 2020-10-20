@@ -53,7 +53,7 @@ def f_beta(beta):
 
 
 def pho(X, intersection):
-    partial_intersection_value = intersection.getVolumn().div(X.getVolumn())
+    # partial_intersection_value = intersection.getVolumn().div(X.getVolumn())
     # if partial_intersection_value.data.item() < 0.5:
     #     partial_value = partial_intersection_value.div(f_beta(BETA))
     # else:
@@ -74,11 +74,14 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
         if symbol == 'probability':
             res_symbol_table[symbol] = var(symbol_table[symbol].data.item())
         else:
+            # print(symbol)
             res_symbol_table[symbol] = domain.Interval(symbol_table[symbol].left.data.item(), symbol_table[symbol].right.data.item())
     
     target_value = res_symbol_table[target]
     # print('------in constraint')
+    # show(symbol_table)
     # print('target-name', target)
+    # print('test', test)
     # print('constraint', target_value.left, target_value.right, test)
     # print('direct', direct)
     # print('probability', symbol_table['probability'])
@@ -95,7 +98,15 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
         intersection_interval = None
         probability = var(0.0)
     else:
-        if intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
+        if target_value.isPoint():
+            if direct == '<' and target_value.right.data.item() <= constraint_interval.right.data.item():
+                probability = symbol_table['probability']
+            elif direct == '>' and target_value.left.data.item() > constraint_interval.left.data.item():
+                probability = symbol_table['probability']
+            else:
+                intersection_interval = None
+                probability = var(0.0)
+        elif intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
             intersection_interval = None
             probability = var(0.0)
         else:
@@ -106,7 +117,8 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
     res_symbol_table[target] = intersection_interval
     res_symbol_table['probability'] = probability
     # print('probability', res_symbol_table['probability'])
-    # print('final intersection', intersection_interval)
+    # # print('final intersection', intersection_interval)
+    # show(res_symbol_table)
     # print('------out constraint')
 
     return res_symbol_table
@@ -129,7 +141,7 @@ def update_symbol_table(target, func, symbol_table):
         if len(str) == value_length:
             tmp_idx_list.append(str)
             return 
-        for digit in '01':
+        for digit in '012':
             generate_idx(value_length, str+digit)
     
     generate_idx(value_length)
@@ -139,8 +151,13 @@ def update_symbol_table(target, func, symbol_table):
         for idx, i in enumerate(idx_guide):
             if i == '0':
                 value_list.append(symbol_table[target[idx]].left)
-            else:
+            elif i == '1':
                 value_list.append(symbol_table[target[idx]].right)
+            else:
+                if symbol_table[target[idx]].left.data.item() < 0.0 and symbol_table[target[idx]].left.data.item() > 0.0:
+                    value_list.append(var(0.0))
+                else:
+                    value_list.append(symbol_table[target[idx]].right)
         tmp_value_list.append(value_list)
     
     tmp_res_value_list = [func(value_list) for value_list in tmp_value_list]
