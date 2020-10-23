@@ -47,14 +47,16 @@ def eval(X, Y, theta, target, category):
         y_min = min(real_y, y_min)
         y_max = max(real_y, y_max)
 
-        safe_property = symbol_table_point['x'].data.item()
-        safe_min = min(safe_property, safe_min)
-        safe_max = max(safe_property, safe_max)
+        safe_property_min = symbol_table_point['x_min'].data.item()
+        safe_property_max = symbol_table_point['x_max'].data.item()
+        safe_min = min(safe_property_min, safe_min)
+        safe_max = max(safe_property_max, safe_max)
 
     quan_dist = quan_dist.div(len(X))
     # symbol_table_rep = initialization(x_l, x_r)
     # symbol_table_rep = root.execute(symbol_table_rep)
     print('real y interval', y_min, y_max)
+    print('real x interval', safe_min, safe_max)
     safe_res = domain.Interval(safe_min, safe_max)
     safe_dist = check_safety(safe_res, target)
 

@@ -24,16 +24,17 @@ c = 1
 k = 1
 
 PROTECTION_LOOP_NUM = 999
+PROTECTION_LOOP_NUM_SMOOTH = 999
 
 N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)
 
 INTERVAL_BETA = var(1.0) # 2.0
-POINT_BETA = var(10.0) # 10.0
+POINT_BETA = var(100.0) # 10.0
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
 
-CURRENT_PROGRAM = 'program7' # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program6' # 'program_test_disjunction_2'
 
 # PROGRAM #1
 # x_l = [65.0]
@@ -101,25 +102,35 @@ CURRENT_PROGRAM = 'program7' # 'program_test_disjunction_2'
 # safe_r = 26.48
 
 # PROGRAM_6
-# x_l = [0.0, 0.0, 0.0, 0.0]
-# x_r = [2.0, 2.0, 2.0, 2.0]
-# target_theta = 0.3
-# theta_l = 0.0
-# theta_r = 0.4
-# safe_l = 0.3 # N_INFINITY.data.item()
-# safe_r = 2.0
+x_l = [0.0, 0.0, 0.0, 0.0]
+x_r = [2.0, 2.0, 2.0, 2.0]
+target_theta = 0.3
+theta_l = 0.0
+theta_r = 2.0
+safe_l = 0.0 # N_INFINITY.data.item()
+safe_r = 2.0
 
 #PROGRAM_7
-x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
-x_r = [0.1, 0.0, 0.0, 2.0, 2.5, 2.0]
-target_theta = 3.0
-theta_l = 2.0
-theta_r = 5.0
-safe_l = -1.05
-safe_r = 1.05
+# x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
+# x_r = [0.1, 0.0, 0.0, 2.0, 2.5, 2.0]
+# target_theta = 4.2
+# theta_l = 2.0
+# theta_r = 5.0
+# safe_l = -2.61 #-0.4
+# safe_r = 1.905 #0.5
+
+# #PROGRAM_8
+# x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
+# x_r = [0.1, 0.0, 0.0, 2.0, 2.5, 2.0]
+# target_theta = 4.2
+# theta_l = 2.0
+# theta_r = 5.0
+# safe_l = -2.61 #-0.4
+# safe_r = 1.905 #0.5
 
 dataset_size = 50
 lambda_ = 100.0
 
 eta = 10.0
 gamma = 0.55
+alpha_coeff = 0.9

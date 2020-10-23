@@ -102,7 +102,7 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
 
     for i in range(k):
         theta = theta_l + i * unit
-        # theta = 4.0
+        # theta = 2.914
         Theta = var(theta)
         root = construct_syntax_tree(Theta)
         symbol_table_list = initialization(x_l, x_r)
@@ -119,13 +119,15 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
             x, y = x, y_train[idx]
             # x = [11.747363060439167]
 
-            # print(x, y)/
+            # print(x, y)
             symbol_table_point = initialization_point(x)
             symbol_table_point = root_point['entry'].execute(symbol_table_point)
             # print('finish point')
             symbol_table_smooth_point = initialization_point(x)
             symbol_table_smooth_point = root_smooth_point['entry'].execute(symbol_table_smooth_point)
-            # print('finish smooth')
+            # print(x, y)
+            # print('finish smooth', symbol_table_smooth_point['res'])
+            # exit(0)
 
             f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
             y_l = torch.min(symbol_table_point['x_min'], y_l)
@@ -133,6 +135,8 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
             # exit(0)
         print('====finish smooth point computing')
         f = f.div(var(len(X_train)))
+        print('point dist', f.data.item())
+        # exit(0)
         
         symbol_table_list = root['entry'].execute(symbol_table_list)
         print('====final intervals====', len(symbol_table_list))
@@ -141,7 +145,7 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
         penalty_f = distance_f_interval(symbol_table_list, target)
 
         print(theta, f.data.item(), penalty_f.data.item(), approximate_result_safety_l, approximate_result_safety_r, y_l.data.item(), y_r.data.item())
-        exit(0)
+        # exit(0)
 
         theta_list.append(theta)
         quan_f_list.append(f.data.item())
@@ -196,6 +200,7 @@ def direct(X_train, y_train, theta_l, theta_r, target, stop_val, epoch):
             f = f.add(distance_f_point(symbol_table_point['res'], var(y)))
         f = f.div(var(len(X_train)))
         print('quantitive f', f.data.item())
+        # exit(0)
 
         symbol_table_list = root['entry'].execute(symbol_table_list)
         # show_symbol_tabel_list(symbol_table_list)
@@ -253,7 +258,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, stop_val, epoch,
     loss_list = list()
 
     Theta = var(random.uniform(theta_l, theta_r), requires_grad=True)
-    # Theta = var(5.744149849687007, requires_grad=True)
+    # Theta = var(2.933, requires_grad=True)
     root = construct_syntax_tree(Theta)
     root_smooth_point = construct_syntax_tree_smooth_point(Theta)
     root_point = construct_syntax_tree_point(Theta)

@@ -131,7 +131,7 @@ class WhilePoint:
         # Protection Mechanism
         count = 0
         # print('stage', symbol_table['stage'].data.item())
-        # print('in WHilepoint', symbol_table['x1'].data.item(), symbol_table['tau'].data.item())
+        # print('in WHilepoint', symbol_table['x_min'].data.item(), symbol_table['x_max'].data.item())
  
         while(symbol_table[self.target].data.item() < self.test.data.item()):
             # print('in WhilePoint', symbol_table[self.target].data.item(), symbol_table['v0'].data.item())
@@ -140,9 +140,9 @@ class WhilePoint:
             if count > PROTECTION_LOOP_NUM:
                 break
         #     print('count, stage', count, symbol_table['stage'].data.item())
-        # # #     # print('in WHilepoint', symbol_table['u'].data.item(), symbol_table['v'].data.item(), symbol_table['w'].data.item(), symbol_table['s'].data.item())
-        #     print('in WHilepoint', symbol_table['x1'].data.item(), symbol_table['tau'].data.item())
-        # print('out WHilepoint', symbol_table['x1'].data.item(), symbol_table['tau'].data.item())
+        # # # #     # print('in WHilepoint', symbol_table['u'].data.item(), symbol_table['v'].data.item(), symbol_table['w'].data.item(), symbol_table['s'].data.item())
+        #     print('in WHilepoint', symbol_table['x_min'].data.item(), symbol_table['x_max'].data.item())
+        # print('out WHilepoint', symbol_table['x_min'].data.item(), symbol_table['x_max'].data.item())
 
         return run_next_stmt(self.next_stmt, symbol_table)
 
@@ -152,7 +152,7 @@ e = (1-\alpha)e1 + \alpha e2
 \alpha = 0.5*(1 + tanh((e - test)*beta))
 '''
 def cal_branch_weight(target, test, symbol_table):
-    # print('target, test', symbol_table[target].data.item(), test.data.item())
+    # print('-------cal weight target, test', symbol_table[target].data.item(), test.data.item())
     
     diff = symbol_table[target].sub(test)
     alpha = var(0.5).mul(var(1.0).add(torch.tanh(f_beta_smooth_point(POINT_BETA).mul(diff))))
@@ -203,13 +203,22 @@ class IfelsePointSmooth:
         self.f = f
     
     def execute(self, symbol_table):
+        # if 'stage' in self.target:
+        # print('target, test', self.target, self.test)
+        # print('before smooth', symbol_table['x1'].data.item(), symbol_table['tau'].data.item(), symbol_table['stage'].data.item())
 
         w_body, w_orelse = cal_branch_weight(self.target, self.f(self.test), symbol_table)
 
         symbol_table_body = self.body.execute(symbol_table)
         symbol_table_orelse = self.orelse.execute(symbol_table)
 
+        # if 'stage' in self.target:
+        # print('symbol_table_body', symbol_table_body['x1'].data.item(), symbol_table_body['tau'].data.item(), symbol_table_body['stage'].data.item())
+        # print('symbol_table_orelse', symbol_table_orelse['x1'].data.item(), symbol_table_orelse['tau'].data.item(), symbol_table_orelse['stage'].data.item())
+        # print('weights', w_body, w_orelse)
         symbol_table = smooth_branch(symbol_table_body, symbol_table_orelse, w_body, w_orelse)
+        # if 'stage' in self.target:
+        # print('after smooth symbol_table', symbol_table['x1'].data.item(), symbol_table['tau'].data.item(), symbol_table['stage'].data.item())
         
         return run_next_stmt(self.next_stmt, symbol_table)
 
@@ -227,7 +236,7 @@ class WhileSimplePointSmooth:
         while(symbol_table[self.target].data.item() < self.test.data.item()):
             # print('WhileSimplePointSmooth: i, x', symbol_table['i'], symbol_table['x'])
             symbol_table = self.body.execute(symbol_table)
-        
+    
         return run_next_stmt(self.next_stmt, symbol_table)
     
 
@@ -255,8 +264,12 @@ class WhilePointSmooth:
             symbol_table = self.body.execute(symbol_table)
             # print('h0', 'v0', symbol_table['h0'].data.item(), symbol_table['v0'].data.item())
             count += 1
-            if count > PROTECTION_LOOP_NUM:
+            if count > PROTECTION_LOOP_NUM_SMOOTH:
                 break
+            # print('count, stage', count, symbol_table['stage'].data.item())
+        # #     # print('in WHilepoint', symbol_table['u'].data.item(), symbol_table['v'].data.item(), symbol_table['w'].data.item(), symbol_table['s'].data.item())
+            # print('in WHileSmoothPoint', symbol_table['x1'].data.item(), symbol_table['tau'].data.item())
+        # print('out WHileSmoothPoint', symbol_table['x1'].data.item(), symbol_table['tau'].data.item())
         
         w_body, w_orelse = cal_branch_weight(self.target, self.test, symbol_table)
         symbol_table_body = self.body.execute(symbol_table)

@@ -56,7 +56,7 @@ epi_tw2m = var(15.0)
 epi_ts1 = var(2.7342)
 epi_ts2 = var(16.0)
 epi_tfi = var(0.11)
-epi_to1 = var(0.0055)
+epi_to1 = var(0.0055)# var(0.0055)
 epi_to2 = var(6)
 epi_tso1 = var(30.0181)
 epi_tso2 = var(0.9957)
@@ -80,7 +80,7 @@ epi_uo = var(0.0)
 epi_uu = var(1.55)
 epi_uso = var(0.65)
 
-delta_t = var(0.01)
+delta_t = var(0.001)
 
 jfi1 = var(0.0)
 jsi1 = var(0.0)
@@ -171,9 +171,9 @@ def f28(x):
 def construct_syntax_tree(Theta):
 
     # set up t, x, res
-    l35 = Assign(['res', 'v'], f_equal, None)
-    l34 = Assign(['x_min', 'u'], f_min, l35)
-    l33 = Assign(['x_max', 'u'], f_max, l34)
+    l35 = Assign(['res', 'u'], f_equal, None)
+    l34 = Assign(['x_min', 'w'], f_min, l35)
+    l33 = Assign(['x_max', 'w'], f_max, l34)
     l32 = Assign(['t'], f_add_one, l33)
 
     l31 = Assign(['stage'], f_stage_4, None)
@@ -187,8 +187,8 @@ def construct_syntax_tree(Theta):
     l24 = Assign(['stage'], f_stage_4, None)
     l23 = Assign(['stage'], f_stage_3, None)
     l22_1 = Assign(['stage'], f_stage_2, None)
-    l22_0 = Ifelse('u', var(0.013), fself, l22_1, l23, None)
-    l22 = Ifelse('u', Theta, fself, l22_0, l24, None)
+    # l22_0 = Ifelse('u', var(0.013), fself, l22_1, l23, None)
+    l22 = Ifelse('u', Theta, fself, l23, l24, None)
     l21 = Assign(['s', 'u'], f21, l22)
     l20 = Assign(['v'], f20, l21)
     l19 = Assign(['w'], f19, l20)
@@ -198,8 +198,8 @@ def construct_syntax_tree(Theta):
     l16 = Assign(['stage'], f_stage_3, None)
     l15 = Assign(['stage'], f_stage_2, None)
     l14_1 = Assign(['stage'], f_stage_1, None)
-    l14_0 = Ifelse('u', var(0.005), fself, l14_1, l15, None)
-    l14 = Ifelse('u', var(0.013), fself, l14_0, l16, None)
+    # l14_0 = Ifelse('u', var(0.005), fself, l14_1, l15, None)
+    l14 = Ifelse('u', var(0.013), fself, l15, l16, None)
     l13 = Assign(['s', 'u'], f13, l14)
     l12 = Assign(['v'], f12, l13)
     l11 = Assign(['w', 'u'], f11, l12)
@@ -208,14 +208,14 @@ def construct_syntax_tree(Theta):
 
     l8 = Assign(['stage'], f_stage_2, None)
     l7 = Assign(['stage'], f_stage_1, None)
-    l6 = Ifelse('u', var(0.005), fself, l7, l8, None)
+    l6 = Ifelse('u', var(0.006), fself, l7, l8, None)
     l5 = Assign(['s', 'u'], f5, l6)
     l4 = Assign(['v'], f4, l5)
     l3 = Assign(['w', 'u'], f3, l4)
     l2 = Assign(['u'], f2, l3)
     l1 = Ifelse('stage', var(1.0), fself, l2, l9, l32) # in model1
 
-    l0 = WhileSample('stage', var(3.0), l1, None)
+    l0 = WhileSample('t', var(8), l1, None)
 
     tree_dict = dict()
     tree_dict['entry'] = l0
@@ -227,9 +227,9 @@ def construct_syntax_tree(Theta):
 def construct_syntax_tree_point(Theta):
 
     # set up t, x, res
-    l35 = AssignPoint(['res', 'v'], f_equal, None)
-    l34 = AssignPoint(['x_min', 'u'], f_min, l35)
-    l33 = AssignPoint(['x_max', 'u'], f_max, l34)
+    l35 = AssignPoint(['res', 'u'], f_equal, None)
+    l34 = AssignPoint(['x_min', 'w'], f_min, l35)
+    l33 = AssignPoint(['x_max', 'w'], f_max, l34)
     l32 = AssignPoint(['t'], f_add_one, l33)
 
     l31 = AssignPoint(['stage'], f_stage_4, None)
@@ -243,8 +243,8 @@ def construct_syntax_tree_point(Theta):
     l24 = AssignPoint(['stage'], f_stage_4, None)
     l23 = AssignPoint(['stage'], f_stage_3, None)
     l22_1 = AssignPoint(['stage'], f_stage_2, None)
-    l22_0 = IfelsePoint('u', var(0.013), fself, l22_1, l23, None)
-    l22 = IfelsePoint('u', Theta, fself, l22_0, l24, None) # the condition in the third stage
+    # l22_0 = IfelsePoint('u', var(0.013), fself, l22_1, l23, None)
+    l22 = IfelsePoint('u', Theta, fself, l23, l24, None) # the condition in the third stage
     l21 = AssignPoint(['s', 'u'], f21, l22)
     l20 = AssignPoint(['v'], f20, l21)
     l19 = AssignPoint(['w'], f19, l20)
@@ -254,8 +254,8 @@ def construct_syntax_tree_point(Theta):
     l16 = AssignPoint(['stage'], f_stage_3, None)
     l15 = AssignPoint(['stage'], f_stage_2, None)
     l14_1 = AssignPoint(['stage'], f_stage_1, None)
-    l14_0 = IfelsePoint('u', var(0.005), fself, l14_1, l15, None)
-    l14 = IfelsePoint('u', var(0.013), fself, l14_0, l16, None)
+    # l14_0 = IfelsePoint('u', var(0.005), fself, l14_1, l15, None)
+    l14 = IfelsePoint('u', var(0.013), fself, l15, l16, None)
     l13 = AssignPoint(['s', 'u'], f13, l14)
     l12 = AssignPoint(['v'], f12, l13)
     l11 = AssignPoint(['w', 'u'], f11, l12)
@@ -264,14 +264,14 @@ def construct_syntax_tree_point(Theta):
 
     l8 = AssignPoint(['stage'], f_stage_2, None)
     l7 = AssignPoint(['stage'], f_stage_1, None)
-    l6 = IfelsePoint('u', var(0.005), fself, l7, l8, None)
+    l6 = IfelsePoint('u', var(0.006), fself, l7, l8, None)
     l5 = AssignPoint(['s', 'u'], f5, l6)
     l4 = AssignPoint(['v'], f4, l5)
     l3 = AssignPoint(['w', 'u'], f3, l4)
     l2 = AssignPoint(['u'], f2, l3)
     l1 = IfelsePoint('stage', var(1.0), fself, l2, l9, l32) # in model1
 
-    l0 = WhilePoint('stage', var(3.0), l1, None)
+    l0 = WhilePoint('stage', var(8), l1, None)
 
     tree_dict = dict()
     tree_dict['entry'] = l0
@@ -283,9 +283,9 @@ def construct_syntax_tree_point(Theta):
 def construct_syntax_tree_smooth_point(Theta):
 
     # set up t, x, res
-    l35 = AssignPointSmooth(['res', 'v'], f_equal, None)
-    l34 = AssignPointSmooth(['x_min', 'u'], f_min, l35)
-    l33 = AssignPointSmooth(['x_max', 'u'], f_max, l34)
+    l35 = AssignPointSmooth(['res', 'u'], f_equal, None)
+    l34 = AssignPointSmooth(['x_min', 'w'], f_min, l35)
+    l33 = AssignPointSmooth(['x_max', 'w'], f_max, l34)
     l32 = AssignPointSmooth(['t'], f_add_one, l33)
 
     l31 = AssignPointSmooth(['stage'], f_stage_4, None)
@@ -299,8 +299,8 @@ def construct_syntax_tree_smooth_point(Theta):
     l24 = AssignPointSmooth(['stage'], f_stage_4, None)
     l23 = AssignPointSmooth(['stage'], f_stage_3, None)
     l22_1 = AssignPointSmooth(['stage'], f_stage_2, None)
-    l22_0 = IfelsePointSmooth('u', var(0.013), fself, l22_1, l23, None)
-    l22 = IfelsePointSmooth('u', Theta, fself, l22_0, l24, None) # the condition in the third stage
+    # l22_0 = IfelsePointSmooth('u', var(0.013), fself, l22_1, l23, None)
+    l22 = IfelsePointSmooth('u', Theta, fself, l23, l24, None) # the condition in the third stage
     l21 = AssignPointSmooth(['s', 'u'], f21, l22)
     l20 = AssignPointSmooth(['v'], f20, l21)
     l19 = AssignPointSmooth(['w'], f19, l20)
@@ -310,8 +310,8 @@ def construct_syntax_tree_smooth_point(Theta):
     l16 = AssignPointSmooth(['stage'], f_stage_3, None)
     l15 = AssignPointSmooth(['stage'], f_stage_2, None)
     l14_1 = AssignPointSmooth(['stage'], f_stage_1, None)
-    l14_0 = IfelsePointSmooth('u', var(0.005), fself, l14_1, l15, None)
-    l14 = IfelsePointSmooth('u', var(0.013), fself, l14_0, l16, None)
+    # l14_0 = IfelsePointSmooth('u', var(0.005), fself, l14_1, l15, None)
+    l14 = IfelsePointSmooth('u', var(0.013), fself, l15, l16, None)
     l13 = AssignPointSmooth(['s', 'u'], f13, l14)
     l12 = AssignPointSmooth(['v'], f12, l13)
     l11 = AssignPointSmooth(['w', 'u'], f11, l12)
@@ -320,14 +320,14 @@ def construct_syntax_tree_smooth_point(Theta):
 
     l8 = AssignPointSmooth(['stage'], f_stage_2, None)
     l7 = AssignPointSmooth(['stage'], f_stage_1, None)
-    l6 = IfelsePointSmooth('u', var(0.005), fself, l7, l8, None)
+    l6 = IfelsePointSmooth('u', var(0.006), fself, l7, l8, None)
     l5 = AssignPointSmooth(['s', 'u'], f5, l6)
     l4 = AssignPointSmooth(['v'], f4, l5)
     l3 = AssignPointSmooth(['w', 'u'], f3, l4)
     l2 = AssignPointSmooth(['u'], f2, l3)
     l1 = IfelsePointSmooth('stage', var(1.0), fself, l2, l9, l32) # in model1
 
-    l0 = WhilePointSmooth('stage', var(3.0), l1, None)
+    l0 = WhilePointSmooth('stage', var(8), l1, None)
 
     tree_dict = dict()
     tree_dict['entry'] = l0

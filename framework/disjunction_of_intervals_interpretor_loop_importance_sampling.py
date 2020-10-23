@@ -247,13 +247,23 @@ def check_eql_var(x, y):
 
 
 def update_symbol_table(target, func, symbol_table):
-    # if func.__name__ in ['f2', 'f17', 'f32']:
-    #     print('target', target)
-    #     print('func name', func.__name__)
-    #     print(symbol_table[target[0]].left, symbol_table[target[0]].right)
-    #     print('tau', symbol_table['tau'].left, symbol_table['tau'].right)
-
     res_target = target[0]
+    # if res_target == 'u':
+    #     print(func.__name__, symbol_table['u'].left.data.item(), symbol_table['u'].right.data.item())
+
+    if func.__name__ in ['f_min', 'f_max']:
+        symbol_table[res_target].left = func([symbol_table[res_target].left, symbol_table[target[1]].left])
+        # torch.min(symbol_table[target[1]].left, symbol_table[res_target].left)
+        symbol_table[res_target].right = func([symbol_table[res_target].right, symbol_table[target[1]].right])
+        return symbol_table
+
+        # symbol_table[res_target].right = torch.min(symbol_table[target[1]].left, symbol_table[res_target].left)
+        # print('target', target)
+        # print('func name', func.__name__)
+        # print(symbol_table[target[0]].left, symbol_table[target[0]].right)
+        # print('x1', symbol_table[target[1]].left, symbol_table[target[1]].right)
+        # llll = symbol_table[target[0]].left.data.item()
+        # print('tau', symbol_table['tau'].left, symbol_table['tau'].right)
 
     def list2tensorl(x_list):
         value_list = list()
@@ -286,11 +296,17 @@ def update_symbol_table(target, func, symbol_table):
     symbol_table[res_target].left = func(x_min_list)
     symbol_table[res_target].right = func(x_max_list)
     # print('bnds', bnds)
-    # if func.__name__ in ['f2', 'f17', 'f32']:
+    # if func.__name__ in ['f_min']:
     #     # print('target', target)
     #     # print('func name', func.__name__)
     #     # print(symbol_table[target].left, symbol_table[target].right)
     #     print('result', symbol_table[res_target].left.data.item(), symbol_table[res_target].right.data.item())
+    #     llll_res = symbol_table[res_target].left.data.item()
+    #     if llll_res > llll:
+    #         print('BOOOOOOOOOOOOOOM!')
+    #         exit(0)
+    # if res_target == 'u':
+    #     print(func.__name__, symbol_table['u'].left.data.item(), symbol_table['u'].right.data.item())
 
     return symbol_table
 
@@ -409,8 +425,8 @@ def show_symbol_tabel_list(symbol_table_list):
         l = symbol_table['x_min'].left.data.item()
         r = symbol_table['x_max'].right.data.item()
         # i = symbol_table['i'].right.data.item()
-        isOn_l = symbol_table['x1'].left.data.item()
-        isOn_r = symbol_table['x1'].right.data.item()
+        isOn_l = symbol_table['u'].left.data.item()
+        isOn_r = symbol_table['u'].right.data.item()
 
         print('stage: ', str(stage))
         print('probability: ' + str(p) + ', interval: ' + str(l) + ',' + str(r)  + ', x1: ' + str(isOn_l) + ',' + str(isOn_r))
@@ -793,7 +809,7 @@ class WhileSample:
         while len(symbol_table_list) > 0:
             # show_symbol_tabel_list(res_symbol_table_list)
             # print('target', self.target)
-            # print('disjunction K: ', len(symbol_table_list))
+            # # print('disjunction K: ', len(symbol_table_list))
             # show_symbol_tabel_list(symbol_table_list)
             path_probability_list = [symbol_table['probability'] for symbol_table in symbol_table_list]
 
