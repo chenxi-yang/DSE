@@ -8,6 +8,7 @@ MODE = 5
 K_DISJUNCTS = 10000000
 SAMPLE_SIZE = 500
 SAMPLE_METHOD = 4
+DOMAIN= = 'interval' # [interval, zonotope]
 if MODE == 3: 
     MODE_NAME = mode_list[MODE] + '-' + 'Disjunct_' + str(K_DISJUNCTS) 
 elif MODE == 4:

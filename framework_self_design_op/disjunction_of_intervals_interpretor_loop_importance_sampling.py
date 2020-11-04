@@ -64,21 +64,11 @@ def f_beta(beta):
 
 def pho(X, intersection):
     partial_intersection_value = intersection.getVolumn().div(X.getVolumn())
-    # if partial_intersection_value.data.item() < 0.5:
-    #     partial_value = partial_intersection_value.div(f_beta(BETA))
-    # else:
-    #     partial_value = var(1.0).sub((var(1.0).sub(partial_intersection_value)).div(f_beta(BETA)))
-
-    # partial_value = intersection.getVolumn().div(X.getVolumn().mul(f_beta(BETA)))
-    # print('partial_value', partial_value)
-
-    #! Importance Sampling
-    # partial_intersection_value = partial_intersection_value.mul(partial_intersection_value)
 
     return torch.min(var(1.0), partial_intersection_value)
-    # return var(1.0)
 
 
+# TODO: adapt to different domains
 def update_symbol_table_with_constraint(target, test, symbol_table, direct):
     constraint_interval = domain.Interval(-10000.0, 10000.0)
     res_symbol_table = dict()
@@ -94,13 +84,6 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
             res_symbol_table[symbol] = domain.Interval(symbol_table[symbol].left.data.item(), symbol_table[symbol].right.data.item())
     
     target_value = res_symbol_table[target]
-    # if test.data.item() <= 6.00:
-    #     print(test)
-    # print('------in constraint')
-    # print('target-name', target)
-    # print('constraint', target_value.left.data.item(), target_value.right.data.item(), test.data.item(), direct)
-    # print('direct', direct)
-    # print('probability', symbol_table['probability'])
 
     if direct == '<':
         constraint_interval.right = test
@@ -110,19 +93,6 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
     intersection_interval = get_intersection(target_value, constraint_interval)
     # print('intersection', intersection_interval.left, intersection_interval.right)
 
-    # if intersection_interval.isEmpty():
-    #     intersection_interval = None
-    #     probability = var(0.0)
-    #     return None
-    # else:
-    #     if intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
-    #         intersection_interval = None
-    #         probability = var(0.0)
-    #         return None
-    #     else:
-    #         # print('beta', f_beta(BETA))
-    #         # print('pho', pho(target_value, intersection_interval))
-    #         probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
     if intersection_interval.isEmpty():
         intersection_interval = None
         probability = var(0.0)
@@ -142,19 +112,11 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
             probability = var(0.0)
             # return None
         else:
-            # print('beta', f_beta(BETA))
-            # print('pho', pho(target_value, intersection_interval))
             probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
 
     res_symbol_table[target] = intersection_interval
     res_symbol_table['probability'] = probability
     res_symbol_table['explore_probability'] = res_symbol_table['probability']
-    # print('probability', res_symbol_table['probability'])
-    # if intersection_interval is not None:
-    #     print('final intersection', intersection_interval.left.data.item(), intersection_interval.right.data.item())
-    # else:
-    #     print('final intersection', 'None')
-    # print('------out constraint')
 
     return res_symbol_table
 
@@ -173,11 +135,10 @@ def update_symbol_table_list_with_constraint(target, test, symbol_table_list, di
     return res_symbol_table_list
 
 
-def update_symbol_table_test(target, func, symbol_table):
+def update_symbol_table_before(target, func, symbol_table):
     # print('----before assign', target)
     # print(symbol_table)
 
-    #! assume only monotone function
     # target_value = symbol_table[target[0]]
     res_target = target[0]
     value_length = len(target)
@@ -209,11 +170,6 @@ def update_symbol_table_test(target, func, symbol_table):
                 else:
                     value_list.append(symbol_table[target[idx]].right)
         tmp_value_list.append(value_list)
-    # print('value_list')
-    # for value_list in tmp_value_list:
-    #     print('value')
-    #     for value in value_list:
-    #         print(value)
     
     tmp_res_value_list = [func(value_list) for value_list in tmp_value_list]
 
@@ -224,18 +180,6 @@ def update_symbol_table_test(target, func, symbol_table):
     symbol_table[res_target].left = left_value
     symbol_table[res_target].right = right_value
 
-    # value_left_list = [symbol_table[symbol].left for symbol in target]
-    # value_right_list = [symbol_table[symbol].right for symbol in target]
-
-    # symbol_table[res_target].left = func(value_left_list)
-    # symbol_table[res_target].right = func(value_right_list)
-
-    # symbol_table[res_target].left = func(target_value.left)
-    # symbol_table[res_target].right = func(target_value.right)
-
-    # print('in update symbol table --- assign')
-    # show(symbol_table)
-
     return symbol_table
 
 
@@ -245,157 +189,12 @@ def check_eql_var(x, y):
     else:
         return False
 
-
+# TODO: should adapt to other domains
 def update_symbol_table(target, func, symbol_table):
     res_target = target[0]
-    # if res_target == 'u':
-    #     print(func.__name__, symbol_table['u'].left.data.item(), symbol_table['u'].right.data.item())
-
-    if func.__name__ in ['f_min', 'f_max']:
-        symbol_table[res_target].left = func([symbol_table[res_target].left, symbol_table[target[1]].left])
-        # torch.min(symbol_table[target[1]].left, symbol_table[res_target].left)
-        symbol_table[res_target].right = func([symbol_table[res_target].right, symbol_table[target[1]].right])
-        return symbol_table
-
-        # symbol_table[res_target].right = torch.min(symbol_table[target[1]].left, symbol_table[res_target].left)
-        # print('target', target)
-        # print('func name', func.__name__)
-        # print(symbol_table[target[0]].left, symbol_table[target[0]].right)
-        # print('x1', symbol_table[target[1]].left, symbol_table[target[1]].right)
-        # llll = symbol_table[target[0]].left.data.item()
-        # print('tau', symbol_table['tau'].left, symbol_table['tau'].right)
-
-    def list2tensorl(x_list):
-        value_list = list()
-        for x in x_list:
-            value_list.append(var(x))
-        return value_list
-
-    fun_min = lambda x: func(list2tensorl(x)).data.item()
-    fun_max = lambda x: func(list2tensorl(x)).mul(var(-1.0)).data.item()
-    bnds = [(symbol_table[name].left.data.item(), symbol_table[name].right.data.item()) for name in target]
-    ini = [0.0 for i in target]
-    res_min = minimize(fun_min, ini, method='SLSQP', bounds=bnds)
-    res_max = minimize(fun_max, ini, method='SLSQP', bounds=bnds)
-
-    x_min_list = [var(i) for i in res_min.x]
-    x_max_list = [var(i) for i in res_max.x]
-
-    for idx, name in enumerate(target):
-        symbol = symbol_table[name]
-        if check_eql_var(x_min_list[idx], symbol.left):
-            x_min_list[idx] = symbol.left
-        elif check_eql_var(x_min_list[idx], symbol.right):
-            x_min_list[idx] = symbol.right
-        
-        if check_eql_var(x_max_list[idx], symbol.left):
-            x_max_list[idx] = symbol.left
-        elif check_eql_var(x_max_list[idx], symbol.right):
-            x_max_list[idx] = symbol.right
-
-    symbol_table[res_target].left = func(x_min_list)
-    symbol_table[res_target].right = func(x_max_list)
-    # print('bnds', bnds)
-    # if func.__name__ in ['f_min']:
-    #     # print('target', target)
-    #     # print('func name', func.__name__)
-    #     # print(symbol_table[target].left, symbol_table[target].right)
-    #     print('result', symbol_table[res_target].left.data.item(), symbol_table[res_target].right.data.item())
-    #     llll_res = symbol_table[res_target].left.data.item()
-    #     if llll_res > llll:
-    #         print('BOOOOOOOOOOOOOOM!')
-    #         exit(0)
-    # if res_target == 'u':
-    #     print(func.__name__, symbol_table['u'].left.data.item(), symbol_table['u'].right.data.item())
-
-    return symbol_table
-
-
-def get_overapproximation(interval1, interval2):
-    res_interval = domain.Interval()
-    res_interval.left = torch.min(interval1.left, interval2.left)
-    res_interval.right = torch.max(interval1.right, interval2.right)
-
-    return res_interval 
-
-
-def join(symbol_table_1, symbol_table_2):
-    #! assume only one symbol change each time
-
-    target_symbol_list = list()
-    symbol_table = dict()
-    for symbol in symbol_table_1:
-        if symbol == 'probability':
-            continue
-
-        if symbol_table_1[symbol] is None or (not symbol_table_1[symbol].equal(symbol_table_2[symbol])):
-                target_symbol_list.append(symbol)
-                continue
-        symbol_table[symbol] = symbol_table_1[symbol]
     
-    # print('isOn')
-    # print(symbol_table_1['isOn'].left, symbol_table_1['isOn'].right)
-    # print(symbol_table_2['isOn'].left, symbol_table_2['isOn'].right)
-    
-    p1 = symbol_table_1['probability']
-    p2 = symbol_table_2['probability']
-
-    if p1.data.item() <= 0.0:
-        return symbol_table_2
-    if p2.data.item() <= 0.0:
-        return symbol_table_1
-    # print('p1, p2', p1, p2)
-
-    p_out = torch.min(p1.add(p2), var(1.0))
-    
-    for target_symbol in target_symbol_list:
-        
-        target1 = symbol_table_1[target_symbol]
-        target2 = symbol_table_2[target_symbol]
-
-        # print('target', target_symbol)
-        # print(target1.left, target1.right)
-        # print(target2.left, target2.right)
-
-        if target1 is None:
-            symbol_table[target_symbol] = target2
-            continue
-        elif target2 is None:
-            symbol_table[target_symbol] = target1
-            continue
-
-        c1 = target1.getCenter()
-        c2 = target2.getCenter()
-
-        c_out = (p1.mul(c1)).add(p2.mul(c2)).div(p1.add(p2))
-
-        p1_prime = p1.div(torch.max(p1, p2))
-        p2_prime = p2.div(torch.max(p1, p2))
-
-        c1_prime = p1_prime.mul(c1).add((var(1.0).sub(p1_prime)).mul(c_out))
-        c2_prime = p2_prime.mul(c2).add((var(1.0).sub(p2_prime)).mul(c_out))
-
-        l1_prime = p1_prime.mul(target1.getLength())
-        l2_prime = p2_prime.mul(target2.getLength())
-
-        if target1.left.data.item() == target1.right.data.item() and target2.left.data.item() == target2.right.data.item():
-            target1.left = c1_prime
-            target1.right = c1_prime
-            target2.left = c2_prime
-            target2.right = c2_prime
-        else:
-            target1.left = c1_prime.sub(l1_prime.div(var(2.0)))
-            target1.right = c1_prime.add(l1_prime.div(var(2.0)))
-            target2.left = c2_prime.sub(l2_prime.div(var(2.0)))
-            target2.right = c2_prime.add(l2_prime.div(var(2.0)))
-        # print('Join')
-        # print('target1', target1.left, target1.right)
-        # print('target2', target2.left, target2.right)
-
-        symbol_table[target_symbol] = get_overapproximation(target1, target2)
-    
-    symbol_table['probability'] = p_out
-    symbol_table['explore_probability'] = symbol_table['probability']
+    instance_list = [symbol_table[symbol] for symbol in target]
+    symbol_table[res_target] = func(instance_list)
 
     return symbol_table
 
@@ -414,6 +213,7 @@ def show(symbol_table):
 
 
 def show_symbol_tabel_list(symbol_table_list):
+    # TODO: should adapt to other domains
     print('symbol table list:', len(symbol_table_list))
     # l_min = 100000
     # r_max = -10000
@@ -445,6 +245,7 @@ def divide_list(l, k):
 
 
 def get_overapproximation_list(interval_list):
+    # TODO: should adapt to other domains
     res_interval = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
 
     for interval in interval_list:
@@ -455,6 +256,7 @@ def get_overapproximation_list(interval_list):
 
 
 def join_list(symbol_table_list):
+    # TODO: should adapt to other domains
     # print('=========== join list ===========')
     # show_symbol_tabel_list(symbol_table_list)
     target_symbol_list = list()
@@ -535,6 +337,7 @@ def check_sampling(symbol_table):
 
 
 def get_score_gradient(x_list, x, target):
+    # TODO: adpat to different domains
     # print('score gradient', x.right.data.item(), x_list[0].right.data.item())
     # if x.right.data.item() > 15.0:
     #     print(x.right, target.right)
@@ -542,16 +345,9 @@ def get_score_gradient(x_list, x, target):
     x_score = distance_interval(x, target)
     # print('before loop')
     for x_interval in x_list:
-
         score = score.add(x_score.sub(distance_interval(x_interval, target)))
-        # if x.right.data.item() > 15.0:
-        #     print('score in list', score)
-    # print('after loop')
     score.div(var(len(x_list)))
 
-    # if score.data.item() > 0.0:
-    #     print('score gradient', score)
-    
     return score
 
 
@@ -577,6 +373,7 @@ def adapt_sampling_distribution(res_symbol_table_list):
         score_list = list()
         for res_symbol_table in res_symbol_table_list:
             x = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
+            # TODO: should adapt to different domains
             x.left = torch.min(res_symbol_table['x_min'].left, res_symbol_table['x_max'].left)
             x.right = torch.max(res_symbol_table['x_min'].right, res_symbol_table['x_max'].right)
             score_list.append(get_score_gradient(res_symbol_table['x_memo_list'], x, target))
@@ -705,24 +502,6 @@ class WhileSimple:
         body_symbol_table = update_symbol_table_with_constraint(self.target, self.test, symbol_table_list[0], '<')
         # orelse_symbol_table = update_symbol_table_with_constraint(self.target, self.test, symbol_table, '>')
 
-        i_list = list()
-        l_list = list() 
-        r_list = list()
-
-        l_list = [100000 for i in range(41)]
-        r_list = [-100000 for i in range(41)]
-
-        l_list[0] = symbol_table_list[0]['x'].left.data.item()
-        r_list[0] = symbol_table_list[0]['x'].right.data.item()
-        i_list = [i for i in range(41)]
-
-        # i_list.append(symbol_table['i'].left.data.item())
-        # l_list.append(symbol_table['x'].left.data.item())
-        # r_list.append(symbol_table['x'].right.data.item())
-        # print('11111, pro', body_symbol_table['probability'].data.item(), (var(1.0).div(f_beta(BETA))).data.item())
-
-        #! if body_symbol_table['probability'].data.item() == (var(1.0).div(f_beta(BETA))).data.item():
-        #     print('111-----------------------------this block p', this_block_p)
         body_symbol_table[0]['probability'] = var(1.0)
 
         symbol_table_queue = queue.Queue()
@@ -777,6 +556,7 @@ class Assign:
         for idx, symbol_table in enumerate(symbol_table_list):
             if self.target == 'x':
                 if len(symbol_table_list[idx]['x_memo_list']) >= k:
+                    #TODO: adapt to all domains
                     x = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
                     x.left = torch.min(res_symbol_table['x_min'].left, res_symbol_table['x_max'].left)
                     x.right = torch.max(res_symbol_table['x_min'].right, res_symbol_table['x_max'].right)
