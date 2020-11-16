@@ -25,8 +25,8 @@ if MODE in [2,3,4,5]:
         if len(X_list) == 0:
             res = var(1.0)
         for X_table in X_list:
-            X_min = X_table['x_min']
-            X_max = X_table['x_max']
+            X_min = X_table['x_min'].getInterval()
+            X_max = X_table['x_max'].getInterval()
             pi = X_table['probability']
             p = X_table['explore_probability']
             # print('pi, p', pi.data.item(), p.data.item())
@@ -58,8 +58,8 @@ if MODE in [2,3,4,5]:
         res_l, res_r = P_INFINITY, N_INFINITY
         for symbol_table in symbol_table_list:
             # X = symbol_table['x']
-            res_l = torch.min(res_l, symbol_table['x_min'].left)
-            res_r = torch.max(res_r, symbol_table['x_max'].right)
+            res_l = torch.min(res_l, symbol_table['x_min'].getInterval().left)
+            res_r = torch.max(res_r, symbol_table['x_max'].getInterval().right)
         
         return res_l.data.item(), res_r.data.item()
 
@@ -319,7 +319,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, stop_val, epoch,
             if torch.abs(derivation.data) < EPSILON:
                 Theta.data.fill_(random.uniform(theta_l, theta_r))
                 continue
-            Theta.data -= lr * (derivation.data + var(random.uniform(-1.0, 1.0)))
+            Theta.data -= lr * (derivation.data + var(random.uniform(-noise, noise)))
             print('deriavation, theta ', derivation.data.item(), Theta.data.item())
         
         except RuntimeError:

@@ -29,7 +29,29 @@ if MODE == 5:
             return symbol_table_list
     
     if DOMAIN == "zonotope":
-        pass
+        def initialization(x_l, x_r):
+            symbol_table_list = list()
+            symbol_table = dict()
+            symbol_table['u'] = domain.Interval(x_l[0], x_r[0]).getZonotope()
+            symbol_table['w'] = domain.Interval(x_l[1], x_r[1]).getZonotope()
+            symbol_table['v'] = domain.Interval(x_l[2], x_r[2]).getZonotope()
+            symbol_table['s'] = domain.Interval(x_l[3], x_r[3]).getZonotope()
+            symbol_table['stage'] = domain.Interval(0.5, 0.5).getZonotope()
+            symbol_table['t'] = domain.Interval(0.0, 0.0).getZonotope()
+
+            symbol_table['res'] = domain.Interval(0.0, 0.0).getZonotope()
+            symbol_table['x_max'] = domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item()).getZonotope()
+            symbol_table['x_min'] = domain.Interval(P_INFINITY.data.item(), P_INFINITY.data.item()).getZonotope()
+
+            # calculate in the domain of interval
+            symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())])
+            symbol_table['probability'] = var(1.0)
+            symbol_table['explore_probability'] = var(1.0)
+
+            symbol_table_list.append(symbol_table)
+
+            return symbol_table_list
+        
 
  
 def initialization_point(x):
