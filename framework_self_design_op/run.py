@@ -25,16 +25,16 @@ if __name__ == "__main__":
 
     X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=50, target_theta=target_theta, test_size=0.33)
 
-    # # # res_theta, loss, loss_list = direct(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000)
-    # res_theta, loss, loss_list = gd_direct_noise(X_train, y_train, theta_l, theta_r, target, stop_val=0.01, epoch=1000, lr=0.00001)
-    # # # res_theta, loss, loss_list = gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000, lr=0.1)
-    # # # res_theta, loss, loss_list = gd(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000, lr=0.1)
+    # # res_theta, loss, loss_list = direct(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000)
+    res_theta, loss, loss_list = gd_direct_noise(X_train, y_train, theta_l, theta_r, target, stop_val=0.01, epoch=1000, lr=0.00001)
+    # # res_theta, loss, loss_list = gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000, lr=0.1)
+    # # res_theta, loss, loss_list = gd(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000, lr=0.1)
 
-    # eval(X_train, y_train, res_theta, target, 'train')
-    # eval(X_test, y_test, res_theta, target, 'test')
+    eval(X_train, y_train, res_theta, target, 'train')
+    eval(X_test, y_test, res_theta, target, 'test')
 
     # # TEST
-    test(X_train, y_train, theta_l, theta_r, target)
+    # test(X_train, y_train, theta_l, theta_r, target)
 
 
 
