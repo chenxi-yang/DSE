@@ -130,8 +130,8 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
             # exit(0)
 
             f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
-            y_l = torch.min(y, y_l)
-            y_r = torch.max(y, y_r)
+            y_l = torch.min(var(y), y_l)
+            y_r = torch.max(var(y), y_r)
             # exit(0)
         print('====finish smooth point computing')
         f = f.div(var(len(X_train)))
