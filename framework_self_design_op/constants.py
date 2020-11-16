@@ -118,10 +118,10 @@ CURRENT_PROGRAM = 'program7' # 'program_test_disjunction_2'
 x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
 x_r = [0.1, 0.0, 0.0, 2.0, 2.5, 2.0]
 target_theta = 4.2
-theta_l = 4.2
+theta_l = 2.0
 theta_r = 5.0
-safe_l = -2.61 #-0.4
-safe_r = 1.905 #0.5
+safe_l = -4.20 #-0.4
+safe_r = 3.97 #0.5
 
 # #PROGRAM_8
 # x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]

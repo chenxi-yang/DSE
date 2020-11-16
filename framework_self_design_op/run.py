@@ -23,7 +23,7 @@ def test(X_train, y_train, theta_l, theta_r, target):
 if __name__ == "__main__":
     target = domain.Interval(safe_l, safe_r)
 
-    X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=500, target_theta=target_theta, test_size=0.33)
+    X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=50, target_theta=target_theta, test_size=0.33)
 
     # # # res_theta, loss, loss_list = direct(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000)
     # res_theta, loss, loss_list = gd_direct_noise(X_train, y_train, theta_l, theta_r, target, stop_val=0.01, epoch=1000, lr=0.00001)
