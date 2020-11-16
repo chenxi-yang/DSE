@@ -106,7 +106,7 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
         Theta = var(theta)
         root = construct_syntax_tree(Theta)
         symbol_table_list = initialization(x_l, x_r)
-        # root_point = construct_syntax_tree_point(Theta)
+        root_point = construct_syntax_tree_point(Theta)
         root_smooth_point = construct_syntax_tree_smooth_point(Theta)
 
         f = var(0.0)
@@ -120,8 +120,8 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
             # x = [11.747363060439167]
 
             # print(x, y)
-            # symbol_table_point = initialization_point(x)
-            # symbol_table_point = root_point['entry'].execute(symbol_table_point)
+            symbol_table_point = initialization_point(x)
+            symbol_table_point = root_point['entry'].execute(symbol_table_point)
             # print('finish point')
             symbol_table_smooth_point = initialization_point(x)
             symbol_table_smooth_point = root_smooth_point['entry'].execute(symbol_table_smooth_point)
@@ -130,8 +130,8 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
             # exit(0)
 
             f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
-            y_l = torch.min(var(y), y_l)
-            y_r = torch.max(var(y), y_r)
+            y_l = torch.min(symbol_table_point['x_min'], y_l)
+            y_r = torch.max(symbol_table_point['x_max'], y_r)
             # exit(0)
         print('====finish smooth point computing')
         f = f.div(var(len(X_train)))
