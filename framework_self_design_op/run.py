@@ -17,7 +17,7 @@ from program7 import *
 
 
 def test(X_train, y_train, theta_l, theta_r, target):
-    plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=5)
+    plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=50)
 
 
 if __name__ == "__main__":
