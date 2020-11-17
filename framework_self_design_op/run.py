@@ -21,7 +21,7 @@ def test(X_train, y_train, theta_l, theta_r, target):
     plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=50)
 
 
-def eval(X_train, y_train, theta_l, theta_r, target, stop_val, epoch=1000, lr=0.00001):
+def evaluation(X_train, y_train, theta_l, theta_r, target, stop_val, epoch=1000, lr=0.00001):
     # # res_theta, loss, loss_list = direct(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000)
     res_theta, loss, loss_list, q, c = gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=stop_val, epoch=1000, lr=lr)
     # # res_theta, loss, loss_list = gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000, lr=0.1)
@@ -44,8 +44,9 @@ if __name__ == "__main__":
     # add for lambda
     # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 
+
     # Eval
-    eval(X_train, y_train, theta_l, theta_r, target, stop_val=stop_val, lr=lr)
+    evaluation(X_train, y_train, theta_l, theta_r, target, stop_val=stop_val, lr=lr)
     
 
     # # TEST
