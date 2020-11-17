@@ -86,7 +86,10 @@ if __name__ == "__main__":
         _, l_max = best_lambda(X_train, y_train, theta_t)
         _, l_min = best_theta(X_train, y_train, lambda_t)
 
-        if torch.abs(l_max.sub(l_min)).data.item < w:
+        print('-------------------------------')
+        print('l_max, l_min', l_max.data.item(), l_min.data.item())
+
+        if (torch.abs(l_max.sub(l_min))).data.item < w:
             # return theta_t, lambda_t
             break
         
