@@ -6,6 +6,7 @@ def get_parser():
     p = argparse.ArgumentParser()
     p.add_argument("--lr", default=0.000001, type=float, help="learning rate")
     p.add_argument("--stop_val", default=0.05, type=float, help="error for stoping")
+    p.add_argument("--t_epoch", default=10, type=int, help="epoch for lambda")
 
     return p
 

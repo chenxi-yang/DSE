@@ -37,6 +37,7 @@ INTERVAL_BETA = var(1.0) # 2.0
 POINT_BETA = var(100.0) # 10.0
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
+B = var(100) # the range of lambda
 
 CURRENT_PROGRAM = 'program7' # 'program_test_disjunction_2'
 
@@ -137,6 +138,8 @@ safe_r = 3.97 #0.5
 # args
 dataset_size = 50
 lambda_ = 100.0
+
+w = 0.1
 
 eta = 10.0
 gamma = 0.55

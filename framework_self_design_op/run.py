@@ -31,11 +31,28 @@ def evaluation(X_train, y_train, theta_l, theta_r, target, stop_val, epoch=1000,
     eval(X_test, y_test, res_theta, target, 'test')
 
 
+def best_lambda(X_train, y_train, theta):
+    c = cal_c(X_train, y_train, theta)
+    q = cal_q(X_train, y_train, theta)
+
+    if c.data.item() <= 0.0:
+        res_lambda = var(0.0)
+    else:
+        res_lambda = B
+    return res_lambda, q.add(res_lambda.mul(c)) # lambda, L_max
+
+
+def best_theta(X_train, y_train, lambda_):
+    theta, loss, loss_list, q, c = gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=stop_val, epoch=1000, lr=lr)
+
+    return theta, loss
+
 
 if __name__ == "__main__":
     args = get_args()
     lr = args.lr
     stop_val = args.stop_val
+    t_epoch = args.t_epoch
 
     # data points generation
     target = domain.Interval(safe_l, safe_r)
@@ -43,10 +60,49 @@ if __name__ == "__main__":
 
     # add for lambda
     # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
+    lambda_list = list()
+    theta_list = list()
+    q = var(0.0)
+
+    for t in range(t_epoch):
+        new_lambda = B.mul(q.exp().div(var(1.0).add(q.exp())))
+
+        # BEST_theta(lambda)
+        theta, loss, loss_list, q, c = gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=new_lambda, stop_val=stop_val, epoch=1000, lr=lr)
+        
+        lambda_list.append(new_lambda)
+        theta_list.append(theta)
+
+        theta_t = var(0.0)
+        for i in theta_list:
+            theta_t = theta_t.add(i)
+        theta_t = theta_t.div(var(len(theta_list)))
+
+        lambda_t = var(0.0)
+        for i in lambda_list:
+            lambda_t = lambda_t.add(i)
+        lambda_t = lambda_t.div(var(len(lambda_list)))
+
+        _, l_max = best_lambda(X_train, y_train, theta_t)
+        _, l_min = best_theta(X_train, y_train, lambda_t)
+
+        if torch.abs(l_max.sub(l_min)).data.item < w:
+            # return theta_t, lambda_t
+            break
+        
+        q = q.add(var(lr).mul(cal_c(X_train, y_train, theta)))
+
+    eval(X_train, y_train, theta_t, target, 'train')
+    eval(X_test, y_test, theta_t, target, 'test')
+
+
+
+
+
 
 
     # Eval
-    evaluation(X_train, y_train, theta_l, theta_r, target, stop_val=stop_val, lr=lr)
+    # evaluation(X_train, y_train, theta_l, theta_r, target, stop_val=stop_val, lr=lr)
     
 
     # # TEST

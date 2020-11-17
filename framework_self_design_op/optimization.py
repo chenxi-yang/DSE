@@ -248,7 +248,7 @@ def direct(X_train, y_train, theta_l, theta_r, target, stop_val, epoch):
 
 # Gradient + noise
 # noise: 1.random  2.Gaussian Noise 
-def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001):
+def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
     print("--------------------------------------------------------------")
     print('---- Gradient Direct Noise Descent---- ')
     print('====Start Training====')
@@ -257,7 +257,10 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     loop_list = list()
     loss_list = list()
 
+    # if theta is None:
     Theta = var(random.uniform(theta_l, theta_r), requires_grad=True)
+    # else:
+    #     Theta = theta
     # Theta = var(2.933, requires_grad=True)
     root = construct_syntax_tree(Theta)
     root_smooth_point = construct_syntax_tree_smooth_point(Theta)
@@ -300,7 +303,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         penalty_f = distance_f_interval(symbol_table_list, target)
         print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
 
-        res = f.add(var(lambda_).mul(penalty_f))
+        res = f.add(lambda_.mul(penalty_f))
         print(i, '--', Theta.data.item(), res.data.item())
         # if i == 0:
         #     continue
@@ -346,9 +349,9 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     print("--- %s seconds ---" % (time.time() - start_time))
     print("--------------------------------------------------------------")
 
-    theta = Theta.data.item()
-    loss = f.data.item()
-    print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta, loss))
+    theta = Theta# .data.item()
+    loss = res# .data.item()
+    print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta.data.item(), loss.data.item()))
 
     return theta, loss, loss_list, f, penalty_f
 
@@ -529,3 +532,29 @@ def gd(X_train, y_train, theta_l, theta_r, target, stop_val, epoch, lr):
 
     return theta, loss, loss_list
 
+
+def cal_c(X_train, y_train, theta):
+    root = construct_syntax_tree(theta)
+    symbol_table_list = initialization(x_l, x_r)
+
+    symbol_table_list = root['entry'].execute(symbol_table_list)
+    c = distance_f_interval(symbol_table_list, target)
+
+    return c
+
+
+def cal_q(X_train, y_train, theta):
+    root_smooth_point = construct_syntax_tree_smooth_point(theta)
+    q = var(0.0)
+
+    for idx, x in enumerate(X_train):
+        x, y = x, y_train[idx]
+        symbol_table_smooth_point = initialization_point(x)
+        symbol_table_smooth_point = root_smooth_point['entry'].execute(symbol_table_smooth_point)
+
+        # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
+        q = q.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
+
+    q = q.div(var(len(X_train)))
+    
+    return q
