@@ -248,7 +248,7 @@ def direct(X_train, y_train, theta_l, theta_r, target, stop_val, epoch):
 
 # Gradient + noise
 # noise: 1.random  2.Gaussian Noise 
-def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, stop_val, epoch, lr):
+def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001):
     print("--------------------------------------------------------------")
     print('---- Gradient Direct Noise Descent---- ')
     print('====Start Training====')
@@ -300,8 +300,8 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, stop_val, epoch,
         penalty_f = distance_f_interval(symbol_table_list, target)
         print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
 
-        f = f.add(var(lambda_).mul(penalty_f))
-        print(i, '--', Theta.data.item(), f.data.item())
+        res = f.add(var(lambda_).mul(penalty_f))
+        print(i, '--', Theta.data.item(), res.data.item())
         # if i == 0:
         #     continue
         # if i == 1:
@@ -309,11 +309,11 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, stop_val, epoch,
         # exit()
         derivation = var(0.0)
         try:
-            dTheta = torch.autograd.grad(f, Theta, retain_graph=True)
+            dTheta = torch.autograd.grad(res, Theta, retain_graph=True)
             derivation = dTheta[0]
             # print('f, theta, dTheta:', f.data, Theta.data, derivation)
 
-            if torch.abs(f.data) < var(stop_val): # epsilon:
+            if torch.abs(res.data) < var(stop_val): # epsilon:
                 # print(f.data, Theta.data)
                 break
             if torch.abs(derivation.data) < EPSILON:
@@ -324,7 +324,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, stop_val, epoch,
         
         except RuntimeError:
             # print('RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn')
-            if torch.abs(f.data) < var(stop_val):
+            if torch.abs(res.data) < var(stop_val):
                 # print(f.data, Theta.data)
                 break
 
@@ -335,7 +335,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, stop_val, epoch,
             continue
 
         loop_list.append(i)
-        loss_list.append(f.data)
+        loss_list.append(res.data)
     
     # plt.plot(loop_list, loss_list, label = "beta")
     # plt.xlabel('expr count')
@@ -350,7 +350,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, stop_val, epoch,
     loss = f.data.item()
     print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta, loss))
 
-    return theta, loss, loss_list
+    return theta, loss, loss_list, f, penalty_f
 
 
 def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, stop_val, epoch, lr):
