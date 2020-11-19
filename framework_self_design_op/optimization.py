@@ -173,13 +173,15 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
 
 
 # DIRECT
-def direct(X_train, y_train, theta_l, theta_r, target, stop_val, epoch):
+def direct(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
     print("--------------------------------------------------------------")
     print('----DIRECT----')
     print('====Start Training====')
     start_time = time.time()
 
     loss_list = list()
+    res_f = var(0.0)
+    res_penalty = var(0.0)
 
     def myfunc(theta, grad):
         Theta = var(theta)
@@ -209,9 +211,9 @@ def direct(X_train, y_train, theta_l, theta_r, target, stop_val, epoch):
         res_l, res_r = extract_result_safty(symbol_table_list)
         print('safe f', penalty_f.data.item(), res_l, res_r)
 
-        f = f.add(var(lambda_).mul(penalty_f))
+        res = f.add(var(lambda_).mul(penalty_f))
         print(Theta.data.item(), f.data.item())
-        f_value = f.data.item()
+        f_value = res.data.item()
 
         loss_list.append(f_value)
 
@@ -243,7 +245,7 @@ def direct(X_train, y_train, theta_l, theta_r, target, stop_val, epoch):
     loss = opt.last_optimum_value()
     print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta, loss))
     
-    return theta, loss, loss_list
+    return theta, loss, loss_list, res_f, res_penalty
 
 
 # Gradient + noise

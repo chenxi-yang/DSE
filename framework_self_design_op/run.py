@@ -17,13 +17,19 @@ from program7 import *
 
 from args import *
 
+optimizer = {
+    'gd_direct_noise': gd_direct_noise,
+    'direct': direct,
+}
+
+
 def test(X_train, y_train, theta_l, theta_r, target):
     plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=50)
 
 
 def evaluation(X_train, y_train, theta_l, theta_r, target, stop_val, epoch=1000, lr=0.00001):
     # # res_theta, loss, loss_list = direct(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000)
-    res_theta, loss, loss_list, q, c = gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=stop_val, epoch=1000, lr=lr)
+    res_theta, loss, loss_list, q, c = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=stop_val, epoch=1000, lr=lr)
     # # res_theta, loss, loss_list = gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000, lr=0.1)
     # # res_theta, loss, loss_list = gd(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000, lr=0.1)
 
@@ -43,7 +49,7 @@ def best_lambda(X_train, y_train, theta):
 
 
 def best_theta(X_train, y_train, lambda_):
-    theta, loss, loss_list, q, c = gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=stop_val, epoch=1000, lr=lr)
+    theta, loss, loss_list, q, c = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=stop_val, epoch=1000, lr=lr)
 
     return theta, loss
 
@@ -53,6 +59,7 @@ if __name__ == "__main__":
     lr = args.lr
     stop_val = args.stop_val
     t_epoch = args.t_epoch
+    optimize_f = optimizer[args.optimizer]
 
     # data points generation
     target = domain.Interval(safe_l, safe_r)
@@ -68,7 +75,7 @@ if __name__ == "__main__":
         new_lambda = B.mul(q.exp().div(var(1.0).add(q.exp())))
 
         # BEST_theta(lambda)
-        theta, loss, loss_list, q, c = gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=new_lambda, stop_val=stop_val, epoch=1000, lr=lr)
+        theta, loss, loss_list, q, c = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=new_lambda, stop_val=stop_val, epoch=1000, lr=lr)
         
         lambda_list.append(new_lambda)
         theta_list.append(theta)
@@ -89,7 +96,7 @@ if __name__ == "__main__":
         print('-------------------------------')
         print('l_max, l_min', l_max.data.item(), l_min.data.item())
 
-        if (torch.abs(l_max.sub(l_min))).data.item < w:
+        if (torch.abs(l_max.sub(l_min))).data.item() < w:
             # return theta_t, lambda_t
             break
         
