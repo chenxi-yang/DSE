@@ -59,7 +59,8 @@ if __name__ == "__main__":
     lr = args.lr
     stop_val = args.stop_val
     t_epoch = args.t_epoch
-    optimize_f = optimizer[args.optimizer]
+    optimizer_name = args.optimizer
+    optimize_f = optimizer[optimizer_name]
 
     # data points generation
     target = domain.Interval(safe_l, safe_r)
@@ -94,11 +95,16 @@ if __name__ == "__main__":
         _, l_min = best_theta(X_train, y_train, lambda_t)
 
         print('-------------------------------')
-        print('l_max, l_min', l_max.data.item(), l_min.data.item())
+        print('l_max, l_min', l_max, l_min)
 
-        if (torch.abs(l_max.sub(l_min))).data.item() < w:
+        if "gd" in optimizer_name:
+            if (torch.abs(l_max.sub(l_min))).data.item() < w:
             # return theta_t, lambda_t
-            break
+                break
+        else:
+            if abs(l_max - l_min) < w:
+            # return theta_t, lambda_t
+                break
         
         q = q.add(var(lr).mul(cal_c(X_train, y_train, theta)))
 

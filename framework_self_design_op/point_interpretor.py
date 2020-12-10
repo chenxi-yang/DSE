@@ -241,7 +241,6 @@ class WhileSimplePointSmooth:
     
 
 class WhilePointSmooth:
-    #! not a real loop, just in the form of loop to operate several if-else stmt
     def __init__(self, target, test, body, next_stmt):
         # TODO: implement while & test
         self.target = target
