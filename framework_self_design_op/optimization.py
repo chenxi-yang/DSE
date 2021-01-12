@@ -129,7 +129,11 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
             # print('finish smooth', symbol_table_smooth_point['res'])
             # exit(0)
 
-            f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
+            #!distance of smooth point
+            # f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
+
+            #!distance of non-smooth point [only to show]
+            f = f.add(distance_f_point(symbol_table_point['res'], var(y)))
             y_l = torch.min(symbol_table_point['x_min'], y_l)
             y_r = torch.max(symbol_table_point['x_max'], y_r)
             # exit(0)
@@ -140,7 +144,7 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
         
         symbol_table_list = root['entry'].execute(symbol_table_list)
         print('====final intervals====', len(symbol_table_list))
-        # show_symbol_tabel_list(symbol_table_list)
+        # show_symbol_tabel_list(sysmbol_table_list)
         approximate_result_safety_l, approximate_result_safety_r = extract_result_safty(symbol_table_list)
         penalty_f = distance_f_interval(symbol_table_list, target)
 
@@ -159,10 +163,14 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
     plt.plot(theta_list, quan_f_list, color='blue', label='quan_f')
     plt.plot(theta_list, target_l_list, color='green', label='target_l')
     plt.plot(theta_list, target_r_list, color='green', label='target_r')
-    plt.plot(theta_list, result_safety_l_list, color='red', label='pred_y_l')
-    plt.plot(theta_list, result_safety_r_list, color='red', label='pred_y_r')
-    plt.plot(theta_list, y_l_list, color='orange', label='real_sample_y_l')
-    plt.plot(theta_list, y_r_list, color='orange', label='real_sample_y_r')
+    plt.axvline(x=4.2, color='k')
+    plt.axvline(x=4.22, color='pink')
+    plt.plot(theta_list, result_safety_l_list, color='red', label='approximated_y_l')
+    plt.plot(theta_list, result_safety_r_list, color='red', label='approximated_y_r')
+    # plt.plot(theta_list, y_l_list, color='orange', label='real_sample_y_l')
+    # plt.plot(theta_list, y_r_list, color='orange', label='real_sample_y_r')
+    plt.plot(theta_list, y_l_list, color='orange', label='property lower range')
+    plt.plot(theta_list, y_r_list, color='orange', label='property upper range')
     plt.ylabel('Property')
     plt.xlabel('Theta')
     plt.title(CURRENT_PROGRAM + '-' + MODE_NAME)# mode_list[MODE])

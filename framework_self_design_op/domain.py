@@ -262,7 +262,12 @@ class Interval:
             res.left = torch.min(self.left, y.left)
             res.right = torch.min(self.right, y.right)
         return res
-
+    
+    def sqrt(self):
+        res = Interval()
+        res.left = torch.sqrt(self.left)
+        res.right = torch.sqrt(self.right)
+        return res
 
 class Zonotope:
     def __init__(self, left=0.0, right=0.0):

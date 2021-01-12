@@ -65,6 +65,9 @@ if __name__ == "__main__":
     # data points generation
     target = domain.Interval(safe_l, safe_r)
     X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=50, target_theta=target_theta, test_size=0.33)
+    # # TEST
+    test(X_train, y_train, theta_l, theta_r, target)
+    exit(0)
 
     # add for lambda
     # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
@@ -121,8 +124,7 @@ if __name__ == "__main__":
     # evaluation(X_train, y_train, theta_l, theta_r, target, stop_val=stop_val, lr=lr)
     
 
-    # # TEST
-    # test(X_train, y_train, theta_l, theta_r, target)
+    
 
 
 

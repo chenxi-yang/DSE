@@ -268,7 +268,7 @@ def f43_domain(x):
 
 
 def construct_syntax_tree(Theta):
-    l47 = Assign(['res', 'tau'], f_equal_domain, None)
+    l47 = Assign(['res', 'y'], f_equal_domain, None)
     l46 = Assign(['x_min', 'x1'], f_min_domain, l47)
     l45 = Assign(['x_max', 'x1'], f_max_domain, l46)
     l44 = Assign(['t'], f_add_one_domain, l45)
@@ -331,7 +331,7 @@ def construct_syntax_tree(Theta):
 
 
 def construct_syntax_tree_point(Theta):
-    l47 = AssignPoint(['res', 'tau'], f_equal, None)
+    l47 = AssignPoint(['res', 'y'], f_equal, None)
     l46 = AssignPoint(['x_min', 'x1'], f_min, l47)
     l45 = AssignPoint(['x_max', 'x1'], f_max, l46)
     l44 = AssignPoint(['t'], f_add_one, l45)
@@ -394,7 +394,7 @@ def construct_syntax_tree_point(Theta):
 
 
 def construct_syntax_tree_smooth_point(Theta):
-    l47 = AssignPointSmooth(['res', 'tau'], f_equal, None)
+    l47 = AssignPointSmooth(['res', 'y'], f_equal, None)
     l46 = AssignPointSmooth(['x_min', 'x1'], f_min, l47)
     l45 = AssignPointSmooth(['x_max', 'x1'], f_max, l46)
     l44 = AssignPointSmooth(['t'], f_add_one, l45)
