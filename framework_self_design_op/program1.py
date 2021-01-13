@@ -18,7 +18,6 @@ if MODE == 5:
             symbol_table['i'] = domain.Interval(0, 0)
             symbol_table['x'] = domain.Interval(x_l[0], x_r[0])
             symbol_table['isOn'] = domain.Interval(0.0, 0.0)
-            symbol_table['probability'] = var(1.0)
 
             symbol_table['res'] = domain.Interval(0.0, 0.0)
             symbol_table['x_min'] = domain.Interval(P_INFINITY.data.item(), P_INFINITY.data.item())
@@ -30,59 +29,78 @@ if MODE == 5:
             symbol_table_list.append(symbol_table)
 
             return symbol_table_list
-
-
-if MODE == 2:
-    from disjunction_of_intervals_interpretor import *
-
-    def initialization(x_l, x_r):
-
-        symbol_table_list = list()
-
-        symbol_table = dict()
-        symbol_table['i'] = domain.Interval(0, 0)
-        symbol_table['x'] = domain.Interval(x_l[0], x_r[0])
-        symbol_table['isOn'] = domain.Interval(0.0, 0.0)
-        symbol_table['probability'] = var(1.0)
-
-        symbol_table['res'] = domain.Interval(0.0, 0.0)
-        symbol_table_list.append(symbol_table)
-        
-        return symbol_table_list    
-
-if MODE == 3:
-    from partial_disjunction_of_intervals_interpretor import *
-
-    def initialization(x_l, x_r):
-
-        symbol_table_list = list()
-
-        symbol_table = dict()
-        symbol_table['i'] = domain.Interval(0, 0)
-        symbol_table['x'] = domain.Interval(x_l[0], x_r[0])
-        symbol_table['isOn'] = domain.Interval(0.0, 0.0)
-        symbol_table['probability'] = var(1.0)
-
-        symbol_table['res'] = domain.Interval(0.0, 0.0)
-        symbol_table_list.append(symbol_table)
-        
-        return symbol_table_list 
-
-
-if MODE == 1:
-    from interval_interpretor import *
     
-    def initialization(x_l, x_r):
+    if DOMAIN == "zonotope":
+        def initialization(x_l, x_r):
+            symbol_table_list = list()
+            symbol_table = dict()
+            symbol_table['i'] = domain.Interval(0, 0).getZonotope()
+            symbol_table['x'] = domain.Interval(x_l[0], x_r[0]).getZonotope()
+            symbol_table['isOn'] = domain.Interval(0.0, 0.0).getZonotope()
 
-        symbol_table = dict()
-        symbol_table['i'] = domain.Interval(0, 0)
-        symbol_table['x'] = domain.Interval(x_l[0], x_r[0])
-        symbol_table['isOn'] = domain.Interval(0.0, 0.0)
-        symbol_table['probability'] = var(1.0)
+            symbol_table['res'] = domain.Interval(0.0, 0.0).getZonotope()
+            symbol_table['x_min'] = domain.Interval(P_INFINITY.data.item(), P_INFINITY.data.item())
+            symbol_table['x_max'] = domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())
+            symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())])
+            symbol_table['probability'] = var(1.0)
+            symbol_table['explore_probability'] = var(1.0)
 
-        symbol_table['res'] = domain.Interval(0.0, 0.0)
+            symbol_table_list.append(symbol_table)
+
+            return symbol_table_list
         
-        return symbol_table    
+
+# if MODE == 2:
+#     from disjunction_of_intervals_interpretor import *
+
+#     def initialization(x_l, x_r):
+
+#         symbol_table_list = list()
+
+#         symbol_table = dict()
+#         symbol_table['i'] = domain.Interval(0, 0)
+#         symbol_table['x'] = domain.Interval(x_l[0], x_r[0])
+#         symbol_table['isOn'] = domain.Interval(0.0, 0.0)
+#         symbol_table['probability'] = var(1.0)
+
+#         symbol_table['res'] = domain.Interval(0.0, 0.0)
+#         symbol_table_list.append(symbol_table)
+        
+#         return symbol_table_list    
+
+# if MODE == 3:
+#     from partial_disjunction_of_intervals_interpretor import *
+
+#     def initialization(x_l, x_r):
+
+#         symbol_table_list = list()
+
+#         symbol_table = dict()
+#         symbol_table['i'] = domain.Interval(0, 0)
+#         symbol_table['x'] = domain.Interval(x_l[0], x_r[0])
+#         symbol_table['isOn'] = domain.Interval(0.0, 0.0)
+#         symbol_table['probability'] = var(1.0)
+
+#         symbol_table['res'] = domain.Interval(0.0, 0.0)
+#         symbol_table_list.append(symbol_table)
+        
+#         return symbol_table_list 
+
+
+# if MODE == 1:
+#     from interval_interpretor import *
+    
+#     def initialization(x_l, x_r):
+
+#         symbol_table = dict()
+#         symbol_table['i'] = domain.Interval(0, 0)
+#         symbol_table['x'] = domain.Interval(x_l[0], x_r[0])
+#         symbol_table['isOn'] = domain.Interval(0.0, 0.0)
+#         symbol_table['probability'] = var(1.0)
+
+#         symbol_table['res'] = domain.Interval(0.0, 0.0)
+        
+#         return symbol_table    
 
 
 def initialization_point(x):

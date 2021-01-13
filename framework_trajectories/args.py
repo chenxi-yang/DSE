@@ -8,6 +8,7 @@ def get_parser():
     p.add_argument("--stop_val", default=0.05, type=float, help="error for stoping")
     p.add_argument("--t_epoch", default=10, type=int, help="epoch for lambda")
     p.add_argument("--optimizer", default="direct", type=str, help="select the optimizer")
+    p.add_argument("--w", default=0.5, type=float, help="the measure between two lagarangian iteration")
 
     return p
 

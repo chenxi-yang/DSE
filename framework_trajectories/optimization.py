@@ -358,7 +358,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     return theta, loss, loss_list, f, penalty_f
 
 
-def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, stop_val, epoch, lr):
+def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
 
     def generate_gaussian_noise(step):
         step = 0
@@ -391,16 +391,28 @@ def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, stop_val, epoc
 
             # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
             f = f.add(distance_f_point(symbol_table_point['res'], var(y)))
+        
+        # f = f.div(var(len(X_train)))
+        # # print('quantitive f', f.data.item())
+
+        # symbol_table_list = root['entry'].execute(symbol_table_list)
+        # penalty_f = distance_f_interval(symbol_table_list, target)
+
+        # # print('safe f', penalty_f.data.item())
+
+        # f = f.add(var(lambda_).mul(penalty_f))
+        # # print(Theta.data.item(), f.data.item())
         f = f.div(var(len(X_train)))
-        # print('quantitive f', f.data.item())
+        print('quantitive f', f.data.item())
 
         symbol_table_list = root['entry'].execute(symbol_table_list)
+        print('length: ', len(symbol_table_list))
+        res_l, res_r = extract_result_safty(symbol_table_list)
         penalty_f = distance_f_interval(symbol_table_list, target)
+        print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
 
-        # print('safe f', penalty_f.data.item())
-
-        f = f.add(var(lambda_).mul(penalty_f))
-        # print(Theta.data.item(), f.data.item())
+        res = f.add(lambda_.mul(penalty_f))
+        print(i, '--', Theta.data.item(), res.data.item())
 
         try:
             dTheta = torch.autograd.grad(f, Theta, retain_graph=True)
@@ -445,11 +457,11 @@ def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, stop_val, epoc
     print("--- %s seconds ---" % (time.time() - start_time))
     print("--------------------------------------------------------------")
 
-    theta = Theta.data.item()
-    loss = f.data.item()
+    theta = Theta# .data.item()
+    loss = f# .data.item()
     print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta, loss))
 
-    return theta, loss, loss_list
+    return theta, loss, loss_list, f, penalty_f
 
 
 # GD
@@ -528,11 +540,11 @@ def gd(X_train, y_train, theta_l, theta_r, target, stop_val, epoch, lr):
     print("--- %s seconds ---" % (time.time() - start_time))
     print("--------------------------------------------------------------")
 
-    theta = Theta.data.item()
-    loss = f.data.item()
+    theta = Theta# .data.item()
+    loss = f# .data.item()
     print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta, loss))
 
-    return theta, loss, loss_list
+    return theta, loss, loss_list, f, penalty_f
 
 
 def cal_c(X_train, y_train, theta):

@@ -465,7 +465,7 @@ class Ifelse:
         self.f = f
     
     def execute(self, symbol_table_list, cur_sample_size=0):
-        # print('In Ifelse, target, test: ', self.target, self.f(self.test).data.item())
+        # print('In Ifelse, target, test: ', self.target, self.f(self.test))
         # show_symbol_tabel_list(symbol_table_list)
         num_disjunction = len(symbol_table_list)
         if cur_sample_size > 0:

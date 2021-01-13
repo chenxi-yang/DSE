@@ -37,18 +37,18 @@ INTERVAL_BETA = var(1.0) # 2.0
 POINT_BETA = var(100.0) # 10.0
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
-B = var(100) # the range of lambda
+B = var(200) # the range of lambda
 
-CURRENT_PROGRAM = 'program7' # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program1' # 'program_test_disjunction_2'
 
 # PROGRAM #1
-# x_l = [65.0]
-# x_r = [75.0]
-# target_theta = 69.9
-# theta_l = 65.0
-# theta_r = 75.0
-# safe_l = 71.00 # 69.8
-# safe_r = 76.80# 77.0
+x_l = [65.0]
+x_r = [75.0]
+target_theta = 69.9
+theta_l = 60.0
+theta_r = 75.0
+safe_l = 63.5 
+safe_r = 83.94 
 
 # PROGRAM #2
 # x_l = [0.8, 1.6] # v1, v2
@@ -116,13 +116,13 @@ CURRENT_PROGRAM = 'program7' # 'program_test_disjunction_2'
 # safe_r = 2.0
 
 #PROGRAM_7
-x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
-x_r = [0.1, 0.0, 0.0, 2.0, 2.5, 2.0]
-target_theta = 4.2
-theta_l = 2.0
-theta_r = 5.0
-safe_l = -4.20 #-0.4
-safe_r = 3.97 #0.5
+# x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
+# x_r = [0.1, 0.0, 0.0, 2.0, 2.5, 2.0]
+# target_theta = 4.2
+# theta_l = 2.0
+# theta_r = 5.0
+# safe_l = -4.20 #-0.4
+# safe_r = 3.97 #0.5
 
 # #PROGRAM_8
 # x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
@@ -139,7 +139,7 @@ safe_r = 3.97 #0.5
 dataset_size = 50
 lambda_ = 100.0
 
-w = 0.1
+# w = 0.8
 
 eta = 10.0
 gamma = 0.55

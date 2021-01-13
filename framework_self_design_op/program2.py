@@ -3,10 +3,6 @@ from constants import *
 from helper import * 
 from point_interpretor import *
 
-
-
-
-def termostat_wo_loop():
     
 
 
