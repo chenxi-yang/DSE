@@ -39,34 +39,34 @@ PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
 B = var(200) # the range of lambda
 
-CURRENT_PROGRAM = 'program1' # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program6' # 'program_test_disjunction_2'
 
 # PROGRAM #1
-x_l = [65.0]
-x_r = [75.0]
-target_theta = 69.9
-theta_l = 60.0
-theta_r = 75.0
-safe_l = 63.5 
-safe_r = 83.94 
+# x_l = [65.0]
+# x_r = [75.0]
+# target_theta = 69.9
+# theta_l = 60.0
+# theta_r = 75.0
+# safe_l = 63.5 
+# safe_r = 83.94 
 
 # PROGRAM #2
 # x_l = [0.8, 1.6] # v1, v2
-# x_r = [1.2, 2.4]
+# x_r = [1.4, 2.0]
 # target_theta = 3.0
 # theta_l = 0.0
 # theta_r = 8.0
 # safe_l = 0.3
-# safe_r = 0.3# P_INFINITY.data.item()
+# safe_r = P_INFINITY.data.item()
 
 # PROGRAM #3
 # x_l = [9.0] # initial height
 # x_r = [11.0]
-# target_theta = 2.0
+# target_theta = 3.0
 # theta_l = 1.0
 # theta_r = 9.0
 # safe_l = 0.0
-# safe_r = 7.0
+# safe_r = 7.05
 
 # PROGRAM #4
 # x_l = [8.0] # initial height
@@ -83,8 +83,8 @@ safe_r = 83.94
 # target_theta = 69.9
 # theta_l = 65.0
 # theta_r = 75.0
-# safe_l = 71.00 # 69.8
-# safe_r = 77.70# 77.0
+# safe_l = 60.8 # 69.8
+# safe_r = 78.519# 77.0
 
 
 # PROGRAM_TEST_DISJUNCTION
@@ -107,6 +107,15 @@ safe_r = 83.94
 # safe_r = 26.48
 
 # PROGRAM_6
+x_l = [0.0, 0.0, 0.0, 0.0]
+x_r = [2.0, 2.0, 2.0, 2.0]
+target_theta = 0.3
+theta_l = 0.0
+theta_r = 2.0
+safe_l = 0.0 # N_INFINITY.data.item()
+safe_r = 2.0
+
+# PROGRAM_6_loop
 # x_l = [0.0, 0.0, 0.0, 0.0]
 # x_r = [2.0, 2.0, 2.0, 2.0]
 # target_theta = 0.3
@@ -145,4 +154,4 @@ eta = 10.0
 gamma = 0.55
 alpha_coeff = 0.9
 
-noise = 0.01
+noise = 0.1

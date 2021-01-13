@@ -8,12 +8,13 @@ from timeit import default_timer as timer
 from helper import *
 from constants import *
 
-from program1 import *
+# from program1 import *
 # from program2 import *
 # from program3 import *
 # from program4 import *
 # from program5 import *
-# from program6 import *
+from program6 import *
+# from program6_loop import *
 # from program7 import *
 # from program8 import *
 # from program_test_disjunction import *

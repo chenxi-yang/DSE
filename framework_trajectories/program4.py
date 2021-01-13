@@ -3,8 +3,10 @@ from constants import *
 from helper import * 
 from point_interpretor import *
 
+# bouncing ball sample loop
+
 if MODE == 5:
-    from disjunction_of_intervals_interpretor_loop import *
+    from disjunction_of_intervals_interpretor_loop_importance_sampling import *
 
     if DOMAIN == "interval":
         def initialization(x_l, x_r):
@@ -71,7 +73,11 @@ def initialization_point(x):
 
     return symbol_table
 
+# function in ifelse condition
+def fself(x):
+    return x
 
+# function in assign
 def f1(x):
     return torch.sqrt(var(2.0).div(var(9.8))).mul(torch.sqrt(x[1]))
 def f1_domain(x):

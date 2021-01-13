@@ -4,7 +4,7 @@ from helper import *
 from point_interpretor import *
 
 
-# Bouncing Ball
+# Bouncing Ball deep branch
 # safe: x
 # return(y): res
 
@@ -76,7 +76,11 @@ def initialization_point(x):
 
     return symbol_table
 
+# function in ifelse condition
+def fself(x):
+    return x
 
+# function in assign
 def f1(x):
     return torch.sqrt(var(2.0).div(var(9.8))).mul(torch.sqrt(x[1]))
 def f1_domain(x):
@@ -135,7 +139,7 @@ def construct_syntax_tree(Theta):
     l2 = Assign(['t_up', 'v0', 't_down'], f2_domain, l3)
 
     l1 = Assign(['t_down', 'h0'], f1_domain, l2)
-    l0 = WhileSimple('i', var(40), l1, None)
+    l0 = WhileSample('i', var(40), l1, None)
 
     tree_dict = dict()
     tree_dict['entry'] = l0

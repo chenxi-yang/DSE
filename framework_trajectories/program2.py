@@ -3,8 +3,7 @@ from constants import *
 from helper import * 
 from point_interpretor import *
 
-
-# aircraft collision /wo loop
+# aircraft collision deep branch
     
 if MODE == 5:
     from disjunction_of_intervals_interpretor_loop_importance_sampling import *
@@ -27,6 +26,7 @@ if MODE == 5:
             symbol_table['dist'] = domain.Interval(0.0, 0.0)
             symbol_table['x_dist'] = domain.Interval(0.0, 0.0)
             symbol_table['y_dist'] = domain.Interval(0.0, 0.0)
+            symbol_table['x'] = domain.Interval(0.0, 0.0)
 
             symbol_table['res'] = domain.Interval(0.0, 0.0)
             symbol_table['x_min'] = domain.Interval(P_INFINITY.data.item(), P_INFINITY.data.item())
@@ -45,20 +45,21 @@ if MODE == 5:
             symbol_table_list = list()
 
             symbol_table = dict()
-            symbol_table['i'] = domain.Interval(0, 0)
-            symbol_table['v1'] = domain.Interval(x_l[0], x_r[0])
-            symbol_table['v2'] = domain.Interval(x_l[1], x_r[1])
-            symbol_table['stage'] = domain.Interval(0.5, 0.5)
-            symbol_table['steps'] = domain.Interval(0.0, 0.0)
-            symbol_table['x1'] = domain.Interval(6.0, 6.0)
-            symbol_table['y1'] = domain.Interval(0.0, 0.0)
-            symbol_table['x2'] = domain.Interval(0.0, 0.0)
-            symbol_table['y2'] = domain.Interval(4.0, 4.0)
-            symbol_table['dist'] = domain.Interval(0.0, 0.0)
-            symbol_table['x_dist'] = domain.Interval(0.0, 0.0)
-            symbol_table['y_dist'] = domain.Interval(0.0, 0.0)
+            symbol_table['i'] = domain.Interval(0, 0).getZonotope()
+            symbol_table['v1'] = domain.Interval(x_l[0], x_r[0]).getZonotope()
+            symbol_table['v2'] = domain.Interval(x_l[1], x_r[1]).getZonotope()
+            symbol_table['stage'] = domain.Interval(0.5, 0.5).getZonotope()
+            symbol_table['steps'] = domain.Interval(0.0, 0.0).getZonotope()
+            symbol_table['x1'] = domain.Interval(6.0, 6.0).getZonotope()
+            symbol_table['y1'] = domain.Interval(0.0, 0.0).getZonotope()
+            symbol_table['x2'] = domain.Interval(0.0, 0.0).getZonotope()
+            symbol_table['y2'] = domain.Interval(4.0, 4.0).getZonotope()
+            symbol_table['dist'] = domain.Interval(0.0, 0.0).getZonotope()
+            symbol_table['x_dist'] = domain.Interval(0.0, 0.0).getZonotope()
+            symbol_table['y_dist'] = domain.Interval(0.0, 0.0).getZonotope()
+            symbol_table['x'] = domain.Interval(0.0, 0.0).getZonotope()
 
-            symbol_table['res'] = domain.Interval(0.0, 0.0)
+            symbol_table['res'] = domain.Interval(0.0, 0.0).getZonotope()
             symbol_table['x_min'] = domain.Interval(P_INFINITY.data.item(), P_INFINITY.data.item())
             symbol_table['x_max'] = domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())
             symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())])
@@ -85,7 +86,7 @@ def initialization_point(x):
     symbol_table['dist'] = var(0.0)
     symbol_table['x_dist'] = var(0.0)
     symbol_table['y_dist'] = var(0.0)
-    symbol_table['res'] = var(0.0)
+    symbol_table['x'] = var(0.0)
 
     symbol_table['res'] = var(0.0)
     symbol_table['x_min'] = P_INFINITY
@@ -116,9 +117,9 @@ def f_cal_dist(x):
 def f_cal_dist_domain(x):
     return (x[1].add(x[2])).sqrt()
 def f_update_dist(x):
-    return torch.min(x[0], torch.sqrt(x[1].add(x[2])))
+    return torch.sqrt(x[1].add(x[2]))
 def f_update_dist_domain(x):
-    return x[0].min((x[1].add(x[2])).sqrt())
+    return (x[1].add(x[2])).sqrt()
 def f4(x):
     return var(1.5)
 def f4_domain(x):
@@ -180,7 +181,7 @@ def construct_syntax_tree(Theta):
     l5 = Assign(['steps'], f5_domain, None)
     l4 = Assign(['stage'], f4_domain, l5) # stage = 1.5, LEFT
 
-    l3 = Ifelse('dist', var(3.0), fself, l4, l7, None)
+    l3 = Ifelse('dist', var(3.1), fself, l4, l7, None)
 
     l2_1 = Assign(['dist', 'x_dist', 'y_dist'], f_cal_dist_domain, l3) # cal dist(safe property) # TODO:use all left/right
     l2_04 = Assign(['y_dist'], f_square_domain, l2_1)
@@ -222,7 +223,7 @@ def construct_syntax_tree(Theta):
 
     l8 = Ifelse('stage', var(2.0), fself, l9, l15, None)
 
-    l28 = Assign(['i'], f_add_on_domaine, None)
+    l28 = Assign(['i'], f_add_one_domain, None)
     l28_max = Assign(['x_max', 'x'], f_max_domain, l28)
     l28_min = Assign(['x_min', 'x'], f_min_domain, l28_max)
 
@@ -234,7 +235,7 @@ def construct_syntax_tree(Theta):
 
     l1 = Ifelse('stage', var(1.0), fself, l2, l8, l27_1)
     l00 = Assign(['res'], f_theta_domain(Theta), None)
-    l0 = WhileSimple('i', var(50), l1, l00)
+    l0 = WhileSample('i', var(50), l1, l00)
     
     tree_dict = dict()
     tree_dict['entry'] = l0
@@ -249,7 +250,7 @@ def construct_syntax_tree_point(Theta):
     l5 = AssignPoint(['steps'], f5, None)
     l4 = AssignPoint(['stage'], f4, l5) # stage = 1.5, LEFT
 
-    l3 = IfelsePoint('dist', var(3.0), fself, l4, l7, None)
+    l3 = IfelsePoint('dist', var(3.1), fself, l4, l7, None)
 
     l2_1 = AssignPoint(['dist', 'x_dist', 'y_dist'], f_cal_dist, l3) # cal dist(safe property) # TODO:use all left/right
     l2_04 = AssignPoint(['y_dist'], f_square, l2_1)
@@ -319,7 +320,7 @@ def construct_syntax_tree_smooth_point(Theta):
     l5 = AssignPointSmooth(['steps'], f5, None)
     l4 = AssignPointSmooth(['stage'], f4, l5) # stage = 1.5, LEFT
 
-    l3 = IfelsePointSmooth('dist', var(3.0), fself, l4, l7, None)
+    l3 = IfelsePointSmooth('dist', var(3.1), fself, l4, l7, None)
 
     l2_1 = AssignPointSmooth(['dist', 'x_dist', 'y_dist'], f_cal_dist, l3) # cal dist(safe property) # TODO:use all left/right
     l2_04 = AssignPointSmooth(['y_dist'], f_square, l2_1)

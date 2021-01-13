@@ -4,7 +4,7 @@ from constants import *
 from helper import * 
 from point_interpretor import *
 
-# Thermostat /w loop
+# Thermostat sample loop
 # safe: x
 # return(y): res
 
@@ -51,11 +51,11 @@ if MODE == 5:
     
 
 def initialization_point(x):
-    symbol_table_point = dict()
+    symbol_table = dict()
 
-    symbol_table_point['x_neg'] = var(-x[0])
-    symbol_table_point['x'] = var(x[0])
-    symbol_table_point['isOn'] = var(0.0)
+    symbol_table['x_neg'] = var(-x[0])
+    symbol_table['x'] = var(x[0])
+    symbol_table['isOn'] = var(0.0)
 
     symbol_table['res'] = var(0.0)
     symbol_table['x_min'] = P_INFINITY
@@ -63,7 +63,7 @@ def initialization_point(x):
     symbol_table['probability'] = var(1.0)
     symbol_table['explore_probability'] = var(1.0)
 
-    return symbol_table_point
+    return symbol_table
 
 
 def f6(x):
@@ -185,9 +185,9 @@ def construct_syntax_tree_point(Theta):
 
     # l18 = AssignPoint('i', f18, None)
     # l18 = AssignPoint(['x_neg', 'x'], f_neg, None)
-    l18 = Assign(['x_neg', 'x'], f_neg, None)
-    l18_min = Assign(['x_min', 'x'], f_min, l18)
-    l18_max = Assign(['x_max', 'x'], f_max, l18_min)
+    l18 = AssignPoint(['x_neg', 'x'], f_neg, None)
+    l18_min = AssignPoint(['x_min', 'x'], f_min, l18)
+    l18_max = AssignPoint(['x_max', 'x'], f_max, l18_min)
 
     l8 = AssignPoint(['isOn'], f8, None)
     l10 = AssignPoint(['isOn'], f10, None)
@@ -237,9 +237,9 @@ def construct_syntax_tree_smooth_point(Theta):
 
     # l18 = AssignPointSmooth(['i'], f18, None)
     # l18 = AssignPointSmooth(['x_neg', 'x'], f_neg, None)
-    l18 = Assign(['x_neg', 'x'], f_neg, None)
-    l18_min = Assign(['x_min', 'x'], f_min, l18)
-    l18_max = Assign(['x_max', 'x'], f_max, l18_min)
+    l18 = AssignPointSmooth(['x_neg', 'x'], f_neg, None)
+    l18_min = AssignPointSmooth(['x_min', 'x'], f_min, l18)
+    l18_max = AssignPointSmooth(['x_max', 'x'], f_max, l18_min)
 
     l8 = AssignPointSmooth(['isOn'], f8, None)
     l10 = AssignPointSmooth(['isOn'], f10, None)

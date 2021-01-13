@@ -222,6 +222,8 @@ def check_eql_var(x, y):
 def update_symbol_table(target, func, symbol_table):
     res_target = target[0]
     # print('func', func.__name__)
+    # print(target)
+    # print(symbol_table)
     #    # print('before assign', symbol_table[res_target].getInterval().left, symbol_table[res_target].getInterval().right)
     instance_list = [symbol_table[symbol] for symbol in target]
     symbol_table[res_target] = func(instance_list)
@@ -456,6 +458,7 @@ def sample(symbol_table_list, cur_sample_size):
     
 
 class Ifelse:
+    # print('test')
     def __init__(self, target, test, f, body, orelse, next_stmt):
         self.target = target
         self.test = test

@@ -3,7 +3,7 @@ from constants import *
 from helper import * 
 from point_interpretor import *
 
-# atrial fibrillation with branch
+# atrial fibrillation sample loop
 
 if MODE == 5:
     from disjunction_of_intervals_interpretor_loop_importance_sampling import *

@@ -9,6 +9,7 @@ def get_parser():
     p.add_argument("--t_epoch", default=10, type=int, help="epoch for lambda")
     p.add_argument("--optimizer", default="direct", type=str, help="select the optimizer")
     p.add_argument("--w", default=0.5, type=float, help="the measure between two lagarangian iteration")
+    p.add_argument("--noise", default=0.1, type=float, help="represent the noise range in gradient descent direct noise")
 
     return p
 
