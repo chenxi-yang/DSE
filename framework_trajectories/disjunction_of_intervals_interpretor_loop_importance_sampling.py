@@ -630,7 +630,7 @@ class WhileSample:
         while len(symbol_table_list) > 0:
             # show_symbol_tabel_list(res_symbol_table_list)
             # print('target', self.target)
-            # # print('disjunction K: ', len(symbol_table_list))
+            # print('disjunction K: ', len(symbol_table_list))
             # show_symbol_tabel_list(symbol_table_list)
             path_probability_list = [symbol_table['probability'] for symbol_table in symbol_table_list]
 

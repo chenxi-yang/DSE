@@ -39,7 +39,7 @@ PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
 B = var(200) # the range of lambda
 
-CURRENT_PROGRAM = 'program6' # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program6_loop' # 'program_test_disjunction_2'
 
 # PROGRAM #1
 # x_l = [65.0]
@@ -107,31 +107,31 @@ CURRENT_PROGRAM = 'program6' # 'program_test_disjunction_2'
 # safe_r = 26.48
 
 # PROGRAM_6
-x_l = [0.0, 0.0, 0.0, 0.0]
-x_r = [2.0, 2.0, 2.0, 2.0]
-target_theta = 0.3
-theta_l = 0.0
-theta_r = 2.0
-safe_l = 0.0 # N_INFINITY.data.item()
-safe_r = 2.0
+# x_l = [0.0, 0.0, 0.0, 0.0]
+# x_r = [2.0, 2.0, 2.0, 2.0]
+# target_theta = 0.0055
+# theta_l = 0.001
+# theta_r = 0.01
+# safe_l = 0.0 # N_INFINITY.data.item()
+# safe_r = 2.01
 
 # PROGRAM_6_loop
 # x_l = [0.0, 0.0, 0.0, 0.0]
 # x_r = [2.0, 2.0, 2.0, 2.0]
-# target_theta = 0.3
-# theta_l = 0.0
-# theta_r = 2.0
-# safe_l = 0.0 # N_INFINITY.data.item()
-# safe_r = 2.0
+# target_theta = 0.005
+# theta_l = 0.001
+# theta_r = 0.01
+# safe_l = N_INFINITY.data.item()
+# safe_r = 2.001
 
 #PROGRAM_7
-# x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
-# x_r = [0.1, 0.0, 0.0, 2.0, 2.5, 2.0]
-# target_theta = 4.2
-# theta_l = 2.0
-# theta_r = 5.0
-# safe_l = -4.20 #-0.4
-# safe_r = 3.97 #0.5
+x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
+x_r = [0.1, 0.0, 0.0, 2.0, 2.5, 2.0]
+target_theta = 4.2
+theta_l = 2.0
+theta_r = 5.0
+safe_l = -4.20 #-0.4
+safe_r = 3.97 #0.5
 
 # #PROGRAM_8
 # x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
