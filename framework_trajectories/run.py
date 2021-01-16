@@ -8,11 +8,11 @@ from test import *
 # from program2 import *
 # from program3 import *
 # from program4 import *
-# from program5 import *
+from program5 import *
 # from program6 import *
 # from program6_loop import *
 # from program7 import *
-from program8 import *
+# from program8 import *
 # from program_test_disjunction import *
 # from program_test_disjunction_2 import *
 
@@ -116,8 +116,8 @@ if __name__ == "__main__":
     eval(X_train, y_train, theta_t, target, 'train')
     eval(X_test, y_test, theta_t, target, 'test')
 
-    Eval
-    evaluation(X_train, y_train, theta_l, theta_r, target, lambda_=var(50.0), stop_val=stop_val, lr=lr)
+    # Eval
+    # evaluation(X_train, y_train, theta_l, theta_r, target, lambda_=var(50.0), stop_val=stop_val, lr=lr)
     
     # # TEST
     # test(X_train, y_train, theta_l, theta_r, target)

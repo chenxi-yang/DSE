@@ -70,6 +70,16 @@ def f6(x):
     return x[0].sub(var(0.1).mul(x[0].sub(var(60))))
 def f6_domain(x):
     return x[0].sub_l((x[0].sub_l(var(60.0))).mul(var(0.1)))
+
+def f6_theta(theta):
+    def res(x):
+        return x[0].sub(var(0.1).mul(x[0].sub(theta)))
+    return res
+def f6_theta_domain(theta):
+    def res(x):
+        return x[0].sub_l((x[0].sub_l(theta)).mul(var(0.1)))
+    return res
+
 def f18(x):
     return x[0].add(var(1.0))
 def f18_domain(x):
@@ -86,6 +96,16 @@ def f12(x):
     return x[0].sub(var(0.1).mul(x[0].sub(var(60)))).add(var(5.0))
 def f12_domain(x):
     return x[0].sub_l((x[0].sub_l(var(60))).mul(var(0.1))).add(var(5.0))
+
+def f12_theta(theta):
+    def res(x):
+        return x[0].sub(var(0.1).mul(x[0].sub(theta))).add(var(5.0))
+    return res
+def f12_theta_domain(theta):
+    def res(x):
+        return x[0].sub_l((x[0].sub_l(theta)).mul(var(0.1))).add(var(5.0))
+    return res
+
 def f19(x):
     return x[1]
 def f19_domain(x):
@@ -108,6 +128,8 @@ def f_min_domain(x):
 # for if condition
 def fself(x):
     return x
+def fself_add(x):
+    return x.add(var(2.0))
 
 
 def construct_syntax_tree(Theta):
@@ -118,15 +140,15 @@ def construct_syntax_tree(Theta):
 
     l8_0 = Assign(['isOn'], f8_domain, None)
     l10_0 = Assign(['isOn'], f10_domain, None)
-    l7_0 = Ifelse('x', Theta, fself, l8_0, l10_0, None)
+    l7_0 = Ifelse('x', Theta, fself_add, l8_0, l10_0, None)
 
-    l6_0 = Assign(['x'], f6_domain, l7_0)
+    l6_0 = Assign(['x'], f6_theta_domain(Theta), l7_0)
 
     l14_0 = Assign(['isOn'], f8_domain, None)
     l16_0 = Assign(['isOn'], f10_domain, None)
     l13_0 = Ifelse('x', var(77.0), fself, l14_0, l16_0, None)
 
-    l12_0 = Assign(['x'], f12_domain, l13_0)
+    l12_0 = Assign(['x'], f12_theta_domain(Theta), l13_0)
     l5_0 = Ifelse('isOn', var(0.5), fself, l6_0, l12_0, l18_0_max)
 
     l19 = Assign(['res', 'x'], f19_domain, None)
@@ -139,15 +161,15 @@ def construct_syntax_tree(Theta):
 
     l8 = Assign(['isOn'], f8_domain, None)
     l10 = Assign(['isOn'], f10_domain, None)
-    l7 = Ifelse('x', Theta, fself, l8, l10, None)
+    l7 = Ifelse('x', Theta, fself_add, l8, l10, None)
 
-    l6 = Assign(['x'], f6_domain, l7)
+    l6 = Assign(['x'], f6_theta_domain(Theta), l7)
 
     l14 = Assign(['isOn'], f8_domain, None)
     l16 = Assign(['isOn'], f10_domain, None)
     l13 = Ifelse('x', var(77.0), fself, l14, l16, None)
 
-    l12 = Assign(['x'], f12_domain, l13)
+    l12 = Assign(['x'], f12_theta_domain(Theta), l13)
     l5 = Ifelse('isOn', var(0.5), fself, l6, l12, l18_max)
 
     # l19 = Assign(['res', 'x'], f19, None)
@@ -169,15 +191,15 @@ def construct_syntax_tree_point(Theta):
 
     l8_0 = AssignPoint(['isOn'], f8, None)
     l10_0 = AssignPoint(['isOn'], f10, None)
-    l7_0 = IfelsePoint('x', Theta, fself, l8_0, l10_0, None)
+    l7_0 = IfelsePoint('x', Theta, fself_add, l8_0, l10_0, None)
 
-    l6_0 = AssignPoint(['x'], f6, l7_0)
+    l6_0 = AssignPoint(['x'], f6_theta(Theta), l7_0)
 
     l14_0 = AssignPoint(['isOn'], f8, None)
     l16_0 = AssignPoint(['isOn'], f10, None)
     l13_0 = IfelsePoint('x', var(77.0), fself, l14_0, l16_0, None)
 
-    l12_0 = AssignPoint(['x'], f12, l13_0)
+    l12_0 = AssignPoint(['x'], f12_theta(Theta), l13_0)
     l5_0 = IfelsePoint('isOn', var(0.5), fself, l6_0, l12_0, l18_0_max)
 
     l19 = AssignPoint(['res', 'x'], f19, None)
@@ -191,15 +213,15 @@ def construct_syntax_tree_point(Theta):
 
     l8 = AssignPoint(['isOn'], f8, None)
     l10 = AssignPoint(['isOn'], f10, None)
-    l7 = IfelsePoint('x', Theta, fself, l8, l10, None)
+    l7 = IfelsePoint('x', Theta, fself_add, l8, l10, None)
 
-    l6 = AssignPoint(['x'], f6, l7)
+    l6 = AssignPoint(['x'], f6_theta(Theta), l7)
 
     l14 = AssignPoint(['isOn'], f8, None)
     l16 = AssignPoint(['isOn'], f10, None)
     l13 = IfelsePoint('x', var(77.0), fself, l14, l16, None)
 
-    l12 = AssignPoint(['x'], f12, l13)
+    l12 = AssignPoint(['x'], f12_theta(Theta), l13)
     l5 = IfelsePoint('isOn', var(0.5), fself, l6, l12, l18_max)
 
     # l19 = Assign(['res', 'x'], f19, None)
@@ -221,7 +243,7 @@ def construct_syntax_tree_smooth_point(Theta):
 
     l8_0 = AssignPointSmooth(['isOn'], f8, None)
     l10_0 = AssignPointSmooth(['isOn'], f10, None)
-    l7_0 = IfelsePointSmooth('x', Theta, fself, l8_0, l10_0, None)
+    l7_0 = IfelsePointSmooth('x', Theta, fself_add, l8_0, l10_0, None)
 
     l6_0 = AssignPointSmooth(['x'], f6, l7_0)
 
@@ -243,7 +265,7 @@ def construct_syntax_tree_smooth_point(Theta):
 
     l8 = AssignPointSmooth(['isOn'], f8, None)
     l10 = AssignPointSmooth(['isOn'], f10, None)
-    l7 = IfelsePointSmooth('x', Theta, fself, l8, l10, None)
+    l7 = IfelsePointSmooth('x', Theta, fself_add, l8, l10, None)
 
     l6 = AssignPointSmooth(['x'], f6, l7)
 

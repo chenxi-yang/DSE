@@ -89,6 +89,7 @@ if MODE == 1:
 
 def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
     print('in plot_sep_quan_safe_trend')
+    k=20
     unit = (theta_r - theta_l) * 1.0 / k
     
     theta_list = list()
@@ -186,7 +187,7 @@ def direct(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val
     def myfunc(theta, grad):
         Theta = var(theta)
         # Theta = var(70.0)
-        root = construct_syntax_tree(Theta)
+        # root = construct_syntax_tree(Theta)
         symbol_table_list = initialization(x_l, x_r)
         # root_point = construct_syntax_tree_point(Theta)
         root_smooth_point = construct_syntax_tree_smooth_point(Theta)
@@ -211,9 +212,9 @@ def direct(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val
         # res_l, res_r = extract_result_safty(symbol_table_list)
         # print('safe f', penalty_f.data.item(), res_l, res_r)
 
-        res = f.add(var(lambda_).mul(penalty_f))
-        print(Theta.data.item(), f.data.item())
-        f_value = res.data.item()
+        # res = f.add(var(lambda_).mul(penalty_f))
+        # print(Theta.data.item(), f.data.item())
+        f_value = f.data.item()
 
         loss_list.append(f_value)
 
@@ -264,7 +265,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     # else:
     #     Theta = theta
     # Theta = var(2.933, requires_grad=True)
-    root = construct_syntax_tree(Theta)
+    # root = construct_syntax_tree(Theta)
     root_smooth_point = construct_syntax_tree_smooth_point(Theta)
     root_point = construct_syntax_tree_point(Theta)
     # Theta = var(69.9)
@@ -287,11 +288,11 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
             symbol_table_smooth_point = root_smooth_point['entry'].execute(symbol_table_smooth_point)
             # print('run point')
 
-            symbol_table_point = initialization_point(x)
-            symbol_table_point = root_point['entry'].execute(symbol_table_point)
+            # symbol_table_point = initialization_point(x)
+            # symbol_table_point = root_point['entry'].execute(symbol_table_point)
 
-            y_l = torch.min(symbol_table_point['res'], y_l)
-            y_r = torch.max(symbol_table_point['res'], y_r)
+            # y_l = torch.min(symbol_table_point['res'], y_l)
+            # y_r = torch.max(symbol_table_point['res'], y_r)
 
             # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
             f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
@@ -299,13 +300,13 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         f = f.div(var(len(X_train)))
         print('quantitive f', f.data.item())
 
-        symbol_table_list = root['entry'].execute(symbol_table_list)
-        print('length: ', len(symbol_table_list))
-        res_l, res_r = extract_result_safty(symbol_table_list)
-        penalty_f = distance_f_interval(symbol_table_list, target)
-        print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
+        # symbol_table_list = root['entry'].execute(symbol_table_list)
+        # print('length: ', len(symbol_table_list))
+        # res_l, res_r = extract_result_safty(symbol_table_list)
+        # penalty_f = distance_f_interval(symbol_table_list, target)
+        # print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
 
-        res = f.add(lambda_.mul(penalty_f))
+        res = f # f.add(lambda_.mul(penalty_f))
         print(i, '--', Theta.data.item(), res.data.item())
         # if i == 0:
         #     continue
@@ -355,7 +356,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     loss = res# .data.item()
     print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta.data.item(), loss.data.item()))
 
-    return theta, loss, loss_list, f, penalty_f
+    return theta, loss, loss_list, f, var(0.0)
 
 
 def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
@@ -405,13 +406,13 @@ def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda
         f = f.div(var(len(X_train)))
         print('quantitive f', f.data.item())
 
-        symbol_table_list = root['entry'].execute(symbol_table_list)
-        print('length: ', len(symbol_table_list))
-        res_l, res_r = extract_result_safty(symbol_table_list)
-        penalty_f = distance_f_interval(symbol_table_list, target)
-        print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
+        # symbol_table_list = root['entry'].execute(symbol_table_list)
+        # print('length: ', len(symbol_table_list))
+        # res_l, res_r = extract_result_safty(symbol_table_list)
+        # penalty_f = distance_f_interval(symbol_table_list, target)
+        # print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
 
-        res = f.add(lambda_.mul(penalty_f))
+        res = f # f.add(lambda_.mul(penalty_f))
         print(i, '--', Theta.data.item(), res.data.item())
 
         try:
@@ -461,7 +462,7 @@ def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda
     loss = f# .data.item()
     print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta, loss))
 
-    return theta, loss, loss_list, f, penalty_f
+    return theta, loss, loss_list, f, var(0.0)
 
 
 # GD
@@ -544,7 +545,7 @@ def gd(X_train, y_train, theta_l, theta_r, target, stop_val, epoch, lr):
     loss = f# .data.item()
     print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta, loss))
 
-    return theta, loss, loss_list, f, penalty_f
+    return theta, loss, loss_list, f, var(0.0)
 
 
 def cal_c(X_train, y_train, theta):

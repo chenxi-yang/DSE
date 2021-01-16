@@ -12,11 +12,11 @@ from constants import *
 # from program2 import *
 # from program3 import *
 # from program4 import *
-# from program5 import *
+from program5 import *
 # from program6 import *
 # from program6_loop import *
 # from program7 import *
-from program8 import *
+# from program8 import *
 # from program_test_disjunction import *
 # from program_test_disjunction_2 import *
 
@@ -26,7 +26,7 @@ from program8 import *
 #     print(symbol_table['x1'], symbol_table['y1'], symbol_table['x2'], symbol_table['y2'])
 
 
-def data_generator(l, r, size, target_theta, test_size=0.33):
+def data_generator(l, r, size, target_theta, test_size=0.7):
     # start_t = time.time()
     start_t = timer()
 

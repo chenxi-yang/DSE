@@ -37,18 +37,19 @@ INTERVAL_BETA = var(1.0) # 2.0
 POINT_BETA = var(100.0) # 10.0
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
-B = var(200) # the range of lambda
+B = var(500) # the range of lambda
 
-CURRENT_PROGRAM = 'program6_loop' # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program1' # 'program_test_disjunction_2'
 
 # PROGRAM #1
+# ! have problem!
 # x_l = [65.0]
 # x_r = [75.0]
-# target_theta = 69.9
-# theta_l = 60.0
-# theta_r = 75.0
-# safe_l = 63.5 
-# safe_r = 83.94 
+# target_theta = 61.7
+# theta_l = 61.0
+# theta_r = 63.5
+# safe_l = 61.28 # 63.5 (original) # 64.534 (very tight)  
+# safe_r = 82.80 # 83.59 (original) # 82.994 (very tight)  
 
 # PROGRAM #2
 # x_l = [0.8, 1.6] # v1, v2
@@ -74,17 +75,17 @@ CURRENT_PROGRAM = 'program6_loop' # 'program_test_disjunction_2'
 # target_theta = 5.0
 # theta_l = 1.0
 # theta_r = 6.0
-# safe_l = 0.0
+# safe_l = 3.0
 # safe_r = 9.3
 
 # PROGRAM #5
-# x_l = [62.0]
-# x_r = [72.0]
-# target_theta = 69.9
-# theta_l = 65.0
-# theta_r = 75.0
-# safe_l = 60.8 # 69.8
-# safe_r = 78.519# 77.0
+x_l = [62.0]
+x_r = [72.0]
+target_theta = 57.046 # 57.7
+theta_l = 55.0
+theta_r = 58.3
+safe_l = 57.65 # 57.69 # 69.8
+safe_r = 76.12 # 76.76 # 77.0
 
 
 # PROGRAM_TEST_DISJUNCTION
@@ -134,13 +135,13 @@ CURRENT_PROGRAM = 'program6_loop' # 'program_test_disjunction_2'
 # safe_r = 3.97 #0.5
 
 # #PROGRAM_8
-x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
-x_r = [0.1, 0.0, 0.0, 2.0, 2.5, 2.0]
-target_theta = 4.2
-theta_l = 2.0
-theta_r = 5.0
-safe_l = -2.61 #-0.4
-safe_r = 1.905 #0.5
+# x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
+# x_r = [0.1, 0.0, 0.0, 2.0, 2.5, 2.0]
+# target_theta = 4.2
+# theta_l = 2.0
+# theta_r = 5.0
+# safe_l = -2.61 #-0.4
+# safe_r = 1.905 #0.5
 
 
 
