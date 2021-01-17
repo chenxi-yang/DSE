@@ -112,7 +112,7 @@ x_r = [9.99]
 target_theta = 5.49
 theta_l = 5.0
 theta_r = 6.0 # 9.0
-safe_l = 0.0 # N_INFINITY.data.item()# 0.0
+safe_l = 4.0 # N_INFINITY.data.item()# 0.0
 safe_r = 26.48
 
 # # PROGRAM_6
