@@ -9,3 +9,8 @@ def var(i, requires_grad=False):
 PI = var((3373259426.0 + 273688.0 / (1 << 21)) / (1 << 30))
 PI_TWICE = PI.mul(var(2.0))
 PI_HALF = PI.div(var(2.0))
+
+# print(PI)
+# print(torch.sin(PI))
+# print(torch.sin(PI_TWICE))
+# print(torch.sin(PI_HALF))

@@ -9,9 +9,9 @@ from test import *
 # from program3 import *
 # from program4 import *
 # from program5 import *
-# from program6 import *
+from program6 import *
 # from program6_loop import *
-from program7 import *
+# from program7 import *
 # from program8 import *
 # from program_test_disjunction import *
 # from program_test_disjunction_2 import *

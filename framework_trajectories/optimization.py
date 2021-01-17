@@ -280,6 +280,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         y_l = P_INFINITY
         y_r = N_INFINITY
 
+        print('Theta:', Theta.data.item())
         for idx, x in enumerate(X_train):
             x, y = x, y_train[idx]
             symbol_table_smooth_point = initialization_point(x)
@@ -298,7 +299,6 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
 
         f = f.div(var(len(X_train)))
         print('quantitive f', f.data.item())
-
         symbol_table_list = root['entry'].execute(symbol_table_list)
         print('length: ', len(symbol_table_list))
         res_l, res_r = extract_result_safty(symbol_table_list)

@@ -89,7 +89,7 @@ if MODE == 1:
 
 def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
     print('in plot_sep_quan_safe_trend')
-    k=20
+    k=10
     unit = (theta_r - theta_l) * 1.0 / k
     
     theta_list = list()
@@ -105,6 +105,7 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
         theta = theta_l + i * unit
         # theta = 2.914
         Theta = var(theta)
+        # print('optimization', theta, Theta)
         root = construct_syntax_tree(Theta)
         symbol_table_list = initialization(x_l, x_r)
         root_point = construct_syntax_tree_point(Theta)

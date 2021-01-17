@@ -13,9 +13,9 @@ from constants import *
 # from program3 import *
 # from program4 import *
 # from program5 import *
-# from program6 import *
+from program6 import *
 # from program6_loop import *
-from program7 import *
+# from program7 import *
 # from program8 import *
 # from program_test_disjunction import *
 # from program_test_disjunction_2 import *
@@ -29,12 +29,17 @@ from program7 import *
 def data_generator(l, r, size, target_theta, test_size=0.7):
     # start_t = time.time()
     start_t = timer()
+    # print('data generation: theta', target_theta, var(target_theta))
 
     root = construct_syntax_tree_point(var(target_theta))
     data_list = list()
 
     y_min = P_INFINITY.data.item()
     y_max = N_INFINITY.data.item()
+    safety_min = P_INFINITY.data.item()
+    safety_max = N_INFINITY.data.item()
+    # l = [-0.0665809673568403, -4.943742921226779, 0.0, 2.0, 2.5, 1.2325791657941065]
+    # r = [-0.0665809673568403, -4.943742921226779, 0.0, 2.0, 2.5, 1.2325791657941065]
     for i in range(size):
         # print('in data_generator')
         x = list()
@@ -56,8 +61,13 @@ def data_generator(l, r, size, target_theta, test_size=0.7):
         safety_r = symbol_table_point['x_max'].data.item()
 
         data = [x, y]
+        # if safety_l < -7.0:
+        #     print('data generation', x)
         y_min = min(y, y_min)
         y_max = max(y, y_max)
+
+        safety_min = min(safety_l, safety_min)
+        safety_max = max(safety_r, safety_max)
         # print('x', x)
         # print('y', y)
         # print(x, y)
@@ -78,4 +88,5 @@ def data_generator(l, r, size, target_theta, test_size=0.7):
     print("---Data Generation---")
     print("--- %s seconds ---" % (timer() - start_t))
     print("---Data Range---[" + str(y_min) + ',' + str(y_max) + "]")
+    # print("---Safe Range---[" + str(safety_min) + ',' + str(safety_max) + "]")
     return train_list[:, 0], test_list[:, 0], train_list[:, 1], test_list[:, 1]

@@ -196,28 +196,36 @@ class Interval:
         cache.right = self.right
 
         def handleNegative(interval):
+            # print('interval', interval.left, interval.right)
             if interval.left.data.item() < 0.0:
+                # print('check')
                 if interval.left.data.item() == N_INFINITY.data.item():
                     interval.left = var(0.0)
                     interval.right = P_INFINITY
                 else:
-                    n = torch.floor_divide(var(-1.0).mul(interval.left), PI_TWICE)
+                    # n = torch.floor_divide(var(-1.0).mul(interval.left), PI_TWICE)
+                    n = torch.ceil(var(-1.0).mul(interval.left).div(PI_TWICE))
                     interval.left = interval.left.add(PI_TWICE.mul(n))
                     interval.right = interval.right.add(PI_TWICE.mul(n))
             return interval
+
         cache = handleNegative(cache)
-        n = torch.floor_divide(cache.left, PI_TWICE)
-        t = cache.sub_l(PI_TWICE.mul(n))
+        # print('y_neg', cache.left, cache.right)
+        # n = torch.floor_divide(cache.left, PI_TWICE)
+        # t = cache.sub_l(PI_TWICE.mul(n))
+        t = cache.fmod(PI_TWICE)
+        # print('t', t.left, t.right)
 
         # print(type(t.getVolumn()), type(PI_TWICE))
         if t.getVolumn().data.item() >= PI_TWICE.data.item():
+            # print('volume', t.getVolumn())
             res = Interval(-1.0, 1.0)
             show_value(res)
             return res
         
         # when t.left > PI same as -cos(t-pi)
         if t.left.data.item() >= PI.data.item():
-            cosv = t.sub_l(PI).cos()
+            cosv = (t.sub_l(PI)).cos()
             res = cosv.mul(var(-1.0))
             show_value(res)
             return res
@@ -268,6 +276,33 @@ class Interval:
         res.left = torch.sqrt(self.left)
         res.right = torch.sqrt(self.right)
         return res
+    
+    def fmod(self, y):
+        # y is PI2
+        if isinstance(y, torch.Tensor):
+            y_interval = Interval()
+            y_interval = y_interval.setValue(y)
+        else:
+            y_interval = y
+        
+        if self.left.data.item() < 0.0:
+            yb = y_interval.left
+        else:
+            yb = y_interval.right
+        # print('self left', self.left)
+        # print('yb', yb)
+        n = self.left.div(yb)
+        if(n.data.item() <= 0.0): 
+            n = torch.ceil(n)
+        else:
+            n = torch.floor(n)
+        # print('n', n)
+
+        n_interval = Interval()
+        n_interval = n_interval.setValue(n)
+        # print(self.left, self.right)
+        # print(y_interval.mul(n_interval).left, y_interval.mul(n_interval).right)
+        return self.sub_l(y_interval.mul(n_interval))
 
 
 class Zonotope:

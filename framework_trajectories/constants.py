@@ -37,7 +37,7 @@ INTERVAL_BETA = var(1.0) # 2.0
 POINT_BETA = var(100.0) # 10.0
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
-B = var(1000) # the range of lambda
+B = var(200) # the range of lambda
 
 CURRENT_PROGRAM = 'program6_loop' # 'program_test_disjunction_2'
 
@@ -104,7 +104,6 @@ CURRENT_PROGRAM = 'program6_loop' # 'program_test_disjunction_2'
 # safe_l = 0.0
 # safe_r = 11.0
 
-
 # PROGRAM_TEST_DISJUNCTION_2
 # x_l = [2.0]
 # x_r = [9.99]
@@ -115,44 +114,49 @@ CURRENT_PROGRAM = 'program6_loop' # 'program_test_disjunction_2'
 # safe_r = 26.48
 
 # PROGRAM_6
-# x_l = [0.0, 0.0, 0.0, 0.0]
-# x_r = [2.0, 2.0, 2.0, 2.0]
-# target_theta = 30.0181 # 0.0055
-# theta_l = 25.0 #0 .001
-# theta_r = 35.0 # 0.01
-# safe_l = 0.0 # N_INFINITY.data.item()
-# safe_r = 2.01
+x_l = [0.0, 0.0, 0.0, 0.0]
+x_r = [2.0, 2.0, 2.0, 2.0]
+target_theta = 3.8
+theta_l = 2.5 #0 .001
+theta_r = 4.5 # 0.01
+safe_l = -0.07 # N_INFINITY.data.item()
+safe_r = 1.99342
 
 # PROGRAM_6_loop
-# sample size: 10000
+# sample size: 20000
 # noise: 0.3
 # command: --lr 0.1 --stop_val 0.01 --optimizer gd_direct_noise
 # x_l = [0.0, 0.0, 0.0, 0.0]
 # x_r = [1.0, 2.0, 2.0, 2.0]
 # target_theta = 3.8
-# theta_l = 2.0
+# theta_l = 2.5
 # theta_r = 5.0
 # safe_l = -0.008 # N_INFINITY.data.item()
 # safe_r = 0.99342
 
 #PROGRAM_7
-x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
-x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
-target_theta = 2.175
-theta_l = 1.5
-theta_r = 3.5
-safe_l = -6.92 #-0.4
-safe_r = 5.0 #0.5
+# stop-val: 1.5 --lr 0.0000001
+# sample size: 500
+# x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
+# x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
+# target_theta = 2.175
+# theta_l = 1.5
+# theta_r = 3.5
+# safe_l = -6.92 #-0.4
+# safe_r = 5.0 #0.5
 
 # #PROGRAM_8
-# x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
-# x_r = [0.1, 0.0, 0.0, 2.0, 2.5, 2.0]
+# stop-val 0.05
+# x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
+# x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
+# # debug
+# # x_l = [-0.0665809673568403, -4.943742921226779, 0.0, 2.0, 2.5, 1.2325791657941065]
+# # x_r = [-0.0665809673568403, -4.943742921226779, 0.0, 2.0, 2.5, 1.2325791657941065]
 # target_theta = 4.2
-# theta_l = 2.0
+# theta_l = 1.0
 # theta_r = 5.0
-# safe_l = -2.61 #-0.4
-# safe_r = 1.905 #0.5
-
+# safe_l = -1.895 # -2.61 #-0.4
+# safe_r = 2.31 # 1.905 #0.5
 
 
 # args
@@ -165,4 +169,4 @@ eta = 10.0
 gamma = 0.55
 alpha_coeff = 0.9
 
-noise = 0.1 # 0.1
+noise = 0.5 # 0.1
