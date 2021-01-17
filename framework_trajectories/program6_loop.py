@@ -197,7 +197,7 @@ def f_equal_domain(x):
     return x[1]
 
 # in stage 1
-def f2(x):
+# def f2(x):
     return x[0].add(stim.sub(jfi1).sub(jso1(x[0]).add(jsi1)).mul(delta_t))
 def f2_domain(x):
     # print(type(x[0]))
@@ -205,13 +205,26 @@ def f2_domain(x):
     # exit(0)
     return x[0].add(jso1_domain(x[0]).add(jsi1).sub_r(stim.sub(jfi1)).mul(delta_t))
 
+# def f2_theta(theta):
+#     def f2_in(x):
+#         return x[0].add(stim.sub(jfi1).sub(jso1_theta(x[0], theta).add(jsi1)).mul(delta_t))
+#     return f2_in
+# def f2_theta_domain(theta):
+#     def f2_in_domain(x):
+#         return x[0].add(jso1_theta_domain(x[0], theta).add(jsi1).sub_r(stim.sub(jfi1)).mul(delta_t))
+#     return f2_in_domain
+
+# replace jfi1 theta - 0.005
+# replace jsi1 theta - 0.005
 def f2_theta(theta):
     def f2_in(x):
-        return x[0].add(stim.sub(jfi1).sub(jso1_theta(x[0], theta).add(jsi1)).mul(delta_t))
+        return x[0].add(stim.sub(theta.sub(var(0.005))).sub(jso1_theta(x[0], theta).add(theta.sub(var(0.005)))).mul(delta_t))
     return f2_in
 def f2_theta_domain(theta):
     def f2_in_domain(x):
-        return x[0].add(jso1_theta_domain(x[0], theta).add(jsi1).sub_r(stim.sub(jfi1)).mul(delta_t))
+        y = x[0].add(jso1_theta_domain(x[0], theta).add(theta.sub(var(0.005))).sub_r(stim.sub(theta.sub(var(0.005)))).mul(delta_t))
+        print(x[0].right, y.right)
+        return y
     return f2_in_domain
 
 def f3(x):

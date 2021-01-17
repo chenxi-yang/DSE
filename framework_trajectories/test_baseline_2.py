@@ -61,7 +61,7 @@ def eval(X, Y, theta, target, category):
     safe_dist = check_safety(safe_res, target)
 
     print(category + ':')
-    print('Quantative Objective: {0:.3f}, Safe Objective: {1:.3f}'.format(quan_dist.data.item(), safe_dist.data.item()))
+    print('Quantative Objective: {0:.5f}, Safe Objective: {1:.5f}'.format(quan_dist.data.item(), safe_dist.data.item()))
     if safe_dist.data.item() > 0.0:
         print(colored('Not Safe!', 'red'))
     else:

@@ -132,10 +132,21 @@ def f2(x):
     return x[0].add(var(-1.0).mul(ax).mul(torch.sin(omega.mul(x[1]))).mul(delta_t))
 def f2_domain(x):
     return x[0].add(((x[1].mul(omega).sin()).mul(var(-1.0).mul(ax))).mul(delta_t))
+
 def f3(x):
     return x[0].add(var(-1.0).mul(ay).mul(torch.sin((x[1].add(var(1.0))).mul(x[2])).mul(torch.sin(x[3]).mul(var(2.0)))).mul(delta_t))
 def f3_domain(x):
     return x[0].add(((((x[1].add(var(1.0))).mul(x[2])).sin().mul((x[3]).sin())).mul(var(-2.0).mul(ay))).mul(delta_t))
+
+def f3_theta(theta):
+    def res(x):
+        return x[0].add(var(-1.0).mul(ay).mul(torch.sin((x[1].add(theta)).mul(x[2])).mul(torch.sin(x[3]).mul(var(2.0)))).mul(delta_t))
+    return res
+def f3_theta_domain(theta):
+    def res(x):
+        return x[0].add(((((x[1].add(theta)).mul(x[2])).sin().mul((x[3]).sin())).mul(var(-2.0).mul(ay))).mul(delta_t))
+    return res
+
 def f4(x):
     return x[0].add(var(-1.0).mul(az).mul(torch.sin((x[1].add(var(1.0))).mul(x[2])).mul(torch.cos(x[3]).mul(var(2.0)))).mul(delta_t))
 def f4_domain(x):
@@ -271,8 +282,8 @@ def f43_domain(x):
 
 def construct_syntax_tree(Theta):
     l47 = Assign(['res', 'tau'], f_equal_domain, None)
-    l46 = Assign(['x_min', 'x1'], f_min_domain, l47)
-    l45 = Assign(['x_max', 'x1'], f_max_domain, l46)
+    l46 = Assign(['x_min', 'y'], f_min_domain, l47)
+    l45 = Assign(['x_max', 'y'], f_max_domain, l46)
     l44 = Assign(['t'], f_add_one_domain, l45)
 
     l43 = Assign(['omega2'], f43_domain, None)
@@ -319,7 +330,7 @@ def construct_syntax_tree(Theta):
     l6 = Assign(['omega2'], f6_domain, l7)
     l5 = Assign(['omega1'], f5_domain, l6)
     l4 = Assign(['z', 'omega2', 'tau', 'omega1'], f4_domain, l5)
-    l3 = Assign(['y', 'omega1', 'tau', 'omega2'], f3_domain, l4)
+    l3 = Assign(['y', 'omega1', 'tau', 'omega2'], f3_theta_domain(Theta.sub(var(3.2))), l4)
     l2 = Assign(['x1', 'tau'], f2_domain, l3)
     l1 = Ifelse('stage', var(1.0), fself, l2, l16, l44)
 
@@ -334,8 +345,8 @@ def construct_syntax_tree(Theta):
 
 def construct_syntax_tree_point(Theta):
     l47 = AssignPoint(['res', 'tau'], f_equal, None)
-    l46 = AssignPoint(['x_min', 'x1'], f_min, l47)
-    l45 = AssignPoint(['x_max', 'x1'], f_max, l46)
+    l46 = AssignPoint(['x_min', 'y'], f_min, l47)
+    l45 = AssignPoint(['x_max', 'y'], f_max, l46)
     l44 = AssignPoint(['t'], f_add_one, l45)
 
     l43 = AssignPoint(['omega2'], f43, None)
@@ -382,7 +393,7 @@ def construct_syntax_tree_point(Theta):
     l6 = AssignPoint(['omega2'], f6, l7)
     l5 = AssignPoint(['omega1'], f5, l6)
     l4 = AssignPoint(['z', 'omega2', 'tau', 'omega1'], f4, l5)
-    l3 = AssignPoint(['y', 'omega1', 'tau', 'omega2'], f3, l4)
+    l3 = AssignPoint(['y', 'omega1', 'tau', 'omega2'], f3_theta(Theta.sub(var(3.2))), l4)
     l2 = AssignPoint(['x1', 'tau'], f2, l3)
     l1 = IfelsePoint('stage', var(1.0), fself, l2, l16, l44)
 
@@ -397,8 +408,8 @@ def construct_syntax_tree_point(Theta):
 
 def construct_syntax_tree_smooth_point(Theta):
     l47 = AssignPointSmooth(['res', 'tau'], f_equal, None)
-    l46 = AssignPointSmooth(['x_min', 'x1'], f_min, l47)
-    l45 = AssignPointSmooth(['x_max', 'x1'], f_max, l46)
+    l46 = AssignPointSmooth(['x_min', 'y'], f_min, l47)
+    l45 = AssignPointSmooth(['x_max', 'y'], f_max, l46)
     l44 = AssignPointSmooth(['t'], f_add_one, l45)
 
     l43 = AssignPointSmooth(['omega2'], f43, None)
@@ -445,7 +456,7 @@ def construct_syntax_tree_smooth_point(Theta):
     l6 = AssignPointSmooth(['omega2'], f6, l7)
     l5 = AssignPointSmooth(['omega1'], f5, l6)
     l4 = AssignPointSmooth(['z', 'omega2', 'tau', 'omega1'], f4, l5)
-    l3 = AssignPointSmooth(['y', 'omega1', 'tau', 'omega2'], f3, l4)
+    l3 = AssignPointSmooth(['y', 'omega1', 'tau', 'omega2'], f3_theta(Theta.sub(var(3.2))), l4)
     l2 = AssignPointSmooth(['x1', 'tau'], f2, l3)
     l1 = IfelsePointSmooth('stage', var(1.0), fself, l2, l16, l44)
 
