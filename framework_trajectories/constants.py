@@ -37,9 +37,9 @@ INTERVAL_BETA = var(1.0) # 2.0
 POINT_BETA = var(100.0) # 10.0
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
-B = var(500) # the range of lambda
+B = var(1000) # the range of lambda
 
-CURRENT_PROGRAM = 'program1' # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program6_loop' # 'program_test_disjunction_2'
 
 # PROGRAM #1
 # ! have problem!
@@ -51,25 +51,31 @@ CURRENT_PROGRAM = 'program1' # 'program_test_disjunction_2'
 # safe_l = 61.28 # 63.5 (original) # 64.534 (very tight)  
 # safe_r = 82.80 # 83.59 (original) # 82.994 (very tight)  
 
-# PROGRAM #2
+# PROGRAM #2 [work]
+# sample size: 1000
+# command: python run.py --lr 0.01 --stop_val 1.5 --optimizer gd_direct_noise
 # x_l = [0.8, 1.6] # v1, v2
 # x_r = [1.4, 2.0]
-# target_theta = 3.0
-# theta_l = 0.0
-# theta_r = 8.0
-# safe_l = 0.3
-# safe_r = P_INFINITY.data.item()
+# target_theta = 5.6
+# theta_l = 4.7
+# theta_r = 5.8
+# safe_l = 2.86
+# safe_r = 120 # P_INFINITY.data.item()
 
-# PROGRAM #3
+# PROGRAM #3 [work]
+# sample size: 1000
+# command: --lr 0.1 --stop_val 1.0 --optimizer gd_direct_noise
 # x_l = [9.0] # initial height
 # x_r = [11.0]
 # target_theta = 3.0
 # theta_l = 1.0
 # theta_r = 9.0
-# safe_l = 0.0
-# safe_r = 7.05
+# safe_l = 2.368
+# safe_r = 7.04
 
-# PROGRAM #4
+# PROGRAM #4 [work]
+# sample size: 500
+# command: --lr 0.1 --stop_val 1.0 --optimizer gd_direct_noise
 # x_l = [8.0] # initial height
 # x_r = [12.0]
 # target_theta = 5.0
@@ -79,13 +85,14 @@ CURRENT_PROGRAM = 'program1' # 'program_test_disjunction_2'
 # safe_r = 9.3
 
 # PROGRAM #5
-x_l = [62.0]
-x_r = [72.0]
-target_theta = 57.046 # 57.7
-theta_l = 55.0
-theta_r = 58.3
-safe_l = 57.65 # 57.69 # 69.8
-safe_r = 76.12 # 76.76 # 77.0
+# ! have problem
+# x_l = [62.0]
+# x_r = [72.0]
+# target_theta = 57.046 # 57.7
+# theta_l = 55.0
+# theta_r = 58.3
+# safe_l = 57.65 # 57.69 # 69.8
+# safe_r = 76.12 # 76.76 # 77.0
 
 
 # PROGRAM_TEST_DISJUNCTION
@@ -110,29 +117,32 @@ safe_r = 76.12 # 76.76 # 77.0
 # PROGRAM_6
 # x_l = [0.0, 0.0, 0.0, 0.0]
 # x_r = [2.0, 2.0, 2.0, 2.0]
-# target_theta = 0.0055
-# theta_l = 0.001
-# theta_r = 0.01
+# target_theta = 30.0181 # 0.0055
+# theta_l = 25.0 #0 .001
+# theta_r = 35.0 # 0.01
 # safe_l = 0.0 # N_INFINITY.data.item()
 # safe_r = 2.01
 
 # PROGRAM_6_loop
+# sample size: 10000
+# noise: 0.3
+# command: --lr 0.1 --stop_val 0.01 --optimizer gd_direct_noise
 # x_l = [0.0, 0.0, 0.0, 0.0]
-# x_r = [2.0, 2.0, 2.0, 2.0]
-# target_theta = 0.005
-# theta_l = 0.001
-# theta_r = 0.01
-# safe_l = N_INFINITY.data.item()
-# safe_r = 2.001
-
-#PROGRAM_7
-# x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
-# x_r = [0.1, 0.0, 0.0, 2.0, 2.5, 2.0]
-# target_theta = 4.2
+# x_r = [1.0, 2.0, 2.0, 2.0]
+# target_theta = 3.8
 # theta_l = 2.0
 # theta_r = 5.0
-# safe_l = -4.20 #-0.4
-# safe_r = 3.97 #0.5
+# safe_l = -0.008 # N_INFINITY.data.item()
+# safe_r = 0.99342
+
+#PROGRAM_7
+x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
+x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
+target_theta = 2.175
+theta_l = 1.5
+theta_r = 3.5
+safe_l = -6.92 #-0.4
+safe_r = 5.0 #0.5
 
 # #PROGRAM_8
 # x_l = [-0.2, 0.0, 0.0, 2.0, 2.5, 0.0]
@@ -155,4 +165,4 @@ eta = 10.0
 gamma = 0.55
 alpha_coeff = 0.9
 
-noise = 0.1
+noise = 0.1 # 0.1

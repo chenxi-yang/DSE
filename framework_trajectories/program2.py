@@ -10,6 +10,7 @@ if MODE == 5:
 
     if DOMAIN == "interval":
         def initialization(x_l, x_r):
+            # print('here')
 
             symbol_table_list = list()
 
@@ -181,7 +182,7 @@ def construct_syntax_tree(Theta):
     l5 = Assign(['steps'], f5_domain, None)
     l4 = Assign(['stage'], f4_domain, l5) # stage = 1.5, LEFT
 
-    l3 = Ifelse('dist', var(3.1), fself, l4, l7, None)
+    l3 = Ifelse('dist', Theta, fself, l4, l7, None)
 
     l2_1 = Assign(['dist', 'x_dist', 'y_dist'], f_cal_dist_domain, l3) # cal dist(safe property) # TODO:use all left/right
     l2_04 = Assign(['y_dist'], f_square_domain, l2_1)
@@ -193,7 +194,7 @@ def construct_syntax_tree(Theta):
 
     l26 = Assign(['stage'], f7_domain, None)
     l25 = Assign(['stage'], f20_domain, None)
-    l24 = Ifelse('steps', Theta, fself, l25, l26, None)
+    l24 = Ifelse('steps', var(2.0), fself, l25, l26, None)
 
     l23 = Assign(['steps'], f_add_one_domain, l24)
     l22_3 = Assign(['y2', 'v2'], f_sub_domain, l23)
@@ -214,7 +215,7 @@ def construct_syntax_tree(Theta):
     l14 = Assign(['steps'], f14_domain, None)
     l13 = Assign(['stage'], f13_domain, l14)
     l12 = Assign(['stage'], f4_domain, None)
-    l11 = Ifelse('steps', Theta, fself, l12, l13, None)
+    l11 = Ifelse('steps', var(2.0), fself, l12, l13, None)
     l10 = Assign(['steps'], f_add_one_domain, l11)
     l9_3 = Assign(['y2', 'v2'], f_add_domain, l10)
     l9_2 = Assign(['x2', 'v2'], f_add_domain, l9_3)
@@ -250,7 +251,7 @@ def construct_syntax_tree_point(Theta):
     l5 = AssignPoint(['steps'], f5, None)
     l4 = AssignPoint(['stage'], f4, l5) # stage = 1.5, LEFT
 
-    l3 = IfelsePoint('dist', var(3.1), fself, l4, l7, None)
+    l3 = IfelsePoint('dist', Theta, fself, l4, l7, None)
 
     l2_1 = AssignPoint(['dist', 'x_dist', 'y_dist'], f_cal_dist, l3) # cal dist(safe property) # TODO:use all left/right
     l2_04 = AssignPoint(['y_dist'], f_square, l2_1)
@@ -262,7 +263,7 @@ def construct_syntax_tree_point(Theta):
 
     l26 = AssignPoint(['stage'], f7, None)
     l25 = AssignPoint(['stage'], f20, None)
-    l24 = IfelsePoint('steps', Theta, fself, l25, l26, None)
+    l24 = IfelsePoint('steps', var(2.0), fself, l25, l26, None)
 
     l23 = AssignPoint(['steps'], f_add_one, l24)
     l22_3 = AssignPoint(['y2', 'v2'], f_sub, l23)
@@ -283,7 +284,7 @@ def construct_syntax_tree_point(Theta):
     l14 = AssignPoint(['steps'], f14, None)
     l13 = AssignPoint(['stage'], f13, l14)
     l12 = AssignPoint(['stage'], f4, None)
-    l11 = IfelsePoint('steps', Theta, fself, l12, l13, None)
+    l11 = IfelsePoint('steps', var(2.0), fself, l12, l13, None)
     l10 = AssignPoint(['steps'], f_add_one, l11)
     l9_3 = AssignPoint(['y2', 'v2'], f_add, l10)
     l9_2 = AssignPoint(['x2', 'v2'], f_add, l9_3)
@@ -320,7 +321,7 @@ def construct_syntax_tree_smooth_point(Theta):
     l5 = AssignPointSmooth(['steps'], f5, None)
     l4 = AssignPointSmooth(['stage'], f4, l5) # stage = 1.5, LEFT
 
-    l3 = IfelsePointSmooth('dist', var(3.1), fself, l4, l7, None)
+    l3 = IfelsePointSmooth('dist', Theta, fself, l4, l7, None)
 
     l2_1 = AssignPointSmooth(['dist', 'x_dist', 'y_dist'], f_cal_dist, l3) # cal dist(safe property) # TODO:use all left/right
     l2_04 = AssignPointSmooth(['y_dist'], f_square, l2_1)
@@ -332,7 +333,7 @@ def construct_syntax_tree_smooth_point(Theta):
 
     l26 = AssignPointSmooth(['stage'], f7, None)
     l25 = AssignPointSmooth(['stage'], f20, None)
-    l24 = IfelsePointSmooth('steps', Theta, fself, l25, l26, None)
+    l24 = IfelsePointSmooth('steps', var(2.0), fself, l25, l26, None)
 
     l23 = AssignPointSmooth(['steps'], f_add_one, l24)
     l22_3 = AssignPointSmooth(['y2', 'v2'], f_sub, l23)
@@ -353,7 +354,7 @@ def construct_syntax_tree_smooth_point(Theta):
     l14 = AssignPointSmooth(['steps'], f14, None)
     l13 = AssignPointSmooth(['stage'], f13, l14)
     l12 = AssignPointSmooth(['stage'], f4, None)
-    l11 = IfelsePointSmooth('steps', Theta, fself, l12, l13, None)
+    l11 = IfelsePointSmooth('steps', var(2.0), fself, l12, l13, None)
     l10 = AssignPointSmooth(['steps'], f_add_one, l11)
     l9_3 = AssignPointSmooth(['y2', 'v2'], f_add, l10)
     l9_2 = AssignPointSmooth(['x2', 'v2'], f_add, l9_3)
