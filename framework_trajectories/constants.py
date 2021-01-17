@@ -95,7 +95,7 @@ CURRENT_PROGRAM = 'program_test_junction' # 'program_test_disjunction_2'
 # safe_r = 76.12 # 76.76 # 77.0
 
 
-# PROGRAM_TEST_DISJUNCTION
+# PROGRAM_TEST_DISJUNCTION 
 # x_l = [2.0]
 # x_r = [9.99]
 # target_theta = 5.49
@@ -105,11 +105,13 @@ CURRENT_PROGRAM = 'program_test_junction' # 'program_test_disjunction_2'
 # safe_r = 11.0
 
 # PROGRAM_TEST_DISJUNCTION_2
+# command: --lr 0.1 --stop_val 1.5 --optimizer gd_direct_noise
+# plus one critical datapoint when checking
 x_l = [2.0]
 x_r = [9.99]
 target_theta = 5.49
-theta_l = 4.0
-theta_r = 9.0
+theta_l = 5.0
+theta_r = 6.0 # 9.0
 safe_l = 0.0 # N_INFINITY.data.item()# 0.0
 safe_r = 26.48
 
@@ -169,4 +171,4 @@ eta = 10.0
 gamma = 0.55
 alpha_coeff = 0.9
 
-noise = 0.5 # 0.1
+noise = 0.1 # 0.1

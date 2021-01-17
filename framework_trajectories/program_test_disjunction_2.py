@@ -101,7 +101,7 @@ def f_equal_domain(x):
 
 # for if condition
 def f_triple_sub(x):
-    return x.mul(var(3.0)).sub(var(0.0001))
+    return x.mul(var(3.0)).sub(var(0.001))
 def fsub(x):
     return x.sub(var(0.001))
 
