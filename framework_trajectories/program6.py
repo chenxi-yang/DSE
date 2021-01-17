@@ -228,11 +228,11 @@ def f2_domain(x):
 # replace jsi1 theta - 0.005
 def f2_theta(theta):
     def f2_in(x):
-        return x[0].add(stim.sub(theta.sub(var(0.005))).sub(jso1_theta(x[0], theta).add(theta.sub(var(0.005)))).mul(delta_t))
+        return x[0].add(stim.sub(theta.sub(var(0.0055))).sub(jso1_theta(x[0], theta).add(theta.sub(var(0.0055)))).mul(delta_t))
     return f2_in
 def f2_theta_domain(theta):
     def f2_in_domain(x):
-        y = x[0].add(jso1_theta_domain(x[0], theta).add(theta.sub(var(0.005))).sub_r(stim.sub(theta.sub(var(0.005)))).mul(delta_t))
+        y = x[0].add(jso1_theta_domain(x[0], theta).add(theta.sub(var(0.0055))).sub_r(stim.sub(theta.sub(var(0.0055)))).mul(delta_t))
         # print(x[0].right, y.right)
         return y
     return f2_in_domain

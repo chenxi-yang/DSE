@@ -61,16 +61,28 @@ def initialization_point(x):
 
 def f1(x):
     return x[0].add(var(0.01))
+def f1_domain(x):
+    return x[0].add(var(0.01))
 def f_double(x):
+    return x[0].mul(var(2.0))
+def f_double_domain(x):
     return x[0].mul(var(2.0))
 def f_triple(x):
     # print('in triple', x[0])
     return x[0].mul(var(3.0))
+def f_triple_domain(x):
+    return x[0].mul(var(3.0))
 def f_identity(x):
+    return x[0]
+def f_identity_domain(x):
     return x[0]
 def f_add(x):
     return x[0].add(var(1.0))
+def f_add_domain(x):
+    return x[0].add(var(1.0))
 def f_add_more(x):
+    return x[0].add(var(10.0))
+def f_add_more_domain(x):
     return x[0].add(var(10.0))
 def f_max(x):
     return torch.max(x[0], x[1])
@@ -84,12 +96,15 @@ def f_min_domain(x):
 
 def f_equal(x):
     return x[1].div(var(25.0))
+def f_equal_domain(x):
+    return x[1].mul(var(1/25.0))
 
 # for if condition
 def f_triple_sub(x):
     return x.mul(var(3.0)).sub(var(0.0001))
 def fsub(x):
     return x.sub(var(0.001))
+
 def fself(x):
     return x
 
@@ -97,25 +112,25 @@ def fself(x):
 
 def construct_syntax_tree(Theta):
 
-    l12 = Assign(['x_max', 'h'], f_max, None)
-    l11 = Assign(['x_min', 'h'], f_min, l12)
+    l12 = Assign(['x_max', 'h'], f_max_domain, None)
+    l11 = Assign(['x_min', 'h'], f_min_domain, l12)
 
-    l10 = Assign(['h'], f_add_more, l11)
-    l9 = Assign(['h'], f_identity, l11)
+    l10 = Assign(['h'], f_add_more_domain, l11)
+    l9 = Assign(['h'], f_identity_domain, l11)
     l8 = Ifelse('h', Theta, f_triple_sub, l9, l10, l11)
-    l7 = Assign(['res', 'count'], f_equal, l8)
+    l7 = Assign(['res', 'count'], f_equal_domain, l8)
 
-    l6_1 = Assign(['x_max', 'h'], f_max, None)
-    l6 = Assign(['x_min', 'h'], f_min, l6_1)
-    l5 = Assign(['count'], f_add, l6)
+    l6_1 = Assign(['x_max', 'h'], f_max_domain, None)
+    l6 = Assign(['x_min', 'h'], f_min_domain, l6_1)
+    l5 = Assign(['count'], f_add_domain, l6)
 
-    l4 = Assign(['h'], f_identity, l11)
-    l3_1 = Assign(['h'], f_triple, l11)
-    l3_0 = Assign(['h'], f_double, l11)
+    l4 = Assign(['h'], f_identity_domain, l11)
+    l3_1 = Assign(['h'], f_triple_domain, l11)
+    l3_0 = Assign(['h'], f_double_domain, l11)
     l3 = Ifelse('h', Theta, fsub, l3_0, l3_1, None)
     l2 = Ifelse('h', Theta, fself, l3, l4, l5)
 
-    l1 = Assign(['h'], f1, l2)
+    l1 = Assign(['h'], f1_domain, l2)
     l0 = WhileSample('h', var(10), l1, l7)
 
     tree_dict = dict()

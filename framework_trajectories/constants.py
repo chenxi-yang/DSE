@@ -39,7 +39,7 @@ PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
 B = var(200) # the range of lambda
 
-CURRENT_PROGRAM = 'program6_loop' # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program_test_junction' # 'program_test_disjunction_2'
 
 # PROGRAM #1
 # ! have problem!
@@ -105,24 +105,24 @@ CURRENT_PROGRAM = 'program6_loop' # 'program_test_disjunction_2'
 # safe_r = 11.0
 
 # PROGRAM_TEST_DISJUNCTION_2
-# x_l = [2.0]
-# x_r = [9.99]
-# target_theta = 5.49
-# theta_l = 4.0
-# theta_r = 9.0
-# safe_l = N_INFINITY.data.item()# 0.0
-# safe_r = 26.48
+x_l = [2.0]
+x_r = [9.99]
+target_theta = 5.49
+theta_l = 4.0
+theta_r = 9.0
+safe_l = 0.0 # N_INFINITY.data.item()# 0.0
+safe_r = 26.48
 
-# PROGRAM_6
-x_l = [0.0, 0.0, 0.0, 0.0]
-x_r = [2.0, 2.0, 2.0, 2.0]
-target_theta = 3.8
-theta_l = 2.5 #0 .001
-theta_r = 4.5 # 0.01
-safe_l = -0.07 # N_INFINITY.data.item()
-safe_r = 1.99342
+# # PROGRAM_6
+# x_l = [0.0, 0.0, 0.0, 0.0]
+# x_r = [2.0, 2.0, 2.0, 2.0]
+# target_theta = 3.9
+# theta_l = 3.5 #0 .001
+# theta_r = 4.0 # 0.01
+# safe_l = -0.07 # N_INFINITY.data.item()
+# safe_r = 1.99322
 
-# PROGRAM_6_loop
+# PROGRAM_6_loop [work]
 # sample size: 20000
 # noise: 0.3
 # command: --lr 0.1 --stop_val 0.01 --optimizer gd_direct_noise

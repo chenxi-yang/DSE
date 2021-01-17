@@ -89,7 +89,7 @@ if MODE == 1:
 
 def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
     print('in plot_sep_quan_safe_trend')
-    k=10
+    # k=5
     unit = (theta_r - theta_l) * 1.0 / k
     
     theta_list = list()
