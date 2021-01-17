@@ -45,15 +45,7 @@ if __name__ == "__main__":
     # data points generation
     for i in range(10):
         target = domain.Interval(safe_l, safe_r)
-<<<<<<< HEAD
         X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=10000, target_theta=target_theta, test_size=0.99)
-=======
-<<<<<<< HEAD
-        X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=10000, target_theta=target_theta, test_size=0.33)
-=======
-        X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=10000, target_theta=target_theta, test_size=0.8)
->>>>>>> 21d73d45ffc03325a3f48260f93e3cd409c983c9
->>>>>>> 61d2616ef479ed6d0a5326c452e4e87bf83d743d
 
         theta, loss, loss_list, q, c = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=var(50.0), stop_val=stop_val, epoch=500, lr=lr)
 
