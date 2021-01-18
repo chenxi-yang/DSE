@@ -263,49 +263,57 @@ baseline2: 3/10
 # sample size: 500
 # x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
 # x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
-# target_theta = 4.2 # 4.2, loss: < 1.0 # 2.175, probability loss: 1.5
-# theta_l = 4.0 # 1.5
-# theta_r = 4.5
-# safe_l = -6.92 #-0.4
+# target_theta = 1.9 # , probability loss: 1.5
+# theta_l = 1.5 # 1.5
+# theta_r = 2.5
+# safe_l = -8.0 #-0.4
 # safe_r = 5.0 #0.5
 
-# expr A: for log, upload to server
-x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
-x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
-target_theta = 1.9 # 4.2, loss: < 1.0 # 2.175, probability loss: 1.5
-theta_l = 1.2 # 4.0 # 1.5
-theta_r =  4.5 # 4.5
-safe_l = -6.5992 #-0.4
-safe_r = 5.0 #0.5
-
-# expr B: run 10 times, check safety
+# expr A: for log, upload to robovision
 # x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
 # x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
 # target_theta = 1.9 # 4.2, loss: < 1.0 # 2.175, probability loss: 1.5
-# theta_l = 1.5 # 4.0 # 1.5
-# theta_r =  2.5 # 4.5
+# theta_l = 1.2 # 4.0 # 1.5
+# theta_r =  4.5 # 4.5
 # safe_l = -6.5992 #-0.4
 # safe_r = 5.0 #0.5
-# stop-val 1.0
+
+# expr B: run 10 times, check safety
+x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
+x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
+target_theta = 1.9 # 4.2, loss: < 1.0 # 2.175, probability loss: 1.5
+theta_l = 1.5 # 4.0 # 1.5
+theta_r =  2.5 # 4.5
+safe_l = -6.5992 #-0.4
+safe_r = 5.0 #0.5
+# stop-val 1.0s
 
 '''
 original setting: 
-safe_l = -6.92
+safe_l = -8.0
 safe_r = 5.0
 stop-val = 1.0
+# target_theta = 2.175, probability loss: 1.5
+# theta_l = 1.5
+# theta_r = 4.5
 mcai: 10/10, avg loss: 0.022
 baseline2: 10/10
 
 update setting: [similar]
-safe_l = 
-safe_r = 
+safe_l = -6.92
+safe_r = 5.0  # can not be more refined
 stop-val = 10. -> 1.5
 mcai:     avg loss:
 baseline2: 
 
 refined initial partition[split 'y' into 10 equal partition]:
-
-
+safe_l = -6.5992 
+safe_r = 5.0 
+target_theta = 1.9
+theta_l = 1.5
+theta_r =  2.5 
+mcai: avg loss:
+baseline2: 2/10
 '''
 
 
