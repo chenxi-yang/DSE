@@ -85,6 +85,9 @@ mcai: 10/10 avg loss: 0.54
 baseline2: 10/10
 
 tight setting:
+target_theta = 5.6
+theta_l = 4.7
+theta_r = 5.8
 safe_l = 2.368  
 safe_r = 7.04
 mcai: 9/10 avg loss: 0.36
@@ -104,11 +107,17 @@ baseline2: 4/10
 # safe_r = 7.04
 '''
 original setting: 
-safe_l = 0.0, 
-safe_r = 7.5, 
+safe_l = 0.0
+safe_r = 7.5
+target_theta = 3.0
+theta_l = 1.0
+theta_r = 9.0
 baseline2: 7/10
 
 tight setting:
+target_theta = 3.0
+theta_l = 1.0
+theta_r = 9.0
 safe_l = 2.368  
 safe_r = 7.04
 mcai: 10/10 avg loss: 0.121
@@ -195,8 +204,12 @@ mcai: 9/10, avg loss: 0.97
 baseline2: 6/10
 
 update setting:
-safe_l = 3.0  
-safe_r = 9.3
+sample size: plus one critical datapoint when checking
+target_theta = 5.49
+theta_l = 5.0
+theta_r = 6.0 # 9.0
+safe_l = 4.0
+safe_r = 26.48
 stop-val = 1.5
 mcai: 9/10, avg loss: 1.02
 baseline2: 2/10
@@ -308,7 +321,7 @@ baseline2:
 
 refined initial partition[split 'y' into 10 equal partition]:
 safe_l = -6.5992 
-safe_r = 5.0 
+safe_r = 5.0
 target_theta = 1.9
 theta_l = 1.5
 theta_r =  2.5 
@@ -330,6 +343,9 @@ baseline2: 2/10
 original setting: 
 x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
 x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
+target_theta = 4.2
+theta_l = 1.0
+theta_r = 5.0
 safe_l = -1.895
 safe_r = 2.31
 stop-val = 1.0
@@ -356,4 +372,4 @@ eta = 10.0
 gamma = 0.55
 alpha_coeff = 0.9
 
-noise = 1.0 # 0.1
+noise = 0.1 # 0.1

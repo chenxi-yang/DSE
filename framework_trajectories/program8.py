@@ -28,7 +28,8 @@ if MODE == 5:
             symbol_table['probability'] = var(1.0)
             symbol_table['explore_probability'] = var(1.0)
 
-            symbol_table_list.append(symbol_table)
+            # symbol_table_list.append(symbol_table)
+            symbol_table_list = split_symbol_table(symbol_table, ['y'], partition=10)
 
             return symbol_table_list
 
@@ -122,7 +123,7 @@ def f3_theta(theta):
         #     print('sin( (x[1] + (theta - 3.2)) * x[2] )', torch.sin((x[1].add(theta.sub(var(3.2))))))
 
 
-        y = x[0].add(var(-1.0).mul(ay).mul(torch.sin((x[1].add(theta.sub(var(3.2)))).mul(x[2])).mul(torch.sin(x[3]).mul(var(2.0)))).mul(delta_t))
+        y = x[0].add(var(-1.0).mul(ay).mul(torch.sin((x[1].add(theta.sub(var(3.0)))).mul(x[2])).mul(torch.sin(x[3]).mul(var(2.0)))).mul(delta_t))
         # if y.data.item() < -7.0:
         # if x[0].data.item() >-5.0:
         #     print('==f3 input==')
@@ -139,7 +140,7 @@ def f3_theta_domain(theta):
         # print('x[2], (x[1] + (theta - 3.2)) * x[2]', x[2].left, x[2].right, ((x[1].add(theta.sub(var(3.2)))).mul(x[2])).left, ((x[1].add(theta.sub(var(3.2)))).mul(x[2])).right)
         # print('sin( (x[1] + (theta - 3.2)) * x[2] )', (((x[1].add(theta.sub(var(3.2)))).mul(x[2])).sin()).left, (((x[1].add(theta.sub(var(3.2)))).mul(x[2])).sin()).right)
 
-        y = x[0].add(((((x[1].add(theta.sub(var(3.2)))).mul(x[2])).sin().mul((x[3]).sin())).mul(var(-2.0).mul(ay))).mul(delta_t))
+        y = x[0].add(((((x[1].add(theta.sub(var(3.0)))).mul(x[2])).sin().mul((x[3]).sin())).mul(var(-2.0).mul(ay))).mul(delta_t))
         # print('DOMAIN in f3 domain', y.left, y.right)
         # exit(0)
         return y
