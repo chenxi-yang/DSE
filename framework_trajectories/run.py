@@ -11,10 +11,10 @@ from test import *
 # from program5 import *
 # from program6 import *
 # from program6_loop import *
-# from program7 import *
+from program7 import *
 # from program8 import *
 # from program_test_disjunction import *
-from program_test_disjunction_2 import *
+# from program_test_disjunction_2 import *
 
 from args import *
 
@@ -68,9 +68,9 @@ if __name__ == "__main__":
 
     # data points generation
     target = domain.Interval(safe_l, safe_r)
-    X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=100, target_theta=target_theta, test_size=0.33)
+    X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=10000, target_theta=target_theta, test_size=0.99)
 
-    # add for lambda
+    # add for lambdas
     # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 
     lambda_list = list()

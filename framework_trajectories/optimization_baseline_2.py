@@ -32,8 +32,8 @@ if MODE in [2,3,4,5]:
             # print('pi, p', pi.data.item(), p.data.item())
 
             X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
-            X.left = torch.min(X_min.left, X_max.left)
-            X.right = torch.max(X_min.right, X_max.right)
+            X.left = X_min.left # torch.min(X_min.left, X_max.left)
+            X.right = X_max.right # torch.max(X_min.right, X_max.right)
             # print(X.min.left, X.min.right, X.max.left, X.max.right)
 
             tmp_res = var(0.0)
@@ -89,7 +89,7 @@ if MODE == 1:
 
 def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
     print('in plot_sep_quan_safe_trend')
-    # k=5
+    k = 200
     unit = (theta_r - theta_l) * 1.0 / k
     
     theta_list = list()

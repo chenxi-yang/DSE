@@ -53,6 +53,17 @@ class Interval:
             return var(0.0)
         else:
             return torch.max(EPSILON, (self.right.sub(self.left)))
+    
+    def split(self, partition):
+        domain_list = list()
+        unit = self.getVolumn().div(var(partition))
+        for i in range(partition):
+            new_domain = Interval()
+            new_domain.left = self.left.add(var(i).mul(unit))
+            new_domain.right = self.left.add(var(i + 1).mul(unit))
+            domain_list.append(new_domain)
+            # print('in split', new_domain.left, new_domain.right)
+        return domain_list
 
     def getCenter(self):
         C = var(2.0)
@@ -335,6 +346,17 @@ class Zonotope:
     def getVolumn(self):
         return self.getIntervalLength()
     
+    def split(self, partition):
+        domain_list = list()
+        tmp_self = self.getInterval()
+        unit = tmp_self.getVolumn().div(var(partition))
+        for i in range(partition):
+            new_domain = Interval()
+            new_domain.left = tmp_self.left.add(var(i).mul(unit))
+            new_domain.right = tmp_self.left.add(var(i + 1).mul(unit))
+            domain_list.append(new_domain.getZonotope())
+        return domain_list
+    
     def getCoefLength(self):
         return len(self.alpha_i)
     
@@ -602,10 +624,14 @@ class Zonotope:
         return res
 
     def sin(self):
-        pass
+        tmp_res = self.getInterval()
+        res = tmp_res.sin().getZonotope()
+        return res
 
     def cos(self):
-        pass
+        tmp_res = self.getInterval()
+        res = tmp_res.cos().getZonotope()
+        return res
 
     def max(self, y):
         res = Zonotope()

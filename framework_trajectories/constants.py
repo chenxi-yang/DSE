@@ -37,9 +37,9 @@ INTERVAL_BETA = var(1.0) # 2.0
 POINT_BETA = var(100.0) # 10.0
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
-B = var(200) # the range of lambda
+B = var(10000) # the range of lambda
 
-CURRENT_PROGRAM = 'program_test_junction' # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program7' # 'program_test_disjunction_2'
 
 # PROGRAM #1
 # ! have problem!
@@ -50,6 +50,22 @@ CURRENT_PROGRAM = 'program_test_junction' # 'program_test_disjunction_2'
 # theta_r = 63.5
 # safe_l = 61.28 # 63.5 (original) # 64.534 (very tight)  
 # safe_r = 82.80 # 83.59 (original) # 82.994 (very tight)  
+'''
+original setting: 
+safe_l = 63.5
+safe_r = 83.59
+stop-val = 1.0
+mcai: 10/10, avg loss: 0.59
+baseline2: 10/10
+
+update setting:
+safe_l =  
+safe_r = 
+stop-val = 
+mcai:     avg loss:
+baseline2: 
+'''
+
 
 # PROGRAM #2 [work]
 # sample size: 1000
@@ -59,8 +75,22 @@ CURRENT_PROGRAM = 'program_test_junction' # 'program_test_disjunction_2'
 # target_theta = 5.6
 # theta_l = 4.7
 # theta_r = 5.8
-# safe_l = 2.86
+# safe_l = 2.86 
 # safe_r = 120 # P_INFINITY.data.item()
+'''
+original setting: 
+safe_l = 0.3, 
+safe_r = P_INFINITY.data.item() 
+mcai: 10/10 avg loss: 0.54
+baseline2: 10/10
+
+tight setting:
+safe_l = 2.368  
+safe_r = 7.04
+mcai: 9/10 avg loss: 0.36
+baseline2: 4/10
+'''
+
 
 # PROGRAM #3 [work]
 # sample size: 1000
@@ -70,19 +100,43 @@ CURRENT_PROGRAM = 'program_test_junction' # 'program_test_disjunction_2'
 # target_theta = 3.0
 # theta_l = 1.0
 # theta_r = 9.0
-# safe_l = 2.368
+# safe_l = 2.368  
 # safe_r = 7.04
+'''
+original setting: 
+safe_l = 0.0, 
+safe_r = 7.5, 
+baseline2: 7/10
+
+tight setting:
+safe_l = 2.368  
+safe_r = 7.04
+mcai: 10/10 avg loss: 0.121
+baseline2: 3/10
+'''
 
 # PROGRAM #4 [work]
 # sample size: 500
-# command: --lr 0.1 --stop_val 1.0 --optimizer gd_direct_noise
+# command: --lr 0.1 --stop_val 0.1 --optimizer gd_direct_noise
 # x_l = [8.0] # initial height
 # x_r = [12.0]
-# target_theta = 5.0
+# target_theta = 5.0 
 # theta_l = 1.0
 # theta_r = 6.0
-# safe_l = 3.0
+# safe_l = 3.0  
 # safe_r = 9.3
+'''
+original setting: 
+same
+stop-val = 0.1
+
+update setting:
+stop-val = 1.0
+safe_l = 3.0  
+safe_r = 9.3
+mcai: 10/10 avg loss: 0.0204
+baseline2: 2/10
+'''
 
 # PROGRAM #5
 # ! have problem
@@ -93,6 +147,22 @@ CURRENT_PROGRAM = 'program_test_junction' # 'program_test_disjunction_2'
 # theta_r = 58.3
 # safe_l = 57.65 # 57.69 # 69.8
 # safe_r = 76.12 # 76.76 # 77.0
+'''
+original setting: 
+safe_l = 69.8
+safe_r = 77.0
+stop-val = 0.1
+mcai: 10/10, avg loss: 0.032
+baseline2: 9/10
+
+update setting:
+safe_l =  
+safe_r = 
+stop-val = 
+mcai:     avg loss:
+baseline2: 
+'''
+
 
 
 # PROGRAM_TEST_DISJUNCTION 
@@ -104,25 +174,61 @@ CURRENT_PROGRAM = 'program_test_junction' # 'program_test_disjunction_2'
 # safe_l = 0.0
 # safe_r = 11.0
 
-# PROGRAM_TEST_DISJUNCTION_2
+# PROGRAM_TEST_DISJUNCTION_2 [work]
 # command: --lr 0.1 --stop_val 1.5 --optimizer gd_direct_noise
-# plus one critical datapoint when checking
-x_l = [2.0]
-x_r = [9.99]
-target_theta = 5.49
-theta_l = 5.0
-theta_r = 6.0 # 9.0
-safe_l = 4.0 # N_INFINITY.data.item()# 0.0
-safe_r = 26.48
+# sample size: plus one critical datapoint when checking
+# large initial penalty: B=10000
+# x_l = [2.0]
+# x_r = [9.99]
+# target_theta = 5.49
+# theta_l = 5.0
+# theta_r = 6.0 # 9.0
+# safe_l = 4.0 # N_INFINITY.data.item()# 0.0
+# safe_r = 26.48
 
-# # PROGRAM_6
+'''
+original setting: 
+safe_l = 4.0 
+safe_r = 26.48
+stop-val = 1.0
+mcai: 9/10, avg loss: 0.97
+baseline2: 6/10
+
+update setting:
+safe_l = 3.0  
+safe_r = 9.3
+stop-val = 1.5
+mcai: 9/10, avg loss: 1.02
+baseline2: 2/10
+'''
+
+
+# PROGRAM_6
+# command: python run_baseline_2.py --lr 0.1 --stop_val 0.01 --optimizer gd_direct_noise
 # x_l = [0.0, 0.0, 0.0, 0.0]
-# x_r = [2.0, 2.0, 2.0, 2.0]
-# target_theta = 3.9
-# theta_l = 3.5 #0 .001
+# x_r = [1.0, 2.0, 2.0, 2.0]
+# target_theta = 3.8
+# theta_l = 3.0 #0 .001
 # theta_r = 4.0 # 0.01
-# safe_l = -0.07 # N_INFINITY.data.item()
-# safe_r = 1.99322
+# safe_l = -0.062 # N_INFINITY.data.item()
+# safe_r = 0.99342
+'''
+original setting: 
+safe_l = N_INFINITY.data.item()
+safe_r = 1.0
+stop-val = 0.01
+mcai: 10/10, avg loss: 0.0003
+baseline2: 10/10
+
+update setting:
+sample size: 10000, 0.99
+safe_l =  -0.062 # N_INFINITY.data.item()
+safe_r = 0.99342
+stop-val = 0.01
+mcai:   10/10  avg loss: 0.003505 (0.00351, 0.00348, 0.00337, 0.00346, 0.00349， 0.00372)
+baseline2: 5/10
+'''
+
 
 # PROGRAM_6_loop [work]
 # sample size: 20000
@@ -135,30 +241,101 @@ safe_r = 26.48
 # theta_r = 5.0
 # safe_l = -0.008 # N_INFINITY.data.item()
 # safe_r = 0.99342
+'''
+original setting: 
+safe_l = N_INFINITY.data.item()
+safe_r = 1.0
+stop-val = 0.01
+mcai: 10/10, avg loss: 0.00002
+baseline2: 10/10s
 
-#PROGRAM_7
+update setting:
+safe_l = -0.008 # N_INFINITY.data.item()
+safe_r = 0.99342
+stop-val = 0.01
+mcai: 10/10, avg loss: 0.00004
+baseline2: 3/10
+'''
+
+
+#PROGRAM_7(Electronic Oscillator-Loop)
 # stop-val: 1.5 --lr 0.0000001
 # sample size: 500
 # x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
 # x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
-# target_theta = 2.175
-# theta_l = 1.5
-# theta_r = 3.5
+# target_theta = 4.2 # 4.2, loss: < 1.0 # 2.175, probability loss: 1.5
+# theta_l = 4.0 # 1.5
+# theta_r = 4.5
 # safe_l = -6.92 #-0.4
 # safe_r = 5.0 #0.5
 
-# #PROGRAM_8
+# expr A: for log, upload to server
+x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
+x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
+target_theta = 1.9 # 4.2, loss: < 1.0 # 2.175, probability loss: 1.5
+theta_l = 1.2 # 4.0 # 1.5
+theta_r =  4.5 # 4.5
+safe_l = -6.5992 #-0.4
+safe_r = 5.0 #0.5
+
+# expr B: run 10 times, check safety
+# x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
+# x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
+# target_theta = 1.9 # 4.2, loss: < 1.0 # 2.175, probability loss: 1.5
+# theta_l = 1.5 # 4.0 # 1.5
+# theta_r =  2.5 # 4.5
+# safe_l = -6.5992 #-0.4
+# safe_r = 5.0 #0.5
+# stop-val 1.0
+
+'''
+original setting: 
+safe_l = -6.92
+safe_r = 5.0
+stop-val = 1.0
+mcai: 10/10, avg loss: 0.022
+baseline2: 10/10
+
+update setting: [similar]
+safe_l = 
+safe_r = 
+stop-val = 10. -> 1.5
+mcai:     avg loss:
+baseline2: 
+
+refined initial partition[split 'y' into 10 equal partition]:
+
+
+'''
+
+
+# #PROGRAM_8(Electronic Oscillator-Deep)
 # stop-val 0.05
 # x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
 # x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
-# # debug
-# # x_l = [-0.0665809673568403, -4.943742921226779, 0.0, 2.0, 2.5, 1.2325791657941065]
-# # x_r = [-0.0665809673568403, -4.943742921226779, 0.0, 2.0, 2.5, 1.2325791657941065]
 # target_theta = 4.2
 # theta_l = 1.0
 # theta_r = 5.0
 # safe_l = -1.895 # -2.61 #-0.4
 # safe_r = 2.31 # 1.905 #0.5
+'''
+original setting: 
+x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
+x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
+safe_l = -1.895
+safe_r = 2.31
+stop-val = 1.0
+mcai: 10/10, avg loss: 0.99
+baseline2: 10/10
+
+update setting:
+safe_l = 
+safe_r = 
+stop-val = 
+mcai:     avg loss:
+baseline2: 
+'''
+
 
 
 # args
@@ -171,4 +348,4 @@ eta = 10.0
 gamma = 0.55
 alpha_coeff = 0.9
 
-noise = 0.1 # 0.1
+noise = 1.0 # 0.1

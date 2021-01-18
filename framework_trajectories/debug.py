@@ -1,21 +1,7 @@
-import torch
-import random
-from torch.autograd import Variable
+import domain
+from helper import *
 import copy
-# import domain
 
-def var(i, requires_grad=False):
-    # print(i)
-    return Variable(torch.tensor(i, dtype=torch.double), requires_grad=requires_grad)
-
-PI = var((3373259426.0 + 273688.0 / (1 << 21)) / (1 << 30))
-PI_TWICE = PI.mul(var(2.0))
-PI_HALF = PI.div(var(2.0))
-
-# print(PI)
-# print(torch.sin(PI))
-# print(torch.sin(PI_TWICE))
-# print(torch.sin(PI_HALF))
 
 def split_symbol_table(symbol_table, argument_list, partition=10):
     symbol_table_list = list()
@@ -42,3 +28,20 @@ def split_symbol_table(symbol_table, argument_list, partition=10):
         return [symbol_table]
 
     return symbol_table_list
+
+
+
+# symbol_table = dict()
+# symbol_table['x'] = domain.Interval(2.0, 3.0)
+
+# # new_symbol_table = dict()
+# # for key in symbol_table:
+# #     new_symbol_table[key] = copy.deepcopy(symbol_table[key])
+
+# # symbol_table['x'].left = symbol_table['x'].left.sub(var(3.0))
+# # print('symbol_table', symbol_table['x'].left, symbol_table['x'].right)
+# # print('new_symbol_table', new_symbol_table['x'].left, new_symbol_table['x'].right)
+
+# symbol_table_list = split_symbol_table(symbol_table, ['x'], 10)
+# for table in symbol_table_list:
+#     print(table['x'].left, table['x'].right)

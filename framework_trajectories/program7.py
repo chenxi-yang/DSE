@@ -28,7 +28,8 @@ if MODE == 5:
             symbol_table['probability'] = var(1.0)
             symbol_table['explore_probability'] = var(1.0)
 
-            symbol_table_list.append(symbol_table)
+            # symbol_table_list.append(symbol_table)
+            symbol_table_list = split_symbol_table(symbol_table, ['y'], partition=10)
 
             return symbol_table_list
     
@@ -140,11 +141,11 @@ def f3_domain(x):
 
 def f3_theta(theta):
     def res(x):
-        return x[0].add(var(-1.0).mul(ay).mul(torch.sin((x[1].add(theta)).mul(x[2])).mul(torch.sin(x[3]).mul(var(2.0)))).mul(delta_t))
+        return x[0].add(var(-1.0).mul(ay).mul(torch.sin((x[1].add(theta.sub(var(3.0)))).mul(x[2])).mul(torch.sin(x[3]).mul(var(2.0)))).mul(delta_t))
     return res
 def f3_theta_domain(theta):
     def res(x):
-        return x[0].add(((((x[1].add(theta)).mul(x[2])).sin().mul((x[3]).sin())).mul(var(-2.0).mul(ay))).mul(delta_t))
+        return x[0].add(((((x[1].add(theta.sub(3.0))).mul(x[2])).sin().mul((x[3]).sin())).mul(var(-2.0).mul(ay))).mul(delta_t))
     return res
 
 def f4(x):
@@ -330,7 +331,7 @@ def construct_syntax_tree(Theta):
     l6 = Assign(['omega2'], f6_domain, l7)
     l5 = Assign(['omega1'], f5_domain, l6)
     l4 = Assign(['z', 'omega2', 'tau', 'omega1'], f4_domain, l5)
-    l3 = Assign(['y', 'omega1', 'tau', 'omega2'], f3_theta_domain(Theta.sub(var(3.2))), l4)
+    l3 = Assign(['y', 'omega1', 'tau', 'omega2'], f3_theta_domain(Theta), l4)
     l2 = Assign(['x1', 'tau'], f2_domain, l3)
     l1 = Ifelse('stage', var(1.0), fself, l2, l16, l44)
 
@@ -393,7 +394,7 @@ def construct_syntax_tree_point(Theta):
     l6 = AssignPoint(['omega2'], f6, l7)
     l5 = AssignPoint(['omega1'], f5, l6)
     l4 = AssignPoint(['z', 'omega2', 'tau', 'omega1'], f4, l5)
-    l3 = AssignPoint(['y', 'omega1', 'tau', 'omega2'], f3_theta(Theta.sub(var(3.2))), l4)
+    l3 = AssignPoint(['y', 'omega1', 'tau', 'omega2'], f3_theta(Theta), l4)
     l2 = AssignPoint(['x1', 'tau'], f2, l3)
     l1 = IfelsePoint('stage', var(1.0), fself, l2, l16, l44)
 
@@ -456,7 +457,7 @@ def construct_syntax_tree_smooth_point(Theta):
     l6 = AssignPointSmooth(['omega2'], f6, l7)
     l5 = AssignPointSmooth(['omega1'], f5, l6)
     l4 = AssignPointSmooth(['z', 'omega2', 'tau', 'omega1'], f4, l5)
-    l3 = AssignPointSmooth(['y', 'omega1', 'tau', 'omega2'], f3_theta(Theta.sub(var(3.2))), l4)
+    l3 = AssignPointSmooth(['y', 'omega1', 'tau', 'omega2'], f3_theta(Theta), l4)
     l2 = AssignPointSmooth(['x1', 'tau'], f2, l3)
     l1 = IfelsePointSmooth('stage', var(1.0), fself, l2, l16, l44)
 
