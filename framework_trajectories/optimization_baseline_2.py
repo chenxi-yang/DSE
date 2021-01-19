@@ -97,7 +97,7 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
     result_safety_l_list = list()
     result_safety_r_list = list()
     target_l_list = list()
-    target_r_list = list()
+    target_r_list = list()   
     y_l_list = list()
     y_r_list = list()
 

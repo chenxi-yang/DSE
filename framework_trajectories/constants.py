@@ -37,7 +37,7 @@ INTERVAL_BETA = var(1.0) # 2.0
 POINT_BETA = var(100.0) # 10.0
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
-B = var(1000) # the range of lambda
+B = var(10000) # the range of lambda
 
 CURRENT_PROGRAM = 'program5' # 'program_test_disjunction_2'
 
