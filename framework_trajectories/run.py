@@ -73,48 +73,49 @@ if __name__ == "__main__":
     # add for lambdas
     # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 
-    lambda_list = list()
-    theta_list = list()
-    q = var(0.0)
+    for i in range(5):
+        lambda_list = list()
+        theta_list = list()
+        q = var(0.0)
 
-    for t in range(t_epoch):
-        new_lambda = B.mul(q.exp().div(var(1.0).add(q.exp())))
+        for t in range(t_epoch):
+            new_lambda = B.mul(q.exp().div(var(1.0).add(q.exp())))
 
-        # BEST_theta(lambda)
-        theta, loss, loss_list, q, c = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=new_lambda, stop_val=stop_val, epoch=500, lr=lr)
-        
-        lambda_list.append(new_lambda)
-        theta_list.append(theta)
+            # BEST_theta(lambda)
+            theta, loss, loss_list, q, c = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=new_lambda, stop_val=stop_val, epoch=500, lr=lr)
+            
+            lambda_list.append(new_lambda)
+            theta_list.append(theta)
 
-        theta_t = var(0.0)
-        for i in theta_list:
-            theta_t = theta_t.add(i)
-        theta_t = theta_t.div(var(len(theta_list)))
+            theta_t = var(0.0)
+            for i in theta_list:
+                theta_t = theta_t.add(i)
+            theta_t = theta_t.div(var(len(theta_list)))
 
-        lambda_t = var(0.0)
-        for i in lambda_list:
-            lambda_t = lambda_t.add(i)
-        lambda_t = lambda_t.div(var(len(lambda_list)))
+            lambda_t = var(0.0)
+            for i in lambda_list:
+                lambda_t = lambda_t.add(i)
+            lambda_t = lambda_t.div(var(len(lambda_list)))
 
-        _, l_max = best_lambda(X_train, y_train, theta_t)
-        _, l_min = best_theta(X_train, y_train, lambda_t)
+            _, l_max = best_lambda(X_train, y_train, theta_t)
+            _, l_min = best_theta(X_train, y_train, lambda_t)
 
-        print('-------------------------------')
-        print('l_max, l_min', l_max, l_min)
+            print('-------------------------------')
+            print('l_max, l_min', l_max, l_min)
 
-        if "gd" in optimizer_name:
-            if (torch.abs(l_max.sub(l_min))).data.item() < w:
-            # return theta_t, lambda_t
-                break
-        else:
-            if abs(l_max - l_min) < w:
-            # return theta_t, lambda_t
-                break
-        
-        q = q.add(var(lr).mul(cal_c(X_train, y_train, theta)))
+            if "gd" in optimizer_name:
+                if (torch.abs(l_max.sub(l_min))).data.item() < w:
+                # return theta_t, lambda_t
+                    break
+            else:
+                if abs(l_max - l_min) < w:
+                # return theta_t, lambda_t
+                    break
+            
+            q = q.add(var(lr).mul(cal_c(X_train, y_train, theta)))
 
-    eval(X_train, y_train, theta_t, target, 'train')
-    eval(X_test, y_test, theta_t, target, 'test')
+        eval(X_train, y_train, theta_t, target, 'train')
+        eval(X_test, y_test, theta_t, target, 'test')
 
     # Eval
     # evaluation(X_train, y_train, theta_l, theta_r, target, lambda_=var(50.0), stop_val=stop_val, lr=lr)

@@ -57,37 +57,69 @@ def benchmark_thermostat_wo_loop(theta, x):
     return x
 
 
-def benchmark_thermostat_w_loop(theta, x):
+# def benchmark_thermostat_w_loop(theta, x):
 
+#     while(x<=74.0):
+#         if isOn <= 0.5:
+#             x = x - 0.1*(x-60)
+#             if x <= theta:
+#                 isOn = 1.0
+#             else:
+#                 isOn = 0.0
+#         else:
+#             x = x - 0.1*(x-60) + 5.0
+#             if x <= 77.0:
+#                 isOn = 1.0
+#             else:
+#                 x = 0.0
+    
+#     while(-x<=-78.0):
+#         if isOn <= 0.5:
+#             x = x - 0.1*(x-60)
+#             if x <= theta:
+#                 isOn = 1.0
+#             else:
+#                 isOn = 0.0
+#         else:
+#             x = x = x - 0.1*(x-60) + 5.0
+#             if x <= 77.0:
+#                 isOn = 1.0
+#             else:
+#                 isOn = 0.0    
+
+#     return x  
+
+def benchmark_thermostat_w_loop(theta, x):
+    # x = ??(62.0, 72.0)
+    
+    tOff = ??(53.0, 60.0)
+    tOn = 77.0
+    curT = ??(55.0, 62.0)  # room temperature
     while(x<=74.0):
         if isOn <= 0.5:
-            x = x - 0.1*(x-60)
-            if x <= theta:
+            x = x - 0.1*(x - curT)
+            if x <= tOff:
                 isOn = 1.0
-            else:
-                isOn = 0.0
         else:
-            x = x - 0.1*(x-60) + 5.0
-            if x <= 77.0:
-                isOn = 1.0
-            else:
-                x = 0.0
+            x = x - 0.1*(x - curT) + 5.0
+            if x > 77.0:
+                isOn = 0.0
     
-    while(-x<=-78.0):
+    while(x > 78.0):
         if isOn <= 0.5:
-            x = x - 0.1*(x-60)
+            x = x - 0.1*(x-theta)
             if x <= theta:
                 isOn = 1.0
             else:
                 isOn = 0.0
         else:
-            x = x = x - 0.1*(x-60) + 5.0
+            x = x - 0.1*(x-theta) + 5.0
             if x <= 77.0:
                 isOn = 1.0
             else:
                 isOn = 0.0    
 
-    return x  
+    return x 
 
 
 def aircraft_collision_wo_loop(theta, v1, v2, delay, delay2):

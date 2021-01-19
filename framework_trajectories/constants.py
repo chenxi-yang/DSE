@@ -34,36 +34,58 @@ N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)
 
 INTERVAL_BETA = var(1.0) # 2.0
-POINT_BETA = var(100.0) # 10.0
+POINT_BETA = var(100.0) # 10.0s
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
 B = var(10000) # the range of lambda
 
-CURRENT_PROGRAM = 'program5' # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program1' # 'program_test_disjunction_2'
 
 # PROGRAM #1
 # ! have problem!
-# x_l = [65.0]
-# x_r = [75.0]
-# target_theta = 61.7
-# theta_l = 61.0
-# theta_r = 63.5
-# safe_l = 61.28 # 63.5 (original) # 64.534 (very tight)  
-# safe_r = 82.80 # 83.59 (original) # 82.994 (very tight)  
-'''
-original setting: 
-safe_l = 63.5
-safe_r = 83.59
-stop-val = 1.0
-mcai: 10/10, avg loss: 0.59
-baseline2: 10/10
+x_l = [62.0]
+x_r = [72.0]
+target_theta = 59.48
+# safe_l = 60.30 # (tight)
+# safe_r = 81.9513
+safe_l = 60.95 #(tighter, with 10 initial partition)
+safe_r = 81.606
+theta_l = 58.1
+theta_r = 65.0
 
-update setting:
-safe_l =  
-safe_r = 
-stop-val = 
+'''
+
+original setting: 
+# sample size: 10000
+target_theta = 59.48
+safe_l = 60.0
+safe_r = 83.0
+stop-val = 0.1
+mcai: 10/10, avg loss: 0.032
+baseline2: 9/10
+
+update setting: (tight constraint)
+target theta: 59.48
+safe_l = 60.30 # (tight)
+safe_r = 81.9513
+theta_l = 55.0
+theta_r = 65.0
+stop-val = 3.0
 mcai:     avg loss:
-baseline2: 
+baseline2: S,S
+
+refined initial partition[split 'x' into 10 equal partition]:
+command: --lr 0.1 --stop_val 1.0 --optimizer gd_direct_noise
+sample size: 10000
+previous setting restrict the approximation but large point smooth loss
+safe_l = 60.95
+safe_r = 81.606
+target_theta = 59.48
+theta_l = 55.0
+theta_r = 62.0
+stop-val = 3.0
+mcai: avg loss: (0.12925[not provably safe],  0.15411[not provably safe])
+baseline2: U, U
 '''
 
 
@@ -148,14 +170,13 @@ baseline2: 2/10
 '''
 
 # PROGRAM #5
-# ! have problem
-x_l = [62.0]
-x_r = [72.0]
-target_theta = 59.54# 56.1 # 57.046 # 57.7
-theta_l = 55.0 # 55.9 # 55.0
-theta_r = 62.0 # 65.0 # 58.3
-safe_l = 61.04 # safe_l = 57.557# 57.69 # 69.8
-safe_r = 74.697 # safe_r = 74.8263 # 76.76 # 77.0
+# x_l = [62.0]
+# x_r = [72.0]
+# target_theta = 59.54# 56.1 # 57.046 # 57.7
+# theta_l = 55.0 # 55.9 # 55.0
+# theta_r = 62.0 # 65.0 # 58.3
+# safe_l = 61.04 # safe_l = 57.557# 57.69 # 69.8
+# safe_r = 74.697 # safe_r = 74.8263 # 76.76 # 77.0
 
 '''
 original setting: 
@@ -184,10 +205,8 @@ target_theta = 59.54
 theta_l = 55.0
 theta_r = 62.0
 stop-val = 1.0
-mcai: avg loss: ()
+mcai: 10/10 avg loss: 0.119622 (0.12925[not provably safe], 0.15411, 0.14261[not provably safe], 0.17214[not],  0.15115)
 baseline2: 0/10
-
-
 '''
 
 

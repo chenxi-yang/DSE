@@ -158,7 +158,7 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
         y_l_list.append(y_l.data.item())
         y_r_list.append(y_r.data.item())
 
-    plt.plot(theta_list, quan_f_list, color='blue', label='quan_f')
+    # plt.plot(theta_list, quan_f_list, color='blue', label='quan_f')
     plt.plot(theta_list, target_l_list, color='green', label='target_l')
     plt.plot(theta_list, target_r_list, color='green', label='target_r')
     plt.plot(theta_list, result_safety_l_list, color='red', label='pred_y_l')
