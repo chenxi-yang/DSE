@@ -37,9 +37,9 @@ INTERVAL_BETA = var(1.0) # 2.0
 POINT_BETA = var(100.0) # 10.0
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
-B = var(10000) # the range of lambda
+B = var(1000) # the range of lambda
 
-CURRENT_PROGRAM = 'program7' # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program5' # 'program_test_disjunction_2'
 
 # PROGRAM #1
 # ! have problem!
@@ -120,7 +120,7 @@ theta_l = 1.0
 theta_r = 9.0
 safe_l = 2.368  
 safe_r = 7.04
-mcai: 10/10 avg loss: 0.121
+mcai: 10/10  avg loss: 0.121
 baseline2: 3/10
 '''
 
@@ -149,13 +149,14 @@ baseline2: 2/10
 
 # PROGRAM #5
 # ! have problem
-# x_l = [62.0]
-# x_r = [72.0]
-# target_theta = 57.046 # 57.7
-# theta_l = 55.0
-# theta_r = 58.3
-# safe_l = 57.65 # 57.69 # 69.8
-# safe_r = 76.12 # 76.76 # 77.0
+x_l = [62.0]
+x_r = [72.0]
+target_theta = 59.54# 56.1 # 57.046 # 57.7
+theta_l = 55.0 # 55.9 # 55.0
+theta_r = 62.0 # 65.0 # 58.3
+safe_l = 61.04 # safe_l = 57.557# 57.69 # 69.8
+safe_r = 74.697 # safe_r = 74.8263 # 76.76 # 77.0
+
 '''
 original setting: 
 safe_l = 69.8
@@ -165,11 +166,28 @@ mcai: 10/10, avg loss: 0.032
 baseline2: 9/10
 
 update setting:
-safe_l =  
-safe_r = 
-stop-val = 
-mcai:     avg loss:
-baseline2: 
+target theta: 56.1
+safe_l = 56.64
+safe_r = 77.31
+theta_l = 55.0
+theta_r =  58.3
+stop-val = 0.5
+mcai:   10/10  avg loss:
+baseline2: 8 /10
+
+refined initial partition[split 'x' into 10 equal partition]:
+command: 
+previous setting restrict the approximation but large point smooth loss
+safe_l = 61.04
+safe_r = 74.697
+target_theta = 59.54
+theta_l = 55.0
+theta_r = 62.0
+stop-val = 1.0
+mcai: avg loss: ()
+baseline2: 0/10
+
+
 '''
 
 
@@ -292,13 +310,13 @@ baseline2: 3/10
 # safe_r = 5.0 #0.5
 
 # expr B: run 10 times, check safety
-x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
-x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
-target_theta = 1.9 # 4.2, loss: < 1.0 # 2.175, probability loss: 1.5
-theta_l = 1.5 # 4.0 # 1.5
-theta_r =  2.5 # 4.5
-safe_l = -6.5992 #-0.4
-safe_r = 5.0 #0.5
+# x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
+# x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
+# target_theta = 1.9 # 4.2, loss: < 1.0 # 2.175, probability loss: 1.5
+# theta_l = 1.5 # 4.0 # 1.5
+# theta_r =  2.5 # 4.5
+# safe_l = -6.5992 #-0.4
+# safe_r = 5.0 #0.5
 # stop-val 1.0s
 
 '''
@@ -315,17 +333,18 @@ baseline2: 10/10
 update setting: [similar]
 safe_l = -6.92
 safe_r = 5.0  # can not be more refined
-stop-val = 10. -> 1.5
+stop-val = 1. -> 1.5
 mcai:     avg loss:
 baseline2: 
 
 refined initial partition[split 'y' into 10 equal partition]:
+command: --lr 0.001 --stop_val 1.5 --optimizer gd_direct_noise
 safe_l = -6.5992 
 safe_r = 5.0
 target_theta = 1.9
 theta_l = 1.5
 theta_r =  2.5 
-mcai: avg loss:
+mcai:  10/10 avg loss: 1.368698 (1.13999, 1.4434, 1.46932,  1.41152, 1.37926)
 baseline2: 2/10
 '''
 
@@ -334,11 +353,11 @@ baseline2: 2/10
 # stop-val 0.05
 # x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
 # x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
-# target_theta = 4.2
-# theta_l = 1.0
-# theta_r = 5.0
-# safe_l = -1.895 # -2.61 #-0.4
-# safe_r = 2.31 # 1.905 #0.5
+# target_theta = 1.9
+# theta_l = 1.5
+# theta_r = 2.5
+# safe_l = -5.7658 # -2.61 #-0.4
+# safe_r = 5.0 # 1.905 #0.5
 '''
 original setting: 
 x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
@@ -348,15 +367,26 @@ theta_l = 1.0
 theta_r = 5.0
 safe_l = -1.895
 safe_r = 2.31
-stop-val = 1.0
+stop-val = 0.5
 mcai: 10/10, avg loss: 0.99
 baseline2: 10/10
 
 update setting:
+sample size: 10000, 0.99
+target_theta = 1.634
+safe_l = -5.7658
+safe_r = 5.0
+stop-val = 1.0
+mcai: 0.1996    avg loss:(0.16272, 0.21603, 0.19318, 0.19341, 0.23274, 0.20775)
+baseline2: 1/10
+
+refined initial partition[split 'y' into 10 equal partition]:
 safe_l = 
 safe_r = 
-stop-val = 
-mcai:     avg loss:
+target_theta = 
+theta_l = 
+theta_r =  
+mcai: avg loss: 
 baseline2: 
 '''
 

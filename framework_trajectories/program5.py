@@ -26,7 +26,8 @@ if MODE == 5:
             symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())])
             symbol_table['probability'] = var(1.0)
             symbol_table['explore_probability'] = var(1.0)
-            symbol_table_list.append(symbol_table)
+            # symbol_table_list.append(symbol_table)
+            symbol_table_list = split_symbol_table(symbol_table, ['x'], partition=10)
 
             return symbol_table_list
     
@@ -155,7 +156,8 @@ def construct_syntax_tree(Theta):
     l4_0 = WhileSample('x_neg', var(-78.0), l5_0, l19)
     
     # l18 = Assign('i', f18, None)
-    l18 = Assign(['x_neg', 'x'], f_neg_domain, None)
+    l18_res = Assign(['res', 'x'], f19_domain, None)
+    l18 = Assign(['x_neg', 'x'], f_neg_domain, l18_res)
     l18_min = Assign(['x_min', 'x'], f_min_domain, l18)
     l18_max = Assign(['x_max', 'x'], f_max_domain, l18_min)
 
@@ -207,7 +209,8 @@ def construct_syntax_tree_point(Theta):
 
     # l18 = AssignPoint('i', f18, None)
     # l18 = AssignPoint(['x_neg', 'x'], f_neg, None)
-    l18 = AssignPoint(['x_neg', 'x'], f_neg, None)
+    l18_res = AssignPoint(['res', 'x'], f19, None)
+    l18 = AssignPoint(['x_neg', 'x'], f_neg, l18_res)
     l18_min = AssignPoint(['x_min', 'x'], f_min, l18)
     l18_max = AssignPoint(['x_max', 'x'], f_max, l18_min)
 
@@ -259,7 +262,8 @@ def construct_syntax_tree_smooth_point(Theta):
 
     # l18 = AssignPointSmooth(['i'], f18, None)
     # l18 = AssignPointSmooth(['x_neg', 'x'], f_neg, None)
-    l18 = AssignPointSmooth(['x_neg', 'x'], f_neg, None)
+    l18_res = AssignPointSmooth(['res', 'x'], f19, None)
+    l18 = AssignPointSmooth(['x_neg', 'x'], f_neg, l18_res)
     l18_min = AssignPointSmooth(['x_min', 'x'], f_min, l18)
     l18_max = AssignPointSmooth(['x_max', 'x'], f_max, l18_min)
 

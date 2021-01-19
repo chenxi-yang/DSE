@@ -29,7 +29,7 @@ if MODE == 5:
             symbol_table['explore_probability'] = var(1.0)
 
             # symbol_table_list.append(symbol_table)
-            symbol_table_list = split_symbol_table(symbol_table, ['y'], partition=10)
+            symbol_table_list = split_symbol_table(symbol_table, ['y'], partition=1)
 
             return symbol_table_list
 
