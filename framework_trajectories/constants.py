@@ -176,7 +176,7 @@ mcai:   10/10  avg loss:
 baseline2: 8 /10
 
 refined initial partition[split 'x' into 10 equal partition]:
-command: 
+command: --lr 0.1 --stop_val 1.0 --optimizer gd_direct_noise
 previous setting restrict the approximation but large point smooth loss
 safe_l = 61.04
 safe_r = 74.697
