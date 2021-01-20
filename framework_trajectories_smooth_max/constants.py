@@ -422,3 +422,4 @@ gamma = 0.55
 alpha_coeff = 0.9
 
 noise = 0.1 # 0.1
+alpha_smooth_max = 0.8

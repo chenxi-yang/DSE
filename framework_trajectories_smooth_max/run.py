@@ -4,11 +4,11 @@ from optimization import *
 from test import *
 
 # select benchmark program
-# from program1 import *
+from program1 import *s
 # from program2 import *
 # from program3 import *
 # from program4 import *
-from program5 import *
+# from program5 import *
 # from program6 import *
 # from program6_loop import *
 # from program7 import *

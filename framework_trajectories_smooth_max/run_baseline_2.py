@@ -43,15 +43,15 @@ if __name__ == "__main__":
     optimize_f = optimizer[optimizer_name]
 
     # data points generation
-    for i in range(10):
-        target = domain.Interval(safe_l, safe_r)
-        X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=10000, target_theta=target_theta, test_size=0.99)
+    # for i in range(10):
+    #     target = domain.Interval(safe_l, safe_r)
+    #     X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=10000, target_theta=target_theta, test_size=0.99)
 
-        theta, loss, loss_list, q, c = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=var(50.0), stop_val=stop_val, epoch=500, lr=lr)
-        # theta = var(5.4852)
+    #     theta, loss, loss_list, q, c = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=var(50.0), stop_val=stop_val, epoch=500, lr=lr)
+    #     # theta = var(5.4852)
 
-        eval(X_train, y_train, theta, target, 'train')
-        eval(X_test, y_test, theta, target, 'test')
+    #     eval(X_train, y_train, theta, target, 'train')
+    #     eval(X_test, y_test, theta, target, 'test')
 
     # test
     # target = domain.Interval(safe_l, safe_r)

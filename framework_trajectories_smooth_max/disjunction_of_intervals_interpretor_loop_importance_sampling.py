@@ -403,6 +403,7 @@ def adapt_sampling_distribution(res_symbol_table_list):
                 res_symbol_table_list[idx]['explore_probability'] = res_symbol_table_list[re_idx]['explore_probability']
     
     if SAMPLE_METHOD == 4:
+        # ! adaptive translation
         # print('enter adapt_samping_distribution, length', len(res_symbol_table_list))
         length = len(res_symbol_table_list)
         score_list = list()
@@ -417,7 +418,9 @@ def adapt_sampling_distribution(res_symbol_table_list):
         probability_idx_list = [x for x, y in sorted(enumerate(res_symbol_table_list), key = lambda x:x[1]['explore_probability'].data.item(), reverse=True)]
         for idx, score_idx in enumerate(score_idx_list):
             # print(score_list[score_idx], res_symbol_table_list[probability_idx_list[idx]]['explore_probability'])
-            res_symbol_table_list[score_idx]['explore_probability'] = res_symbol_table_list[probability_idx_list[idx]]['explore_probability']
+            #! change
+            # new weight p(x)/pi(x)
+            res_symbol_table_list[score_idx]['explore_probability'] = res_symbol_table_list[score_idx]['probability'].div(res_symbol_table_list[probability_idx_list[idx]]['explore_probability'])
         
     return res_symbol_table_list
         
@@ -427,7 +430,9 @@ def sample(symbol_table_list, cur_sample_size):
     shuffle(symbol_table_list)
 
     res_symbol_table_list = list()
-    to_get_sample_size = min(len(symbol_table_list), SAMPLE_SIZE - cur_sample_size)
+    #!Change
+    # to_get_sample_size = min(len(symbol_table_list), SAMPLE_SIZE - cur_sample_size)
+    to_get_sample_size = SAMPLE_SIZE if SAMPLE_SIZE <= len(symbol_table_list) else 0
     symbol_table_idx = 0
 
     max_explore_probability = N_INFINITY
@@ -437,6 +442,11 @@ def sample(symbol_table_list, cur_sample_size):
     for idx, symbol_table in enumerate(symbol_table_list):
         symbol_table_list[idx]['explore_probability'] = symbol_table_list[idx]['explore_probability'].div(max_explore_probability)
 
+    #! change, add the three lines
+    if to_get_sample_size == 0:
+        for symbol_table in symbol_table_list:
+            res_symbol_table_list.append(symbol_table)
+
     while to_get_sample_size > 0:
         symbol_table_idx = symbol_table_idx%len(symbol_table_list)
         symbol_table = symbol_table_list[symbol_table_idx]
@@ -444,6 +454,7 @@ def sample(symbol_table_list, cur_sample_size):
             res_symbol_table_list.append(symbol_table)
             cur_sample_size += 1
             to_get_sample_size -= 1
+
             del symbol_table_list[symbol_table_idx]
         else:
             symbol_table_idx += 1
@@ -662,27 +673,13 @@ class WhileSample:
                 # print(len(res_symbol_table_list) * 1.0 / num_disjunction)
                 if orelse_symbol_table['probability'].data.item() > 0.0:
                     if (body_symbol_table_list[idx - del_idx]['probability'].data.item() <= 0.0): #  or (len(res_symbol_table_list) * 1.0 / num_disjunction >= SAMPLE_SIZE):
-                        # print(len(res_symbol_table_list) * 1.0 / num_disjunction)
-                        # print('in del', body_symbol_table_list[idx - del_idx]['probability'].data.item(), len(res_symbol_table_list))
-                        # orelse_symbol_table['probability'] = path_probability_list[idx]
-                        # print(len(body_symbol_table_list))
-                        # print(idx, del_idx)
                         del body_symbol_table_list[idx - del_idx]
                         del_idx += 1
                     # Sampling Condition
                     tmp_res_symbol_table_list.append(orelse_symbol_table)
-
-                    # # if (len(res_symbol_table_list) * 1.0 / num_disjunction < SAMPLE_SIZE) or check_sampling(orelse_symbol_table):
-                    # if cur_sample_size < SAMPLE_SIZE or check_sampling(orelse_symbol_table):
-                    #     res_symbol_table_list.append(orelse_symbol_table)
-                    #     cur_sample_size += 1
-                    # # if check_sampling(orelse_symbol_table):
-                    # # if len(res_symbol_table_list) * 1.0 / num_disjunction >= SAMPLE_SIZE:
-                    # #     end_flag = 1
-                    # #     break
             
             if len(tmp_res_symbol_table_list) > 0:
-                tmp_res_symbol_table_list= adapt_sampling_distribution(tmp_res_symbol_table_list)
+                tmp_res_symbol_table_list = adapt_sampling_distribution(tmp_res_symbol_table_list)
                 tmp_res_symbol_table_list, cur_sample_size = sample(tmp_res_symbol_table_list, cur_sample_size)
                 res_symbol_table_list.extend(tmp_res_symbol_table_list)
             

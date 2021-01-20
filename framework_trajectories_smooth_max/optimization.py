@@ -17,13 +17,18 @@ from constants import *
 def distance_f_point(pred_y, y):
     return torch.abs(pred_y.sub(y))
 
-
 if MODE in [2,3,4,5]:
+    #! Change to smooth max
     def distance_f_interval(X_list, target):
+        alpha_smooth_max_var = var(alpha_smooth_max)
         res = var(0.0)
         # print('X_list', len(X_list))
+        #! Smooth Max
+        res_up = var(0.0)
+        res_base = var(0.0)
         if len(X_list) == 0:
             res = var(1.0)
+            return res
         for X_table in X_list:
             X_min = X_table['x_min'].getInterval()
             X_max = X_table['x_max'].getInterval()
@@ -46,10 +51,15 @@ if MODE in [2,3,4,5]:
                 # print('not empty')
                 tmp_res = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
             # print(X.left, X.right, tmp_res)
-            tmp_res = tmp_res.mul(pi.div(p))
 
-            res = res.add(tmp_res)
-        res = res.div(var(len(X_list)).add(EPSILON))
+            #! Smooth Max following two lines
+            res_up = res_up.add(tmp_res.mul(torch.exp(tmp_res.mul(alpha_smooth_max_var))))
+            res_base = res_base.add(torch.exp(tmp_res.mul(alpha_smooth_max_var)))
+            # tmp_res = tmp_res.mul(pi.div(p))
+
+            # res = res.add(tmp_res)
+        # res = res.div(var(len(X_list)).add(EPSILON))
+        res = res_up.div(res_base)
         
         return res
     
@@ -62,6 +72,53 @@ if MODE in [2,3,4,5]:
             res_r = torch.max(res_r, symbol_table['x_max'].getInterval().right)
         
         return res_l.data.item(), res_r.data.item()
+
+# if MODE in [2,3,4,5]:
+#     def distance_f_interval(X_list, target):
+#         res = var(0.0)
+#         # print('X_list', len(X_list))
+#         if len(X_list) == 0:
+#             res = var(1.0)
+#         for X_table in X_list:
+#             X_min = X_table['x_min'].getInterval()
+#             X_max = X_table['x_max'].getInterval()
+#             pi = X_table['probability']
+#             p = X_table['explore_probability']
+#             # print('pi, p', pi.data.item(), p.data.item())
+
+#             X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
+#             X.left = torch.min(X_min.left, X_max.left)
+#             X.right = torch.max(X_min.right, X_max.right)
+#             # print(X.min.left, X.min.right, X.max.left, X.max.right)
+
+#             tmp_res = var(0.0)
+#             intersection_interval = get_intersection(X, target)
+#             # print('intersection:', intersection_interval.left, intersection_interval.right)
+#             if intersection_interval.isEmpty():
+#                 # print('isempty')
+#                 tmp_res = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
+#             else:
+#                 # print('not empty')
+#                 tmp_res = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
+#             # print(X.left, X.right, tmp_res)
+
+#             # average part
+#             tmp_res = tmp_res.mul(pi.div(p))
+
+#             res = res.add(tmp_res)
+#         res = res.div(var(len(X_list)).add(EPSILON))
+        
+#         return res
+    
+
+#     def extract_result_safty(symbol_table_list):
+#         res_l, res_r = P_INFINITY, N_INFINITY
+#         for symbol_table in symbol_table_list:
+#             # X = symbol_table['x']
+#             res_l = torch.min(res_l, symbol_table['x_min'].getInterval().left)
+#             res_r = torch.max(res_r, symbol_table['x_max'].getInterval().right)
+        
+#         return res_l.data.item(), res_r.data.item()
 
 
 if MODE == 1:
