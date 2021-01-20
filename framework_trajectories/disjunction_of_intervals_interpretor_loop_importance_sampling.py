@@ -301,6 +301,8 @@ def join_list(symbol_table_list):
     for symbol in first_symbol_table:
         if 'probability' in symbol:
             continue
+        if 'list' in symbol:
+            res_symbol_table[symbol] = first_symbol_table[symbol]
         if all([first_symbol_table[symbol].equal(symbol_table[symbol]) for symbol_table in symbol_table_list]):
             res_symbol_table[symbol] = first_symbol_table[symbol]
         else:
@@ -423,6 +425,8 @@ def adapt_sampling_distribution(res_symbol_table_list):
         
 
 def sample(symbol_table_list, cur_sample_size):
+    if SAMPLE_SIZE == 0:
+        return res_symbol_table_list, cur_sample_size
     start_t = timer()
     shuffle(symbol_table_list)
 

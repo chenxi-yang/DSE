@@ -7,7 +7,7 @@ sample_list = ['direct_sampling', 'importance_sampling_scale', 'importance_sampl
 MODE = 5
 K_DISJUNCTS = 1 # 10000000
 SAMPLE_SIZE = 10000000000# 500
-SAMPLE_METHOD = 4
+SAMPLE_METHOD = 0 # 4
 DOMAIN = "interval" # [interval, zonotope]
 if MODE == 3: 
     MODE_NAME = mode_list[MODE] + '-' + 'Disjunct_' + str(K_DISJUNCTS) 
