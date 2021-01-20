@@ -432,7 +432,7 @@ def sample(symbol_table_list, cur_sample_size):
 
     res_symbol_table_list = list()
     #!Change
-    # to_get_sample_size = min(len(symbol_table_list), SAMPLE_SIZE - cur_sample_size)
+    # to_get_sample_size = min(len(symbol_table_list), SAMPLE_SIZE - cur_sample_size) # original
     to_get_sample_size = SAMPLE_SIZE if SAMPLE_SIZE <= len(symbol_table_list) else 0
     symbol_table_idx = 0
 

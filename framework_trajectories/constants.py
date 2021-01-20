@@ -5,8 +5,8 @@ from helper import *
 mode_list = ['empty', 'interval', 'disjunction_of_intervals', 'partial_disjunction_of_intervals', 'disjunction_of_intervals_loop', 'disjunction_of_intervals_loop_sampling']
 sample_list = ['direct_sampling', 'importance_sampling_scale', 'importance_sampling_translation', 'adaptive_importance_sampling']
 MODE = 5
-K_DISJUNCTS = 10000000
-SAMPLE_SIZE = 500
+K_DISJUNCTS = 1 # 10000000
+SAMPLE_SIZE = 10000000000# 500
 SAMPLE_METHOD = 4
 DOMAIN = "interval" # [interval, zonotope]
 if MODE == 3: 
@@ -43,15 +43,15 @@ CURRENT_PROGRAM = 'program1' # 'program_test_disjunction_2'
 
 # PROGRAM #1
 # ! have problem!
-x_l = [62.0]
-x_r = [72.0]
-target_theta = 59.48
-# safe_l = 60.30 # (tight)
-# safe_r = 81.9513
-safe_l = 60.95 #(tighter, with 10 initial partition)
-safe_r = 81.606
-theta_l = 58.1
-theta_r = 65.0
+# x_l = [62.0]
+# x_r = [72.0]
+# target_theta = 59.48
+# # safe_l = 60.30 # (tight)
+# # safe_r = 81.9513
+# safe_l = 60.95 #(tighter, with 10 initial partition)
+# safe_r = 81.606
+# theta_l = 58.1
+# theta_r = 65.0
 
 '''
 
@@ -92,13 +92,13 @@ baseline2: 0/10
 # PROGRAM #2 [work]
 # sample size: 1000
 # command: python run.py --lr 0.01 --stop_val 1.5 --optimizer gd_direct_noise
-# x_l = [0.8, 1.6] # v1, v2
-# x_r = [1.4, 2.0]
-# target_theta = 5.6
-# theta_l = 4.7
-# theta_r = 5.8
-# safe_l = 2.86 
-# safe_r = 120 # P_INFINITY.data.item()
+x_l = [0.8, 1.6] # v1, v2
+x_r = [1.4, 2.0]
+target_theta = 5.6
+theta_l = 4.7
+theta_r = 5.8
+safe_l = 2.86 
+safe_r = 120 # P_INFINITY.data.item()
 '''
 original setting: 
 safe_l = 0.3, 

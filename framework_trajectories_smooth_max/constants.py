@@ -92,13 +92,13 @@ baseline2: 0/10
 # PROGRAM #2 [work]
 # sample size: 1000
 # command: python run.py --lr 0.01 --stop_val 1.5 --optimizer gd_direct_noise
-# x_l = [0.8, 1.6] # v1, v2
-# x_r = [1.4, 2.0]
-# target_theta = 5.6
-# theta_l = 4.7
-# theta_r = 5.8
-# safe_l = 2.86 
-# safe_r = 120 # P_INFINITY.data.item()
+x_l = [0.8, 1.6] # v1, v2
+x_r = [1.4, 2.0]
+target_theta = 5.6
+theta_l = 4.7
+theta_r = 5.8
+safe_l = 2.86 
+safe_r = 120 # P_INFINITY.data.item()
 '''
 original setting: 
 safe_l = 0.3, 
@@ -255,13 +255,13 @@ baseline2: 2/10
 
 # PROGRAM_6
 # command: python run_baseline_2.py --lr 0.1 --stop_val 0.01 --optimizer gd_direct_noise
-x_l = [0.0, 0.0, 0.0, 0.0]
-x_r = [1.0, 2.0, 2.0, 2.0]
-target_theta = 3.8
-theta_l = 3.0 #0 .001
-theta_r = 4.0 # 0.01
-safe_l = -0.062 # N_INFINITY.data.item()
-safe_r = 0.99342
+# x_l = [0.0, 0.0, 0.0, 0.0]
+# x_r = [1.0, 2.0, 2.0, 2.0]
+# target_theta = 3.8
+# theta_l = 3.0 #0 .001
+# theta_r = 4.0 # 0.01
+# safe_l = -0.062 # N_INFINITY.data.item()
+# safe_r = 0.99342
 '''
 original setting: 
 safe_l = N_INFINITY.data.item()s
