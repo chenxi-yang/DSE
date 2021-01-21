@@ -455,8 +455,8 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         try:
             #! update the gradient
             dTheta = torch.autograd.grad(res, Theta, retain_graph=True)
-            dTheta = dTheta.add(lambda_.mul(gradient_penalty_f))
-            derivation = dTheta[0]
+            derivation = dTheta[0].add(lambda_.mul(gradient_penalty_f))
+            # derivation = dTheta[0]
             # print('f, theta, dTheta:', f.data, Theta.data, derivation)
 
             if torch.abs(res.data) < var(stop_val): # epsilon:
