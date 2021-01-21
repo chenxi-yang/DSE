@@ -43,7 +43,7 @@ CURRENT_PROGRAM = 'program1' # 'program_test_disjunction_2'
 
 # PROGRAM #1
 # ! have problem!
-x_l = [62.0]s
+x_l = [62.0]
 x_r = [72.0]
 target_theta = 59.48
 # safe_l = 60.30 # (tight)
