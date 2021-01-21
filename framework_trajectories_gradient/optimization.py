@@ -419,7 +419,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         print('length: ', len(symbol_table_list))
         res_l, res_r = extract_result_safty(symbol_table_list)
         #! Change the Penalty
-        penalty_f, p_list, log_p_list, reward_list = distance_f_interval(symbol_table_list, target)
+        penalty_f, p_list, log_p_list, reward_list = distance_f_interval_REINFORCE(symbol_table_list, target)
 
         exp1 = var(0.0)
         exp2 = var(0.0)
