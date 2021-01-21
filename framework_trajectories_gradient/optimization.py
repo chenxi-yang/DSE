@@ -429,12 +429,12 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
             reward = reward_list[i]
             try:
                 gradient_reward = torch.autograd.grad(reward, Theta, retain_graph=True)
-            RuntimeError:
+            except RuntimeError:
                 gradient_reward = var(0.0)
-            try: 
+            try: s
                 gradient_log_p = torch.autograd.grad(log_p, Theta, retain_graph=True)
-            RuntimeError:
-                gradient_log_p = var(0.0)
+            except RuntimeError:
+                gradient_log_p = var(0.0)s
             exp1.add(p.mul(gradient_reward))
             exp2.add(p.mul(reward).mul(gradient_log_p))
         gradient_penalty_f = exp1.add(exp2)
