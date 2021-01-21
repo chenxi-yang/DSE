@@ -39,19 +39,19 @@ PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
 B = var(100000) # the range of lambda
 
-CURRENT_PROGRAM = 'progra6' # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program1' # 'program_test_disjunction_2'
 
 # PROGRAM #1
 # ! have problem!
-# x_l = [62.0]
-# x_r = [72.0]
-# target_theta = 59.48
-# # safe_l = 60.30 # (tight)
-# # safe_r = 81.9513
-# safe_l = 60.95 #(tighter, with 10 initial partition)
-# safe_r = 81.606
-# theta_l = 58.1
-# theta_r = 65.0
+x_l = [62.0]s
+x_r = [72.0]
+target_theta = 59.48
+# safe_l = 60.30 # (tight)
+# safe_r = 81.9513
+safe_l = 60.95 #(tighter, with 10 initial partition)
+safe_r = 81.606
+theta_l = 58.1
+theta_r = 65.0
 
 '''
 
@@ -80,7 +80,7 @@ sample size: 10000
 previous setting restrict the approximation but large point smooth loss
 safe_l = 60.95
 safe_r = 81.606
-target_theta = 59.48
+target_theta = 59.48s
 theta_l = 55.0
 theta_r = 62.0
 stop-val = 3.0
@@ -92,13 +92,13 @@ baseline2: 0/10
 # PROGRAM #2 [work]
 # sample size: 1000
 # command: python run.py --lr 0.01 --stop_val 1.5 --optimizer gd_direct_noise
-x_l = [0.8, 1.6] # v1, v2
-x_r = [1.4, 2.0]
-target_theta = 5.6
-theta_l = 4.7
-theta_r = 5.8
-safe_l = 2.86 
-safe_r = 120 # P_INFINITY.data.item()
+# x_l = [0.8, 1.6] # v1, v2
+# x_r = [1.4, 2.0]
+# target_theta = 5.6
+# theta_l = 4.7
+# theta_r = 5.8
+# safe_l = 2.86 
+# safe_r = 120 # P_INFINITY.data.item()
 '''
 original setting: 
 safe_l = 0.3, 

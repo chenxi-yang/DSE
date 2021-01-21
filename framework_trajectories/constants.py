@@ -8,7 +8,7 @@ MODE = 5
 K_DISJUNCTS = 1 # 10000000
 SAMPLE_SIZE = 10000000000# 500
 SAMPLE_METHOD = 0 # 4
-DOMAIN = "interval" # [interval, zonotope]
+DOMAIN = "interval" # [interval, zonotope]s
 if MODE == 3: 
     MODE_NAME = mode_list[MODE] + '-' + 'Disjunct_' + str(K_DISJUNCTS) 
 elif MODE == 4:
@@ -43,15 +43,15 @@ CURRENT_PROGRAM = 'program1' # 'program_test_disjunction_2'
 
 # PROGRAM #1
 # ! have problem!
-# x_l = [62.0]
-# x_r = [72.0]
-# target_theta = 59.48
-# # safe_l = 60.30 # (tight)
-# # safe_r = 81.9513
-# safe_l = 60.95 #(tighter, with 10 initial partition)
-# safe_r = 81.606
-# theta_l = 58.1
-# theta_r = 65.0
+x_l = [62.0]
+x_r = [72.0]
+target_theta = 59.48
+# safe_l = 60.30 # (tight)ss
+# safe_r = 81.9513
+safe_l = 60.95 #(tighter, with 10 initial partition)
+safe_r = 81.606
+theta_l = 58.1
+theta_r = 65.0
 
 '''
 

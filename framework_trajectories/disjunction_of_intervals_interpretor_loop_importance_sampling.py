@@ -419,6 +419,7 @@ def adapt_sampling_distribution(res_symbol_table_list):
         probability_idx_list = [x for x, y in sorted(enumerate(res_symbol_table_list), key = lambda x:x[1]['explore_probability'].data.item(), reverse=True)]
         for idx, score_idx in enumerate(score_idx_list):
             # print(score_list[score_idx], res_symbol_table_list[probability_idx_list[idx]]['explore_probability'])
+            
             res_symbol_table_list[score_idx]['explore_probability'] = res_symbol_table_list[probability_idx_list[idx]]['explore_probability']
         
     return res_symbol_table_list

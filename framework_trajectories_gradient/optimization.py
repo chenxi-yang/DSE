@@ -41,27 +41,86 @@ if MODE in [2,3,4,5]:
             X.right = torch.max(X_min.right, X_max.right)
             # print(X.min.left, X.min.right, X.max.left, X.max.right)
 
-            tmp_res = var(0.0)
+            reward = var(0.0)
             intersection_interval = get_intersection(X, target)
             # print('intersection:', intersection_interval.left, intersection_interval.right)
             if intersection_interval.isEmpty():
                 # print('isempty')
-                tmp_res = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
+                reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
             else:
                 # print('not empty')
-                tmp_res = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
+                reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
             # print(X.left, X.right, tmp_res)
+            # ! Smooth Max following two lines
+            # res_up = res_up.add(tmp_res.mul(torch.exp(tmp_res.mul(alpha_smooth_max_var))))
+            # res_base = res_base.add(torch.exp(tmp_res.mul(alpha_smooth_max_var)))
+            tmp_res = reward.mul(pi.div(p))
+            # tmp_res is the reward
+            # 
 
-            #! Smooth Max following two lines
-            res_up = res_up.add(tmp_res.mul(torch.exp(tmp_res.mul(alpha_smooth_max_var))))
-            res_base = res_base.add(torch.exp(tmp_res.mul(alpha_smooth_max_var)))
-            # tmp_res = tmp_res.mul(pi.div(p))
+            res = res.add(tmp_res)
+        res = res.div(var(len(X_list)).add(EPSILON))
+        # res = res_up.div(res_basse)
 
-            # res = res.add(tmp_res)
-        # res = res.div(var(len(X_list)).add(EPSILON))
-        res = res_up.div(res_base)
+        # TODO: for REINFORCE part
+        # TODO: return list(reward), list(pi.div(p))
         
         return res
+    
+    def distance_f_interval_REINFORCE(X_list, target):
+        alpha_smooth_max_var = var(alpha_smooth_max)
+        res = var(0.0)
+        # print('X_list', len(X_list))
+        reward_list = list()
+        log_p_list = list()
+        p_list = list()
+        #! Smooth Max
+        res_up = var(0.0)
+        res_base = var(0.0)
+        if len(X_list) == 0:
+            res = var(1.0)
+            return res
+        for X_table in X_list:
+            X_min = X_table['x_min'].getInterval()
+            X_max = X_table['x_max'].getInterval()
+            pi = X_table['probability']
+            p = X_table['explore_probability']
+            # print('pi, p', pi.data.item(), p.data.item())
+
+            X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
+            X.left = torch.min(X_min.left, X_max.left)
+            X.right = torch.max(X_min.right, X_max.right)
+            # print(X.min.left, X.min.right, X.max.left, X.max.right)
+
+            reward = var(0.0)
+            intersection_interval = get_intersection(X, target)
+            # print('intersection:', intersection_interval.left, intersection_interval.right)
+            if intersection_interval.isEmpty():
+                # print('isempty')
+                reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
+            else:
+                # print('not empty')
+                reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
+            # print(X.left, X.right, tmp_res)
+            # ! Smooth Max following two lines
+            # res_up = res_up.add(tmp_res.mul(torch.exp(tmp_res.mul(alpha_smooth_max_var))))
+            # res_base = res_base.add(torch.exp(tmp_res.mul(alpha_smooth_max_var)))
+            # tmp_res = reward.mul(pi.div(p))
+            # tmp_res is the reward
+            tmp_p = torch.log(pi)
+
+            log_p_list.append(tmp_p)
+            reward_list.append(reward)
+            p_list.append(p)
+
+            res = res.add(tmp_res)
+        res = res.div(var(len(X_list)).add(EPSILON))
+        # res = res_up.div(res_basse)
+
+        # TODO: for REINFORCE part
+        # TODO: return list(reward), list(pi.div(p))
+        
+        return res, p_list, log_p_list, reward_list
     
 
     def extract_result_safty(symbol_table_list):
@@ -359,10 +418,25 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         symbol_table_list = root['entry'].execute(symbol_table_list)
         print('length: ', len(symbol_table_list))
         res_l, res_r = extract_result_safty(symbol_table_list)
-        penalty_f = distance_f_interval(symbol_table_list, target)
+        #! Change the Penalty
+        penalty_f, p_list, log_p_list, reward_list = distance_f_interval(symbol_table_list, target)
+
+        exp1 = var(0.0)
+        exp2 = var(0.0)
+        for i, value in p_list:
+            p = value
+            log_p = log_p_list[i]
+            reward = reward_list[i]
+            gradient_reward = torch.autograd.grad(reward, Theta, retain_graph=True)
+            gradient_log_p = torch.autograd.grad(log_p, Theta, retain_graph=True)
+            exp1.add(p.mul(gradient_reward))
+            exp2.add(p.mul(reward).mul(gradient_log_p))
+        gradient_penalty_f = exp1.add(exp2)
+            
+        # penalty_f = 
         print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
 
-        res = f.add(lambda_.mul(penalty_f))
+        res = f # f.add(lambda_.mul(penalty_f))
         print(i, '--', Theta.data.item(), res.data.item())
         # if i == 0:
         #     continue
@@ -371,7 +445,9 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         # exit()
         derivation = var(0.0)
         try:
+            #! update the gradient
             dTheta = torch.autograd.grad(res, Theta, retain_graph=True)
+            dTheta = dTheta.add(lambda_.mul(gradient_penalty_f))
             derivation = dTheta[0]
             # print('f, theta, dTheta:', f.data, Theta.data, derivation)
 

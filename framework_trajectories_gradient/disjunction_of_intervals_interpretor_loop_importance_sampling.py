@@ -431,9 +431,9 @@ def sample(symbol_table_list, cur_sample_size):
     shuffle(symbol_table_list)
 
     res_symbol_table_list = list()
-    #!Change
-    # to_get_sample_size = min(len(symbol_table_list), SAMPLE_SIZE - cur_sample_size) # original
-    to_get_sample_size = SAMPLE_SIZE if SAMPLE_SIZE <= len(symbol_table_list) else 0
+    #!Change[no]
+    to_get_sample_size = min(len(symbol_table_list), SAMPLE_SIZE - cur_sample_size) # original
+    # to_get_sample_size = SAMPLE_SIZE if SAMPLE_SIZE <= len(symbol_table_list) else 0
     symbol_table_idx = 0
 
     max_explore_probability = N_INFINITY
@@ -443,10 +443,10 @@ def sample(symbol_table_list, cur_sample_size):
     for idx, symbol_table in enumerate(symbol_table_list):
         symbol_table_list[idx]['explore_probability'] = symbol_table_list[idx]['explore_probability'].div(max_explore_probability)
 
-    #! change, add the three lines
-    if to_get_sample_size == 0:
-        for symbol_table in symbol_table_list:
-            res_symbol_table_list.append(symbol_table)
+    #! change, add the three lines[no]
+    # if to_get_sample_size == 0:
+    #     for symbol_table in symbol_table_list:
+    #         res_symbol_table_list.append(symbol_table)
 
     while to_get_sample_size > 0:
         symbol_table_idx = symbol_table_idx%len(symbol_table_list)
