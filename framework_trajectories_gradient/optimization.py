@@ -105,7 +105,7 @@ if MODE in [2,3,4,5]:
             # ! Smooth Max following two lines
             # res_up = res_up.add(tmp_res.mul(torch.exp(tmp_res.mul(alpha_smooth_max_var))))
             # res_base = res_base.add(torch.exp(tmp_res.mul(alpha_smooth_max_var)))
-            # tmp_res = reward.mul(pi.div(p))
+            tmp_res = reward.mul(pi.div(p))
             # tmp_res is the reward
             tmp_p = torch.log(pi)
 
