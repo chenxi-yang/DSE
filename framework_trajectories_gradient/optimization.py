@@ -54,7 +54,7 @@ if MODE in [2,3,4,5]:
             # ! Smooth Max following two lines
             # res_up = res_up.add(tmp_res.mul(torch.exp(tmp_res.mul(alpha_smooth_max_var))))
             # res_base = res_base.add(torch.exp(tmp_res.mul(alpha_smooth_max_var)))
-            tmp_res = reward.mul(pi.div(p))
+            tmp_res = reward.mul(pi)# pi.div(p))
             # tmp_res is the reward
             # 
 
@@ -694,6 +694,7 @@ def cal_c(X_train, y_train, theta):
 
     symbol_table_list = root['entry'].execute(symbol_table_list)
     c = distance_f_interval(symbol_table_list, target)
+    print('cal_c', theta, c)
 
     return c
 
@@ -711,5 +712,6 @@ def cal_q(X_train, y_train, theta):
         q = q.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
 
     q = q.div(var(len(X_train)))
+    print('cal_q', theta, q)
     
     return q
