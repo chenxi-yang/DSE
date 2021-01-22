@@ -704,11 +704,24 @@ def gd(X_train, y_train, theta_l, theta_r, target, stop_val, epoch, lr):
 
 
 def cal_c(X_train, y_train, theta):
-    root = construct_syntax_tree(theta)
-    symbol_table_list = initialization(x_l, x_r)
 
-    symbol_table_list = root['entry'].execute(symbol_table_list)
-    c = distance_f_interval(symbol_table_list, target)
+    root_smooth_point = construct_syntax_tree_smooth_point(Theta)
+    penalty_f = var(0.0)
+
+    for idx, x in enumerate(X_train):
+        x, y = x, y_train[idx]
+        symbol_table_smooth_point = initialization_point(x)
+        symbol_table_smooth_point = root_smooth_point['entry'].execute(symbol_table_smooth_point)
+
+        # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
+        penalty_f = penalty_f.add(distance_f_point_interval(symbol_table_smooth_point['x_min'], symbol_table_smooth_point['x_max'], target))
+
+    c = penalty_f.div(var(len(X_train)))
+    # root = construct_syntax_tree(theta)
+    # symbol_table_list = initialization(x_l, x_r)
+
+    # symbol_table_list = root['entry'].execute(symbol_table_list)
+    # c = distance_f_interval(symbol_table_list, target)
     print('cal_c', theta, c)
 
     return c
