@@ -450,7 +450,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         #! Change the Penalty
         # penalty_f, p_list, log_p_list, reward_list = distance_f_interval_REINFORCE(symbol_table_list, target)
 
-        print('safe f', penalty_f.data.item(), res_x_l, res_x_r, res_l, res_r)
+        print('safe f', penalty_f.data.item(), res_x_l.data.item(), res_x_r.data.item(), res_l.data.item(), res_r.data.item())
 
         res = f.add(lambda_.mul(penalty_f))
         print(i, '--', Theta.data.item(), res.data.item())
