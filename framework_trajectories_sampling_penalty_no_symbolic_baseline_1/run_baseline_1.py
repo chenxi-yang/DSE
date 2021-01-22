@@ -114,6 +114,7 @@ if __name__ == "__main__":
             
             q = q.add(var(lr).mul(cal_c(X_train, y_train, theta)))
 
+        print('for test theta', theta_t)
         eval(X_train, y_train, theta_t, target, 'train')
         eval(X_test, y_test, theta_t, target, 'test')
 
