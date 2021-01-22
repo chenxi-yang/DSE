@@ -54,10 +54,10 @@ if __name__ == "__main__":
     #     eval(X_test, y_test, theta, target, 'test')
 
     # test
-    # target = domain.Interval(safe_l, safe_r)
-    # X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=100, target_theta=target_theta, test_size=0.33)
+    target = domain.Interval(safe_l, safe_r)
+    X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=1000, target_theta=target_theta, test_size=0.33)
 
-    # test(X_train, y_train, theta_l, theta_r, target)
+    test(X_train, y_train, theta_l, theta_r, target)
 
 
 

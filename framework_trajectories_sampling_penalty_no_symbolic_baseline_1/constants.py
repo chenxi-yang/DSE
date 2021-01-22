@@ -75,7 +75,7 @@ mcai:     avg loss:
 baseline2: 5/10
 
 refined initial partition[split 'x' into 10 equal partition]:
-command: --lr 0.1 --stop_val 1.0 --optimizer gd_direct_noise --w 1.0
+command: --lr 0.1 --stop_val 3.0 --optimizer gd_direct_noise --w 3.0
 sample size: 10000
 previous setting restrict the approximation but large point smooth loss
 safe_l = 60.95
@@ -91,7 +91,7 @@ baseline2: 0/10
 
 # PROGRAM #2 [work]
 # sample size: 1000
-# command: python run.py --lr 0.01 --stop_val 1.5 --optimizer gd_direct_noise
+# command: python run.py --lr 0.01 --stop_val 1.5 --optimizer gd_direct_noise --w 1.5
 # x_l = [0.8, 1.6] # v1, v2
 # x_r = [1.4, 2.0]
 # target_theta = 5.6

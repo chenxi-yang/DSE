@@ -74,11 +74,17 @@ if MODE in [2,3,4,5]:
 
         intersection_interval = get_intersection(X, target)
         if intersection_interval.isEmpty():
-            # print('isempty')
-            reward = torch.max(target.left.sub(X.left), (X.right).sub(target.right)) # .div(X.getLength())
+            # print('is empty')
+            reward = torch.max(target.left.sub(X.left), (X.right).sub(target.right)).div(X.getLength())
         else:
             # print('not empty')
-            reward = var(0.0) # var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
+            reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
+        
+        # if X.right.data.item() > target.right.data.item() or X.left.data.item() < target.left.data.item():
+        #     print('intersection', intersection_interval.left.data.item(), intersection_interval.right.data.item())
+        #     print(x_min.data.item(), x_max.data.item())
+        #     print('reward', reward.data.item())
+        
         return reward
         
     
@@ -430,7 +436,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
             y_l = torch.min(symbol_table_point['res'], y_l)
             y_r = torch.max(symbol_table_point['res'], y_r)
             res_l = torch.min(symbol_table_point['x_min'], res_l)
-            res_r = torch.min(symbol_table_point['x_max'], res_r)
+            res_r = torch.max(symbol_table_point['x_max'], res_r)
 
             res_x_l = torch.min(res_x_l, symbol_table_smooth_point['x_min'])
             res_x_r = torch.max(res_x_r, symbol_table_smooth_point['x_max'])
