@@ -383,7 +383,7 @@ def direct(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val
 # noise: 1.random  2.Gaussian Noise 
 def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
     print("--------------------------------------------------------------")
-    print('---- Gradient Direct Noise Descent Oprimization  baseline 1---- ')
+    print('---- Gradient Direct Noise Descent Optimization  baseline 1---- ')
     print('====Start Training====')
     start_time = time.time()
 

@@ -64,6 +64,7 @@ if __name__ == "__main__":
     stop_val = args.stop_val
     t_epoch = args.t_epoch
     optimizer_name = args.optimizer
+    print(f"DEBUG: {optimizer_name}, {t_epoch}")
     optimize_f = optimizer[optimizer_name]
     w = args.w
 
@@ -83,6 +84,7 @@ if __name__ == "__main__":
             new_lambda = B.mul(q.exp().div(var(1.0).add(q.exp())))
 
             # BEST_theta(lambda)
+            print()
             theta, loss, loss_list, q, c = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=new_lambda, stop_val=stop_val, epoch=500, lr=lr)
             
             lambda_list.append(new_lambda)
