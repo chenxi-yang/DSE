@@ -411,6 +411,8 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         penalty_f = var(0.0)
         y_l = P_INFINITY
         y_r = N_INFINITY
+        res_l = P_INFINITY
+        res_r = N_INFINITY
         res_x_l = P_INFINITY
         res_x_r = N_INFINITY
 
@@ -427,6 +429,8 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
 
             y_l = torch.min(symbol_table_point['res'], y_l)
             y_r = torch.max(symbol_table_point['res'], y_r)
+            res_l = torch.min(symbol_table_point['x_min'], res_l)
+            res_r = torch.min(symbol_table_point['x_max'], res_r)
 
             res_x_l = torch.min(res_x_l, symbol_table_smooth_point['x_min'])
             res_x_r = torch.max(res_x_r, symbol_table_smooth_point['x_max'])
@@ -446,7 +450,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         #! Change the Penalty
         # penalty_f, p_list, log_p_list, reward_list = distance_f_interval_REINFORCE(symbol_table_list, target)
 
-        print('safe f', penalty_f.data.item(), res_x_l, res_x_r, y_l.data.item(), y_r.data.item())
+        print('safe f', penalty_f.data.item(), res_x_l, res_x_r, res_l, res_r)
 
         res = f.add(lambda_.mul(penalty_f))
         print(i, '--', Theta.data.item(), res.data.item())
@@ -552,6 +556,7 @@ def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda
 
         symbol_table_list = root['entry'].execute(symbol_table_list)
         print('length: ', len(symbol_table_list))
+
         res_l, res_r = extract_result_safty(symbol_table_list)
         penalty_f = distance_f_interval(symbol_table_list, target)
         print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
