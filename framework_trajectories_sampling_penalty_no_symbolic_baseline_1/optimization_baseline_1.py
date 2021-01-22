@@ -405,12 +405,14 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         # if i == 1:
         #     Theta.data = var(5.303304672241211)
 
-        symbol_table_list = initialization(x_l, x_r)
+        # symbol_table_list = initialization(x_l, x_r)s
 
         f = var(0.0)
         penalty_f = var(0.0)
         y_l = P_INFINITY
         y_r = N_INFINITY
+        res_x_l = P_INFINITY
+        res_x_r = N_INFINITY
 
         print('Theta:', Theta.data.item())
         for idx, x in enumerate(X_train):
@@ -426,6 +428,9 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
             y_l = torch.min(symbol_table_point['res'], y_l)
             y_r = torch.max(symbol_table_point['res'], y_r)
 
+            res_x_l = torch.min(res_x_l, symbol_table_smooth_point['x_min'])
+            res_x_r = torch.max(res_x_r, symbol_table_smooth_point['x_max'])
+
             # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
             f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
             penalty_f = penalty_f.add(distance_f_point_interval(symbol_table_smooth_point['x_min'], symbol_table_smooth_point['x_max'], target))
@@ -435,13 +440,13 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         print('quantitive f', f.data.item())
         # symbol_table_list = root['entry'].execute(symbol_table_list)
         # print('length: ', len(symbol_table_list))
-        res_l, res_r = extract_result_safty(symbol_table_list)
+        # res_l, res_r = extract_result_safty(symbol_table_list)
         # average of all the x_min, x_max of training data
         penalty_f = penalty_f.div(var(len(X_train)))
         #! Change the Penalty
         # penalty_f, p_list, log_p_list, reward_list = distance_f_interval_REINFORCE(symbol_table_list, target)
 
-        print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
+        print('safe f', penalty_f.data.item(), res_x_l, res_x_r) # , y_l.data.item(), y_r.data.item())
 
         res = f.add(lambda_.mul(penalty_f))
         print(i, '--', Theta.data.item(), res.data.item())
