@@ -68,14 +68,14 @@ if MODE in [2,3,4,5]:
         return res
     
     def distance_f_point_interval(x_min, x_max, target):
-        X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
-        X.left = torch.min(x_min.left, x_max.left)
-        X.right = torch.max(x_min.right, x_max.right)
+        # X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
+        # X.left = torch.min(x_min, x_max.left)
+        # X.right = torch.max(x_min.right, x_max.right)
 
         intersection_interval = get_intersection(X, target)
         if intersection_interval.isEmpty():
             # print('isempty')
-            reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)) # .div(X.getLength())
+            reward = torch.max(target.left.sub(x_min), x_max.sub(target.right)) # .div(X.getLength())
         else:
             # print('not empty')
             reward = var(0.0) # var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
