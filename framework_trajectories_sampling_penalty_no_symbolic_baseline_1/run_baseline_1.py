@@ -1,7 +1,7 @@
 
 from constants import *
 from optimization_baseline_1 import *
-from test import *
+from test_baseline_1 import *
 
 # select benchmark program
 from program1 import *
@@ -17,6 +17,8 @@ from program1 import *
 # from program_test_disjunction_2 import *
 
 from args import *
+
+import inspect
 
 optimizer = {
     'gd_direct_noise': gd_direct_noise,
@@ -64,9 +66,9 @@ if __name__ == "__main__":
     stop_val = args.stop_val
     t_epoch = args.t_epoch
     optimizer_name = args.optimizer
-    print(f"DEBUG: {optimizer_name}, {t_epoch}")
+    # print(f"DEBUG: {optimizer_name}, {t_epoch}")
     optimize_f = optimizer[optimizer_name]
-    print(f"DEBUG: {optimize_f}")
+    # print(f"DEBUG: {optimize_f}")
     w = args.w
 
     # data points generation
@@ -85,7 +87,8 @@ if __name__ == "__main__":
             new_lambda = B.mul(q.exp().div(var(1.0).add(q.exp())))
 
             # BEST_theta(lambda)
-            print()
+            # print()
+            # print(inspect.signature(optimize_f))
             theta, loss, loss_list, q, c = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=new_lambda, stop_val=stop_val, epoch=500, lr=lr)
             
             lambda_list.append(new_lambda)
