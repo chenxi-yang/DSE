@@ -58,6 +58,7 @@ def best_theta(X_train, y_train, lambda_):
 
 
 if __name__ == "__main__":
+    print('---in Run Baseline 1 ----')
     args = get_args()
     lr = args.lr
     stop_val = args.stop_val
