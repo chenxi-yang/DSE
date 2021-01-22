@@ -66,6 +66,7 @@ if __name__ == "__main__":
     optimizer_name = args.optimizer
     print(f"DEBUG: {optimizer_name}, {t_epoch}")
     optimize_f = optimizer[optimizer_name]
+    print(f"DEBUG: {optimize_f}")
     w = args.w
 
     # data points generation
