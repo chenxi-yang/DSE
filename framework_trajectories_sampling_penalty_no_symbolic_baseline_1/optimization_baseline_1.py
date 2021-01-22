@@ -69,8 +69,8 @@ if MODE in [2,3,4,5]:
     
     def distance_f_point_interval(x_min, x_max, target):
         X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
-        X.left = torch.min(X_min.left, X_max.left)
-        X.right = torch.max(X_min.right, X_max.right)
+        X.left = torch.min(x_min.left, x_max.left)
+        X.right = torch.max(x_min.right, x_max.right)
 
         intersection_interval = get_intersection(X, target)
         if intersection_interval.isEmpty():
