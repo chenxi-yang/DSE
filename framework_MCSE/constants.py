@@ -1,5 +1,17 @@
 from helper import *
+from args import *
+
 # import domain
+
+args = get_args()
+lr = args.lr
+stop_val = args.stop_val
+t_epoch = args.t_epoch
+optimizer_name = args.optimizer
+w = args.w
+benchmark_id = args.benchmark_id
+data_size = args.data_size
+test_portion = args.test_portion
 
 # 1, 2, 3, 4
 mode_list = ['empty', 'interval', 'disjunction_of_intervals', 'partial_disjunction_of_intervals', 'disjunction_of_intervals_loop', 'disjunction_of_intervals_loop_sampling']
@@ -18,6 +30,9 @@ elif MODE == 5:
 else: 
     MODE_NAME = mode_list[MODE]
 
+file_dir =  'log/MCSE_benchmark_' + str(benchmark_id) + '_' + str(data_size) + '_' + str(test_portion) + '.txt'
+log_file = open(file_dir, 'w')
+log_file.close()
 
 # for debugging
 TEST = False
@@ -37,21 +52,23 @@ INTERVAL_BETA = var(1.0) # 2.0
 POINT_BETA = var(100.0) # 10.0s
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
-B = var(100000) # the range of lambda
+SMALL_PROBABILITY = var(0.1)
+B = var(10000) # the range of lambda
 
-CURRENT_PROGRAM = 'program1' # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program' + str(benchmark_id) # 'program_test_disjunction_2'
 
 # PROGRAM #1
 # ! have problem!
-# x_l = [62.0]
-# x_r = [72.0]
-# target_theta = 59.48
-# # safe_l = 60.30 # (tight)
-# # safe_r = 81.9513
-# safe_l = 60.95 #(tighter, with 10 initial partition)
-# safe_r = 81.606
-# theta_l = 58.1
-# theta_r = 65.0
+if benchmark_id == 1:
+    x_l = [62.0]
+    x_r = [72.0]
+    target_theta = 59.48
+    # safe_l = 60.30 # (tight)
+    # safe_r = 81.9513
+    safe_l = 60.95 #(tighter, with 10 initial partition)
+    safe_r = 81.606
+    theta_l = 58.1
+    theta_r = 65.0
 
 '''
 
@@ -75,7 +92,7 @@ mcai:     avg loss:
 baseline2: 5/10
 
 refined initial partition[split 'x' into 10 equal partition]:
-command: --lr 0.1 --stop_val 1.0 --optimizer gd_direct_noise
+command: --lr 0.1 --stop_val 3.0 --optimizer gd_direct_noise --w 3.0
 sample size: 10000
 previous setting restrict the approximation but large point smooth loss
 safe_l = 60.95
@@ -92,13 +109,14 @@ baseline2: 0/10
 # PROGRAM #2 [work]
 # sample size: 1000
 # command: python run.py --lr 0.01 --stop_val 1.5 --optimizer gd_direct_noise
-# x_l = [0.8, 1.6] # v1, v2
-# x_r = [1.4, 2.0]
-# target_theta = 5.6
-# theta_l = 4.7
-# theta_r = 5.8
-# safe_l = 2.86 
-# safe_r = 120 # P_INFINITY.data.item()
+if benchmark_id == 2:
+    x_l = [0.8, 1.6] # v1, v2
+    x_r = [1.4, 2.0]
+    target_theta = 5.6
+    theta_l = 4.7
+    theta_r = 5.8
+    safe_l = 2.86 
+    safe_r = 120 # P_INFINITY.data.item()
 '''
 original setting: 
 safe_l = 0.3, 
@@ -119,14 +137,15 @@ baseline2: 4/10
 
 # PROGRAM #3 [work]
 # sample size: 1000
-# command: --lr 0.1 --stop_val 1.0 --optimizer gd_direct_noise
-# x_l = [9.0] # initial height
-# x_r = [11.0]
-# target_theta = 3.0
-# theta_l = 1.0
-# theta_r = 9.0
-# safe_l = 2.368  
-# safe_r = 7.04
+# command: --lr 0.01 --stop_val 1.0 --optimizer gd_direct_noise
+if benchmark_id == 3:
+    x_l = [9.0] # initial height
+    x_r = [11.0]
+    target_theta = 3.0
+    theta_l = 1.0
+    theta_r = 9.0
+    safe_l = 2.368  
+    safe_r = 7.04
 '''
 original setting: 
 safe_l = 0.0
@@ -149,13 +168,14 @@ baseline2: 3/10
 # PROGRAM #4 [work]
 # sample size: 500
 # command: --lr 0.1 --stop_val 0.1 --optimizer gd_direct_noise
-# x_l = [8.0] # initial height
-# x_r = [12.0]
-# target_theta = 5.0 
-# theta_l = 1.0
-# theta_r = 6.0
-# safe_l = 3.0  
-# safe_r = 9.3
+if benchmark_id == 4:
+    x_l = [8.0] # initial height
+    x_r = [12.0]
+    target_theta = 5.0 
+    theta_l = 1.0
+    theta_r = 6.0
+    safe_l = 3.0  
+    safe_r = 9.3
 '''
 original setting: 
 same
@@ -170,13 +190,14 @@ baseline2: 2/10
 '''
 
 # PROGRAM #5
-# x_l = [62.0]
-# x_r = [72.0]
-# target_theta = 59.54# 56.1 # 57.046 # 57.7
-# theta_l = 55.0 # 55.9 # 55.0
-# theta_r = 62.0 # 65.0 # 58.3
-# safe_l = 61.04 # safe_l = 57.557# 57.69 # 69.8
-# safe_r = 74.697 # safe_r = 74.8263 # 76.76 # 77.0
+if benchmark_id == 5:
+    x_l = [62.0]
+    x_r = [72.0]
+    target_theta = 59.54# 56.1 # 57.046 # 57.7
+    theta_l = 55.0 # 55.9 # 55.0
+    theta_r = 62.0 # 65.0 # 58.3
+    safe_l = 61.04 # safe_l = 57.557# 57.69 # 69.8
+    safe_r = 74.697 # safe_r = 74.8263 # 76.76 # 77.0
 
 '''
 original setting: 
@@ -224,13 +245,14 @@ baseline2: 0/10
 # command: --lr 0.1 --stop_val 1.5 --optimizer gd_direct_noise
 # sample size: plus one critical datapoint when checking
 # large initial penalty: B=10000
-# x_l = [2.0]
-# x_r = [9.99]
-# target_theta = 5.49
-# theta_l = 5.0
-# theta_r = 6.0 # 9.0
-# safe_l = 4.0 # N_INFINITY.data.item()# 0.0
-# safe_r = 26.48
+if benchmark_id == 9:
+    x_l = [2.0]
+    x_r = [9.99]
+    target_theta = 5.49
+    theta_l = 5.0
+    theta_r = 6.0 # 9.0
+    safe_l = 4.0 # N_INFINITY.data.item()# 0.0
+    safe_r = 26.48
 
 '''
 original setting: 
@@ -255,13 +277,14 @@ baseline2: 2/10
 
 # PROGRAM_6
 # command: python run_baseline_2.py --lr 0.1 --stop_val 0.01 --optimizer gd_direct_noise
-x_l = [0.0, 0.0, 0.0, 0.0]
-x_r = [1.0, 2.0, 2.0, 2.0]
-target_theta = 3.8
-theta_l = 3.0 #0 .001
-theta_r = 4.0 # 0.01
-safe_l = -0.062 # N_INFINITY.data.item()
-safe_r = 0.99342
+if benchmark_id == 6:
+    x_l = [0.0, 0.0, 0.0, 0.0]
+    x_r = [1.0, 2.0, 2.0, 2.0]
+    target_theta = 3.8
+    theta_l = 3.0 #0 .001
+    theta_r = 4.0 # 0.01
+    safe_l = -0.062 # N_INFINITY.data.item()
+    safe_r = 0.99342
 '''
 original setting: 
 safe_l = N_INFINITY.data.item()s
@@ -287,13 +310,14 @@ baseline2: 5/10
 # sample size: 20000
 # noise: 0.3
 # command: --lr 0.1 --stop_val 0.01 --optimizer gd_direct_noise
-# x_l = [0.0, 0.0, 0.0, 0.0]
-# x_r = [1.0, 2.0, 2.0, 2.0]
-# target_theta = 3.8
-# theta_l = 2.5
-# theta_r = 5.0
-# safe_l = -0.008 # N_INFINITY.data.item()
-# safe_r = 0.99342
+if benchmark_id == 6.1:
+    x_l = [0.0, 0.0, 0.0, 0.0]
+    x_r = [1.0, 2.0, 2.0, 2.0]
+    target_theta = 3.8
+    theta_l = 2.5
+    theta_r = 5.0
+    safe_l = -0.008 # N_INFINITY.data.item()
+    safe_r = 0.99342
 '''
 original setting: 
 safe_l = N_INFINITY.data.item()
@@ -332,13 +356,14 @@ baseline2: 3/10
 # safe_r = 5.0 #0.5
 
 # expr B: run 10 times, check safety
-# x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
-# x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
-# target_theta = 1.9 # 4.2, loss: < 1.0 # 2.175, probability loss: 1.5
-# theta_l = 1.5 # 4.0 # 1.5
-# theta_r =  2.5 # 4.5
-# safe_l = -6.5992 #-0.4
-# safe_r = 5.0 #0.5
+if benchmark_id == 7:
+    x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
+    x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
+    target_theta = 1.9 # 4.2, loss: < 1.0 # 2.175, probability loss: 1.5
+    theta_l = 1.5 # 4.0 # 1.5
+    theta_r =  2.5 # 4.5
+    safe_l = -6.5992 #-0.4
+    safe_r = 5.0 #0.5
 # stop-val 1.0s
 
 '''
@@ -373,13 +398,14 @@ baseline2: 2/10
 
 # #PROGRAM_8(Electronic Oscillator-Deep)
 # stop-val 0.05
-# x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
-# x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
-# target_theta = 1.9
-# theta_l = 1.5
-# theta_r = 2.5
-# safe_l = -5.7658 # -2.61 #-0.4
-# safe_r = 5.0 # 1.905 #0.5
+if benchmark_id == 8:
+    x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
+    x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
+    target_theta = 1.9
+    theta_l = 1.5
+    theta_r = 2.5
+    safe_l = -5.7658 # -2.61 #-0.4
+    safe_r = 5.0 # 1.905 #0.5
 '''
 original setting: 
 x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]

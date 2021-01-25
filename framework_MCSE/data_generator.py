@@ -8,17 +8,27 @@ from timeit import default_timer as timer
 from helper import *
 from constants import *
 
-# from program1 import *
-# from program2 import *
-# from program3 import *
-# from program4 import *
-# from program5 import *
-from program6 import *
-# from program6_loop import *
-# from program7 import *
-# from program8 import *
+if benchmark_id == 1:
+    from program1 import *
+if benchmark_id == 2:
+    from program2 import *
+if benchmark_id == 3:
+    from program3 import *
+if benchmark_id == 4:
+    from program4 import *
+if benchmark_id == 5:
+    from program5 import *
+if benchmark_id == 6:
+    from program6 import *
+if benchmark_id == 6.1:
+    from program6_loop import *
+if benchmark_id == 7:
+    from program7 import *
+if benchmark_id == 8:
+    from program8 import *
 # from program_test_disjunction import *
-# from program_test_disjunction_2 import *
+if benchmark_id == 9:
+    from program_test_disjunction_2 import *
 
 
 # def show_tmp_x_y(symbol_table):

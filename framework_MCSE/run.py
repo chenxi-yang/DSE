@@ -3,20 +3,21 @@ from constants import *
 from optimization import *
 from test import *
 
+from args import *
+
 # select benchmark program
+
 # from program1 import *
 # from program2 import *
 # from program3 import *
 # from program4 import *
 # from program5 import *
-from program6 import *
+# from program6 import *
 # from program6_loop import *
 # from program7 import *
 # from program8 import *
 # from program_test_disjunction import *
 # from program_test_disjunction_2 import *
-
-from args import *
 
 optimizer = {
     'gd_direct_noise': gd_direct_noise,
@@ -58,17 +59,12 @@ def best_theta(X_train, y_train, lambda_):
 
 
 if __name__ == "__main__":
-    args = get_args()
-    lr = args.lr
-    stop_val = args.stop_val
-    t_epoch = args.t_epoch
-    optimizer_name = args.optimizer
+
     optimize_f = optimizer[optimizer_name]
-    w = args.w
 
     # data points generation
     target = domain.Interval(safe_l, safe_r)
-    X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=10000, target_theta=target_theta, test_size=0.99)
+    X_train, X_test, y_train, y_test = data_generator(x_l, x_r, size=data_size, target_theta=target_theta, test_size=test_portion)
 
     # add for lambdas
     # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
@@ -119,7 +115,7 @@ if __name__ == "__main__":
 
     # Eval
     # evaluation(X_train, y_train, theta_l, theta_r, target, lambda_=var(50.0), stop_val=stop_val, lr=lr)
-    
+
     # # TEST
     # test(X_train, y_train, theta_l, theta_r, target)
 
