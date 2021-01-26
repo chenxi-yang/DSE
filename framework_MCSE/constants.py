@@ -421,6 +421,7 @@ baseline2: 10/10
 
 update setting:
 sample size: 10000, 0.99
+python run.py --lr 0.0001 --stop_val 1.0 --optimizer gd_direct_noise --w 1.0 --data_size 10000, --test_portion 0.99
 target_theta = 1.634
 safe_l = -5.7658
 safe_r = 5.0

@@ -35,22 +35,23 @@ def eval(X, Y, theta, target, category):
     '''
     # add for program test_disjuction_2
     '''
+    ##########################################
+    if benchmark_id == 9:
+        x = [theta.data.item()-0.0101]
+        symbol_table_point = initialization_point(x)
+        root_target_point = construct_syntax_tree_point(var(5.49))
+        symbol_table_point = root_target_point['entry'].execute(symbol_table_point)
+        # safe_l = symbol_table_point['x_min'].data.item()
+        # safe_r = symbol_table_point['x_max'].data.item()
+        y = symbol_table_point['res'].data.item()
+        # print('add data:', theta.data.item(), y, safe_l, safe_r)
+        X = list(X)
+        X.append(x)
+        X = np.array(X)
+        Y = list(Y)
+        Y.append([y])
+        Y = np.array(Y)
     ###########################################
-    # x = [theta.data.item()-0.0101]
-    # symbol_table_point = initialization_point(x)
-    # root_target_point = construct_syntax_tree_point(var(5.49))
-    # symbol_table_point = root_target_point['entry'].execute(symbol_table_point)
-    # # safe_l = symbol_table_point['x_min'].data.item()
-    # # safe_r = symbol_table_point['x_max'].data.item()
-    # y = symbol_table_point['res'].data.item()
-    # # print('add data:', theta.data.item(), y, safe_l, safe_r)
-    # X = list(X)
-    # X.append(x)
-    # X = np.array(X)
-    # Y = list(Y)
-    # Y.append([y])
-    # Y = np.array(Y)
-    ############################################
 
     # quantative distance
     for idx, x in enumerate(X):
