@@ -50,7 +50,7 @@ def initialization_smooth_point(x, y):
 
         symbol_table['res'] = domain.Interval(var(0.0), var(0.0))
         symbol_table['x_min'] = domain.Interval(P_INFINITY, P_INFINITY)
-        symbol_table['x_max'] = omain.Interval(N_INFINITY, N_INFINITY)
+        symbol_table['x_max'] = domain.Interval(N_INFINITY, N_INFINITY)
         symbol_table['probability'] = var(1.0)
         symbol_table['explore_probability'] = var(1.0)
 
@@ -389,7 +389,7 @@ def construct_syntax_tree(Theta):
     l2 = Assign(['x1', 'tau'], f2_domain, l3)
     l1 = Ifelse('stage', var(1.0), fself, l2, l16, l44)
 
-    l0 = WhileSample('t', var(10), l1, None)
+    l0 = WhileSample('t', var(60), l1, None)
 
     tree_dict = dict()
     tree_dict['entry'] = l0
@@ -452,7 +452,7 @@ def construct_syntax_tree_point(Theta):
     l2 = AssignPoint(['x1', 'tau'], f2, l3)
     l1 = IfelsePoint('stage', var(1.0), fself, l2, l16, l44)
 
-    l0 = WhilePoint('t', var(10), l1, None)
+    l0 = WhilePoint('t', var(60), l1, None)
 
     tree_dict = dict()
     tree_dict['entry'] = l0
@@ -515,7 +515,7 @@ def construct_syntax_tree_smooth_point(Theta):
     l2 = AssignPointSmooth(['x1', 'tau'], f2, l3)
     l1 = IfelsePointSmooth('stage', var(1.0), fself, l2, l16, l44)
 
-    l0 = WhilePointSmooth('t', var(10), l1, None)
+    l0 = WhilePointSmooth('t', var(60), l1, None)
 
     tree_dict = dict()
     tree_dict['entry'] = l0

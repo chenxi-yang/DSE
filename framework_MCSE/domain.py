@@ -113,6 +113,7 @@ class Interval:
             res.left = self.left.add(y)
             res.right = self.right.add(y)
         else:
+            # print(res.left, y.left)
             res.left = self.left.add(y.left)
             res.right = self.right.add(y.right)
 
@@ -188,6 +189,8 @@ class Interval:
     def exp(self):
         show_op('exp')
         show_value(self)
+
+        # print(f'DEGUB:, exp', self.left, self.right)
 
         res = Interval()
         res.left = torch.exp(self.left)

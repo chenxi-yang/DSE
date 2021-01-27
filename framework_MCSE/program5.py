@@ -52,6 +52,24 @@ if MODE == 5:
 
             return symbol_table_list
     
+def initialization_smooth_point(x, y):
+    if DOMAIN == "interval":
+        symbol_table = dict()
+
+        symbol_table['x_neg'] = domain.Interval(var(-x[0]), var(-x[0]))
+        symbol_table['x'] = domain.Interval(var(x[0]), var(x[0]))
+        symbol_table['isOn'] = domain.Interval(var(0.0), var(0.0))
+
+        symbol_table['res'] = domain.Interval(var(0.0), var(0.0))
+        symbol_table['x_min'] = domain.Interval(P_INFINITY, P_INFINITY)
+        symbol_table['x_max'] = domain.Interval(N_INFINITY, N_INFINITY)
+        symbol_table['probability'] = var(1.0)
+        symbol_table['explore_probability'] = var(1.0)
+
+        symbol_table['target_res'] = var(y)
+
+    return symbol_table
+
 
 def initialization_point(x):
     symbol_table = dict()

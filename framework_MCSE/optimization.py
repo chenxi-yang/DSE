@@ -370,6 +370,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     print("--------------------------------------------------------------")
     print('---- Gradient Direct Noise Descent---- ')
     print('====Start Training====')
+    TIME_OUT = False
 
     loop_list = list()
     loss_list = list()
@@ -416,9 +417,9 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
 
         #TODO: a function return, penalty_f, f
         f = f.div(var(len(X_train)))
-        print('quantitive f', f.data.item())
+        # print('quantitive f', f.data.item())
         symbol_table_list = root['entry'].execute(symbol_table_list)
-        print('length: ', len(symbol_table_list))
+        # print('length: ', len(symbol_table_list))
 
         # print('quantitive f', f.data.item())
 
@@ -449,7 +450,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         gradient_penalty_f = exp1.add(exp2)
             
         # penalty_f = 
-        print('safe f, gradient, ', penalty_f.data.item(), gradient_penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
+        # print('safe f, gradient, ', penalty_f.data.item(), gradient_penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
 
         res = f.add(lambda_.mul(penalty_f))
         print(i, '--', Theta.data.item(), res.data.item())
@@ -489,6 +490,12 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
 
         loop_list.append(i)
         loss_list.append(res.data)
+        if (time.time() - start_time)/(i+1) > 250:
+            log_file = open(file_dir, 'a')
+            log_file.write('TIMEOUT: avg epoch time > 250s \n')
+            log_file.close()
+            TIME_OUT = True
+            break
         # print("-- One Epoch %s seconds ---" % (time.time() - start_time))
     # plt.plot(loop_list, loss_list, label = "beta")
     # plt.xlabel('expr count')
@@ -508,7 +515,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     loss = res# .data.item()
     print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta.data.item(), loss.data.item()))
 
-    return theta, loss, loss_list, f, penalty_f
+    return theta, loss, loss_list, f, penalty_f, TIME_OUT
 
 
 def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):

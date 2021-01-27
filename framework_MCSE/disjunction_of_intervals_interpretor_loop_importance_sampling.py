@@ -14,11 +14,11 @@ from timeit import default_timer as timer
 import time
 
 import domain
+import constants
 from constants import *
 from helper import *
 
 target = domain.Interval(safe_l, safe_r)
-
 
 def f_beta_smooth_point(beta):
     gamma = var(0.1)
@@ -590,7 +590,9 @@ def sample(symbol_table_list, cur_sample_size):
 
     res_symbol_table_list = list()
     #!Change[no]
-    to_get_sample_size = min(len(symbol_table_list), SAMPLE_SIZE - cur_sample_size) # original
+    # print(f"DEBUG, SAMPLE_SIZE, {constants.SAMPLE_SIZE}")
+    # print(f"DEBUG, SAMPLE_SIZE, {SAMPLE_SIZE}")
+    to_get_sample_size = min(len(symbol_table_list), constants.SAMPLE_SIZE - cur_sample_size) # original
     # to_get_sample_size = SAMPLE_SIZE if SAMPLE_SIZE <= len(symbol_table_list) else 0
     symbol_table_idx = 0
 
@@ -752,10 +754,11 @@ class Ifelse:
 
 
 class Assign:
-    def __init__(self, target, value, next_stmt):
+    def __init__(self, target, value, next_stmt, Theta=None):
         self.target = target
         self.value = value
         self.next_stmt = next_stmt
+        self.Theta = Theta
     
     def execute(self, symbol_table_list, cur_sample_size=0):
         # print('assign', self.target)
@@ -777,16 +780,19 @@ class Assign:
             symbol_table_list[idx] = update_symbol_table(self.target, self.value, symbol_table)
             # if self.target[0] == 't':
             #     print('t, after, ', type(symbol_table[self.target]))
+        if len(self.target) == 4:
+            print(f"Assign: {self.target}, {symbol_table['u'].left}, {symbol_table['u'].right}")
 
         return run_next_stmt(self.next_stmt, symbol_table_list, cur_sample_size + len(symbol_table_list))
 
 
 class WhileSample:
-    def __init__(self, target, test, body, next_stmt):
+    def __init__(self, target, test, body, next_stmt, Theta=None):
         self.target = target
         self.test = test
         self.body = body
         self.next_stmt = next_stmt
+        self.Theta = Theta
     
     def execute(self, symbol_table_list, cur_sample_size=0):
         num_disjunction = len(symbol_table_list)
@@ -824,6 +830,12 @@ class WhileSample:
                     count_orelse += 1
             # print('Number back to loop', count_body)
             # print('Number out of loop', count_orelse)
+            # print(body_symbol_table['u'].left, body_symbol_table['u'].right)
+            # try:
+            #     print(f"Debug, u_left {torch.autograd.grad(body_symbol_table['u'].left, self.Theta, retain_graph=True)[0]}")
+            #     print(f"Debug, u_right {torch.autograd.grad(body_symbol_table['u'].right, self.Theta, retain_graph=True)[0]}")
+            # except RuntimeError:
+            #     print('error')
 
             del_idx = 0
             tmp_res_symbol_table_list = list()

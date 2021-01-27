@@ -204,6 +204,7 @@ def f_equal_domain(x):
 
 # in stage 1
 def f2(x):
+    print('for baseline')
     return x[0].add(stim.sub(jfi1).sub(jso1(x[0]).add(jsi1)).mul(delta_t))
 def f2_domain(x):
     # print(type(x[0]))

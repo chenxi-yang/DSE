@@ -12,13 +12,20 @@ w = args.w
 benchmark_id = args.benchmark_id
 data_size = args.data_size
 test_portion = args.test_portion
+# path_sample_size = args.path_sample_size
+
+sample_size_list = [500, 250, 100, 50, 10]
+data_for_sample_list = [100]  # [100, 50, 20]
 
 # 1, 2, 3, 4
 mode_list = ['empty', 'interval', 'disjunction_of_intervals', 'partial_disjunction_of_intervals', 'disjunction_of_intervals_loop', 'disjunction_of_intervals_loop_sampling']
 sample_list = ['direct_sampling', 'importance_sampling_scale', 'importance_sampling_translation', 'adaptive_importance_sampling']
 MODE = 5
 K_DISJUNCTS = 10000000
-SAMPLE_SIZE = 500
+# SAMPLE_SIZE = path_sample_size # 500
+# sample_size_list = [500, 250, 100, 50, 10]
+SAMPLE_SIZE = 0
+data_for_sample = 100
 SAMPLE_METHOD = 4
 DOMAIN = "interval" # [interval, zonotope]
 if MODE == 3: 
@@ -30,7 +37,7 @@ elif MODE == 5:
 else: 
     MODE_NAME = mode_list[MODE]
 
-file_dir =  'log/MCSE_benchmark_' + str(benchmark_id) + '_' + str(data_size) + '_' + str(test_portion) + '.txt'
+file_dir =  'result/MCSE_benchmark_' + str(benchmark_id) + '_' + str(data_size) + '_' + str(test_portion) + '.txt'
 log_file = open(file_dir, 'w')
 log_file.close()
 
@@ -278,16 +285,20 @@ baseline2: 2/10
 # PROGRAM_6
 # command: python run_baseline_2.py --lr 0.1 --stop_val 0.01 --optimizer gd_direct_noise
 if benchmark_id == 6:
+    # x_l = [0.0, 0.0, 0.0, 0.0]
+    # x_r = [1.0, 2.0, 2.0, 2.0]
+
     x_l = [0.0, 0.0, 0.0, 0.0]
     x_r = [1.0, 2.0, 2.0, 2.0]
+    
     target_theta = 3.8
-    theta_l = 3.0 #0 .001
+    theta_l = 3.0 #
     theta_r = 4.0 # 0.01
     safe_l = -0.062 # N_INFINITY.data.item()
     safe_r = 0.99342
 '''
 original setting: 
-safe_l = N_INFINITY.data.item()s
+safe_l = N_INFINITY.data.item()
 safe_r = 1.0
 stop-val = 0.01
 mcai: 10/10, avg loss: 0.0003

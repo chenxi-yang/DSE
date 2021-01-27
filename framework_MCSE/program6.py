@@ -29,6 +29,8 @@ if MODE == 5:
             symbol_table = build_point_cloud(symbol_table, X_train, y_train, initialization_smooth_point)
             symbol_table_list.append(symbol_table)
 
+            # symbol_table_list = split_symbol_table(symbol_table, ['u'], partition=10)
+
             return symbol_table_list
     
     if DOMAIN == "zonotope":
@@ -129,7 +131,7 @@ epi_uo = var(0.0)
 epi_uu = var(1.55)
 epi_uso = var(0.65)
 
-delta_t = var(0.001)
+delta_t = var(0.01) # var(0.001) # var(0.001)
 
 jfi1 = var(0.0)
 jsi1 = var(0.0)
@@ -253,6 +255,7 @@ def f2_theta(theta):
     return f2_in
 def f2_theta_domain(theta):
     def f2_in_domain(x):
+        # print(f"F2: {x[0].left, x[0].right}")
         y = x[0].add(jso1_theta_domain(x[0], theta).add(theta.sub(var(0.0055))).sub_r(stim.sub(theta.sub(var(0.0055)))).mul(delta_t))
         # print(x[0].right, y.right)
         return y
@@ -292,8 +295,18 @@ def f13_domain(x):
 # in stage 3
 def f18(x):
     return x[0].add(stim.sub(jfi3).sub(jso3(x[0]).add(jsi3(x[1], x[2]))).mul(delta_t))
-def f18_domain(x):
-    return x[0].add(jso3_domain(x[0]).add(jsi3_domain(x[1], x[2])).sub_r(stim.sub(jfi3)).mul(delta_t))
+def f18_domain(Theta=None):
+    def res(x):
+        # print(f"Before F18: {torch.autograd.grad(x[0].left, Theta, retain_graph=True)[0]}")
+        # print(f"Before F18: {torch.autograd.grad(x[1].left, Theta, retain_graph=True)[0]}")
+        # print(f"Before F18: {torch.autograd.grad(x[2].left, Theta, retain_graph=True)[0]}")
+        # print(f"jso3_domain(x[0]): {torch.autograd.grad(jso3_domain(x[0]).left, Theta, retain_graph=True)[0]}")
+        # print(f"(jsi3_domain(x[1], x[2])): {torch.autograd.grad((jsi3_domain(x[1], x[2])).left, Theta, retain_graph=True)[0]}")
+        # print(f"x[0].add(jso3_domain(x[0]): {torch.autograd.grad(x[0].add(jso3_domain(x[0])).left, Theta, retain_graph=True)[0]}")
+        # print(f"x[0].add(jso3_domain(x[0]).add(jsi3_domain(x[1], x[2])): {torch.autograd.grad(x[0].add(jso3_domain(x[0]).add(jsi3_domain(x[1], x[2]))).left, Theta, retain_graph=True)[0]}")
+        y = x[0].add(jso3_domain(x[0]).add(jsi3_domain(x[1], x[2])).sub_r(stim.sub(jfi3)).mul(delta_t))
+        return y
+    return res
 def f18_theta(theta):
     def res(x):
         return x[0].add(stim.sub(jfi3).sub(jso3_theta(x[0], theta).add(jsi3(x[1], x[2]))).mul(delta_t))
@@ -319,8 +332,20 @@ def f21_domain(x):
 # in stage 4
 def f25(x):
     return x[0].add(stim.sub(jfi4(x[0], x[1])).sub(jso4(x[0]).add(jsi4(x[2], x[3]))).mul(delta_t))
-def f25_domain(x):
-    return x[0].add(jso4_domain(x[0]).add(jsi4_domain(x[2], x[3])).sub_r(jfi4_domain(x[0], x[1]).sub_r(stim)).mul(delta_t))
+def f25_domain(Theta=None):
+    def res(x):
+        # if Theta is not None:
+            # print(f"Before F25: {torch.autograd.grad(x[0].left, Theta, retain_graph=True)[0]}")
+            # # print(f"Before F25: {torch.autograd.grad(x[1].left, Theta, retain_graph=True)[0]}")
+            # print(f"Before F25: {torch.autograd.grad(x[2].left, Theta, retain_graph=True)[0]}")
+            # print(f"Before F25: {torch.autograd.grad(x[3].left, Theta, retain_graph=True)[0]}")
+            # print(f"jsi4_domain(x[2], x[3]): {torch.autograd.grad(jsi4_domain(x[2], x[3]).left, Theta, retain_graph=True)[0]}")
+            # print(f"jfi4_domain(x[0], x[1]): {torch.autograd.grad(jfi4_domain(x[0], x[1]).left, Theta, retain_graph=True)[0]}")
+        y = x[0].add(jso4_domain(x[0]).add(jsi4_domain(x[2], x[3])).sub_r(jfi4_domain(x[0], x[1]).sub_r(stim)).mul(delta_t))
+        # if Theta is not None:
+        #     print(f"F25: {torch.autograd.grad(y.left, Theta, retain_graph=True)[0]}")
+        return y
+    return res
 def f25_theta(theta):
     def res(x):
         return x[0].add(stim.sub(jfi4(x[0], x[1])).sub(jso4_theta(x[0], theta).add(jsi4(x[2], x[3]))).mul(delta_t))
@@ -340,9 +365,20 @@ def f27_domain(x):
     return x[0].add((x[0].mul(var(-1.0).mul(epi_tvp))).mul(delta_t))
 def f28(x):
     return x[0].add(((var(1.0).div(var(1.0).add(torch.exp(var(-2.0).mul(epi_ks).mul(x[1].sub(epi_us)))))).sub(x[0])).div(epi_ts2).mul(delta_t))
-def f28_domain(x):
-    return x[0].add(((x[0].sub_r(((((x[1].sub_l(epi_us).mul(var(-2.0).mul(epi_ks)))).exp()).add(var(1.0))).div(var(1.0)))).mul(var(1.0).div(epi_ts2))).mul(delta_t))
-
+def f28_domain(Theta):
+    def res(x):
+        # print(f"Before F28: {x[0].left}, {torch.autograd.grad(x[0].left, Theta, retain_graph=True)[0]}")
+        # print(f"Before F28: {x[1].left}, {torch.autograd.grad(x[1].left, Theta, retain_graph=True)[0]}")
+        # print(f"Before F28, ((x[1].sub_l(epi_us).mul(var(-2.0).mul(epi_ks)))): {torch.autograd.grad(((x[1].sub_l(epi_us).mul(var(-2.0).mul(epi_ks)))).left, Theta, retain_graph=True)[0]}")
+        # m = ((x[1].sub_l(epi_us).mul(var(-2.0).mul(epi_ks))))
+        # print(f"m: {m.left}, {m.left.exp()}")
+        # a = torch.autograd.grad(((x[1].sub_l(epi_us).mul(var(-2.0).mul(epi_ks)))).exp().left, Theta, retain_graph=True)[0]
+        # print(f"Before F28 ((x[1].sub_l(epi_us).mul(var(-2.0).mul(epi_ks)))).exp(): {a}")
+        # if a != 0:
+        #     exit(0)
+        y = x[0].add(((x[0].sub_r(((((x[1].sub_l(epi_us).mul(var(-2.0).mul(epi_ks)))).exp()).add(var(1.0))).div(var(1.0)))).mul(var(1.0).div(epi_ts2))).mul(delta_t))
+        return y
+    return res
 
 def construct_syntax_tree(Theta):
 
@@ -355,10 +391,10 @@ def construct_syntax_tree(Theta):
     l31 = Assign(['stage'], f_stage_4_domain, None)
     l30 = Assign(['stage'], f_stage_3_domain, None)
     l29 = Ifelse('u', var(2.0), fself, l30, l31, None)
-    l28 = Assign(['s', 'u'], f28_domain, l29)
+    l28 = Assign(['s', 'u'], f28_domain(Theta), l29)
     l27 = Assign(['v'], f27_domain, l28)
     l26 = Assign(['w'], f26_domain, l27)
-    l25 = Assign(['u', 'v', 'w', 's'], f25_domain, l26)
+    l25 = Assign(['u', 'v', 'w', 's'], f25_domain(Theta), l26, Theta)
 
     l24 = Assign(['stage'], f_stage_4_domain, None)
     l23 = Assign(['stage'], f_stage_3_domain, None)
@@ -368,7 +404,7 @@ def construct_syntax_tree(Theta):
     l21 = Assign(['s', 'u'], f21_domain, l22)
     l20 = Assign(['v'], f20_domain, l21)
     l19 = Assign(['w'], f19_domain, l20)
-    l18 = Assign(['u', 'w', 's'], f18_domain, l19)
+    l18 = Assign(['u', 'w', 's'], f18_domain(Theta), l19)
     l17 = Ifelse('stage', var(3.0), fself, l18, l25, None)
 
     l16 = Assign(['stage'], f_stage_3_domain, None)
@@ -391,7 +427,7 @@ def construct_syntax_tree(Theta):
     l2 = Assign(['u'], f2_theta_domain(Theta), l3)
     l1 = Ifelse('stage', var(1.0), fself, l2, l9, l32) # in model1
 
-    l0 = WhileSample('t', var(8), l1, None)
+    l0 = WhileSample('t', var(8), l1, None, Theta)
 
     tree_dict = dict()
     tree_dict['entry'] = l0
