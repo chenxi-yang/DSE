@@ -17,18 +17,13 @@ from constants import *
 def distance_f_point(pred_y, y):
     return torch.abs(pred_y.sub(y))
 
+
 if MODE in [2,3,4,5]:
-    #! Change to smooth max
     def distance_f_interval(X_list, target):
-        alpha_smooth_max_var = var(alpha_smooth_max)
         res = var(0.0)
         # print('X_list', len(X_list))
-        #! Smooth Max
-        res_up = var(0.0)
-        res_base = var(0.0)
         if len(X_list) == 0:
             res = var(1.0)
-            return res
         for X_table in X_list:
             X_min = X_table['x_min'].getInterval()
             X_max = X_table['x_max'].getInterval()
@@ -37,90 +32,26 @@ if MODE in [2,3,4,5]:
             # print('pi, p', pi.data.item(), p.data.item())
 
             X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
-            X.left = torch.min(X_min.left, X_max.left)
-            X.right = torch.max(X_min.right, X_max.right)
+            X.left = X_min.left # torch.min(X_min.left, X_max.left)
+            X.right = X_max.right # torch.max(X_min.right, X_max.right)
             # print(X.min.left, X.min.right, X.max.left, X.max.right)
 
-            reward = var(0.0)
+            tmp_res = var(0.0)
             intersection_interval = get_intersection(X, target)
             # print('intersection:', intersection_interval.left, intersection_interval.right)
             if intersection_interval.isEmpty():
                 # print('isempty')
-                reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
+                tmp_res = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
             else:
                 # print('not empty')
-                reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
+                tmp_res = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
             # print(X.left, X.right, tmp_res)
-            # ! Smooth Max following two lines
-            # res_up = res_up.add(tmp_res.mul(torch.exp(tmp_res.mul(alpha_smooth_max_var))))
-            # res_base = res_base.add(torch.exp(tmp_res.mul(alpha_smooth_max_var)))
-            tmp_res = reward.mul(pi)# pi.div(p))
-            # tmp_res is the reward
-            # 
+            tmp_res = tmp_res.mul(pi.div(p))
 
             res = res.add(tmp_res)
         res = res.div(var(len(X_list)).add(EPSILON))
-        # res = res_up.div(res_basse)
-
-        # TODO: for REINFORCE part
-        # TODO: return list(reward), list(pi.div(p))
         
         return res
-    
-    def distance_f_interval_REINFORCE(X_list, target):
-        alpha_smooth_max_var = var(alpha_smooth_max)
-        res = var(0.0)
-        # print('X_list', len(X_list))
-        reward_list = list()
-        log_p_list = list()
-        p_list = list()
-        #! Smooth Max
-        res_up = var(0.0)
-        res_base = var(0.0)
-        if len(X_list) == 0:
-            res = var(1.0)
-            return res
-        for X_table in X_list:
-            X_min = X_table['x_min'].getInterval()
-            X_max = X_table['x_max'].getInterval()
-            pi = X_table['probability']
-            p = X_table['explore_probability']
-            # print('pi, p', pi.data.item(), p.data.item())
-
-            X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
-            X.left = torch.min(X_min.left, X_max.left)
-            X.right = torch.max(X_min.right, X_max.right)
-            # print(X.min.left, X.min.right, X.max.left, X.max.right)
-
-            reward = var(0.0)
-            intersection_interval = get_intersection(X, target)
-            # print('intersection:', intersection_interval.left, intersection_interval.right)
-            if intersection_interval.isEmpty():
-                # print('isempty')
-                reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
-            else:
-                # print('not empty')
-                reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
-            # print(X.left, X.right, tmp_res)
-            # ! Smooth Max following two lines
-            # res_up = res_up.add(tmp_res.mul(torch.exp(tmp_res.mul(alpha_smooth_max_var))))
-            # res_base = res_base.add(torch.exp(tmp_res.mul(alpha_smooth_max_var)))
-            tmp_res = reward.mul(pi.div(p))
-            # tmp_res is the reward
-            tmp_p = torch.log(pi)
-
-            log_p_list.append(tmp_p)
-            reward_list.append(reward)
-            p_list.append(p)
-
-            res = res.add(tmp_res)
-        res = res.div(var(len(X_list)).add(EPSILON))
-        # res = res_up.div(res_basse)
-
-        # TODO: for REINFORCE part
-        # TODO: return list(reward), list(pi.div(p))
-        
-        return res, p_list, log_p_list, reward_list
     
 
     def extract_result_safty(symbol_table_list):
@@ -131,53 +62,6 @@ if MODE in [2,3,4,5]:
             res_r = torch.max(res_r, symbol_table['x_max'].getInterval().right)
         
         return res_l.data.item(), res_r.data.item()
-
-# if MODE in [2,3,4,5]:
-#     def distance_f_interval(X_list, target):
-#         res = var(0.0)
-#         # print('X_list', len(X_list))
-#         if len(X_list) == 0:
-#             res = var(1.0)
-#         for X_table in X_list:
-#             X_min = X_table['x_min'].getInterval()
-#             X_max = X_table['x_max'].getInterval()
-#             pi = X_table['probability']
-#             p = X_table['explore_probability']
-#             # print('pi, p', pi.data.item(), p.data.item())
-
-#             X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
-#             X.left = torch.min(X_min.left, X_max.left)
-#             X.right = torch.max(X_min.right, X_max.right)
-#             # print(X.min.left, X.min.right, X.max.left, X.max.right)
-
-#             tmp_res = var(0.0)
-#             intersection_interval = get_intersection(X, target)
-#             # print('intersection:', intersection_interval.left, intersection_interval.right)
-#             if intersection_interval.isEmpty():
-#                 # print('isempty')
-#                 tmp_res = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
-#             else:
-#                 # print('not empty')
-#                 tmp_res = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
-#             # print(X.left, X.right, tmp_res)
-
-#             # average part
-#             tmp_res = tmp_res.mul(pi.div(p))
-
-#             res = res.add(tmp_res)
-#         res = res.div(var(len(X_list)).add(EPSILON))
-        
-#         return res
-    
-
-#     def extract_result_safty(symbol_table_list):
-#         res_l, res_r = P_INFINITY, N_INFINITY
-#         for symbol_table in symbol_table_list:
-#             # X = symbol_table['x']
-#             res_l = torch.min(res_l, symbol_table['x_min'].getInterval().left)
-#             res_r = torch.max(res_r, symbol_table['x_max'].getInterval().right)
-        
-#         return res_l.data.item(), res_r.data.item()
 
 
 if MODE == 1:
@@ -205,6 +89,7 @@ if MODE == 1:
 
 def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
     print('in plot_sep_quan_safe_trend')
+    # k = 
     unit = (theta_r - theta_l) * 1.0 / k
     
     theta_list = list()
@@ -212,7 +97,7 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
     result_safety_l_list = list()
     result_safety_r_list = list()
     target_l_list = list()
-    target_r_list = list()
+    target_r_list = list()   
     y_l_list = list()
     y_r_list = list()
 
@@ -220,6 +105,7 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
         theta = theta_l + i * unit
         # theta = 2.914
         Theta = var(theta)
+        # print('optimization', theta, Theta)
         root = construct_syntax_tree(Theta)
         symbol_table_list = initialization(x_l, x_r)
         root_point = construct_syntax_tree_point(Theta)
@@ -272,7 +158,7 @@ def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
         y_l_list.append(y_l.data.item())
         y_r_list.append(y_r.data.item())
 
-    plt.plot(theta_list, quan_f_list, color='blue', label='quan_f')
+    # plt.plot(theta_list, quan_f_list, color='blue', label='quan_f')
     plt.plot(theta_list, target_l_list, color='green', label='target_l')
     plt.plot(theta_list, target_r_list, color='green', label='target_r')
     plt.plot(theta_list, result_safety_l_list, color='red', label='pred_y_l')
@@ -302,7 +188,7 @@ def direct(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val
     def myfunc(theta, grad):
         Theta = var(theta)
         # Theta = var(70.0)
-        root = construct_syntax_tree(Theta)
+        # root = construct_syntax_tree(Theta)
         symbol_table_list = initialization(x_l, x_r)
         # root_point = construct_syntax_tree_point(Theta)
         root_smooth_point = construct_syntax_tree_smooth_point(Theta)
@@ -327,9 +213,9 @@ def direct(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val
         # res_l, res_r = extract_result_safty(symbol_table_list)
         # print('safe f', penalty_f.data.item(), res_l, res_r)
 
-        res = f.add(var(lambda_).mul(penalty_f))
-        print(Theta.data.item(), f.data.item())
-        f_value = res.data.item()
+        # res = f.add(var(lambda_).mul(penalty_f))
+        # print(Theta.data.item(), f.data.item())
+        f_value = f.data.item()
 
         loss_list.append(f_value)
 
@@ -370,7 +256,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     print("--------------------------------------------------------------")
     print('---- Gradient Direct Noise Descent---- ')
     print('====Start Training====')
-    TIME_OUT = False
+    start_time = time.time()
 
     loop_list = list()
     loss_list = list()
@@ -380,25 +266,22 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     # else:
     #     Theta = theta
     # Theta = var(2.933, requires_grad=True)
-    root = construct_syntax_tree(Theta)
+    # root = construct_syntax_tree(Theta)
     root_smooth_point = construct_syntax_tree_smooth_point(Theta)
     root_point = construct_syntax_tree_point(Theta)
     # Theta = var(69.9)
-
-    start_time = time.time()
 
     for i in range(epoch):
         # Theta = var(4.272021770477295, requires_grad=True)
         # if i == 1:
         #     Theta.data = var(5.303304672241211)
 
-        symbol_table_list = initialization(x_l, x_r, X_train, y_train)
+        symbol_table_list = initialization(x_l, x_r)
 
         f = var(0.0)
         y_l = P_INFINITY
         y_r = N_INFINITY
 
-        print('Theta:', Theta.data.item())
         for idx, x in enumerate(X_train):
             x, y = x, y_train[idx]
             symbol_table_smooth_point = initialization_point(x)
@@ -415,44 +298,16 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
             # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
             f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
 
-        #TODO: a function return, penalty_f, f
         f = f.div(var(len(X_train)))
-        # print('quantitive f', f.data.item())
-        symbol_table_list = root['entry'].execute(symbol_table_list)
-        print('length: ', len(symbol_table_list))
+        print('quantitive f', f.data.item())
 
-        # print('quantitive f', f.data.item())
+        # symbol_table_list = root['entry'].execute(symbol_table_list)
+        # print('length: ', len(symbol_table_list))
+        # res_l, res_r = extract_result_safty(symbol_table_list)
+        # penalty_f = distance_f_interval(symbol_table_list, target)
+        # print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
 
-        res_l, res_r = extract_result_safty(symbol_table_list)
-        #! Change the Penalty
-        penalty_f, p_list, log_p_list, reward_list = distance_f_interval_REINFORCE(symbol_table_list, target)
-
-        exp1 = var(0.0)
-        exp2 = var(0.0)
-        for idx, value in enumerate(p_list):
-            p = value
-            log_p = log_p_list[idx]
-            reward = reward_list[idx]
-            try:
-                gradient_reward = torch.autograd.grad(reward, Theta, retain_graph=True)
-            except RuntimeError:
-                gradient_reward = (var(0.0), )
-            try:
-                # print('log_p', log_p)
-                gradient_log_p = torch.autograd.grad(log_p, Theta, retain_graph=True)
-            except RuntimeError:
-                gradient_log_p = (var(0.0), )
-            # print(gradient_reward, gradient_log_p)
-            # print('p: {0:.6f}, log_p: {1:.6f}, reward: {2:.6f}, gradient_reward: {3:.6f}, gradient_log_p: {4:.6f}'.format(p.data.item(), log_p.data.item(), reward.data.item(), gradient_reward[0].data.item(), gradient_log_p[0].data.item()))
-            exp1 = exp1.add(p.mul(gradient_reward[0]))
-            exp2 = exp2.add(p.mul(reward).mul(gradient_log_p[0]))
-            # print('p.mul(gradient_reward):{0:.12f}, p.mul(reward).mul(gradient_log_p[0]): {0:.12f}, exp1: {0:.12f}, exp2: {0:.12f}'.format((p.mul(gradient_reward[0])).data.item(), (p.mul(reward).mul(gradient_log_p[0])).data.item(), exp1.data.item(), exp2.data.item()))
-        gradient_penalty_f = exp1.add(exp2)
-            
-        # penalty_f = 
-        # print('safe f, gradient, ', penalty_f.data.item(), gradient_penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
-
-        res = f.add(lambda_.mul(penalty_f))
+        res = f # f.add(lambda_.mul(penalty_f))
         print(i, '--', Theta.data.item(), res.data.item())
         # if i == 0:
         #     continue
@@ -461,10 +316,8 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         # exit()
         derivation = var(0.0)
         try:
-            #! update the gradient
-            dTheta = torch.autograd.grad(f, Theta, retain_graph=True)
-            derivation = dTheta[0].add(lambda_.mul(gradient_penalty_f))
-            # derivation = dTheta[0]
+            dTheta = torch.autograd.grad(res, Theta, retain_graph=True)
+            derivation = dTheta[0]
             # print('f, theta, dTheta:', f.data, Theta.data, derivation)
 
             if torch.abs(res.data) < var(stop_val): # epsilon:
@@ -490,32 +343,21 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
 
         loop_list.append(i)
         loss_list.append(res.data)
-        if (time.time() - start_time)/(i+1) > 250:
-            log_file = open(file_dir, 'a')
-            log_file.write('TIMEOUT: avg epoch time > 250s \n')
-            log_file.close()
-            TIME_OUT = True
-            break
-        # print("-- One Epoch %s seconds ---" % (time.time() - start_time))
+    
     # plt.plot(loop_list, loss_list, label = "beta")
     # plt.xlabel('expr count')
     # plt.ylabel('loss')
     # plt.legend()
     # plt.show()
     # print('GOT! Loss, theta', f.data, Theta.data)
-    log_file = open(file_dir, 'a')
-    spend_time = time.time() - start_time
-    log_file.write('Optimization:' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
-    log_file.close()
-    
-    print("--- %s seconds ---" % (spend_time))
+    print("--- %s seconds ---" % (time.time() - start_time))
     print("--------------------------------------------------------------")
 
     theta = Theta# .data.item()
     loss = res# .data.item()
     print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta.data.item(), loss.data.item()))
 
-    return theta, loss, loss_list, f, penalty_f, TIME_OUT
+    return theta, loss, loss_list, f, var(0.0)
 
 
 def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
@@ -565,13 +407,13 @@ def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda
         f = f.div(var(len(X_train)))
         print('quantitive f', f.data.item())
 
-        symbol_table_list = root['entry'].execute(symbol_table_list)
-        print('length: ', len(symbol_table_list))
-        res_l, res_r = extract_result_safty(symbol_table_list)
-        penalty_f = distance_f_interval(symbol_table_list, target)
-        print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
+        # symbol_table_list = root['entry'].execute(symbol_table_list)
+        # print('length: ', len(symbol_table_list))
+        # res_l, res_r = extract_result_safty(symbol_table_list)
+        # penalty_f = distance_f_interval(symbol_table_list, target)
+        # print('safe f', penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
 
-        res = f.add(lambda_.mul(penalty_f))
+        res = f # f.add(lambda_.mul(penalty_f))
         print(i, '--', Theta.data.item(), res.data.item())
 
         try:
@@ -621,7 +463,7 @@ def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda
     loss = f# .data.item()
     print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta, loss))
 
-    return theta, loss, loss_list, f, penalty_f
+    return theta, loss, loss_list, f, var(0.0)
 
 
 # GD
@@ -704,17 +546,15 @@ def gd(X_train, y_train, theta_l, theta_r, target, stop_val, epoch, lr):
     loss = f# .data.item()
     print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta, loss))
 
-    return theta, loss, loss_list, f, penalty_f
+    return theta, loss, loss_list, f, var(0.0)
 
 
 def cal_c(X_train, y_train, theta):
-    # only for calculating the value instead of the gradient
     root = construct_syntax_tree(theta)
-    symbol_table_list = initialization(x_l, x_r, X_train, y_train)
+    symbol_table_list = initialization(x_l, x_r)
 
     symbol_table_list = root['entry'].execute(symbol_table_list)
     c = distance_f_interval(symbol_table_list, target)
-    print('cal_c', theta, c)
 
     return c
 
@@ -732,6 +572,5 @@ def cal_q(X_train, y_train, theta):
         q = q.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
 
     q = q.div(var(len(X_train)))
-    print('cal_q', theta, q)
     
     return q

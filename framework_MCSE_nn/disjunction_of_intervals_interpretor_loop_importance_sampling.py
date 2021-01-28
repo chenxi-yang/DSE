@@ -163,7 +163,7 @@ e = (1-\alpha)e1 + \alpha e2
 \alpha = 0.5*(1 + tanh((e - test)*beta))
 '''
 def cal_branch_weight(x, test):
-    # print('-------cal weight target, test', symbol_table[target].data.item(), test.data.item())
+    # print('-------cal weight target, test', x.data.item(), test.data.item())
     
     diff = x.sub(test)
     alpha = var(0.5).mul(var(1.0).add(torch.tanh(f_beta_smooth_point(POINT_BETA).mul(diff))))
@@ -258,28 +258,35 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
             res_symbol_table[target] = intersection_interval
             # return None
         else:
+            # print(f"DEBUG: test: {test.data.item()}")
             for smooth_point_symbol_table in symbol_table['point_cloud']:
                 point_target = smooth_point_symbol_table[target]
                 if direct == '<':
                     if point_target.left.data.item() <= test.data.item():
                         w_body, w_else = cal_branch_weight(point_target.left, test)
+                        # print(f"DEBUG: w_body, w_else, {w_body.data.item()}, {w_else.data.item()}")
                         counter = counter.add(w_body)
                         point_cloud.append(smooth_point_symbol_table)
                 else:
                     if point_target.left.data.item() > test.data.item():
                         w_body, w_else = cal_branch_weight(point_target.left, test)
+                        # print(f"DEBUG: w_body, w_else, {w_body.data.item()}, {w_else.data.item()}")
                         counter = counter.add(w_else)
                         point_cloud.append(smooth_point_symbol_table)
             
+            # print(f"DEBUG: counter: {counter.data.item()}")
             if counter.data.item() > 0.0:
+                # print('counter')
                 rho = counter.div(symbol_table['counter'])
+                probability = symbol_table['probability'].mul(rho)
             else:
                 #! for not too small
                 #! update the whole path instead of the 
                 # rho = SMALL_PROBABILITY
-                rho = pho(target_value, intersection_interval)
+                # print('small probability', pho(target_value, intersection_interval).data.item())
+                probability = torch.max(SMALL_PROBABILITY, symbol_table['probability'].mul(pho(target_value, intersection_interval)))
             #! previous implementations
-            probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
+            # probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
             if DOMAIN == "interval":
                 res_symbol_table[target] = intersection_interval
             elif DOMAIN == "zonotope":
@@ -288,8 +295,8 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
     # res_symbol_table[target] = intersection_interval.getZonotope()
     #! previous implementation
     # res_symbol_table['probability'] = probability # rho.mul(symbol_table['probability']) # probability
-    # print('new prob, rho & old rho', rho.mul(symbol_table['probability']), rho, probability)
-    res_symbol_table['probability'] = rho.mul(symbol_table['probability'])
+    # print('new prob, rho & old ', rho.mul(symbol_table['probability']), rho, probability)
+    res_symbol_table['probability'] = probability # rho.mul(symbol_table['probability'])
     # res_symbol_table['probability'] = probability
     res_symbol_table['counter'] = counter
     res_symbol_table['point_cloud'] = point_cloud
@@ -376,7 +383,9 @@ def update_symbol_table(target, func, symbol_table):
     # print(symbol_table)
     #    # print('before assign', symbol_table[res_target].getInterval().left, symbol_table[res_target].getInterval().right)
     instance_list = [symbol_table[symbol] for symbol in target]
+    # print(f"DEBUG: ----------BEFORE update domain")
     symbol_table[res_target] = func(instance_list)
+    # print(f"DEBUG: ----------AFTER update domain")
     point_cloud = list()
     for point_symbol_table in symbol_table['point_cloud']:
         point_instance_list = [point_symbol_table[symbol] for symbol in target]
@@ -600,6 +609,7 @@ def sample(symbol_table_list, cur_sample_size):
     for symbol_table in symbol_table_list:
         max_explore_probability = torch.max(symbol_table['explore_probability'], max_explore_probability)
     
+    # print('max explore_probabilitty,', max_explore_probability.data.item())
     for idx, symbol_table in enumerate(symbol_table_list):
         symbol_table_list[idx]['explore_probability'] = symbol_table_list[idx]['explore_probability'].div(max_explore_probability)
 
@@ -621,6 +631,10 @@ def sample(symbol_table_list, cur_sample_size):
             del symbol_table_list[symbol_table_idx]
         else:
             symbol_table_idx += 1
+    
+    #! Change, a quicker way to sample
+    # if to_get_sample_size > 0:
+    #     res_symbol_table_list = random.choice(symbol_table_list, weights=[symbol_table['explore_probability'].data.item() for symbol_table in symbol_table_list], k=to_get_sample_size)
     
     for idx, symbol_table in enumerate(res_symbol_table_list):
         res_symbol_table_list[idx]['explore_probability'] = res_symbol_table_list[idx]['explore_probability'].mul(max_explore_probability)
@@ -782,7 +796,7 @@ class Assign:
             #     print('t, after, ', type(symbol_table[self.target]))
         # if len(self.target) == 4:
         #     print(f"Assign: {self.target}, {symbol_table['u'].left}, {symbol_table['u'].right}")
-
+        # print('end assign')
         return run_next_stmt(self.next_stmt, symbol_table_list, cur_sample_size + len(symbol_table_list))
 
 

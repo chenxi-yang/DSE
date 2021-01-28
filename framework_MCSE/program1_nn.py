@@ -101,7 +101,6 @@ def f_max(x):
 def f_max_domain(x):
     return x[0].max(x[1])
 def f_min(x):
-    # print(x[0], x[1])
     y = torch.min(x[0], x[1])
     return y
 def f_min_domain(x):

@@ -203,89 +203,89 @@ if MODE == 1:
         return res_l.data.item(), res_r.data.item()
 
 
-def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
-    print('in plot_sep_quan_safe_trend')
-    unit = (theta_r - theta_l) * 1.0 / k
+# def plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=100):
+#     print('in plot_sep_quan_safe_trend')
+#     unit = (theta_r - theta_l) * 1.0 / k
     
-    theta_list = list()
-    quan_f_list = list()
-    result_safety_l_list = list()
-    result_safety_r_list = list()
-    target_l_list = list()
-    target_r_list = list()
-    y_l_list = list()
-    y_r_list = list()
+#     theta_list = list()
+#     quan_f_list = list()
+#     result_safety_l_list = list()
+#     result_safety_r_list = list()
+#     target_l_list = list()
+#     target_r_list = list()
+#     y_l_list = list()
+#     y_r_list = list()
 
-    for i in range(k):
-        theta = theta_l + i * unit
-        # theta = 2.914
-        Theta = var(theta)
-        root = construct_syntax_tree(Theta)
-        symbol_table_list = initialization(x_l, x_r)
-        root_point = construct_syntax_tree_point(Theta)
-        root_smooth_point = construct_syntax_tree_smooth_point(Theta)
+#     for i in range(k):
+#         theta = theta_l + i * unit
+#         # theta = 2.914
+#         Theta = var(theta)
+#         root = construct_syntax_tree(Theta)
+#         symbol_table_list = initialization(x_l, x_r)
+#         root_point = construct_syntax_tree_point(Theta)
+#         root_smooth_point = construct_syntax_tree_smooth_point(Theta)
 
-        f = var(0.0)
-        y_l = P_INFINITY
-        y_r = N_INFINITY
-        # print(Theta.data.item())
+#         f = var(0.0)
+#         y_l = P_INFINITY
+#         y_r = N_INFINITY
+#         # print(Theta.data.item())
         
-        for idx, x in enumerate(X_train):
-            # print('In Loop')
-            x, y = x, y_train[idx]
-            # x = [11.747363060439167]
+#         for idx, x in enumerate(X_train):
+#             # print('In Loop')
+#             x, y = x, y_train[idx]
+#             # x = [11.747363060439167]
 
-            # print(x, y)
-            symbol_table_point = initialization_point(x)
-            symbol_table_point = root_point['entry'].execute(symbol_table_point)
-            # print('finish point')
-            symbol_table_smooth_point = initialization_point(x)
-            symbol_table_smooth_point = root_smooth_point['entry'].execute(symbol_table_smooth_point)
-            # print(x, y)
-            # print('finish smooth', symbol_table_smooth_point['res'])
-            # exit(0)
+#             # print(x, y)
+#             symbol_table_point = initialization_point(x)
+#             symbol_table_point = root_point['entry'].execute(symbol_table_point)
+#             # print('finish point')
+#             symbol_table_smooth_point = initialization_point(x)
+#             symbol_table_smooth_point = root_smooth_point['entry'].execute(symbol_table_smooth_point)
+#             # print(x, y)
+#             # print('finish smooth', symbol_table_smooth_point['res'])
+#             # exit(0)
 
-            f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
-            y_l = torch.min(symbol_table_point['x_min'], y_l)
-            y_r = torch.max(symbol_table_point['x_max'], y_r)
-            # exit(0)
-        print('====finish smooth point computing')
-        f = f.div(var(len(X_train)))
-        print('point dist', f.data.item())
-        # exit(0)
+#             f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
+#             y_l = torch.min(symbol_table_point['x_min'], y_l)
+#             y_r = torch.max(symbol_table_point['x_max'], y_r)
+#             # exit(0)
+#         print('====finish smooth point computing')
+#         f = f.div(var(len(X_train)))
+#         print('point dist', f.data.item())
+#         # exit(0)
         
-        symbol_table_list = root['entry'].execute(symbol_table_list)
-        print('====final intervals====', len(symbol_table_list))
-        # show_symbol_tabel_list(symbol_table_list)
-        approximate_result_safety_l, approximate_result_safety_r = extract_result_safty(symbol_table_list)
-        penalty_f = distance_f_interval(symbol_table_list, target)
+#         symbol_table_list = root['entry'].execute(symbol_table_list)
+#         print('====final intervals====', len(symbol_table_list))
+#         # show_symbol_tabel_list(symbol_table_list)
+#         approximate_result_safety_l, approximate_result_safety_r = extract_result_safty(symbol_table_list)
+#         penalty_f = distance_f_interval(symbol_table_list, target)
 
-        print(theta, f.data.item(), penalty_f.data.item(), approximate_result_safety_l, approximate_result_safety_r, y_l.data.item(), y_r.data.item())
-        # exit(0)
+#         print(theta, f.data.item(), penalty_f.data.item(), approximate_result_safety_l, approximate_result_safety_r, y_l.data.item(), y_r.data.item())
+#         # exit(0)
 
-        theta_list.append(theta)
-        quan_f_list.append(f.data.item())
-        result_safety_l_list.append(approximate_result_safety_l)
-        result_safety_r_list.append(approximate_result_safety_r)
-        target_l_list.append(target.left.data.item())
-        target_r_list.append(target.right.data.item())
-        y_l_list.append(y_l.data.item())
-        y_r_list.append(y_r.data.item())
+#         theta_list.append(theta)
+#         quan_f_list.append(f.data.item())
+#         result_safety_l_list.append(approximate_result_safety_l)
+#         result_safety_r_list.append(approximate_result_safety_r)
+#         target_l_list.append(target.left.data.item())
+#         target_r_list.append(target.right.data.item())
+#         y_l_list.append(y_l.data.item())
+#         y_r_list.append(y_r.data.item())
 
-    plt.plot(theta_list, quan_f_list, color='blue', label='quan_f')
-    plt.plot(theta_list, target_l_list, color='green', label='target_l')
-    plt.plot(theta_list, target_r_list, color='green', label='target_r')
-    plt.plot(theta_list, result_safety_l_list, color='red', label='pred_y_l')
-    plt.plot(theta_list, result_safety_r_list, color='red', label='pred_y_r')
-    plt.plot(theta_list, y_l_list, color='orange', label='real_sample_y_l')
-    plt.plot(theta_list, y_r_list, color='orange', label='real_sample_y_r')
-    plt.ylabel('Property')
-    plt.xlabel('Theta')
-    plt.title(CURRENT_PROGRAM + '-' + MODE_NAME)# mode_list[MODE])
-    plt.legend()
-    plt.savefig('figures/' + CURRENT_PROGRAM + '-' + MODE_NAME + '-' + 'program_stat.png')
-    # plt.savefig('figures/' + CURRENT_PROGRAM + '-' + mode_list[MODE] + '-' + 'program_stat.pdf')
-    plt.show()
+#     plt.plot(theta_list, quan_f_list, color='blue', label='quan_f')
+#     plt.plot(theta_list, target_l_list, color='green', label='target_l')
+#     plt.plot(theta_list, target_r_list, color='green', label='target_r')
+#     plt.plot(theta_list, result_safety_l_list, color='red', label='pred_y_l')
+#     plt.plot(theta_list, result_safety_r_list, color='red', label='pred_y_r')
+#     plt.plot(theta_list, y_l_list, color='orange', label='real_sample_y_l')
+#     plt.plot(theta_list, y_r_list, color='orange', label='real_sample_y_r')
+#     plt.ylabel('Property')
+#     plt.xlabel('Theta')
+#     plt.title(CURRENT_PROGRAM + '-' + MODE_NAME)# mode_list[MODE])
+#     plt.legend()
+#     plt.savefig('figures/' + CURRENT_PROGRAM + '-' + MODE_NAME + '-' + 'program_stat.png')
+#     # plt.savefig('figures/' + CURRENT_PROGRAM + '-' + mode_list[MODE] + '-' + 'program_stat.pdf')
+#     plt.show()
 
 
 # DIRECT
@@ -370,13 +370,23 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     print("--------------------------------------------------------------")
     print('---- Gradient Direct Noise Descent---- ')
     print('====Start Training====')
+    len_theta = len(theta_l)
     TIME_OUT = False
+
+    x_min = var(10000.0)
+    x_max = var(0.0)
 
     loop_list = list()
     loss_list = list()
 
     # if theta is None:
-    Theta = var(random.uniform(theta_l, theta_r), requires_grad=True)
+    Theta = list()
+    for idx, value in enumerate(theta_l):
+        Theta.append(var(random.uniform(theta_l[idx], theta_r[idx]), requires_grad=True))
+    # Theta[0] = var(59.4, requires_grad=True)
+    # Theta[1] = var(0.9, requires_grad=True)
+    # Theta[2], Theta[3], Theta[4], Theta[5], Theta[6], Theta[7], Theta[8] = var(0.0, requires_grad=True), var(0.1, requires_grad=True), var(0.0, requires_grad=True), var(0.0, requires_grad=True), var(0.0, requires_grad=True), var(1.0, requires_grad=True), var(1.0, requires_grad=True)
+    # Theta = var(random.uniform(theta_l, theta_r), requires_grad=True)
     # else:
     #     Theta = theta
     # Theta = var(2.933, requires_grad=True)
@@ -398,7 +408,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         y_l = P_INFINITY
         y_r = N_INFINITY
 
-        print('Theta:', Theta.data.item())
+        print('Theta:', [i.data.item() for i in Theta])
         for idx, x in enumerate(X_train):
             x, y = x, y_train[idx]
             symbol_table_smooth_point = initialization_point(x)
@@ -406,18 +416,21 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
             symbol_table_smooth_point = root_smooth_point['entry'].execute(symbol_table_smooth_point)
             # print('run point')
 
-            # symbol_table_point = initialization_point(x)
-            # symbol_table_point = root_point['entry'].execute(symbol_table_point)
+            symbol_table_point = initialization_point(x)
+            symbol_table_point = root_point['entry'].execute(symbol_table_point)
 
-            # y_l = torch.min(symbol_table_point['res'], y_l)
-            # y_r = torch.max(symbol_table_point['res'], y_r)
+            x_min =  torch.min(symbol_table_point['x_min'], x_min)
+            x_max  = torch.max(symbol_table_point['x_max'], x_max)
+
+            y_l = torch.min(symbol_table_smooth_point['res'], y_l)
+            y_r = torch.max(symbol_table_smooth_point['res'], y_r)
 
             # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
             f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
 
         #TODO: a function return, penalty_f, f
         f = f.div(var(len(X_train)))
-        # print('quantitive f', f.data.item())
+        print('quantitive f', f.data.item())
         symbol_table_list = root['entry'].execute(symbol_table_list)
         print('length: ', len(symbol_table_list))
 
@@ -427,70 +440,87 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         #! Change the Penalty
         penalty_f, p_list, log_p_list, reward_list = distance_f_interval_REINFORCE(symbol_table_list, target)
 
-        exp1 = var(0.0)
-        exp2 = var(0.0)
-        for idx, value in enumerate(p_list):
-            p = value
-            log_p = log_p_list[idx]
-            reward = reward_list[idx]
-            try:
-                gradient_reward = torch.autograd.grad(reward, Theta, retain_graph=True)
-            except RuntimeError:
-                gradient_reward = (var(0.0), )
-            try:
-                # print('log_p', log_p)
-                gradient_log_p = torch.autograd.grad(log_p, Theta, retain_graph=True)
-            except RuntimeError:
-                gradient_log_p = (var(0.0), )
-            # print(gradient_reward, gradient_log_p)
-            # print('p: {0:.6f}, log_p: {1:.6f}, reward: {2:.6f}, gradient_reward: {3:.6f}, gradient_log_p: {4:.6f}'.format(p.data.item(), log_p.data.item(), reward.data.item(), gradient_reward[0].data.item(), gradient_log_p[0].data.item()))
-            exp1 = exp1.add(p.mul(gradient_reward[0]))
-            exp2 = exp2.add(p.mul(reward).mul(gradient_log_p[0]))
-            # print('p.mul(gradient_reward):{0:.12f}, p.mul(reward).mul(gradient_log_p[0]): {0:.12f}, exp1: {0:.12f}, exp2: {0:.12f}'.format((p.mul(gradient_reward[0])).data.item(), (p.mul(reward).mul(gradient_log_p[0])).data.item(), exp1.data.item(), exp2.data.item()))
-        gradient_penalty_f = exp1.add(exp2)
-            
-        # penalty_f = 
-        # print('safe f, gradient, ', penalty_f.data.item(), gradient_penalty_f.data.item(), res_l, res_r) # , y_l.data.item(), y_r.data.item())
+        print('safe f, ', penalty_f.data.item(), res_l, res_r, x_min.data.item(), x_max.data.item(), y_l.data.item(), y_r.data.item(), ) # , )
+
+        exp1 = [var(0.0)] * len_theta
+        exp2 = [var(0.0)] * len_theta
+        gradient_penalty_f = [var(0.0)] * len_theta
+        # exp1 = var(0.0)
+        # exp2 = var(0.0)
+        for theta_idx in range(len_theta):
+            for idx, value in enumerate(p_list):
+                p = value
+                log_p = log_p_list[idx]
+                reward = reward_list[idx]
+                try:
+                    gradient_reward = torch.autograd.grad(reward, Theta[theta_idx], retain_graph=True)
+                except RuntimeError:
+                    gradient_reward = (var(0.0), )
+                try:
+                    # print('log_p', log_p)
+                    gradient_log_p = torch.autograd.grad(log_p, Theta[theta_idx], retain_graph=True)
+                except RuntimeError:
+                    gradient_log_p = (var(0.0), )
+                # print(f"DEBUG: \n gradient_reward:{gradient_reward}\n gradient_log_p:{gradient_log_p}")
+                # if theta_idx == 0:
+                #     print('DEBUG: p: {0:.6f}, log_p: {1:.6f}, reward: {2:.6f}, gradient_reward: {3:.6f}, gradient_log_p: {4:.6f}'.format(p.data.item(), log_p.data.item(), reward.data.item(), gradient_reward[0].data.item(), gradient_log_p[0].data.item()))
+                exp1[theta_idx] = exp1[theta_idx].add(p.mul(gradient_reward[0]))
+                exp2[theta_idx] = exp2[theta_idx].add(p.mul(reward).mul(gradient_log_p[0]))
+                # if theta_idx== 0:
+                #     print('DEBUG: p.mul(gradient_reward):{0:.12f}, p.mul(reward).mul(gradient_log_p[0]): {0:.12f}, exp1: {0:.12f}, exp2: {0:.12f}'.format((p.mul(gradient_reward[0])).data.item(), (p.mul(reward).mul(gradient_log_p[0])).data.item(), exp1[theta_idx].data.item(), exp2[theta_idx].data.item()))
+            gradient_penalty_f[theta_idx] = exp1[theta_idx].add(exp2[theta_idx])
 
         res = f.add(lambda_.mul(penalty_f))
-        print(i, '--', Theta.data.item(), res.data.item())
+        print(i, '--', [i.data.item() for i in Theta], res.data.item())
         # if i == 0:
         #     continue
         # if i == 1:
         #     exit(0)
         # exit()
         derivation = var(0.0)
-        try:
-            #! update the gradient
-            dTheta = torch.autograd.grad(f, Theta, retain_graph=True)
-            derivation = dTheta[0].add(lambda_.mul(gradient_penalty_f))
-            # derivation = dTheta[0]
-            # print('f, theta, dTheta:', f.data, Theta.data, derivation)
-
-            if torch.abs(res.data) < var(stop_val): # epsilon:
-                # print(f.data, Theta.data)
-                break
-            if torch.abs(derivation.data) < EPSILON:
-                Theta.data.fill_(random.uniform(theta_l, theta_r))
-                continue
-            Theta.data -= lr * (derivation.data + var(random.uniform(-noise, noise)))
-            print('deriavation, theta ', derivation.data.item(), Theta.data.item())
         
-        except RuntimeError:
-            # print('RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn')
-            if torch.abs(res.data) < var(stop_val):
-                # print(f.data, Theta.data)
-                break
+        for theta_idx in range(len_theta):
+            try:
+                #! update the gradient
+                dTheta = torch.autograd.grad(f, Theta[theta_idx], retain_graph=True)
+                derivation = dTheta[0].add(lambda_.mul(gradient_penalty_f[theta_idx]))
+                # derivation = dTheta[0]
+                # print('f, theta, dTheta:', f.data, Theta.data, derivation)
+                print(f"DEBUG: {theta_idx}, {dTheta[0].data.item()}")
 
-            Theta.data -= lr * (derivation.data + var(random.uniform(-1.0, 1.0)))
+                if torch.abs(res.data) < var(stop_val): # epsilon:
+                    # print(f.data, Theta.data)
+                    break
+                # if torch.abs(derivation.data) < EPSILON:
+                #     Theta.data.fill_(random.uniform(theta_l, theta_r))
+                #     continue
+
+                Theta[theta_idx].data -= lr_l[theta_idx] * (derivation.data + var(random.uniform(-noise, noise)))
+                print('deriavation, theta ', derivation.data.item(), Theta[theta_idx].data.item())
         
-        if Theta.data.item() <= theta_l or Theta.data.item() >= theta_r:
-            Theta.data.fill_(random.uniform(theta_l, theta_r))
-            continue
+            except RuntimeError:
+                # print('RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn')
+                if torch.abs(res.data) < var(stop_val):
+                    # print(f.data, Theta.data)
+                    print('FIND IT!')
+                    # exit(0)
+                    break
+
+                Theta[theta_idx].data -= lr_l[theta_idx] * (derivation.data + var(random.uniform(-1.0, 1.0)))
+        
+        if torch.abs(res.data) < var(stop_val):
+            # print(f.data, Theta.data)
+            print('FIND IT!')
+            # exit(0)
+            break
+
+        for theta_idx in range(len_theta):
+            if Theta[theta_idx].data.item() <= theta_l[theta_idx] or Theta[theta_idx].data.item() >= theta_r[theta_idx]:
+                Theta[theta_idx].data.fill_(random.uniform(theta_l[theta_idx], theta_r[theta_idx]))
 
         loop_list.append(i)
         loss_list.append(res.data)
-        if (time.time() - start_time)/(i+1) > 250:
+        if (time.time() - start_time)/(i+1) > 300:
             log_file = open(file_dir, 'a')
             log_file.write('TIMEOUT: avg epoch time > 250s \n')
             log_file.close()
@@ -513,7 +543,8 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
 
     theta = Theta# .data.item()
     loss = res# .data.item()
-    print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta.data.item(), loss.data.item()))
+    print('Theta[0]: {0:.3f}, Loss: {1:.3f}'.format(theta[0].data.item(), loss.data.item()))
+    # exit(0)
 
     return theta, loss, loss_list, f, penalty_f, TIME_OUT
 

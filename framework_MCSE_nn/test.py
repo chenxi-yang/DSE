@@ -1,8 +1,9 @@
 import numpy as np
 from termcolor import colored
 
+from constants import *
 from data_generator import *
-from optimization_baseline_2 import *
+from optimization import *
 
 
 def check_safety(res, target):
@@ -31,32 +32,30 @@ def eval(X, Y, theta, target, category):
     safe_min = P_INFINITY.data.item()
     safe_max = N_INFINITY.data.item()
 
-
     '''
     # add for program test_disjuction_2
     '''
+    ##########################################
+    if benchmark_id == 9:
+        x = [theta.data.item()-0.0101]
+        symbol_table_point = initialization_point(x)
+        root_target_point = construct_syntax_tree_point(var(5.49))
+        symbol_table_point = root_target_point['entry'].execute(symbol_table_point)
+        # safe_l = symbol_table_point['x_min'].data.item()
+        # safe_r = symbol_table_point['x_max'].data.item()
+        y = symbol_table_point['res'].data.item()
+        # print('add data:', theta.data.item(), y, safe_l, safe_r)
+        X = list(X)
+        X.append(x)
+        X = np.array(X)
+        Y = list(Y)
+        Y.append([y])
+        Y = np.array(Y)
     ###########################################
-    # x = [theta.data.item()-0.0101]
-    # symbol_table_point = initialization_point(x)
-    # root_target_point = construct_syntax_tree_point(var(5.49))
-    # symbol_table_point = root_target_point['entry'].execute(symbol_table_point)
-    # # safe_l = symbol_table_point['x_min'].data.item()
-    # # safe_r = symbol_table_point['x_max'].data.item()
-    # y = symbol_table_point['res'].data.item()
-    # # print('add data:', theta.data.item(), y, safe_l, safe_r)
-    # X = list(X)
-    # X.append(x)
-    # X = np.array(X)
-    # Y = list(Y)
-    # Y.append([y])
-    # Y = np.array(Y)
-    ############################################
-
 
     # quantative distance
     for idx, x in enumerate(X):
         x, y = x, Y[idx]
-
         symbol_table_point = initialization_point(x)
         symbol_table_point = root_smooth_point['entry'].execute(symbol_table_point)
         quan_dist = quan_dist.add(distance_f_point(symbol_table_point['res'], var(y)))
@@ -72,8 +71,6 @@ def eval(X, Y, theta, target, category):
 
         safe_property_min = symbol_table_point['x_min'].data.item()
         safe_property_max = symbol_table_point['x_max'].data.item()
-
-        # if x[0] == 5.4852: print('core safe:', safe_property_min, safe_property_max)
         safe_min = min(safe_property_min, safe_min)
         safe_max = max(safe_property_max, safe_max)
 
@@ -91,6 +88,12 @@ def eval(X, Y, theta, target, category):
         print(colored('Not Safe!', 'red'))
     else:
         print(colored('Safe!', 'green'))
+    
+    log_file = open(file_dir, 'a')
+    # Quantitative loss & safe
+    log_file.write('Test:' + str(quan_dist.data.item()) + ',' + str(safe_dist.data.item()) + '\n')
+    log_file.close()
+
 
     return
 
