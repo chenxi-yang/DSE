@@ -11,11 +11,15 @@ m5-1
 python run.py --lr 0.001 --stop_val 3.0 --optimizer gd_direct_noise --w 3.0 --data_size 20000 --test_portion 0.995 --benchmark_id 1
 
 test thermostat NN
+python run.py --lr 0.1 --stop_val 3.0 --optimizer gd_direct_noise --w 3.0 --data_size 20000 --test_portion 0.99 --benchmark_id 10
 
 
 m5-2 
 [done]benchmark2(aircraft collision)
 python run.py --lr 0.01 --stop_val 1.5 --optimizer gd_direct_noise --w 1.5 --data_size 20000 --test_portion 0.995 --benchmark_id 2
+
+test thermostat NN
+python run.py --lr 0.5 --stop_val 3.0 --optimizer gd_direct_noise --w 3.0 --data_size 20000 --test_portion 0.99 --benchmark_id 10
 
 m5-5
 benchmark5(thermostat loop)
@@ -30,6 +34,8 @@ go test benchmark2, sample path
 m5-6
 [done]benchmark6(atrial fibrillation deep loop)
 python run.py --lr 0.1 --stop_val 0.01 --optimizer gd_direct_noise --w 0.01 --data_size 20000 --test_portion 0.995 --benchmark_id 6
+
+python run.py --lr 0.01 --stop_val 3.0 --optimizer gd_direct_noise --w 3.0 --data_size 20000 --test_portion 0.99 --benchmark_id 10
 
 m5-7
 benchmark7(Electronic Oscillator sample loop)

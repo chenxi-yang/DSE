@@ -63,7 +63,7 @@ INTERVAL_BETA = var(1.0) # 2.0
 POINT_BETA = var(100.0) # 10.0s
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
-SMALL_PROBABILITY = var(0.1)
+SMALL_PROBABILITY = var(0.01)
 B = var(10000) # the range of lambda
 
 CURRENT_PROGRAM = 'program' + str(benchmark_id) # 'program_test_disjunction_2'
@@ -73,11 +73,12 @@ if benchmark_id == 10:
     x_l = [52.0]
     x_r = [59.0]
     target_theta = [62.0] + [0.0] * 8
-    theta_l = [58.1] + [0.8] + [-0.001] + [0.08] + [-0.001] * 3 + [0.95] * 2 # tOff, w11, w12, w21, w22, b1, b2, w3, w4
+    theta_l = [60.0] + [0.8] + [-0.001] + [0.08] + [-0.001] * 3 + [0.95] * 2 # tOff, w11, w12, w21, w22, b1, b2, w3, w4
     theta_r = [67.0] + [1.0] + [0.001] + [0.11] + [0.001] * 3 + [1.0] * 2
-    safe_l = 52.0
+    safe_l = 51.9
     safe_r = 84.1
-    lr_l = [lr] + [1e-5] * 8
+    lr_l = [lr] + [lr/1e-3] * 8
+    noise = [0.1] + [100] * 8
 
 
 # PROGRAM #1
@@ -428,7 +429,7 @@ baseline2: 2/10
 if benchmark_id == 8:
     x_l = [-5, -5, 0.0, 2.0, 2.5, 0.0]
     x_r = [5, 5, 0.0, 2.0, 2.5, 2.0]
-    target_theta = 1.9
+    target_theta = 1.634
     theta_l = 1.5
     theta_r = 2.5
     safe_l = -5.7658 # -2.61 #-0.4

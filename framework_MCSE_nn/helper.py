@@ -8,6 +8,11 @@ def var(i, requires_grad=False):
     # print(i)
     return Variable(torch.tensor(i, dtype=torch.double), requires_grad=requires_grad)
 
+
+def var_list(i_list, requires_grad=False):
+    # print(i)
+    return Variable(torch.tensor(i_list, dtype=torch.double), requires_grad=requires_grad)
+
 PI = var((3373259426.0 + 273688.0 / (1 << 21)) / (1 << 30))
 PI_TWICE = PI.mul(var(2.0))
 PI_HALF = PI.div(var(2.0))

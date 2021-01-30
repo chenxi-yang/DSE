@@ -84,6 +84,7 @@ if __name__ == "__main__":
                     lambda_list.append(new_lambda)
                     theta_list.append(theta)
 
+                    # TODO: return a distribution
                     theta_t = list()
                     for i in range(len(theta)):
                         theta_t.append(var(0.0))

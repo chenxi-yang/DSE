@@ -105,14 +105,29 @@ def fself_0(x):
 def f_max(x):
     # print(f"Debug: max, {x[0]}, {x[1]}")
     return torch.max(x[0], x[1])
-def f_max_domain(x):
-    return x[0].max(x[1])
+def f_max_domain(Theta):
+    def res(x):
+        y = x[0].max(x[1])
+        # if x[1].right.data.item() > x[1].left.data.item():
+        #     print(f"DEBUG: f_max_domain, {torch.autograd.grad(y.left, Theta, retain_graph=True, allow_unused=True)}")
+        return y
+    return res
+
 def f_min(x):
     # print(f"Debug: min, {x[0]}, {x[1]}")
     y = torch.min(x[0], x[1])
     return y
-def f_min_domain(x):
-    return x[0].min(x[1])
+
+# def f_min_domain(x):
+#     return x[0].min(x[1])
+
+def f_min_domain(Theta):
+    def res(x):
+        y = x[0].min(x[1])
+        # if x[1].right.data.item() > x[1].left.data.item():
+        #     print(f"DEBUG: f_max_domain, {torch.autograd.grad(y.left, Theta, retain_graph=True, allow_unused=True)}")
+        return y
+    return res
 
 
 # def f6(x):
@@ -192,16 +207,16 @@ def linear_domain(x, Theta, n=2):
     output = var(0.0)
     # print(f"DEBUG: len(theta), {len(Theta)}")
     for i in range(n):
-        u = x[0].mul(Theta[i]).add(x[1].mul(Theta[i+n])).add(Theta[i+2*n])
+        u = x[0].mul(Theta[i + 1]).add(x[1].mul(Theta[i+n + 1])).add(Theta[i+2*n + 1])
         # print(u.left.data.item())
         hidden_state_list.append(u)
     for i in range(n):
         # print(hidden_state_list[i].left.data.item(), Theta[i+3*n].data.item(), sigmoid_domain(hidden_state_list[i].mul(Theta[i+3*n])).left.data.item())
-        output = (hidden_state_list[i].mul(Theta[i+3*n])).add(output)
+        output = (hidden_state_list[i].mul(Theta[i+3*n+ 1])).add(output)
         # output = sigmoid_domain(hidden_state_list[i].mul(Theta[i+3*n])).add(output)
     
     # print(f"DEBUG: theta, {[i.data.item() for i in Theta]}")
-    # print(f"DEBUG: linear_domain, {[torch.autograd.grad(output.left, i, retain_graph=True)[0] for i in Theta]}")
+    # print(f"DEBUG: linear_domain, {torch.autograd.grad(output.left, Theta, retain_graph=True, allow_unused=True)}")
     # print(f"DEBUG: hidden {u.left.data.item() for u in hidden_state_list}, \n {u.right.data.item() for u in hidden_state_list}")
     # print(f"DEBUG: Output, {output.left.data.item()}, {output.right.data.item()}")
 
@@ -211,7 +226,7 @@ def linear_domain(x, Theta, n=2):
 def f_degrade_nn_domain(Theta):
     def nn(x):
         # curT = domain.Interval(var(60.0), var(60.0))
-        output = linear_domain(x, Theta[1:], n=2)
+        output = linear_domain(x, Theta, n=2)
         # output = x[0].mul(Theta[1]).add(x[1].mul(Theta[3]))
         # output = x[0].sub_l((x[0].sub_l(x[1])).mul(var(0.1)))
         return output
@@ -230,23 +245,26 @@ def linear(input, Theta, n=2):
     #! for DEBUG
     # Theta[1], Theta[2], Theta[3], Theta[4], Theta[5], Theta[6], Theta[7] = var(0.0), var(0.1), var(0.0), var(0.0), var(0.0), var(1.0), var(1.0)
     len_input = len(input)
-    hidden_state_list = [var(0.0)] * n
+    hidden_state_list = list()
+    for i in range(n):
+        hidden_state_list.append(var(0.0))
+    # hidden_state_list = [var(0.0)] * n
     output = var(0.0)
     # print(f"DEBUG: len(theta), {len(Theta)}")
     for i in range(n):
-        hidden_state_list[i] = input[0].mul(Theta[i]).add(input[1].mul(Theta[i+n])).add(Theta[i+2*n])
+        hidden_state_list[i] = input[0].mul(Theta[i + 1]).add(input[1].mul(Theta[i+n + 1])).add(Theta[i+2*n + 1])
     for i in range(n):
         # output = sigmoid(hidden_state_list[i].mul(Theta[i+3*n])).add(output)
-        output = (hidden_state_list[i].mul(Theta[i+3*n])).add(output)
+        output = (hidden_state_list[i].mul(Theta[i+3*n + 1])).add(output)
     
-    # print(f"DEBUG: linear_domain, {[torch.autograd.grad(output.left, i, retain_graph=True)[0] for i in Theta]}")
+    # print(f"DEBUG: linear, {torch.autograd.grad(output, Theta, retain_graph=True, allow_unused=True)}")
         
     return output
 
 def f_degrade_nn(Theta):
     def nn(x):
         # curT = var(60.0)
-        output = linear(x, Theta[1:], n=2)
+        output = linear(x, Theta, n=2)
         # output = x[0].sub(var(0.1).mul(x[0].sub(x[1])))
         # output = x[0].mul(Theta[1]).add(x[1].mul(Theta[3]))
         return output
@@ -260,8 +278,8 @@ def f_equal_domain(x):
 
 def construct_syntax_tree(Theta):
     
-    l18_2 = Assign(['x_max', 'x'], f_max_domain, None)
-    l18_1 = Assign(['x_min', 'x'], f_min_domain, l18_2)
+    l18_2 = Assign(['x_max', 'x'], f_max_domain(Theta), None)
+    l18_1 = Assign(['x_min', 'x'], f_min_domain(Theta), l18_2)
     l18 = Assign('i', f18_domain, l18_1)
 
     l8 = Assign(['isOn'], f8_domain, None)

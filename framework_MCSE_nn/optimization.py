@@ -67,7 +67,7 @@ if MODE in [2,3,4,5]:
         
         return res
     
-    def distance_f_interval_REINFORCE(X_list, target):
+    def distance_f_interval_REINFORCE(X_list, target, Theta):
         alpha_smooth_max_var = var(alpha_smooth_max)
         res = var(0.0)
         # print('X_list', len(X_list))
@@ -91,6 +91,16 @@ if MODE in [2,3,4,5]:
             X.left = torch.min(X_min.left, X_max.left)
             X.right = torch.max(X_min.right, X_max.right)
             # print(X.min.left, X.min.right, X.max.left, X.max.right)
+            # try:
+            #     a = torch.autograd.grad(X.left, Theta, retain_graph=True, allow_unused=True)
+            #     print(f"DEBUG: X.left gradient: {a}")
+            # except RuntimeError:
+            #     print(f"DEBUG: X.left No gradient")
+            # try:
+            #     a = torch.autograd.grad(X.right, Theta, retain_graph=True, allow_unused=True)
+            #     print(f"DEBUG: X.right gradient: {a}")
+            # except RuntimeError:
+            #     print(f"DEBUG: X.right No gradient")
 
             reward = var(0.0)
             intersection_interval = get_intersection(X, target)
@@ -109,8 +119,31 @@ if MODE in [2,3,4,5]:
             # tmp_res is the reward
             tmp_p = torch.log(pi)
 
+            ## Debug
+            # try:
+            #     a = torch.autograd.grad(reward, Theta, retain_graph=True, allow_unused=True)
+            #     print(f"DEBUG: reward gradient: {a}")
+            # except RuntimeError:
+            #     print(f"DEBUG: reward No gradient")
+            
+            # try: 
+            #     loss = reward
+            #     loss.backward()
+            #     a = Theta.grad
+            #     print(f"DEBUG: SANITY CHECK reward loss, gradient: {a}")
+            # except RuntimeError:
+            #     print(f"DEBUG: SANITY CHECK loss error, no grad")
+            ## Debug
+
             log_p_list.append(tmp_p)
             reward_list.append(reward)
+
+            # try:
+            #     a = torch.autograd.grad(reward_list[-1], Theta, retain_graph=True, allow_unused=True)
+            #     print(f"DEBUG: SANITY CHECK reward gradient: {a}")
+            # except RuntimeError:
+            #     print(f"DEBUG: reward No gradient")
+
             p_list.append(p)
 
             res = res.add(tmp_res)
@@ -366,7 +399,7 @@ def direct(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val
 
 # Gradient + noise
 # noise: 1.random  2.Gaussian Noise 
-def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
+def gd_direct_noise_old(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
     print("--------------------------------------------------------------")
     print('---- Gradient Direct Noise Descent---- ')
     print('====Start Training====')
@@ -381,6 +414,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
 
     # if theta is None:
     Theta = list()
+    # initialize Theta
     for idx, value in enumerate(theta_l):
         Theta.append(var(random.uniform(theta_l[idx], theta_r[idx]), requires_grad=True))
     # Theta[0] = var(59.4, requires_grad=True)
@@ -517,6 +551,240 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         for theta_idx in range(len_theta):
             if Theta[theta_idx].data.item() <= theta_l[theta_idx] or Theta[theta_idx].data.item() >= theta_r[theta_idx]:
                 Theta[theta_idx].data.fill_(random.uniform(theta_l[theta_idx], theta_r[theta_idx]))
+
+        loop_list.append(i)
+        loss_list.append(res.data)
+        if (time.time() - start_time)/(i+1) > 300:
+            log_file = open(file_dir, 'a')
+            log_file.write('TIMEOUT: avg epoch time > 250s \n')
+            log_file.close()
+            TIME_OUT = True
+            break
+        # print("-- One Epoch %s seconds ---" % (time.time() - start_time))
+    # plt.plot(loop_list, loss_list, label = "beta")
+    # plt.xlabel('expr count')
+    # plt.ylabel('loss')
+    # plt.legend()
+    # plt.show()
+    # print('GOT! Loss, theta', f.data, Theta.data)
+    log_file = open(file_dir, 'a')
+    spend_time = time.time() - start_time
+    log_file.write('Optimization:' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
+    log_file.close()
+    
+    print("--- %s seconds ---" % (spend_time))
+    print("--------------------------------------------------------------")
+
+    theta = Theta# .data.item()
+    loss = res# .data.item()
+    print('Theta[0]: {0:.3f}, Loss: {1:.3f}'.format(theta[0].data.item(), loss.data.item()))
+    # exit(0)
+
+    return theta, loss, loss_list, f, penalty_f, TIME_OUT
+
+
+def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
+    print("--------------------------------------------------------------")
+    print('---- Gradient Direct Noise Descent---- ')
+    print('====Start Training====')
+    len_theta = len(theta_l)
+    TIME_OUT = False
+
+    x_min = var(10000.0)
+    x_max = var(0.0)
+
+    loop_list = list()
+    loss_list = list()
+
+    # if theta is None:
+    # Theta = list()
+    
+    # initialize Theta
+    # for idx, value in enumerate(theta_l):
+    #     Theta.append(var(random.uniform(theta_l[idx], theta_r[idx]), requires_grad=True))
+    tmp_theta_list = [random.uniform(theta_l[idx], theta_r[idx]) for idx, value in enumerate(theta_l)]
+    Theta = var_list(tmp_theta_list, requires_grad=True)
+    # h = Theta.register_hook(lambda grad: grad + random.uniform(-noise, noise))
+    # Theta[0] = var(62.0, requires_grad=True) # 59.4
+    # Theta[1] = var(0.9, requires_grad=True)
+    # Theta[2], Theta[3], Theta[4], Theta[5], Theta[6], Theta[7], Theta[8] = var(0.0, requires_grad=True), var(0.1, requires_grad=True), var(0.0, requires_grad=True), var(0.0, requires_grad=True), var(0.0, requires_grad=True), var(1.0, requires_grad=True), var(1.0, requires_grad=True)
+    
+
+    root = construct_syntax_tree(Theta)
+    root_smooth_point = construct_syntax_tree_smooth_point(Theta)
+    root_point = construct_syntax_tree_point(Theta)
+    # Theta = var(69.9)
+
+    start_time = time.time()
+
+    for i in range(epoch):
+        symbol_table_list = initialization(x_l, x_r, X_train, y_train)
+
+        f = var(0.0)
+        y_l = P_INFINITY
+        y_r = N_INFINITY
+
+        print('Theta:', [i.data.item() for i in Theta])
+        for idx, x in enumerate(X_train):
+            x, y = x, y_train[idx]
+            symbol_table_smooth_point = initialization_point(x)
+            # print('run smooth')
+            symbol_table_smooth_point = root_smooth_point['entry'].execute(symbol_table_smooth_point)
+            # print('run point')
+
+            symbol_table_point = initialization_point(x)
+            symbol_table_point = root_point['entry'].execute(symbol_table_point)
+
+            x_min =  torch.min(symbol_table_point['x_min'], x_min)
+            x_max  = torch.max(symbol_table_point['x_max'], x_max)
+
+            y_l = torch.min(symbol_table_smooth_point['res'], y_l)
+            y_r = torch.max(symbol_table_smooth_point['res'], y_r)
+
+            # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
+            f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
+
+        #TODO: a function return, penalty_f, f
+        f = f.div(var(len(X_train)))
+        print('quantitive f', f.data.item())
+        symbol_table_list = root['entry'].execute(symbol_table_list)
+        print('length: ', len(symbol_table_list))
+
+        # print('quantitive f', f.data.item())
+
+        res_l, res_r = extract_result_safty(symbol_table_list)
+        #! Change the Penalty
+        penalty_f, p_list, log_p_list, reward_list = distance_f_interval_REINFORCE(symbol_table_list, target, Theta)
+
+        print('safe f, ', penalty_f.data.item(), res_l, res_r, x_min.data.item(), x_max.data.item(), y_l.data.item(), y_r.data.item(), ) # , )
+
+        # ! First way to implement
+        # try:
+        #     dQ = torch.autograd.grad(f, Theta, retain_graph=True, allow_unused=True)
+        #     print(f"DEBUG, gradient: {dQ}")
+        # except RuntimeError:
+        #     print(f"DEBUG,----ERROR , gradient: None")
+
+        # dTheta = dQ[0]
+        # grad_start_time = time.time()
+        # for idx, value in enumerate(p_list):
+        #     p = value
+        #     log_p = log_p_list[idx]
+        #     reward = reward_list[idx]
+        #     ## DEBUG
+        #     try:
+        #         dReward = torch.autograd.grad(reward, Theta, retain_graph=True, allow_unused=True)
+        #         # print(f"DEBUG, gradient: {dReward}")
+        #     except RuntimeError:
+        #         print(f"DEBUG,----ERROR , reward gradient: None")
+        #     try:
+        #         dLog_p = torch.autograd.grad(log_p, Theta, retain_graph=True, allow_unused=True)
+        #         # print(f"DEBUG, gradient: {dLog_p}")
+        #     except RuntimeError:
+        #         print(f"DEBUG,----ERROR , log_p gradient: None")
+            
+        #     ## DEBUG
+        #     # print(type(p.data.item()), type(reward.data.item()))
+        #     # if p.data.item() != 0.01:
+        #     #     print(f"DEBUG: p: {p.data.item()}")
+        #     # print(var(reward.data.item()))
+        #     dPath = lambda_.mul(p).mul(dReward[0].add(reward.mul(dLog_p[0])))
+        #     dTheta = dTheta.add(dPath)
+        
+
+        # ! another way of implementation
+        loss = f
+        loss.backward(retain_graph=True)
+        
+        grad_start_time = time.time()
+        for idx, value in enumerate(p_list):
+            p = value
+            log_p = log_p_list[idx]
+            reward = reward_list[idx]
+
+            loss = lambda_.mul(var(p.data.item()).mul(reward.add(var(reward.data.item()).mul(log_p))))
+            try:
+                loss.backward(retain_graph=True)
+            except RuntimeError:
+                print(f"DEBUG: p: {idx}, No grad")
+            
+            # print(f"DEBUG: theta.grad, {Theta.grad}")
+
+        print("-- Calculate Path Gradient %s seconds ---" % (time.time() - grad_start_time))
+
+        res = f.add(lambda_.mul(penalty_f))
+        print(i, '--', [i.data.item() for i in Theta], res.data.item())
+        # if i == 0:
+        #     continue
+        # if i == 1:
+        #     exit(0)
+        # exit()
+
+        derivation = var(0.0)
+
+        if torch.abs(res.data) < var(stop_val):
+            break
+
+        # ! first way
+        # print(f"dTheta: {[toy_dtheta.data.item() for toy_dtheta in dTheta]}, \n Theta: {[toy_theta.data.item() for toy_theta in Theta]}")
+        # ! second way
+        print(f"dTheta: {[toy_dtheta for toy_dtheta in Theta.grad]}, \nTheta: {[toy_theta.data.item() for toy_theta in Theta]}")
+
+        with torch.no_grad():
+            for theta_idx in range(len_theta):
+                try:
+                    # Theta[theta_idx].data -= lr * (dTheta[theta_idx].data + var(random.uniform(-noise, noise)))
+                    Theta[theta_idx].data -= lr * (Theta.grad[theta_idx] + var(random.uniform(-noise, noise)))
+                except RuntimeError: # for the case no gradient with Theta[theta_idx]
+                    Theta[theta_idx].data -= lr * (var(random.uniform(-noise, noise)))
+                    if torch.abs(res.data) < var(stop_val):
+                        break
+            
+            # ! second way
+            Theta.grad.zero_()
+        
+        for theta_idx in range(len_theta):
+            if Theta[theta_idx].data.item() <= theta_l[theta_idx] or Theta[theta_idx].data.item() >= theta_r[theta_idx]:
+                Theta[theta_idx].data.fill_(random.uniform(theta_l[theta_idx], theta_r[theta_idx]))
+                    
+        # for theta_idx in range(len_theta):
+        #     try:
+        #         #! update the gradient
+        #         dTheta = torch.autograd.grad(f, Theta[theta_idx], retain_graph=True)
+        #         derivation = dTheta[0].add(lambda_.mul(gradient_penalty_f[theta_idx]))
+        #         # derivation = dTheta[0]
+        #         # print('f, theta, dTheta:', f.data, Theta.data, derivation)
+        #         print(f"DEBUG: {theta_idx}, {dTheta[0].data.item()}")
+
+        #         if torch.abs(res.data) < var(stop_val): # epsilon:
+        #             # print(f.data, Theta.data)
+        #             break
+        #         # if torch.abs(derivation.data) < EPSILON:
+        #         #     Theta.data.fill_(random.uniform(theta_l, theta_r))
+        #         #     continue
+
+        #         Theta[theta_idx].data -= lr_l[theta_idx] * (derivation.data + var(random.uniform(-noise, noise)))
+        #         print('deriavation, theta ', derivation.data.item(), Theta[theta_idx].data.item())
+        
+        #     except RuntimeError:
+        #         # print('RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn')
+        #         if torch.abs(res.data) < var(stop_val):
+        #             # print(f.data, Theta.data)
+        #             print('FIND IT!')
+        #             # exit(0)
+        #             break
+
+        #         Theta[theta_idx].data -= lr_l[theta_idx] * (derivation.data + var(random.uniform(-1.0, 1.0)))
+        
+        # if torch.abs(res.data) < var(stop_val):
+        #     # print(f.data, Theta.data)
+        #     print('FIND IT!')
+        #     # exit(0)
+        #     break
+
+        # for theta_idx in range(len_theta):
+        #     if Theta[theta_idx].data.item() <= theta_l[theta_idx] or Theta[theta_idx].data.item() >= theta_r[theta_idx]:
+        #         Theta[theta_idx].data.fill_(random.uniform(theta_l[theta_idx], theta_r[theta_idx]))
 
         loop_list.append(i)
         loss_list.append(res.data)
