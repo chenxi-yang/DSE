@@ -37,7 +37,7 @@ elif MODE == 5:
 else: 
     MODE_NAME = mode_list[MODE]
 
-file_dir =  'result/MCSE_benchmark_' + str(benchmark_id) + '_' + str(data_size) + '_' + str(test_portion) + '.txt'
+file_dir =  'result/MCSE_benchmark_' + str(benchmark_id) + '_' + str(data_size) + '_' + str(test_portion) + '_' + str(lr) + '.txt'
 log_file = open(file_dir, 'w')
 log_file.close()
 
@@ -60,7 +60,7 @@ N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)
 
 INTERVAL_BETA = var(1.0) # 2.0
-POINT_BETA = var(100.0) # 10.0s
+POINT_BETA = var(5.0) # var(50.0) # var(100.0) # 10.0s
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
 SMALL_PROBABILITY = var(0.01)
@@ -69,7 +69,28 @@ B = var(10000) # the range of lambda
 CURRENT_PROGRAM = 'program' + str(benchmark_id) # 'program_test_disjunction_2'
 
 
+# Linear nn, ReLu
+if benchmark_id == 11:
+# python run.py --lr 0.5 --stop_val 5.0 --optimizer gd_direct_noise --w 5.0 --data_size 20000 --test_portion 0.99 --benchmark_id 11
+    x_l = [52.0]
+    x_r = [59.0]
+    target_theta = [66.0] + [0.0] * 9
+    # Add one bias for hidden, or 
+    # theta_l = [59.1] + [0.8] + [-0.001] + [0.08] + [-0.001] * 3 + [0.95] * 2 + [-5.0]  # tOff, w11, w12, w21, w22, b1, b2, w3, w4
+    # theta_r = [67.0] + [1.0] + [0.001] + [0.11] + [0.001] * 3 + [1.0] * 2 + [5.0]
+    # theta_l = [65.0] + [0.1] + [-0.001] + [-0.2] + [-0.001] * 3 + [40.0] * 2 + [-5.0]  # tOff, w11, w12, w21, w22, b1, b2, w3, w4
+    # theta_r = [67.0] + [0.2] + [0.001] + [-0.1] + [0.001] * 3 + [55.0] * 2 + [5.0]
+    theta_l = [59.1] + [0.8] + [-0.001] + [0.08] + [-0.001] * 3 + [-2.0] * 2 + [50.0]  # tOff, w11, w12, w21, w22, b1, b2, w3, w4
+    theta_r = [67.0] + [1.0] + [0.001] + [0.11] + [0.001] * 3 + [5.0] * 2 + [60.0]
+    safe_l = 58.425
+    safe_r = 83.19
+    lr_l = [lr] + [lr/1e-3] * 6 + [lr/1e-2] * 2 + [lr]
+    noise = [10.0] + [100] * 8 + [10]
+
+
+# Linear nn, no ReLu
 if benchmark_id == 10:
+# python run.py --lr 0.5 --stop_val 3.0 --optimizer gd_direct_noise --w 3.0 --data_size 20000 --test_portion 0.99 --benchmark_id 10
     x_l = [52.0]
     x_r = [59.0]
     target_theta = [62.0] + [0.0] * 8

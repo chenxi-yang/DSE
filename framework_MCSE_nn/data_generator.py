@@ -8,8 +8,10 @@ from timeit import default_timer as timer
 from helper import *
 from constants import *
 
-if benchmark_id == 10:
+if benchmark_id == 11:
     from program1_nn import *
+if benchmark_id == 10:
+    from program1_linear_nn import *
 if benchmark_id == 1:
     from program1 import *
 if benchmark_id == 2:
@@ -44,7 +46,7 @@ def data_generator(l, r, size, target_theta, test_size=0.7):
     # print('data generation: theta', target_theta, var(target_theta))
     target_theta_list = [var(theta) for theta in target_theta]
 
-    root = construct_syntax_tree_point(var(target_theta_list))
+    root = construct_syntax_tree_point_generate(var(target_theta_list))
     data_list = list()
 
     y_min = P_INFINITY.data.item()

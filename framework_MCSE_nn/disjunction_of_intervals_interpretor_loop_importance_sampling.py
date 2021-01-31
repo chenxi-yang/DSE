@@ -170,7 +170,7 @@ def cal_branch_weight(x, test):
 
     w_body = var(1.0).sub(alpha)
     w_orelse = alpha
-
+ 
     # print('w1, w2', w_body.data.item(), w_orelse.data.item())
 
     return w_body, w_orelse
@@ -277,6 +277,7 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
             # print(f"DEBUG: counter: {counter.data.item()}")
             if counter.data.item() > 0.0:
                 # print('counter')
+                # print(f"DEBUG: counter: {counter.data.item()}, {test.data.item()}")
                 rho = counter.div(symbol_table['counter'])
                 probability = symbol_table['probability'].mul(rho)
             else:
@@ -285,6 +286,7 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
                 # rho = SMALL_PROBABILITY
                 # print('small probability', pho(target_value, intersection_interval).data.item())
                 probability = torch.max(SMALL_PROBABILITY, symbol_table['probability'].mul(pho(target_value, intersection_interval)))
+                # print(f"DEBUG: probability, {probability.data.item()}")
             #! previous implementations
             # probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
             if DOMAIN == "interval":

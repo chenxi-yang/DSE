@@ -592,6 +592,8 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
 
     x_min = var(10000.0)
     x_max = var(0.0)
+    x_smooth_min = var(10000.0)
+    x_smooth_max = var(0.0)
 
     loop_list = list()
     loss_list = list()
@@ -603,13 +605,16 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     # for idx, value in enumerate(theta_l):
     #     Theta.append(var(random.uniform(theta_l[idx], theta_r[idx]), requires_grad=True))
     tmp_theta_list = [random.uniform(theta_l[idx], theta_r[idx]) for idx, value in enumerate(theta_l)]
+
+    # !debug
+    # tmp_theta_list = [60.60904056908072, 0.8263085017772094, 1.224599693577951e-05, 0.08500484058054017, 0.0008327441661250281, -0.0009589305108516826, -0.0001350546846055669, 4.023913408164206, -1.4078577974523796, 55.12680757950901]
     Theta = var_list(tmp_theta_list, requires_grad=True)
+
     # h = Theta.register_hook(lambda grad: grad + random.uniform(-noise, noise))
     # Theta[0] = var(62.0, requires_grad=True) # 59.4
     # Theta[1] = var(0.9, requires_grad=True)
     # Theta[2], Theta[3], Theta[4], Theta[5], Theta[6], Theta[7], Theta[8] = var(0.0, requires_grad=True), var(0.1, requires_grad=True), var(0.0, requires_grad=True), var(0.0, requires_grad=True), var(0.0, requires_grad=True), var(1.0, requires_grad=True), var(1.0, requires_grad=True)
     
-
     root = construct_syntax_tree(Theta)
     root_smooth_point = construct_syntax_tree_smooth_point(Theta)
     root_point = construct_syntax_tree_point(Theta)
@@ -624,7 +629,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         y_l = P_INFINITY
         y_r = N_INFINITY
 
-        print('Theta:', [i.data.item() for i in Theta])
+        print('-- Theta:', [i.data.item() for i in Theta])
         for idx, x in enumerate(X_train):
             x, y = x, y_train[idx]
             symbol_table_smooth_point = initialization_point(x)
@@ -632,14 +637,19 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
             symbol_table_smooth_point = root_smooth_point['entry'].execute(symbol_table_smooth_point)
             # print('run point')
 
-            symbol_table_point = initialization_point(x)
-            symbol_table_point = root_point['entry'].execute(symbol_table_point)
+            ###  DEBUG
+            # symbol_table_point = initialization_point(x)
+            # symbol_table_point = root_point['entry'].execute(symbol_table_point)
 
-            x_min =  torch.min(symbol_table_point['x_min'], x_min)
-            x_max  = torch.max(symbol_table_point['x_max'], x_max)
+            # x_min =  torch.min(symbol_table_point['x_min'], x_min)
+            # x_max  = torch.max(symbol_table_point['x_max'], x_max)
 
-            y_l = torch.min(symbol_table_smooth_point['res'], y_l)
-            y_r = torch.max(symbol_table_smooth_point['res'], y_r)
+            # x_smooth_min = torch.min(symbol_table_smooth_point['x_min'], x_smooth_min)
+            # x_smooth_max = torch.max(symbol_table_smooth_point['x_max'], x_smooth_max)
+
+            # y_l = torch.min(symbol_table_smooth_point['res'], y_l)
+            # y_r = torch.max(symbol_table_smooth_point['res'], y_r)
+            ###  DEBUG
 
             # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
             f = f.add(distance_f_point(symbol_table_smooth_point['res'], var(y)))
@@ -656,7 +666,11 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         #! Change the Penalty
         penalty_f, p_list, log_p_list, reward_list = distance_f_interval_REINFORCE(symbol_table_list, target, Theta)
 
-        print('safe f, ', penalty_f.data.item(), res_l, res_r, x_min.data.item(), x_max.data.item(), y_l.data.item(), y_r.data.item(), ) # , )
+        print('safe f', penalty_f.data.item(), res_l, res_r) # , x_smooth_min.data.item(), x_smooth_max.data.item())
+
+        ### DEBUG
+        # print('safe f, ', penalty_f.data.item(), res_l, res_r, x_min.data.item(), x_max.data.item(), x_smooth_min.data.item(), x_smooth_max.data.item(), y_l.data.item(), y_r.data.item(), ) # , )
+        ### DEBUG
 
         # ! First way to implement
         # try:
@@ -790,7 +804,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         loss_list.append(res.data)
         if (time.time() - start_time)/(i+1) > 300:
             log_file = open(file_dir, 'a')
-            log_file.write('TIMEOUT: avg epoch time > 250s \n')
+            log_file.write('TIMEOUT: avg epoch time > 300s \n')
             log_file.close()
             TIME_OUT = True
             break

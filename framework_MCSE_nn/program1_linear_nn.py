@@ -202,37 +202,23 @@ def linear_domain(x, Theta, n=2):
     #! for DEBUG
     # Theta[1], Theta[2], Theta[3], Theta[4], Theta[5], Theta[6], Theta[7] = var(0.0), var(0.1), var(0.0), var(0.0), var(0.0), var(1.0), var(1.0)
     # print(f"DEBUG: linear domain- input, {x[0].left.data.item()}, {x[0].right.data.item()}, {x[1].left.data.item()}, {x[1].right.data.item()}")
-    # if x[0].right.data.item() > x[0].left.data.item():
-    #     print(f"DEBUG: linear domain- input, {x[0].left.data.item()}, {x[0].right.data.item()}, {x[1].left.data.item()}, {x[1].right.data.item()}")
     len_input = len(x)
     hidden_state_list = list()
     output = var(0.0)
     # print(f"DEBUG: len(theta), {len(Theta)}")
     for i in range(n):
         u = x[0].mul(Theta[i + 1]).add(x[1].mul(Theta[i+n + 1])).add(Theta[i+2*n + 1])
-
-        # if x[0].right.data.item() > x[0].left.data.item(): 
-        #     print(f"DEBUG:, hidden state **BEFORE** sigmoid {u.left.data.item()}, {u.right.data.item()}")
-        # add sigmoid to hidden neuron
-        u = sigmoid_domain(u)
-        # if x[0].right.data.item() > x[0].left.data.item():
-        #     print(f"DEBUG:, hidden state **AFTER** sigmoid {u.left.data.item()}, {u.right.data.item()}")
+        # print(u.left.data.item())
         hidden_state_list.append(u)
     for i in range(n):
         # print(hidden_state_list[i].left.data.item(), Theta[i+3*n].data.item(), sigmoid_domain(hidden_state_list[i].mul(Theta[i+3*n])).left.data.item())
-        # output = (hidden_state_list[i].mul(Theta[i+3*n+ 1])).add(output)
-        # output = sigmoid_domain(hidden_state_list[i]).mul(Theta[i+3*n+ 1]).add(output)
-        output = hidden_state_list[i].mul(Theta[i+3*n+ 1]).add(output)
-    # print(f"DEBUG: Output before adding bias, {output.left.data.item()}, {output.right.data.item()}")
-
-    output = output.add(Theta[4*n+1])
+        output = (hidden_state_list[i].mul(Theta[i+3*n+ 1])).add(output)
+        # output = sigmoid_domain(hidden_state_list[i].mul(Theta[i+3*n])).add(output)
     
     # print(f"DEBUG: theta, {[i.data.item() for i in Theta]}")
-    # if x[0].right.data.item() > x[0].left.data.item(): 
-    #     print(f"DEBUG: linear_domain, {torch.autograd.grad(output.left, Theta, retain_graph=True, allow_unused=True)[0][0]}")
+    # print(f"DEBUG: linear_domain, {torch.autograd.grad(output.left, Theta, retain_graph=True, allow_unused=True)}")
     # print(f"DEBUG: hidden {u.left.data.item() for u in hidden_state_list}, \n {u.right.data.item() for u in hidden_state_list}")
-    # if x[0].right.data.item() > x[0].left.data.item(): 
-    #     print(f"DEBUG: Output, {output.left.data.item()}, {output.right.data.item()}")
+    # print(f"DEBUG: Output, {output.left.data.item()}, {output.right.data.item()}")
 
     # exit(0)
     return output
@@ -268,9 +254,8 @@ def linear(input, Theta, n=2):
     for i in range(n):
         hidden_state_list[i] = input[0].mul(Theta[i + 1]).add(input[1].mul(Theta[i+n + 1])).add(Theta[i+2*n + 1])
     for i in range(n):
-        output = sigmoid(hidden_state_list[i]).mul(Theta[i+3*n+1]).add(output)
-        # output = (hidden_state_list[i].mul(Theta[i+3*n + 1])).add(output)
-    output = output.add(Theta[4*n + 1])
+        # output = sigmoid(hidden_state_list[i].mul(Theta[i+3*n])).add(output)
+        output = (hidden_state_list[i].mul(Theta[i+3*n + 1])).add(output)
     
     # print(f"DEBUG: linear, {torch.autograd.grad(output, Theta, retain_graph=True, allow_unused=True)}")
         

@@ -18,22 +18,24 @@ return t
 
 
 def benchmark_thermostat_nn(lin):
+    def NN(x, y):
+        return Linear(Sigmoid(Linear(x, y)))
+    #  safe constraint of x's trajectory: [57.02, 83.20]
     x = lin
     tOff = ??((60.0, 67.0))
     tOn, isOn = 80.0, 0.0
     for i in range(40):
         if isOn <= 0.5:
-            x = nn(x, lin) # x - 0.1*(x-60)
-            if x <= theta:
+            x = NN(x, lin) # x - 0.1*(x-60)
+            if x <= tOff:
                 isOn = 1.0
-            else:
-                isOn = 0.0
         else:
             x = x - 0.1*(x-60) + 5.0
-            if x <= 80.0:
+            if x <= tOn:
                 isOn = 1.0
             else:
                 isOn = 0.0
+        assert (x > 58.43 and x < 83.19)
     
     return x
 
