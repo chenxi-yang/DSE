@@ -9,7 +9,8 @@ from point_interpretor import *
 # return(y): res
 
 if MODE == 5:
-    from disjunction_of_intervals_interpretor_loop_importance_sampling import *
+    # from disjunction_of_intervals_interpretor_loop_importance_sampling import *
+    from dse_worst_propagation import *
 
     if DOMAIN == "interval":
         def initialization(x_l, x_r, X_train, y_train):
@@ -31,7 +32,8 @@ if MODE == 5:
             #  ['point_cloud']
             # symbol_table_list.append(symbol_table)
 
-            symbol_table = build_point_cloud(symbol_table, X_train, y_train, initialization_smooth_point)
+            # ! no sampling
+            # symbol_table = build_point_cloud(symbol_table, X_train, y_train, initialization_smooth_point)
             symbol_table_list.append(symbol_table)
 
             # symbol_table_list = split_symbol_table(symbol_table, ['x'], partition=10)

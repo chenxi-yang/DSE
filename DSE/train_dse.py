@@ -98,6 +98,30 @@ def distance_f_interval_REINFORCE(X_list, target, Theta):
     return res, p_list, log_p_list, reward_list
 
 
+def distance_f_interval_new(X_list, target):
+    for X_table in X_list:
+        X_min = X_table['x_min'].getInterval()
+        X_max = X_table['x_max'].getInterval()
+        res = var(0.0)
+
+        X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
+        X.left = torch.min(X_min.left, X_max.left)
+        X.right = torch.max(X_min.right, X_max.right)
+
+        reward = var(0.0)
+        intersection_interval = get_intersection(X, target)
+        if intersection_interval.isEmpty():
+            # print('isempty')
+            reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
+        else:
+            # print('not empty')
+            reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
+        
+        res = torch.max(res, reward)
+    # res is the worst case cost of X_list
+    return res
+
+
 def extract_result_safty(symbol_table_list):
     res_l, res_r = P_INFINITY, N_INFINITY
     for symbol_table in symbol_table_list:
@@ -116,16 +140,18 @@ def normal_pdf(x, mean, std):
 
 
 def generate_theta_sample_set(Theta):
+    # sample_theta_list = list()
+    # sample_theta_probability_list = list()
     sample_theta_list = list()
-    sample_theta_probability_list = list()
     for i in range(THETA_SAMPLE_SIZE):
         sample_theta = torch.normal(mean=Theta, std=var(1.0))
         sample_theta_probability = normal_pdf(sample_theta, Theta, var(1.0))
         # theta_normal.log_prob(sample_theta)
         # print(sample_theta, sample_theta_probability)
-        sample_theta_list.append(sample_theta)
-        sample_theta_probability_list.append(sample_theta_probability)
-    return sample_theta_list, sample_theta_probability_list
+        sample_theta_list.append((sample_theta, sample_theta_probability))
+        # sample_theta_probability_list.append(sample_theta_probability)
+    # return sample_theta_list, sample_theta_probability_list
+    return sample_theta_list
 
 
 def update_symbol_table_with_sample_theta(sample_theta_list, sample_theta_probability_list, symbol_table_list):
@@ -158,6 +184,25 @@ def create_point_cloud(res_l, res_r, n=50):
     return point_cloud
 
 
+def cal_data_loss(theta, x, y):
+    root_point = construct_syntax_tree_point(theta)
+    symbol_table_point = initialization_point(x)
+    symbol_table_point = root_point['entry'].execute(symbol_table_point)
+    data_loss = distance_f_point(symbol_table_point['res'], var(y))
+
+    return data_loss
+
+
+def cal_safe_loss(theta, x, width):
+    root = construct_syntax_tree(theta)
+    res_l, res_r = create_ball(x, width)
+    symbol_table_list = initialization(res_l, res_r, [], [])
+    symbol_table_list = root['entry'].execute(symbol_table_list)
+    safe_loss = distance_f_interval_new(symbol_table_list, target)
+
+    return safe_loss
+
+
 def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
     print("--------------------------------------------------------------")
     print('----Gradient Direct Noise Descent Train DSE----')
@@ -181,28 +226,51 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     root_smooth_point = construct_syntax_tree_smooth_point(Theta)
     root_point = construct_syntax_tree_point(Theta)
 
-    # for 
-    # for i in range(epoch):
-    for width in [0.1, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0]:
+    width = 0.1
+    start_time = time.time()
+    for i in range(epoch):
         num_partition = 0.0
+        cur_time = time.time()
+        # data_loss_total = var(0.0)
+        # safe_loss_total = var(0.0)
         for idx, x in enumerate(X_train):
             x, y = x, y_train[idx]
-            symbol_table_smooth_point = initialization_point(x)
-            symbol_table_smooth_point = root_smooth_point['entry'].execute(symbol_table_smooth_point)
-            data_loss = distance_f_point(symbol_table_smooth_point['res'], var(y))
+            sample_theta_list = generate_theta_sample_set(Theta)
+            for (sample_theta, sample_theta_p) in sample_theta_list:
+                data_loss = cal_data_loss(sample_theta, x, y)
+                safe_loss = cal_safe_loss(sample_theta, x, width)
+                res = data_loss + lambda_.mul(safe_loss)
+                # data_loss_total = data_loss_total.add(data_loss)
+                # safe_loss_total = safe_loss_total.add(safe_loss)
 
-            res_l, res_r = create_ball(x, width) # in the form of box
-            point_cloud = create_point_cloud(res_l, res_r, n=50)
-            symbol_table_list = initialization(res_l, res_r, point_cloud, y_train)
-            symbol_table_list = root['entry'].execute(symbol_table_list)
-
-            len_symbol_table = len(symbol_table_list)
-            num_partition += len_symbol_table
-            # print('# of partitions: ', len_symbol_table)
-        print(f"width: {width}, over all path {num_partition * 1.0/len(X_train)}")
-
-
-    return width
+                loss = var(res.data.item()).mul(var(sample_theta_p.data.item())).mul(torch.log(sample_theta_p))
+                loss.backward(retain_graph=True)
+            
+            with torch.no_grad():
+                for theta_idx in range(len_theta):
+                    try:
+                        # Theta[theta_idx].data -= lr * (dTheta[theta_idx].data + var(random.uniform(-noise, noise)))
+                        Theta[theta_idx].data -= lr * (Theta.grad[theta_idx] + var(random.uniform(-noise, noise)))
+                    except RuntimeError: # for the case no gradient with Theta[theta_idx]
+                        Theta[theta_idx].data -= lr * (var(random.uniform(-noise, noise)))
+                        if torch.abs(res.data) < var(stop_val):
+                            break
+                Theta.grad.zero_()
+            
+            for theta_idx in range(len_theta):
+                if Theta[theta_idx].data.item() <= theta_l[theta_idx] or Theta[theta_idx].data.item() >= theta_r[theta_idx]:
+                    Theta[theta_idx].data.fill_(random.uniform(theta_l[theta_idx], theta_r[theta_idx]))
+            
+            print(f"data loss:{data_loss}, safe loss:{safe_loss}")
+            
+        if (time.time() - start_time)/(i+1) > 300:
+            log_file = open(file_dir, 'a')
+            log_file.write('TIMEOUT: avg epoch time > 300s \n')
+            log_file.close()
+            TIME_OUT = True
+            break
+    
+    return Theta, res, [], data_loss, safe_loss, TIME_OUT
 
 
 

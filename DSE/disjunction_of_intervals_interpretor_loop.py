@@ -62,11 +62,6 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
             res_symbol_table[symbol] = domain.Interval(symbol_table[symbol].left.data.item(), symbol_table[symbol].right.data.item())
     
     target_value = res_symbol_table[target]
-    # print('------in constraint')
-    # print('target-name', target)
-    # print('constraint', target_value.left, target_value.right, test)
-    # print('direct', direct)
-    # print('probability', symbol_table['probability'])
 
     if direct == '<':
         constraint_interval.right = test
@@ -74,21 +69,7 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
         constraint_interval.left = test
 
     intersection_interval = get_intersection(target_value, constraint_interval)
-    # print('intersection', intersection_interval.left, intersection_interval.right)
-
-    # if intersection_interval.isEmpty():
-    #     intersection_interval = None
-    #     probability = var(0.0)
-    #     return None
-    # else:
-    #     if intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
-    #         intersection_interval = None
-    #         probability = var(0.0)
-    #         return None
-    #     else:
-    #         # print('beta', f_beta(BETA))
-    #         # print('pho', pho(target_value, intersection_interval))
-    #         probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
+    
     if intersection_interval.isEmpty():
         intersection_interval = None
         probability = var(0.0)
@@ -108,81 +89,12 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
             probability = var(0.0)
             # return None
         else:
-            # print('beta', f_beta(BETA))
-            # print('pho', pho(target_value, intersection_interval))
             probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
 
     res_symbol_table[target] = intersection_interval
     res_symbol_table['probability'] = probability
-    # print('probability', res_symbol_table['probability'])
-    # print('final intersection', intersection_interval)
-    # print('------out constraint')
 
     return res_symbol_table
-
-# def update_symbol_table_with_constraint(target, test, symbol_table, direct):
-#     constraint_interval = domain.Interval(-10000.0, 10000.0)
-#     res_symbol_table = dict()
-#     # self-deepcopy symbol_table
-#     for symbol in symbol_table:
-#         if symbol == 'probability':
-#             res_symbol_table[symbol] = var(symbol_table[symbol].data.item())
-#         else:
-#             res_symbol_table[symbol] = domain.Interval(symbol_table[symbol].left.data.item(), symbol_table[symbol].right.data.item())
-    
-#     target_value = res_symbol_table[target]
-#     # print('------in constraint')
-#     # print('target-name', target)
-#     # print('constraint', target_value.left, target_value.right, test)
-#     # print('direct', direct)
-#     # print('probability', symbol_table['probability'])
-
-#     if direct == '<':
-#         constraint_interval.right = test
-#     else:
-#         constraint_interval.left = test
-
-#     intersection_interval = get_intersection(target_value, constraint_interval)
-#     # print('intersection', intersection_interval.left, intersection_interval.right)
-
-#     # if intersection_interval.isEmpty():
-#     #     intersection_interval = None
-#     #     probability = var(0.0)
-#     # else:
-#     #     if intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
-#     #         intersection_interval = None
-#     #         probability = var(0.0)
-#     #     else:
-#     #         # print('beta', f_beta(BETA))
-#     #         # print('pho', pho(target_value, intersection_interval))
-#     #         probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
-#     if intersection_interval.isEmpty():
-#         intersection_interval = None
-#         probability = var(0.0)
-#     else:
-#         if target_value.isPoint():
-#             if direct == '<' and target_value.right.data.item() <= constraint_interval.right.data.item():
-#                 probability = symbol_table['probability']
-#             elif direct == '>' and target_value.left.data.item() > constraint_interval.left.data.item():
-#                 probability = symbol_table['probability']
-#             else:
-#                 intersection_interval = None
-#                 probability = var(0.0)
-#         elif intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
-#             intersection_interval = None
-#             probability = var(0.0)
-#         else:
-#             # print('beta', f_beta(BETA))
-#             # print('pho', pho(target_value, intersection_interval))
-#             probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
-
-#     res_symbol_table[target] = intersection_interval
-#     res_symbol_table['probability'] = probability
-#     # print('probability', res_symbol_table['probability'])
-#     # print('final intersection', intersection_interval)
-#     # print('------out constraint')
-
-#     return res_symbol_table
 
 
 def update_symbol_table_list_with_constraint(target, test, symbol_table_list, direct):
@@ -194,16 +106,6 @@ def update_symbol_table_list_with_constraint(target, test, symbol_table_list, di
         res_symbol_table_list.append(res_symbol_table)
     
     return res_symbol_table_list
-
-
-# def update_symbol_table(target, func, symbol_table):
-#     #! assume only monotone function
-#     target_value = symbol_table[target]
-
-#     symbol_table[target].left = func(target_value.left)
-#     symbol_table[target].right = func(target_value.right)
-
-#     return symbol_table
 
 
 def update_symbol_table(target, func, symbol_table):

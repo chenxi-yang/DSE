@@ -40,12 +40,6 @@ def get_intersection(interval_1, interval_2):
 
 
 def distance_interval(X, target):
-    # if X.right.data.item() > 15.0:
-    #     print('in distance interval')
-    #     print(X.right.data.item(), target.right.data.item())
-    # if X.right.data.item() > 11.0:
-    #     print('X: ', X.left.data.item(), X.right.data.item())
-    #     print('target: ', target.left.data.item(), target.right.data.item())
     intersection_interval = get_intersection(X, target)
     if intersection_interval.isEmpty():
         res = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
@@ -58,8 +52,6 @@ def distance_interval(X, target):
             res = var(0.0).sub(target.getLength().sub(X.getLength()))
     else:
         res = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
-    # if X.right.data.item() > 11.0:
-    #     print('result: ', res.data.item())
     return res
 
 
@@ -239,9 +231,10 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
             if ((direct == '<' and target_value.right.data.item() <= constraint_interval.right.data.item()) or 
                     (direct == '>' and target_value.left.data.item() > constraint_interval.left.data.item())):
                 rho = var(1.0)  # symbol_table['probability']
-                counter = symbol_table['counter']
-                for smooth_point_symbol_table in symbol_table['point_cloud']:
-                    point_cloud.append(smooth_point_symbol_table)
+                # ! sampling 
+                # counter = symbol_table['counter']
+                # for smooth_point_symbol_table in symbol_table['point_cloud']:
+                #     point_cloud.append(smooth_point_symbol_table)
                 probability = symbol_table['probability']
             else:
                 intersection_interval = None
@@ -259,36 +252,38 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
             # return None
         else:
             # print(f"DEBUG: test: {test.data.item()}")
-            for smooth_point_symbol_table in symbol_table['point_cloud']:
-                point_target = smooth_point_symbol_table[target]
-                if direct == '<':
-                    if point_target.left.data.item() <= test.data.item():
-                        w_body, w_else = cal_branch_weight(point_target.left, test)
-                        # print(f"DEBUG: w_body, w_else, {w_body.data.item()}, {w_else.data.item()}")
-                        counter = counter.add(w_body)
-                        point_cloud.append(smooth_point_symbol_table)
-                else:
-                    if point_target.left.data.item() > test.data.item():
-                        w_body, w_else = cal_branch_weight(point_target.left, test)
-                        # print(f"DEBUG: w_body, w_else, {w_body.data.item()}, {w_else.data.item()}")
-                        counter = counter.add(w_else)
-                        point_cloud.append(smooth_point_symbol_table)
+            #! no sampling, no probability
+            # for smooth_point_symbol_table in symbol_table['point_cloud']:
+            #     point_target = smooth_point_symbol_table[target]
+            #     if direct == '<':
+            #         if point_target.left.data.item() <= test.data.item():
+            #             w_body, w_else = cal_branch_weight(point_target.left, test)
+            #             # print(f"DEBUG: w_body, w_else, {w_body.data.item()}, {w_else.data.item()}")
+            #             counter = counter.add(w_body)
+            #             point_cloud.append(smooth_point_symbol_table)
+            #     else:
+            #         if point_target.left.data.item() > test.data.item():
+            #             w_body, w_else = cal_branch_weight(point_target.left, test)
+            #             # print(f"DEBUG: w_body, w_else, {w_body.data.item()}, {w_else.data.item()}")
+            #             counter = counter.add(w_else)
+            #             point_cloud.append(smooth_point_symbol_table)
             
-            # print(f"DEBUG: counter: {counter.data.item()}")
-            if counter.data.item() > 0.0:
-                # print('counter')
-                # print(f"DEBUG: counter: {counter.data.item()}, {test.data.item()}")
-                rho = counter.div(symbol_table['counter'])
-                probability = symbol_table['probability'].mul(rho)
-            else:
-                #! for not too small
-                #! update the whole path instead of the 
-                # rho = SMALL_PROBABILITY
-                # print('small probability', pho(target_value, intersection_interval).data.item())
-                probability = torch.max(SMALL_PROBABILITY, symbol_table['probability'].mul(pho(target_value, intersection_interval)))
-                # print(f"DEBUG: probability, {probability.data.item()}")
+            # # print(f"DEBUG: counter: {counter.data.item()}")
+            # if counter.data.item() > 0.0:
+            #     # print('counter')
+            #     # print(f"DEBUG: counter: {counter.data.item()}, {test.data.item()}")
+            #     rho = counter.div(symbol_table['counter'])
+            #     probability = symbol_table['probability'].mul(rho)
+            # else:
+            #     #! for not too small
+            #     #! update the whole path instead of the 
+            #     # rho = SMALL_PROBABILITY
+            #     # print('small probability', pho(target_value, intersection_interval).data.item())
+            #     probability = torch.max(SMALL_PROBABILITY, symbol_table['probability'].mul(pho(target_value, intersection_interval)))
+            #     # print(f"DEBUG: probability, {probability.data.item()}")
             #! previous implementations
             # probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
+            probability = SMALL_PROBABILITY
             if DOMAIN == "interval":
                 res_symbol_table[target] = intersection_interval
             elif DOMAIN == "zonotope":
@@ -309,7 +304,6 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
     return res_symbol_table
 
 
-
 def update_symbol_table_list_with_constraint(target, test, symbol_table_list, direct):
     res_symbol_table_list = list()
     for symbol_table in symbol_table_list:
@@ -324,53 +318,6 @@ def update_symbol_table_list_with_constraint(target, test, symbol_table_list, di
     return res_symbol_table_list
 
 
-def update_symbol_table_before(target, func, symbol_table):
-    # print('----before assign', target)
-    # print(symbol_table)
-
-    # target_value = symbol_table[target[0]]
-    res_target = target[0]
-    value_length = len(target)
-    left_value = P_INFINITY
-    right_value = N_INFINITY
-
-    tmp_value_list = list()
-    tmp_idx_list = list()
-    def generate_idx(value_length, str=''):
-        if len(str) == value_length:
-            tmp_idx_list.append(str)
-            return 
-        for digit in '012':
-            generate_idx(value_length, str+digit)
-    
-    generate_idx(value_length)
-    
-    for idx_guide in tmp_idx_list:
-        value_list = list()
-        for idx, i in enumerate(idx_guide):
-            if i == '0':
-                # print(idx)
-                value_list.append(symbol_table[target[idx]].left)
-            elif i == '1':
-                value_list.append(symbol_table[target[idx]].right)
-            else:
-                if symbol_table[target[idx]].left.data.item() < 0.0 and symbol_table[target[idx]].right.data.item() > 0.0:
-                    value_list.append(var(0.0))
-                else:
-                    value_list.append(symbol_table[target[idx]].right)
-        tmp_value_list.append(value_list)
-    
-    tmp_res_value_list = [func(value_list) for value_list in tmp_value_list]
-
-    for tmp_res in tmp_res_value_list:
-        left_value = torch.min(left_value, tmp_res)
-        right_value = torch.max(right_value, tmp_res)
-
-    symbol_table[res_target].left = left_value
-    symbol_table[res_target].right = right_value
-
-    return symbol_table
-
 def check_eql_var(x, y):
     if torch.abs(x.sub(y)).data.item() < EPSILON.data.item():
         return True
@@ -384,14 +331,15 @@ def update_symbol_table(target, func, symbol_table):
     # print(f"DEBUG: ----------BEFORE update domain")
     symbol_table[res_target] = func(instance_list)
     # print(f"DEBUG: ----------AFTER update domain")
-    point_cloud = list()
-    for point_symbol_table in symbol_table['point_cloud']:
-        # print(f"DEBUG: {point_symbol_table}")
-        point_instance_list = [point_symbol_table[symbol] for symbol in target]
-        point_symbol_table[res_target] = func(point_instance_list)
-        point_cloud.append(point_symbol_table)
+    #! no sampling
+    # point_cloud = list()
+    # for point_symbol_table in symbol_table['point_cloud']:
+    #     # print(f"DEBUG: {point_symbol_table}")
+    #     point_instance_list = [point_symbol_table[symbol] for symbol in target]
+    #     point_symbol_table[res_target] = func(point_instance_list)
+    #     point_cloud.append(point_symbol_table)
     
-    symbol_table['point_cloud'] = point_cloud
+    # symbol_table['point_cloud'] = point_cloud
 
     return symbol_table
 
@@ -684,83 +632,24 @@ class Ifelse:
         # print('before sampling, cur sample size', cur_sample_size)
         # show_symbol_tabel_list(res_symbol_table_list)
         #! no sampling
-        res_symbol_table_list = adapt_sampling_distribution(res_symbol_table_list)
-        # print('middle sample, length', len(res_symbol_table_list), 'current sample size: ', cur_sample_size)
-        res_symbol_table_list, cur_sample_size = sample(res_symbol_table_list, cur_sample_size)
+        # res_symbol_table_list = adapt_sampling_distribution(res_symbol_table_list)
+        # # print('middle sample, length', len(res_symbol_table_list), 'current sample size: ', cur_sample_size)
+        # res_symbol_table_list, cur_sample_size = sample(res_symbol_table_list, cur_sample_size)
         
         # print('after sampling, cur sample size', cur_sample_size)
         # show_symbol_tabel_list(res_symbol_table_list)
         # print('after sample, length', len(res_symbol_table_list), 'current sample size: ', cur_sample_size)
 
-        if len(res_symbol_table_list) > K_DISJUNCTS:
-            # print('in join, table length', len(res_symbol_table_list))
-            symbol_table_list_to_join_list = divide_list(res_symbol_table_list, K_DISJUNCTS)
-            res_symbol_table_list = list()
-            for symbol_table_list_to_join in symbol_table_list_to_join_list:
-                symbol_table_list_after_join = join_list(symbol_table_list_to_join)
-                res_symbol_table_list.append(symbol_table_list_after_join)
+        #! no smooth join
+        # if len(res_symbol_table_list) > K_DISJUNCTS:
+        #     # print('in join, table length', len(res_symbol_table_list))
+        #     symbol_table_list_to_join_list = divide_list(res_symbol_table_list, K_DISJUNCTS)
+        #     res_symbol_table_list = list()
+        #     for symbol_table_list_to_join in symbol_table_list_to_join_list:
+        #         symbol_table_list_after_join = join_list(symbol_table_list_to_join)
+        #         res_symbol_table_list.append(symbol_table_list_after_join)
 
         return run_next_stmt(self.next_stmt, res_symbol_table_list, cur_sample_size)
-
-
-# class WhileSimple:
-#     #! not a real loop, just in the form of loop to operate several if-else stmt
-#     def __init__(self, target, test, body, next_stmt):
-#         # TODO: implement while & test
-#         self.target = target
-#         self.test = test
-#         self.body = body
-#         self.next_stmt = next_stmt
-     
-#     def execute(self, symbol_table_list, cur_sample_size=0):
-#         if cur_sample_size > 0:
-#             cur_sample_size -= len(symbol_table_list)
-
-#         this_block_p = symbol_table_list[0]['probability'].data.item()
-        
-#         body_symbol_table = update_symbol_table_with_constraint(self.target, self.test, symbol_table_list[0], '<')
-#         # orelse_symbol_table = update_symbol_table_with_constraint(self.target, self.test, symbol_table, '>')
-
-#         body_symbol_table[0]['probability'] = var(1.0)
-
-#         symbol_table_queue = queue.Queue()
-#         symbol_table_queue.put(body_symbol_table[0])
-
-#         res_symbol_table_list = list()
-
-#         while(not symbol_table_queue.empty()):
-#             body_symbol_table = symbol_table_queue.get()
-
-#             if body_symbol_table['probability'].data.item() > 0:
-            
-#                 body_symbol_table_list = self.body.execute([body_symbol_table])
-
-#                 # print('------------in while')
-#                 # show_symbol_tabel_list(body_symbol_table_list)
-#                 for tmp_body_symbol_table in body_symbol_table_list:
-#                     idx = int(tmp_body_symbol_table['i'].left.data.item())
-#                     l_value = tmp_body_symbol_table['x'].left.data.item()
-#                     r_value = tmp_body_symbol_table['x'].right.data.item()
-
-#                     # l_list[idx] = min(l_list[idx], l_value)
-#                     # r_list[idx] = max(r_list[idx], r_value)
-
-#                 flag = 0.0
-
-#                 for tmp_body_symbol_table in body_symbol_table_list:
-#                     new_tmp_body_symbol_table_list = update_symbol_table_with_constraint(self.target, self.test, tmp_body_symbol_table, '<')
-#                     if new_tmp_body_symbol_table_list[0]['probability'].data.item() <= 0.0:
-#                         flag = 1.0
-#                         break
-#                     symbol_table_queue.put(new_tmp_body_symbol_table_list[0])
-#                     # print('i', tmp_body_symbol_table['i'].left)
-                
-#                 if flag == 1.0:
-#                     for tmp_body_symbol_table in body_symbol_table_list:
-#                         res_symbol_table_list.append(tmp_body_symbol_table)
-            
-#         return run_next_stmt(self.next_stmt, res_symbol_table_list, cur_sample_size)
-
 
 class Assign:
     def __init__(self, target, value, next_stmt, Theta=None):
@@ -775,14 +664,15 @@ class Assign:
             cur_sample_size -= len(symbol_table_list)
         # print('assign', symbol_table_list)
         for idx, symbol_table in enumerate(symbol_table_list):
-            if self.target == 'x':
-                if len(symbol_table_list[idx]['x_memo_list']) >= k:
-                    #TODO: adapt to all domains
-                    x = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
-                    x.left = torch.min(res_symbol_table['x_min'].getInterval().left, res_symbol_table['x_max'].getInterval().left)
-                    x.right = torch.max(res_symbol_table['x_min'].getInterval().right, res_symbol_table['x_max'].getInterval().right)
-                    symbol_table_list[idx]['x_memo_list'].attend(x)
-                    del symbol_table_list[idx]['x_memo_list'][0]
+            # ! no sampling
+            # if self.target == 'x':
+            #     if len(symbol_table_list[idx]['x_memo_list']) >= k:
+            #         #TODO: adapt to all domains
+            #         x = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
+            #         x.left = torch.min(res_symbol_table['x_min'].getInterval().left, res_symbol_table['x_max'].getInterval().left)
+            #         x.right = torch.max(res_symbol_table['x_min'].getInterval().right, res_symbol_table['x_max'].getInterval().right)
+            #         symbol_table_list[idx]['x_memo_list'].attend(x)
+            #         del symbol_table_list[idx]['x_memo_list'][0]
             
             # if self.target[0] == 't':
             #     print('t, before, ', type(symbol_table[self.target]))
@@ -860,28 +750,23 @@ class WhileSample:
                     tmp_res_symbol_table_list.append(orelse_symbol_table)
             
             if len(tmp_res_symbol_table_list) > 0:
-                tmp_res_symbol_table_list = adapt_sampling_distribution(tmp_res_symbol_table_list)
-                tmp_res_symbol_table_list, cur_sample_size = sample(tmp_res_symbol_table_list, cur_sample_size)
+                # ! no sampling
+                # tmp_res_symbol_table_list = adapt_sampling_distribution(tmp_res_symbol_table_list)
+                # tmp_res_symbol_table_list, cur_sample_size = sample(tmp_res_symbol_table_list, cur_sample_size)
                 res_symbol_table_list.extend(tmp_res_symbol_table_list)
             
             # show res symbol table list
             # show_symbol_tabel_list(res_symbol_table_list)
             
             # smooth join 
-            if len(res_symbol_table_list) > K_DISJUNCTS:
-                symbol_table_list_to_join_list = divide_list(res_symbol_table_list, K_DISJUNCTS)
-                res_symbol_table_list = list()
-                for symbol_table_list_to_join in symbol_table_list_to_join_list:
-                    symbol_table_list_after_join = join_list(symbol_table_list_to_join)
-                    res_symbol_table_list.append(symbol_table_list_after_join)
-
-            # if end_flag == 1:
-            #     break
+            # if len(res_symbol_table_list) > K_DISJUNCTS:
+            #     symbol_table_list_to_join_list = divide_list(res_symbol_table_list, K_DISJUNCTS)
+            #     res_symbol_table_list = list()
+            #     for symbol_table_list_to_join in symbol_table_list_to_join_list:
+            #         symbol_table_list_after_join = join_list(symbol_table_list_to_join)
+            #         res_symbol_table_list.append(symbol_table_list_after_join)
             
             if len(body_symbol_table_list) > 0:
-                # print('body len', len(body_symbol_table_list))
-                # body_symbol_table_list = adapt_sampling_distribution(body_symbol_table_list)
-                # body_symbol_table_list, cur_sample_size = sample(body_symbol_table_list, cur_sample_size)
                 symbol_table_list = self.body.execute(body_symbol_table_list, cur_sample_size)
 
             else:

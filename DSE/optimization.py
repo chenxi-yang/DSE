@@ -21,7 +21,7 @@ def distance_f_point(pred_y, y):
 if MODE in [2,3,4,5]:
     #! Change to smooth max
     def distance_f_interval(X_list, target):
-        alpha_smooth_max_var = var(alpha_smooth_max)
+        # alpha_smooth_max_var = var(alpha_smooth_max)
         res = var(0.0)
         # print('X_list', len(X_list))
         #! Smooth Max
