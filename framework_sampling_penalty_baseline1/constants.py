@@ -12,13 +12,15 @@ benchmark_id = args.benchmark_id
 data_size = args.data_size
 test_portion = args.test_portion
 
+training_size_list = [100, 200, 300, 400, 500]
+test_portion_list = [0.995, 0.99, 0.985, 0.98, 0.975]
 
 # 1, 2, 3, 4
 mode_list = ['empty', 'interval', 'disjunction_of_intervals', 'partial_disjunction_of_intervals', 'disjunction_of_intervals_loop', 'disjunction_of_intervals_loop_sampling']
 sample_list = ['direct_sampling', 'importance_sampling_scale', 'importance_sampling_translation', 'adaptive_importance_sampling']
 MODE = 5
 K_DISJUNCTS = 10000000
-SAMPLE_SIZE = 500
+SAMPLE_SIZE = 250
 SAMPLE_METHOD = 4
 DOMAIN = "interval" # [interval, zonotope]
 if MODE == 3: 
@@ -30,7 +32,8 @@ elif MODE == 5:
 else: 
     MODE_NAME = mode_list[MODE]
 
-file_dir =  'log/Baseline1_benchmark_' + str(benchmark_id) + '_' + str(data_size) + '_' + str(test_portion) + '.txt'
+# file_dir =  'result/Baseline1_benchmark_' + str(benchmark_id) + '_' + str(data_size) + '_' + str(test_portion) + '.txt'
+file_dir =  'result/MCSE_benchmark_' + str(benchmark_id) + '_' + str(data_size) + '.txt'
 log_file = open(file_dir, 'w')
 log_file.close()
 

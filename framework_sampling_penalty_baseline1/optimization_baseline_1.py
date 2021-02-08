@@ -391,8 +391,8 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     print("--------------------------------------------------------------")
     print('---- Gradient Direct Noise Descent Optimization baseline 1---- ')
     print('====Start Training====')
+    TIME_OUT = False
     
-
     loop_list = list()
     loss_list = list()
 
@@ -498,12 +498,21 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
 
         loop_list.append(i)
         loss_list.append(res.data)
+        if (time.time() - start_time)/(i+1) > 300:
+            log_file = open(file_dir, 'a')
+            log_file.write('TIMEOUT: avg epoch time > 300s \n')
+            log_file.close()
+            TIME_OUT = True
+            break
 
-        print("--- %s seconds ---" % (time.time() - epoch_start_time))
     log_file = open(file_dir, 'a')
     spend_time = time.time() - start_time
     log_file.write('Optimization:' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
     log_file.close()
+    
+    print("--- %s seconds ---" % (spend_time))
+    print("--------------------------------------------------------------")
+
     
     # plt.plot(loop_list, loss_list, label = "beta")
     # plt.xlabel('expr count')
@@ -511,14 +520,14 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     # plt.legend()
     # plt.show()
     # print('GOT! Loss, theta', f.data, Theta.data)
-    print("--- %s seconds ---" % (time.time() - start_time))
-    print("--------------------------------------------------------------")
+    # print("--- %s seconds ---" % (time.time() - start_time))
+    # print("--------------------------------------------------------------")
 
     theta = Theta# .data.item()
     loss = res# .data.item()
     print('Theta: {0:.3f}, Loss: {1:.3f}'.format(theta.data.item(), loss.data.item()))
 
-    return theta, loss, loss_list, f, penalty_f
+    return theta, loss, loss_list, f, penalty_f, TIME_OUT
 
 
 def gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):

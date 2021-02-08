@@ -78,8 +78,8 @@ if __name__ == "__main__":
                     theta, loss, loss_list, q, c, time_out = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=new_lambda, stop_val=stop_val, epoch=400, lr=lr)
 
                     #! To reduce time
-                    theta_t = theta
-                    break
+                    # theta_t = theta
+                    # break
                     
                     lambda_list.append(new_lambda)
                     theta_list.append(theta)
