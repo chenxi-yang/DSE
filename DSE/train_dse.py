@@ -118,6 +118,7 @@ def distance_f_interval_new(X_list, target):
             reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
         
         res = torch.max(res, reward)
+    # print(f"result length, {len(X_list)}, reward: {res}")
     # res is the worst case cost of X_list
     return res
 
@@ -134,23 +135,30 @@ def extract_result_safty(symbol_table_list):
 def normal_pdf(x, mean, std):
     # print(x, mean, std)
     y = torch.exp((-((x-mean)**2)/(2*std*std)))/ (std* torch.sqrt(2*var(math.pi)))
-    # print(y)
+    res = var(1.0)
+    # multiple all in y
+    for p in y:
+        res = res.mul(p)
+
+    # print(f"pdf, {y}, {res}")
     # exit(0)
-    return y
+    res = res.mul(10)
+    return res
 
 
 def generate_theta_sample_set(Theta):
     # sample_theta_list = list()
     # sample_theta_probability_list = list()
+    # print(f"----------generating Theta --------------")
+    # print(f"Original theta: {Theta}")
     sample_theta_list = list()
     for i in range(THETA_SAMPLE_SIZE):
         sample_theta = torch.normal(mean=Theta, std=var(1.0))
+        # print(f"Sampled theta: {Theta}")
+        # sample_theta = torch.distributions.multivariate_normal.MultivariateNormal(loc=Theta, torch.eye(1.0))
         sample_theta_probability = normal_pdf(sample_theta, Theta, var(1.0))
-        # theta_normal.log_prob(sample_theta)
-        # print(sample_theta, sample_theta_probability)
         sample_theta_list.append((sample_theta, sample_theta_probability))
-        # sample_theta_probability_list.append(sample_theta_probability)
-    # return sample_theta_list, sample_theta_probability_list
+    # print(f"---------finish generating Theta----------")
     return sample_theta_list
 
 
@@ -185,20 +193,39 @@ def create_point_cloud(res_l, res_r, n=50):
 
 
 def cal_data_loss(theta, x, y):
+    # print(f"------- point start-----")
+    # start_time = time.time()
     root_point = construct_syntax_tree_point(theta)
+    # point_time = time.time()
+    # print(f"point time: {point_time - start_time}")
     symbol_table_point = initialization_point(x)
+    # ini_time = time.time()
+    # print(f"ini time: {ini_time - point_time}")
     symbol_table_point = root_point['entry'].execute(symbol_table_point)
+    # run_time = time.time()
+    # print(f"run time: {run_time - ini_time}")
     data_loss = distance_f_point(symbol_table_point['res'], var(y))
-
+    # print(f"------- point finish -----")
     return data_loss
 
 
 def cal_safe_loss(theta, x, width):
+    # print(f"------- SL start-----")
+    # start_time = time.time()
     root = construct_syntax_tree(theta)
+    # sl_time = time.time()
+    # print(f"SL time: {sl_time - start_time}")
     res_l, res_r = create_ball(x, width)
     symbol_table_list = initialization(res_l, res_r, [], [])
+    # ini_time = time.time()
+    # print(f"ini time: {ini_time - sl_time}")
     symbol_table_list = root['entry'].execute(symbol_table_list)
+    l, r = extract_result_safty(symbol_table_list)
+    # run_time = time.time()
+    # print(f"run time: {run_time - ini_time}")
     safe_loss = distance_f_interval_new(symbol_table_list, target)
+    # print(f"------- SL end-----")
+    # print(f"l, r, safe loss: {l, r, safe_loss}")
 
     return safe_loss
 
@@ -227,42 +254,63 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     root_point = construct_syntax_tree_point(Theta)
 
     width = 0.1
+    theta_training_time = 0.0
     start_time = time.time()
     for i in range(epoch):
         num_partition = 0.0
         cur_time = time.time()
         # data_loss_total = var(0.0)
         # safe_loss_total = var(0.0)
+        f_loss = var(0.0)
+        q_loss = var(0.0)
+        c_loss = var(0.0)
         for idx, x in enumerate(X_train):
+            data_time = time.time()
             x, y = x, y_train[idx]
             sample_theta_list = generate_theta_sample_set(Theta)
+            real_data_loss = var(0.0)
+            real_safe_loss = var(0.0)
+            loss = var(0.0)
             for (sample_theta, sample_theta_p) in sample_theta_list:
+                theta_time = time.time()
                 data_loss = cal_data_loss(sample_theta, x, y)
                 safe_loss = cal_safe_loss(sample_theta, x, width)
                 res = data_loss + lambda_.mul(safe_loss)
+                real_data_loss += data_loss * sample_theta_p
+                real_safe_loss += safe_loss * sample_theta_p
                 # data_loss_total = data_loss_total.add(data_loss)
                 # safe_loss_total = safe_loss_total.add(safe_loss)
 
-                loss = var(res.data.item()).mul(var(sample_theta_p.data.item())).mul(torch.log(sample_theta_p))
-                loss.backward(retain_graph=True)
+                loss += var(res.data.item()).mul(var(sample_theta_p.data.item())).mul(torch.log(sample_theta_p))
+                theta_training_time += time.time() - theta_time
+            q_loss += real_data_loss
+            c_loss += real_safe_loss
+            # print(f"average training time for one theta, {theta_training_time/len(sample_theta_list)}")
+            loss.backward(retain_graph=True)
             
             with torch.no_grad():
                 for theta_idx in range(len_theta):
                     try:
                         # Theta[theta_idx].data -= lr * (dTheta[theta_idx].data + var(random.uniform(-noise, noise)))
                         Theta[theta_idx].data -= lr * (Theta.grad[theta_idx] + var(random.uniform(-noise, noise)))
+                        
                     except RuntimeError: # for the case no gradient with Theta[theta_idx]
                         Theta[theta_idx].data -= lr * (var(random.uniform(-noise, noise)))
-                        if torch.abs(res.data) < var(stop_val):
-                            break
                 Theta.grad.zero_()
             
             for theta_idx in range(len_theta):
                 if Theta[theta_idx].data.item() <= theta_l[theta_idx] or Theta[theta_idx].data.item() >= theta_r[theta_idx]:
                     Theta[theta_idx].data.fill_(random.uniform(theta_l[theta_idx], theta_r[theta_idx]))
             
-            print(f"data loss:{data_loss}, safe loss:{safe_loss}")
-            
+            # print(f"training time for one data point, {time.time() - data_time}")
+            # print(f"real data loss:{real_data_loss}, real safe loss:{real_safe_loss}, probability")
+        
+        f_loss = q_loss + lambda_ * c_loss
+        print(f"fisrt {i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
+        print(f"-----finish one epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
+        if torch.abs(f_loss.data) < var(stop_val):
+            break
+        
         if (time.time() - start_time)/(i+1) > 300:
             log_file = open(file_dir, 'a')
             log_file.write('TIMEOUT: avg epoch time > 300s \n')
@@ -273,4 +321,35 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     return Theta, res, [], data_loss, safe_loss, TIME_OUT
 
 
+def cal_c(X_train, y_train, theta):
+    # only for calculating the value instead of the gradient
+    c_loss = var(0.0)
+    for idx, x in enumerate(X_train):
+        x, y = x, y_train[idx]
+        real_data_loss = var(0.0)
+        real_safe_loss = var(0.0)
+        loss = var(0.0)
+        safe_loss = cal_safe_loss(theta, x, width)
+        c_loss += safe_loss
+    c = c_loss.div(len(X_train))
+    print(f"cal_c, {theta}, {c}")
 
+    return c
+
+
+def cal_q(X_train, y_train, theta):
+    root_point = construct_syntax_tree_point(theta)
+    q = var(0.0)
+
+    for idx, x in enumerate(X_train):
+        x, y = x, y_train[idx]
+        symbol_table_point = initialization_point(x)
+        symbol_table_point = root_oint['entry'].execute(symbol_table_point)
+
+        # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
+        q = q.add(distance_f_point(symbol_table_point['res'], var(y)))
+
+    q = q.div(var(len(X_train)))
+    print(f"cal_q, {theta}, {q}")
+    
+    return q

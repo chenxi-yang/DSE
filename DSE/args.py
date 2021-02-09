@@ -13,6 +13,7 @@ def get_parser():
     p.add_argument("--benchmark_id", type=float, help="represent the benchmark")
     p.add_argument("--data_size", default=10000, type=int, help="size of dataset, both for training and testing")
     p.add_argument("--test_portion", default=0.99, type=float, help="portion of test set of the entire dataset")
+    p.add_argument("--num_epoch", default=10, type=int, help="number of epochs for training")
     return p
 
 

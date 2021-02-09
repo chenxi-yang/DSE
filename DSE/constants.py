@@ -12,6 +12,7 @@ w = args.w
 benchmark_id = args.benchmark_id
 data_size = args.data_size
 test_portion = args.test_portion
+num_epoch = args.num_epoch
 # path_sample_size = args.path_sample_size
 
 sample_size_list = [500, 250, 100, 50, 10]
@@ -27,7 +28,7 @@ K_DISJUNCTS = 10000000
 SAMPLE_SIZE = 0
 data_for_sample = 100
 SAMPLE_METHOD = 4
-THETA_SAMPLE_SIZE = 100
+THETA_SAMPLE_SIZE = 10 # 1000
 DOMAIN = "interval" # [interval, zonotope]
 if MODE == 3: 
     MODE_NAME = mode_list[MODE] + '-' + 'Disjunct_' + str(K_DISJUNCTS) 
