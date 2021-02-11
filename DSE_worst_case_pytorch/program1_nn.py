@@ -417,3 +417,4 @@ def construct_syntax_tree_smooth_point(Theta):
     tree_dict['para'] = Theta
 
     return tree_dict
+

@@ -6,12 +6,25 @@ import copy
 
 def var(i, requires_grad=False):
     # print(i)
-    return Variable(torch.tensor(i, dtype=torch.double), requires_grad=requires_grad)
+    if torch.cuda.is_available():
+        return Variable(torch.tensor(i, dtype=torch.double).cuda(), requires_grad=requires_grad)
+    else:
+        return Variable(torch.tensor(i, dtype=torch.double), requires_grad=requires_grad)
 
 
 def var_list(i_list, requires_grad=False):
     # print(i)
-    return Variable(torch.tensor(i_list, dtype=torch.double), requires_grad=requires_grad)
+    if torch.cuda.is_available():
+        # res = Variable(torch.tensor(i_list, dtype=torch.double).cuda(), requires_grad=requires_grad)
+        res = torch.tensor(i_list, dtype=torch.float).cuda()
+    else:
+        # res = Variable(torch.tensor(i_list, dtype=torch.double), requires_grad=requires_grad)
+        res = torch.tensor(i_list, dtype=torch.float)
+    # print(f"before squeeze, {res.shape}")
+    res.unsqueeze_(0)
+    # print(f"after squeeze, {res.shape}")
+    return res
+
 
 PI = var((3373259426.0 + 273688.0 / (1 << 21)) / (1 << 30))
 PI_TWICE = PI.mul(var(2.0))

@@ -11,6 +11,8 @@ from helper import *
 from data_generator import *
 from constants import *
 
+from thermostat_nn import * 
+
 
 def distance_f_point(pred_y, y):
     return torch.abs(pred_y.sub(y))
@@ -122,6 +124,28 @@ def distance_f_interval_new(X_list, target):
     # res is the worst case cost of X_list
     return res
 
+def distance_f_interval_center(X_list, target):
+    res = var(0.0)
+    for X_table in X_list:
+        c = X_table.c
+        delta = X_table.delta
+
+        X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
+        X.left = c.sub(delta)
+        X.right = c.add(delta)
+
+        reward = var(0.0)
+        intersection_interval = get_intersection(X, target)
+        if intersection_interval.isEmpty():
+            # print('isempty')
+            reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
+        else:
+            # print('not empty')
+            reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
+        
+        res = torch.max(res, reward)
+    return res
+
 
 def extract_result_safty(symbol_table_list):
     res_l, res_r = P_INFINITY, N_INFINITY
@@ -230,7 +254,7 @@ def cal_safe_loss(theta, x, width):
     return safe_loss
 
 
-def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
+def gd_direct_noise_old(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
     print("--------------------------------------------------------------")
     print('----Gradient Direct Noise Descent Train DSE----')
     print('====Start Training====')
@@ -323,6 +347,77 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
         print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
         print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train))}")
+        # if torch.abs(f_loss.data) < var(stop_val):
+        #     break
+        
+        if (time.time() - start_time)/(i+1) > 300:
+            log_file = open(file_dir, 'a')
+            log_file.write('TIMEOUT: avg epoch time > 300s \n')
+            log_file.close()
+            TIME_OUT = True
+            break
+    
+    res = f_loss.div(len(X_train))
+
+    log_file = open(file_dir, 'a')
+    spend_time = time.time() - start_time
+    log_file.write('Optimization:' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
+    log_file.close()
+    
+    return Theta, res, [], data_loss, safe_loss, TIME_OUT
+
+
+def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
+    print("--------------------------------------------------------------")
+    print('----Gradient Direct Noise Descent Train DSE PyTorch New----')
+    print('====Start Training====')
+    len_theta = len(theta_l)
+    TIME_OUT = False
+
+    x_min = var(10000.0)
+    x_max = var(0.0)
+    x_smooth_min = var(10000.0)
+    x_smooth_max = var(0.0)
+
+    loop_list = list()
+    loss_list = list()
+
+    tmp_theta_list = [random.uniform(theta_l[idx], theta_r[idx]) for idx, value in enumerate(theta_l)]
+
+    Theta = var_list(tmp_theta_list, requires_grad=True)
+
+    m = ThermostatNN(l=1000000)
+    m.cuda()
+
+    # m_point = ThermostatNN(l=10)
+    optimizer = torch.optim.SGD(m.parameters(), lr=lr)
+
+    start_time = time.time()
+    for i in range(epoch):
+        for idx, x in enumerate(X_train):
+            data_time = time.time()
+            x, y = x, y_train[idx]
+            point_data = initialization_point_nn(x)
+            y_point_list = m(point_data)
+            data_loss = distance_f_point(y_point_list[0].c[0], var(y))
+
+            abstract_data = initialization_nn(x, width)
+            y_abstract_list = m(abstract_data)
+            safe_loss = distance_f_interval_center(y_abstract_list, target)
+
+            loss = data_loss + lambda_.mul(safe_loss)
+            loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
+            
+            if i >= 30:
+                for param_group in optimizer.param_groups:
+                    param_group["lr"] *= 0.5
+        
+        # f_loss = q_loss + lambda_ * c_loss
+        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
+        # print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
+        # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train))}")
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
         

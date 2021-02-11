@@ -67,88 +67,6 @@ def pho(X, intersection):
     return torch.min(var(1.0), partial_intersection_value)
 
 
-# def update_symbol_table_with_constraint(target, test, symbol_table, direct):
-#     # TODO: update where the points belong to, and the c_i for each case
-#     constraint_interval = domain.Interval(-10000.0, 10000.0)
-#     res_symbol_table = dict()
-#     # self-deepcopy symbol_table
-#     for symbol in symbol_table:
-#         if 'probability' in symbol:
-#             res_symbol_table[symbol] = var(symbol_table[symbol].data.item())
-#         elif 'list' in symbol:
-#             res_symbol_table[symbol] = list()
-#             for i in symbol_table[symbol]:
-#                 res_symbol_table[symbol].append(i)
-#         else:
-#             if DOMAIN == "interval":
-#                 res_symbol_table[symbol] = domain.Interval(symbol_table[symbol].left.data.item(), symbol_table[symbol].right.data.item())
-#             elif DOMAIN == "zonotope":
-#                 res_symbol_table[symbol] = domain.Zonotope()
-#                 # if symbol=="t":
-#                 #     print('symbol', symbol, type(symbol_table[symbol]))
-#                 res_symbol_table[symbol].center = symbol_table[symbol].center
-#                 res_symbol_table[symbol].alpha_i = list()
-#                 for i in symbol_table[symbol].alpha_i:
-#                     res_symbol_table[symbol].alpha_i.append(i)
-    
-#     # All convert to interval
-#     target_value = res_symbol_table[target].getInterval()
-
-#     if direct == '<':
-#         constraint_interval.right = test
-#     else:
-#         constraint_interval.left = test
-
-#     intersection_interval = get_intersection(target_value, constraint_interval)
-#     # print('intersection', intersection_interval.left, intersection_interval.right)
-
-#     if intersection_interval.isEmpty():
-#         intersection_interval = None
-#         probability = var(0.0)
-#         res_symbol_table[target] = intersection_interval
-#         # return None
-#     else:
-#         if target_value.isPoint():
-#             if direct == '<' and target_value.right.data.item() <= constraint_interval.right.data.item():
-#                 probability = symbol_table['probability']
-#                 # res_symbol_table[target] = intersection_interval
-#             elif direct == '>' and target_value.left.data.item() > constraint_interval.left.data.item():
-#                 probability = symbol_table['probability']
-#                 # res_symbol_table[target] = intersection_interval
-#             else:
-#                 intersection_interval = None
-#                 probability = var(0.0)
-#                 res_symbol_table[target] = intersection_interval
-#                 # return None
-#         elif intersection_interval.left.data.item() == intersection_interval.right.data.item() and (intersection_interval.left.data.item() == constraint_interval.left.data.item() or intersection_interval.right.data.item() == constraint_interval.right.data.item()):
-#             intersection_interval = None
-#             probability = var(0.0)
-#             res_symbol_table[target] = intersection_interval
-#             # return None
-#         else:
-#             probability = symbol_table['probability'].mul(pho(target_value, intersection_interval))
-#             if DOMAIN == "interval":
-#                 res_symbol_table[target] = intersection_interval
-#             elif DOMAIN == "zonotope":
-#                 res_symbol_table[target] = intersection_interval.getZonotope()
-#                 # tmp_zonotope = domain.Zonotope()
-#                 # tmp_zonotope.center = (intersection_interval.left.add(intersection_interval.right)).div(var(2.0))
-#                 # if direct == '<':
-#                 #     alpha = (tmp_zonotope.center.sub(target_value.left)).div(target_value.getLength().div(var(2.0)))
-#                 # else:
-#                 #     alpha = (target_value.right.sub(tmp_zonotope.center)).div(target_value.getLength().div(var(2.0)))
-#                 # res_l = res_symbol_table[target].getCoefLength()
-#                 # for i in range(res_l):
-#                 # res_symbol_table[target].alpha_i[i] = alpha.mul(res_symbol_table[target].alpha_i[i])
-
-#     # res_symbol_table[target] = intersection_interval.getZonotope()
-#     res_symbol_table['probability'] = probability
-#     res_symbol_table['explore_probability'] = res_symbol_table['probability']
-
-#     # print('constraint', type(res_symbol_table['t']))
-
-#     return res_symbol_table
-
 '''
 tanh smooth of if-else branch
 e = (1-\alpha)e1 + \alpha e2
@@ -308,14 +226,10 @@ def update_symbol_table_with_constraint(target, test, symbol_table, direct):
 def update_symbol_table_list_with_constraint(target, test, symbol_table_list, direct):
     res_symbol_table_list = list()
     for symbol_table in symbol_table_list:
-        # print('XXXXXXXXXXXX before update symbol table with constraint')
         res_symbol_table = update_symbol_table_with_constraint(target, test, symbol_table, direct)
-        # print('XXXXXXXXXXXX after update symbol table with constraint')
         if res_symbol_table is None:
             continue
         res_symbol_table_list.append(res_symbol_table)
-    # print('update constraint')
-    # show_symbol_tabel_list(res_symbol_table_list)
     return res_symbol_table_list
 
 

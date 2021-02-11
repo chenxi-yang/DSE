@@ -99,10 +99,10 @@ def distance_f_interval_REINFORCE(X_list, target, Theta):
 
 
 def distance_f_interval_new(X_list, target):
+    res = var(0.0)
     for X_table in X_list:
         X_min = X_table['x_min'].getInterval()
         X_max = X_table['x_max'].getInterval()
-        res = var(0.0)
 
         X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
         X.left = torch.min(X_min.left, X_max.left)

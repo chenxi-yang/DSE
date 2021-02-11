@@ -320,6 +320,26 @@ class Interval:
         return self.sub_l(y_interval.mul(n_interval))
 
 
+class Box():
+    def __init__(self, c, delta):
+        self.c = c
+        self.delta = delta
+    
+    def new(self, c, delta):
+        return self.__class__(c, delta)
+    
+    def matmul(self, other):
+        # print(f"c: {self.c}")
+        # print(f"c shape: {self.c.shape}")
+        # print(f"other: {other.shape}")
+        # print(f"new c: {self.c.matmul(other)}")
+        # print(f"new delta: {self.delta.matmul(other.abs())}")
+        return self.new(self.c.matmul(other), self.delta.matmul(other.abs()))
+    
+    def add(self, other):
+        return self.new(self.c.add(other), self.delta)
+
+
 class Zonotope:
     def __init__(self, left=0.0, right=0.0):
         self.center = var((left + right)/2.0)
@@ -705,6 +725,8 @@ class Zonotope:
         # return res
         tmp_res = (self.getInterval().min(y.getInterval())).getZonotope()
         return tmp_res
+
+
 
 
 if __name__ == "__main__":
