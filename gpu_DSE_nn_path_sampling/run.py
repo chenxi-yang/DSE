@@ -29,9 +29,9 @@ def evaluation(X_train, y_train, theta_l, theta_r, target, lambda_, stop_val, ep
     eval(X_test, y_test, res_theta, target, 'test')
 
 
-def best_lambda(X_train, y_train, theta):
-    c = cal_c(X_train, y_train, theta)
-    q = cal_q(X_train, y_train, theta)
+def best_lambda(X_train, y_train, m, target):
+    c = cal_c(X_train, y_train, m, target)
+    q = cal_q(X_train, y_train, m)
 
     if c.data.item() <= 0.0:
         res_lambda = var(0.0)
@@ -40,10 +40,10 @@ def best_lambda(X_train, y_train, theta):
     return res_lambda, q.add(res_lambda.mul(c)) # lambda, L_max
 
 
-def best_theta(X_train, y_train, lambda_):
-    theta, loss, loss_list, q, c, time_out = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=stop_val, epoch=num_epoch, lr=lr, bs=bs)
+def best_theta(X_train, y_train, lambda_, target):
+    m, loss, loss_list, q, c, time_out = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=stop_val, epoch=num_epoch, lr=lr, bs=bs)
 
-    return theta, loss, time_out
+    return m, loss, time_out
 
 
 if __name__ == "__main__":
@@ -68,21 +68,21 @@ if __name__ == "__main__":
 
             for i in range(5):
                 lambda_list = list()
-                theta_list = list()
+                model_list = list()
                 q = var(0.0)
 
                 for t in range(t_epoch):
                     new_lambda = B.mul(q.exp().div(var(1.0).add(q.exp())))
 
                     # BEST_theta(lambda)
-                    theta, loss, loss_list, q, c, time_out = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=new_lambda, stop_val=stop_val, epoch=num_epoch, lr=lr, bs=bs)
+                    m, loss, loss_list, q, c, time_out = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=new_lambda, stop_val=stop_val, epoch=num_epoch, lr=lr, bs=bs)
 
-                    #! To reduce time
-                    # theta_t = theta
-                    # break
+                    #TODO: reduce time, because there are some issues with the gap between cal_c and cal_q
+                    m_t = m
+                    break
                     
                     lambda_list.append(new_lambda)
-                    theta_list.append(theta)
+                    model_list.append(model)
 
                     # TODO: return a distribution
                     # theta_t = list()
@@ -96,16 +96,16 @@ if __name__ == "__main__":
                     # for idx, value in enumerate(theta_t):
                     #     theta_t[idx] = theta_t[idx].div(var(len(theta_list)))
 
-                    theta_list.append(theta)
-                    theta_t = random.choice(theta_list)
+                    # theta_list.append(theta)
+                    m_t = random.choice(model_list)
 
                     lambda_t = var(0.0)
                     for i in lambda_list:
                         lambda_t = lambda_t.add(i)
                     lambda_t = lambda_t.div(var(len(lambda_list)))
 
-                    _, l_max = best_lambda(X_train, y_train, theta_t)
-                    _, l_min, time_out = best_theta(X_train, y_train, lambda_t)
+                    _, l_max = best_lambda(X_train, y_train, m_t, target)
+                    _, l_min, time_out = best_theta(X_train, y_train, lambda_t, target)
 
                     print('-------------------------------')
                     print('l_max, l_min', l_max, l_min)
@@ -119,13 +119,13 @@ if __name__ == "__main__":
                         # return theta_t, lambda_t
                             break
                     
-                    q = q.add(var(lr).mul(cal_c(X_train, y_train, theta)))
+                    q = q.add(var(lr).mul(cal_c(X_train, y_train, m_t, theta)))
                 
                 if time_out == True:
                     break
 
-                eval(X_train, y_train, theta_t, target, 'train')
-                eval(X_test, y_test, theta_t, target, 'test')
+                eval(X_train, y_train, m_t, target, 'train')
+                eval(X_test, y_test, m_t, target, 'test')
 
             # Eval
             # evaluation(X_train, y_train, theta_l, theta_r, target, lambda_=var(50.0), stop_val=stop_val, lr=lr)

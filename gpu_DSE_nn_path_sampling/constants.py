@@ -18,7 +18,7 @@ noise = args.noise
 bs = args.bs
 # path_sample_size = args.path_sample_size
 
-sample_size_list = [500, 250, 100, 50, 10]
+sample_size_list = [250, 100, 50, 10]
 data_for_sample_list = [100]  # [100, 50, 20]
 
 # 1, 2, 3, 4
@@ -28,7 +28,7 @@ MODE = 5
 K_DISJUNCTS = 10000000
 # SAMPLE_SIZE = path_sample_size # 500
 # sample_size_list = [500, 250, 100, 50, 10]
-SAMPLE_SIZE = 0
+SAMPLE_SIZE = 500
 data_for_sample = 100
 SAMPLE_METHOD = 3 # direct sampling  # 4: adaptive sampling
 THETA_SAMPLE_SIZE = 10 # 1000
@@ -42,7 +42,7 @@ elif MODE == 5:
 else: 
     MODE_NAME = mode_list[MODE]
 
-file_dir =  'result/MCSE_benchmark_' + str(benchmark_id) + '_' + str(data_size) + '_' + str(test_portion) + '_' + str(lr) + '.txt'
+file_dir =  f"result/thermostat_nn_{lr}_{bs}_{num_epoch}.txt"
 log_file = open(file_dir, 'w')
 log_file.close()
 
@@ -87,8 +87,8 @@ if benchmark_id == 11:
     # theta_r = [67.0] + [0.2] + [0.001] + [-0.1] + [0.001] * 3 + [55.0] * 2 + [5.0]
     theta_l = [59.1] + [0.8] + [-0.001] + [0.08] + [-0.001] * 3 + [-2.0] * 2 + [50.0]  # tOff, w11, w12, w21, w22, b1, b2, w3, w4
     theta_r = [67.0] + [1.0] + [0.001] + [0.11] + [0.001] * 3 + [5.0] * 2 + [60.0]
-    safe_l = 58.425
-    safe_r = 83.19
+    safe_l = 47.00 # 58.425
+    safe_r = 86.67 # 83.19
     lr_l = [lr] + [lr/1e-3] * 6 + [lr/1e-2] * 2 + [lr]
     # noise = [10.0] + [100] * 8 + [10]
 

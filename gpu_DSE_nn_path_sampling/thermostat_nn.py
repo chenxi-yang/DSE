@@ -33,6 +33,7 @@ def initialization_nn(x, width, point_set):
     symbol_table['probability'] = var(1.0)
     symbol_table['explore_probability'] = var(1.0)
     symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY, N_INFINITY)])
+    symbol_table['branch'] = ''
     symbol_table = create_point_cloud(symbol_table, point_set, initialization_one_point_nn)
     symbol_table_list.append(symbol_table)
 
@@ -92,7 +93,8 @@ class LinearSig(nn.Module):
         # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         res = self.linear2(res)
         # print(f"LinearSig, after linear2: {res.c, res.delta}")
-        # res = self.sigmoid(res)
+        res = self.sigmoid(res)
+        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         # exit(0)
         return res
 
@@ -106,7 +108,7 @@ class ThermostatNN(nn.Module):
 
         # self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=self.nn)
         # curL = curL + NN(curL, lin)
-        self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=lambda x: x.select_from_index(0, index0).add(self.nn(x)))
+        self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=lambda x: x.select_from_index(0, index0).add(self.nn(x).mul(var(10.0))))
 
         # TODO: empty select index works?
         self.ifelse_tOff_block1 = Assign(target_idx=[1], arg_idx=[], f=lambda x: x.set_value(var(1.0)))
@@ -140,9 +142,9 @@ class ThermostatNN(nn.Module):
     
     def forward(self, x_list, transition='interval'):
         # if transition == 'abstract':
-        #     print(f"# of Partitions Before: {len(x_list)}")
-            # for x in x_list:
-            #     print(f"x: {x['x'].c}, {x['x'].delta}")
+        # #     print(f"# of Partitions Before: {len(x_list)}")
+        #     for x in x_list:
+        #         print(f"x: {x['x'].c}, {x['x'].delta}")
         res_list = self.while1(x_list)
         # if transition == 'abstract':
         #     print(f"# of Partitions After: {len(res_list)}")

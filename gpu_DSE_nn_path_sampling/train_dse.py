@@ -10,13 +10,14 @@ import copy
 from helper import *
 from data_generator import *
 from constants import *
+import constants
 
 from thermostat_nn import * 
 
 
 def distance_f_point(pred_y, y):
-    # return torch.abs(pred_y.sub(y)) # l1-distance
-    return torch.square(pred_y.sub(y)) # l2-distance
+    return torch.abs(pred_y.sub(y)) # l1-distance
+    # return torch.square(pred_y.sub(y)) # l2-distance
 
 
 def get_intersection(interval_1, interval_2):
@@ -35,7 +36,7 @@ def distance_f_interval(symbol_table_list, target):
         X = symbol_table['safe_range']
         p = symbol_table['probability']
 
-        # print(f"X: {X.left, X.right}, p: {p}")
+        # print(f"X: {X.left.data.item(), X.right.data.item()}, p: {p}")
         # print(f"target: {target.left, target.right}")
         intersection_interval = get_intersection(X, target)
         
@@ -63,6 +64,7 @@ def normal_pdf(x, mean, std):
     # print(f"----normal_pdf-----\n x: {x} \n mean: {mean} \n std: {std} \n -------")
     y = torch.exp((-((x-mean)**2)/(2*std*std)))/ (std* torch.sqrt(2*var(math.pi)))
     res = torch.prod(y)
+    # res *= var(1e)
 
     return res
 
@@ -125,6 +127,7 @@ def cal_data_loss(m, x, y):
         # should be only one partition in y['x']
         # the return value in thermostat is x, index: 2
         data_loss += distance_f_point(y_point_list[0]['x'].c[2], var(label))
+    data_loss /= len(x)
     return data_loss
 
 
@@ -147,7 +150,7 @@ def generate_small_ball_point(center, width, distribution="Gaussian", unit=10):
 # width: a number 
 # distribution: over small balls
 # n: number allowed in one point cloud
-def create_ball_cloud(x, width, distribution="Gaussian", n=100):
+def create_ball_cloud(x, width, distribution="Gaussian", n=50):
     point_cloud = list()
     ball_list = list() # list of pair <tp, bw>, tp is a list, bw is a list
     unit = int(n/len(x))
@@ -180,19 +183,26 @@ def cal_safe_loss(m, x, width, target):
     # in each ball, follow the distribution predefined to generate point cloud
     # 1). take the union of all point cloud and the larget point cloud
     # 2). take the boundry of all the small ball as the large ball: abstract data
-    point_cloud, ball_list = create_ball_cloud(x, width, distribution="Gaussian", n=100)
+    point_cloud, ball_list = create_ball_cloud(x, width, distribution="Gaussian", n=50)
     center, new_width = extract_large_ball(ball_list) # new width is a list, after generating the new distribution around the point, the width of each element might be different
     # print(f"center: {center}, new_width: {new_width}")
     abstract_data = initialization_nn(center, new_width, point_cloud)
-    y_abstract_list = m(abstract_data, 'abstract')
-    print(f"length: {len(y_abstract_list)}")
+    y_abstract_list = list()
+    for i in range(constants.SAMPLE_SIZE):
+        # sample one path each time
+        # sample_time = time.time()
+        abstract_list = m(abstract_data, 'abstract')
+        # print(f"sample {i+1}-th path: {time.time() - sample_time}")
+        y_abstract_list.append(abstract_list[0])
+    # print(f"length: {len(y_abstract_list)}")
     safe_loss = distance_f_interval(y_abstract_list, target)
     return safe_loss
 
 
 def divide_chunks(X, y, bs=10):
-    # return the chunk of size bs from X and y
-    for i in range(len(X)):
+    # return the chunk of size bs from X and 
+    # print(f"bs: {bs}")
+    for i in range(0, len(X), bs):
         yield X[i:i + bs], y[i:i + bs]
 
 
@@ -244,7 +254,7 @@ def extract_parameters(m):
     return Theta
 
 
-def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None, bs=10):
+def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None, bs=10, n=5):
     print("--------------------------------------------------------------")
     print('----Gradient Direct Noise Descent Train DSE PyTorch New----')
     print('====Start Training====')
@@ -269,98 +279,127 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
     start_time = time.time()
     for i in range(epoch):
         q_loss, c_loss = var(0.0), var(0.0)
+        count = 0
         for x, y in divide_chunks(X_train, y_train, bs=bs):
+            # print(f"x length: {len(x)}")
             batch_time = time.time()
+            grad_data_loss, grad_safe_loss = var(0.0), var(0.0)
             real_data_loss, real_safe_loss = var(0.0), var(0.0)
             
             Theta = extract_parameters(m) # extract the parameters now, and then sample around it
             # print(f"Theta before: {Theta}")
-            for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=5):
+            for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
                 m = update_model_parameter(m, sample_theta)
                 data_time = time.time()
                 data_loss = cal_data_loss(m, x, y)
-                print(f"data_loss: {data_loss}, TIME: {time.time() - data_time}")
-                real_data_loss += var(data_loss.data.item()) * sample_theta_p # real_q = \expec_{\theta ~ \theta_0}[data_loss]
-                
+                # print(f"{'#' * 15}")
+                # print(f"data_loss: {data_loss}, TIME: {time.time() - data_time}")
+                # print(f"p: {sample_theta_p}, log_p: {torch.log(sample_theta_p)}")
+                grad_data_loss += var(data_loss.data.item()) * torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
+                real_data_loss += var(data_loss.data.item())
+
                 safe_time = time.time()
                 safe_loss = cal_safe_loss(m, x, width, target)
-                print(f"safe_loss: {safe_loss.data.item()}, TIME: {time.time() - safe_time}")
-                real_safe_loss += var(safe_loss.data.item()) * sample_theta_p # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
-            
+                # print(f"safe_loss: {safe_loss.data.item()}, TIME: {time.time() - safe_time}")
+                # print(f"{'#' * 15}")
+                grad_safe_loss += var(safe_loss.data.item()) * torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
+                real_safe_loss += var(safe_loss.data.item())
+
+                # exit(0)
+
+            # To maintain the real theta
+            m = update_model_parameter(m, Theta)
+
+            real_data_loss /= n
+            real_safe_loss /= n
+
             print(f"real data_loss: {real_data_loss}")
-            print(f"real safe_loss: {real_safe_loss}, TIME: {time.time() - batch_time}")
+            print(f"real safe_loss: {real_safe_loss}, data and safe TIME: {time.time() - batch_time}")
             q_loss += real_data_loss
             c_loss += real_safe_loss
-            loss = real_data_loss + lambda_.mul(real_safe_loss)
+            loss = grad_data_loss + lambda_.mul(grad_safe_loss)
             loss.backward()
-            # torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
-            # print(f"Theta: {Theta}")
             for partial_theta in Theta:
                 torch.nn.utils.clip_grad_norm_(partial_theta, 1)
             # print(m.nn.linear1.weight.grad)
             # print(m.nn.linear2.weight.grad)
-            # TODO: check: remove all the theta_p, only leave loss.data.item(), check the grad
+            # check: remove all the theta_p, only leave loss.data.item(), check the grad check guola
             optimizer.step()
             optimizer.zero_grad()
+            # new_theta = extract_parameters(m)
+            # print(f"Theta after step: {new_theta}")
+
+            count += 1
+            # if count >= 10:
+            #     exit(0)
             
-        if i >= 30:
+        if i >= 5:
             for param_group in optimizer.param_groups:
                 param_group["lr"] *= 0.5
         
         # f_loss = q_loss + lambda_ * c_loss
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
+        print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}")
         print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
-        print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
+        log_file = open(file_dir, 'a')
+        log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
+        log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}\n")
+        log_file.write(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}\n")
+
+        # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
         
-        if (time.time() - start_time)/(i+1) > 300:
+        if (time.time() - start_time)/(i+1) > 1000:
             log_file = open(file_dir, 'a')
-            log_file.write('TIMEOUT: avg epoch time > 300s \n')
+            log_file.write('TIMEOUT: avg epoch time > 1000s \n')
             log_file.close()
             TIME_OUT = True
             break
     
-    res = f_loss.div(len(X_train))
+    res = real_data_loss + lambda_ * real_safe_loss# loss # f_loss.div(len(X_train))
 
     log_file = open(file_dir, 'a')
     spend_time = time.time() - start_time
-    log_file.write('Optimization:' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
+    log_file.write('One train: Optimization--' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
     log_file.close()
     
-    return Theta, res, [], data_loss, safe_loss, TIME_OUT
+    return m, res, [], data_loss, safe_loss, TIME_OUT
 
 
-def cal_c(X_train, y_train, theta):
+def cal_c(X_train, y_train, m, target):
+    # TODO: to check the cal_c process
     # only for calculating the value instead of the gradient
     print(f"---in cal_c---")
-    print(f"theta, {theta}")
+    # print(f"theta, {theta}")
     c_loss = var(0.0)
     for idx, x in enumerate(X_train):
         x, y = x, y_train[idx]
         loss = var(0.0)
-        safe_loss = cal_safe_loss(theta, x, width)
+        safe_loss = cal_safe_loss(m, x, width, target)
         c_loss += safe_loss
     c = c_loss.div(len(X_train))
-    print(f"---cal_c, {theta}, {c}")
+    print(f"---cal_c, {c}")
 
     return c
 
 
-def cal_q(X_train, y_train, theta):
+def cal_q(X_train, y_train, m):
     root_point = construct_syntax_tree_point(theta)
-    q = var(0.0)
+    # q = var(0.0)
 
-    for idx, x in enumerate(X_train):
-        x, y = x, y_train[idx]
-        symbol_table_point = initialization_point(x)
-        symbol_table_point = root_point['entry'].execute(symbol_table_point)
+    data_loss = cal_data_loss(m, X_train, y_train)
 
-        # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
-        q = q.add(distance_f_point(symbol_table_point['res'], var(y)))
+    # for idx, x in enumerate(X_train):
+    #     x, y = x, y_train[idx]
+    #     symbol_table_point = initialization_point(x)
+    #     symbol_table_point = root_point['entry'].execute(symbol_table_point)
 
-    q = q.div(var(len(X_train)))
-    print(f"cal_q, {theta}, {q}")
+    #     # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
+    #     q = q.add(distance_f_point(symbol_table_point['res'], var(y)))
+
+    # q = q.div(var(len(X_train)))
+    print(f"cal_q, {data_loss}")
     
     return q
 
