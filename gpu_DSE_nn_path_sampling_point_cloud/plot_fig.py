@@ -64,6 +64,8 @@ def read_train_log(log_file):
                 c = float(content[2].split(":")[1])/5
                 q_list.append(q)
                 c_list.append(c)
+                if len(q_list) >= 20:
+                    break
     return q_list, c_list
 
 
@@ -133,14 +135,15 @@ def plot_training_loss(log_file, benchmark):
     x_list = list(range(len(q_list)))
 
     plot_line(x_list, q_list, title='training data loss', x_label='epoch', y_label='loss', label='data loss', fig_title=f"figures/loss/{benchmark}_data_loss.png", c='C0')
-    plot_line(x_list, c_list, title='training data loss', x_label='epoch', y_label='loss', label='safe loss', fig_title=f"figures/loss/{benchmark}_safe_loss.png", c='C1')
+    plot_line(x_list, c_list, title='training safe loss', x_label='epoch', y_label='loss', label='safe loss', fig_title=f"figures/loss/{benchmark}_safe_loss.png", c='C1')
 
 
 if __name__ == "__main__":
     # plot_loss('loss/') # the q and c loss
     # plot_loss_2('loss/')
     # plot_sample('data/sample_time.txt')
-    plot_training_loss('result/thermostat_nn.txt', benchmark='thermostat_250')
+    # lr_bs_epoch_samplesize
+    plot_training_loss('loss/thermostat_nn_53.00_83.00_0.001_40_20_250_100_50_10.txt', benchmark='thermostat_nn_53.00_83.00_0.001_40_20_250')
    
 
 

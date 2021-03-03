@@ -34,7 +34,6 @@ def distance_f_interval(symbol_table_list, target):
 
     for symbol_table in symbol_table_list:
         X = symbol_table['safe_range']
-        p = symbol_table['probability']
 
         # print(f"X: {X.left.data.item(), X.right.data.item()}, p: {p}")
         # print(f"target: {target.left, target.right}")
@@ -51,7 +50,7 @@ def distance_f_interval(symbol_table_list, target):
             reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
         # print(f"reward for one partition: {reward}")
     
-        tmp_res = reward.mul(p) 
+        tmp_res = reward
         res = res.add(tmp_res)
     res = res.div(var(len(symbol_table_list)).add(EPSILON))
 
@@ -115,20 +114,24 @@ def create_point_cloud(res_l, res_r, n=50):
     return point_cloud
 
 
-def cal_data_loss(m, x, y):
+def cal_loss(m, x, y, target):
     # for the point in the same batch
     # calculate the data loss of each point
     # add the point data loss together
     data_loss = var(0.0)
+    safe_loss = var(0.0)
+    y_pred_list = list()
     for idx in range(len(x)):
         point, label = x[idx], y[idx]
         point_data = initialization_point_nn(point)
         y_point_list = m(point_data, 'concrete')
+        y_pred_list.append(y_point_list[0])
         # should be only one partition in y['x']
         # the return value in thermostat is x, index: 2
         data_loss += distance_f_point(y_point_list[0]['x'].c[2], var(label))
     data_loss /= len(x)
-    return data_loss
+    safe_loss = distance_f_interval(y_pred_list, target)
+    return data_loss, safe_loss
 
 
 def generate_small_ball_point(center, width, distribution="Gaussian", unit=10):
@@ -291,15 +294,12 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
             for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
                 m = update_model_parameter(m, sample_theta)
                 data_time = time.time()
-                data_loss = cal_data_loss(m, x, y)
+                data_loss, safe_loss = cal_loss(m, x, y, target)
                 # print(f"{'#' * 15}")
                 # print(f"data_loss: {data_loss}, TIME: {time.time() - data_time}")
                 # print(f"p: {sample_theta_p}, log_p: {torch.log(sample_theta_p)}")
                 grad_data_loss += var(data_loss.data.item()) * torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                 real_data_loss += var(data_loss.data.item())
-
-                safe_time = time.time()
-                safe_loss = cal_safe_loss(m, x, width, target)
                 # print(f"safe_loss: {safe_loss.data.item()}, TIME: {time.time() - safe_time}")
                 # print(f"{'#' * 15}")
                 grad_safe_loss += var(safe_loss.data.item()) * torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
@@ -333,7 +333,7 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
             # if count >= 10:
             #     exit(0)
             
-        if i >= 5:
+        if i >= 7 and i%2 == 0:
             for param_group in optimizer.param_groups:
                 param_group["lr"] *= 0.5
         
@@ -349,6 +349,8 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
+        if c_loss.data.item() < EPSILON.data.item():
+            break
         
         if (time.time() - start_time)/(i+1) > 1000:
             log_file = open(file_dir, 'a')

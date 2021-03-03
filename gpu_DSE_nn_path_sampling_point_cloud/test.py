@@ -77,7 +77,7 @@ def eval(X, Y, m, target, category):
         safe_min = min(safe_property_min, safe_min)
         safe_max = max(safe_property_max, safe_max)
 
-    data_loss = data_loss.div(len(X))
+    quan_dist = data_loss.div(len(X))
     # symbol_table_rep = initialization(x_l, x_r)
     # symbol_table_rep = root.execute(symbol_table_rep)
     # print('real y interval', y_min, y_max)

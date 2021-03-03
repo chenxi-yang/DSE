@@ -16,6 +16,9 @@ num_epoch = args.num_epoch
 width = args.width
 noise = args.noise
 bs = args.bs
+n = args.n
+l = arg.l
+nn_mode = args.nn_mode
 # path_sample_size = args.path_sample_size
 
 sample_size_list = [250, 100, 50, 10]
@@ -41,10 +44,6 @@ elif MODE == 5:
     MODE_NAME = mode_list[MODE] + '_' + str(SAMPLE_SIZE) + '_' + str(sample_list[SAMPLE_METHOD - 1]) + '_' + DOMAIN
 else: 
     MODE_NAME = mode_list[MODE]
-
-file_dir =  f"result/thermostat_nn_{lr}_{bs}_{num_epoch}.txt"
-log_file = open(file_dir, 'w')
-log_file.close()
 
 # debug_file_dir = 'result/log'  + str(benchmark_id) + '_' + str(data_size) + '_' + str(test_portion) + '.txt'
 # debug_file = open(log_file_dir, 'w')
@@ -74,21 +73,24 @@ B = var(1000) # the range of lambda
 CURRENT_PROGRAM = 'program' + str(benchmark_id) # 'program_test_disjunction_2'
 
 
-# Linear nn, ReLu
+# Linear nn, Sigmoid
 if benchmark_id == 11:
 # python run.py --lr 0.5 --stop_val 5.0 --optimizer gd_direct_noise --w 5.0 --data_size 20000 --test_portion 0.99 --benchmark_id 11
     x_l = [52.0]
     x_r = [59.0]
     target_theta = [66.0] + [0.0] * 9
     # Add one bias for hidden, or 
-    # theta_l = [59.1] + [0.8] + [-0.001] + [0.08] + [-0.001] * 3 + [0.95] * 2 + [-5.0]  # tOff, w11, w12, w21, w22, b1, b2, w3, w4
-    # theta_r = [67.0] + [1.0] + [0.001] + [0.11] + [0.001] * 3 + [1.0] * 2 + [5.0]
-    # theta_l = [65.0] + [0.1] + [-0.001] + [-0.2] + [-0.001] * 3 + [40.0] * 2 + [-5.0]  # tOff, w11, w12, w21, w22, b1, b2, w3, w4
-    # theta_r = [67.0] + [0.2] + [0.001] + [-0.1] + [0.001] * 3 + [55.0] * 2 + [5.0]
     theta_l = [59.1] + [0.8] + [-0.001] + [0.08] + [-0.001] * 3 + [-2.0] * 2 + [50.0]  # tOff, w11, w12, w21, w22, b1, b2, w3, w4
     theta_r = [67.0] + [1.0] + [0.001] + [0.11] + [0.001] * 3 + [5.0] * 2 + [60.0]
-    safe_l = 47.00 # 58.425
-    safe_r = 86.67 # 83.19
+    #! the loosest constraint (both DSE and baseline1 can learn)
+    # safe_l = 47.00 # 58.425
+    # safe_r = 86.67 # 83.19
+    #! constraint in between (testing)
+    safe_l = 52.02 
+    safe_r = 84.995
+    #! the most strict constraint(both DSE and baseline1 can not learn)
+    # safe_l = 53.00 # 47.00
+    # safe_r = 83.00 # 83.67
     lr_l = [lr] + [lr/1e-3] * 6 + [lr/1e-2] * 2 + [lr]
     # noise = [10.0] + [100] * 8 + [10]
 
@@ -506,3 +508,9 @@ gamma = 0.55
 alpha_coeff = 0.9
 
 alpha_smooth_max = 0.8
+
+file_dir =  f"result/thermostat_nn_volume_{safe_l}_{safe_r}_{lr}_{bs}_{num_epoch}.txt"
+log_file = open(file_dir, 'w')
+log_file.write(f"{args}\n")
+log_file.write(f"sample_size_list: {sample_size_list}")
+log_file.close()
