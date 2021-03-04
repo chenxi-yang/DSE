@@ -100,7 +100,7 @@ class LinearSig(nn.Module):
 
 
 class ThermostatNN(nn.Module):
-    def __init__(self, l):
+    def __init__(self, l, nn_mode):
         super(ThermostatNN, self).__init__()
         self.tOff = var(62.0)
         self.tOn = var(80.0)
@@ -119,7 +119,13 @@ class ThermostatNN(nn.Module):
             self.ifelse_tOff, # if x <= tOff: isOn=1.0 else: skip
         )
 
-        self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_up_temp)
+        if nn_mode == "single":
+            # curL = curL + 0.1(curL - lin) + 5.0
+            self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_up_temp)
+        if nn_mode == "all":
+            # curL = curL + 10.0 * NN(curL, lin) + 5.0
+            self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=lambda x: x.select_from_index(0, index0).add(self.nn(x).mul(var(10.0))).add(var(5.0)))
+
 
         self.ifelse_tOn_block1 = Skip()
         self.ifelse_tOn_block2 = Assign(target_idx=[1], arg_idx=[], f=lambda x: x.set_value(var(0.0)))

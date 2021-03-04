@@ -17,8 +17,9 @@ width = args.width
 noise = args.noise
 bs = args.bs
 n = args.n
-l = arg.l
+l = args.l
 nn_mode = args.nn_mode
+b = args.b
 # path_sample_size = args.path_sample_size
 
 sample_size_list = [250, 100, 50, 10]
@@ -68,7 +69,7 @@ POINT_BETA = var(5.0) # var(50.0) # var(100.0) # 10.0s
 PARTIAL_BETA = var(1.0) # 1.0
 EPSILON = var(0.00001)
 SMALL_PROBABILITY = var(0.01)
-B = var(1000) # the range of lambda
+B = var(b) # the range of lambda
 
 CURRENT_PROGRAM = 'program' + str(benchmark_id) # 'program_test_disjunction_2'
 
@@ -89,9 +90,15 @@ if benchmark_id == 11:
     #! the loosest constraint (both DSE and baseline1 can learn)
     # safe_l = 47.00 # 58.425
     # safe_r = 86.67 # 83.19
+    #! constraint looser
+    # safe_l = 52.0001
+    # safe_r = 85.0004
+    #! constant losser stricter (for l=100)
+    safe_l = 52.0001
+    safe_r = 84.99823
     #! constraint in between (testing)
-    safe_l = 52.001
-    safe_r = 84.995
+    # safe_l = 52.02
+    # safe_r = 84.995
     #! the most strict constraint(both DSE and baseline1 can not learn)
     # safe_l = 53.00 # 47.00
     # safe_r = 83.00 # 83.67
@@ -511,7 +518,7 @@ alpha_coeff = 0.9
 
 alpha_smooth_max = 0.8
 
-file_dir =  f"result/thermostat_nn_point_{safe_l}_{safe_r}_{lr}_{bs}_{num_epoch}.txt"
+file_dir =  f"result/thermostat_nn_point_{safe_l}_{safe_r}_{lr}_{bs}_{num_epoch}_{l}_{b}_{nn_mode}.txt"
 log_file = open(file_dir, 'w')
 log_file.write(f"{args}\n")
 log_file.write(f"sample_size_list: {sample_size_list}")

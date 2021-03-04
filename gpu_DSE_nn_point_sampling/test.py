@@ -94,6 +94,7 @@ def eval(X, Y, m, target, category):
     
     log_file = open(file_dir, 'a')
     # Quantitative loss & safe
+    log_file.write(f"Real Safe Interval: [{safe_min}, {safe_max}]\n")
     log_file.write('Test:' + str(quan_dist.data.item()) + ',' + str(safe_dist.data.item()) + '\n')
     log_file.close()
 

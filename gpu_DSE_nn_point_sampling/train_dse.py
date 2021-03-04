@@ -62,9 +62,12 @@ def distance_f_interval(symbol_table_list, target):
 def normal_pdf(x, mean, std):
     # print(f"----normal_pdf-----\n x: {x} \n mean: {mean} \n std: {std} \n -------")
     y = torch.exp((-((x-mean)**2)/(2*std*std)))/ (std* torch.sqrt(2*var(math.pi)))
-    res = torch.prod(y)
+    # print(f"y: {y}")
+    res = torch.sum(torch.log(y))
+    # res = torch.prod(y)
+    # print(f"res: {res}")
+    # exit(0)
     # res *= var(1e)
-
     return res
 
 
@@ -222,10 +225,10 @@ def update_model_parameter(m, theta):
 
 def sampled(x):
     res = torch.normal(mean=x, std=var(1.0))
-    p = normal_pdf(res, mean=x, std=var(1.0))
-    # print(f"res: {res} \n p: {p}")
+    log_p = normal_pdf(res, mean=x, std=var(1.0))
+    # print(f"res: {res} \n log_p: {log_p}")
     # exit(0)
-    return res, p
+    return res, log_p
 
 
 def sample_parameters(Theta, n=5):
@@ -240,7 +243,9 @@ def sample_parameters(Theta, n=5):
         for array in Theta:
             sampled_array, sampled_p = sampled(array)
             sampled_theta.append(sampled_array)
-            theta_p *= sampled_p
+            # sum the log(p)
+            theta_p += sampled_p
+            # theta_p *= sampled_p # !incorrect
         # print(f"each sampled theta: {sampled_theta}")
         # print(f"each probability: {theta_p}")
         theta_list.append((sampled_theta, theta_p))
@@ -257,7 +262,23 @@ def extract_parameters(m):
     return Theta
 
 
-def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None, bs=10, n=5):
+def gd_direct_noise(
+    X_train, 
+    y_train, 
+    theta_l, 
+    theta_r, 
+    target, 
+    lambda_=lambda_, 
+    stop_val=0.01, 
+    epoch=1000, 
+    lr=0.00001, 
+    theta=None, 
+    bs=10, 
+    n=5,
+    nn_mode='all',
+    l=10,
+    ):
+
     print("--------------------------------------------------------------")
     print('----Gradient Direct Noise Descent Train DSE PyTorch New----')
     print('====Start Training====')
@@ -274,7 +295,8 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
 
     # Theta = var_list(tmp_theta_list, requires_grad=True)
 
-    m = ThermostatNN(l=10)
+    m = ThermostatNN(l=l, nn_mode=nn_mode)
+    print(m)
     m.cuda()
 
     optimizer = torch.optim.SGD(m.parameters(), lr=lr)
@@ -291,18 +313,20 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
             
             Theta = extract_parameters(m) # extract the parameters now, and then sample around it
             # print(f"Theta before: {Theta}")
+            # the sample_theta_p is the one after log
             for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
                 m = update_model_parameter(m, sample_theta)
                 data_time = time.time()
                 data_loss, safe_loss = cal_loss(m, x, y, target)
+                # print(f"data_loss: {data_loss}, safe_loss: {safe_loss}")
                 # print(f"{'#' * 15}")
                 # print(f"data_loss: {data_loss}, TIME: {time.time() - data_time}")
-                # print(f"p: {sample_theta_p}, log_p: {torch.log(sample_theta_p)}")
-                grad_data_loss += var(data_loss.data.item()) * torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
+                # print(f"log_p: {sample_theta_p}") # , log_p: {torch.log(sample_theta_p)}")
+                grad_data_loss += var(data_loss.data.item()) * sample_theta_p # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                 real_data_loss += var(data_loss.data.item())
                 # print(f"safe_loss: {safe_loss.data.item()}, TIME: {time.time() - safe_time}")
                 # print(f"{'#' * 15}")
-                grad_safe_loss += var(safe_loss.data.item()) * torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
+                grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                 real_safe_loss += var(safe_loss.data.item())
 
                 # exit(0)
@@ -315,9 +339,11 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
 
             print(f"real data_loss: {real_data_loss}")
             print(f"real safe_loss: {real_safe_loss}, data and safe TIME: {time.time() - batch_time}")
+            
             q_loss += real_data_loss
             c_loss += real_safe_loss
             loss = grad_data_loss + lambda_.mul(grad_safe_loss)
+            # print(f"grad_data_loss: {grad_data_loss}, grad_safe_loss: {grad_safe_loss}, loss: {loss}")
             loss.backward()
             for partial_theta in Theta:
                 torch.nn.utils.clip_grad_norm_(partial_theta, 1)
@@ -326,8 +352,9 @@ def gd_direct_noise(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_,
             # check: remove all the theta_p, only leave loss.data.item(), check the grad check guola
             optimizer.step()
             optimizer.zero_grad()
-            # new_theta = extract_parameters(m)
+            new_theta = extract_parameters(m)
             # print(f"Theta after step: {new_theta}")
+            # exit(0)
 
             count += 1
             # if count >= 10:

@@ -63,7 +63,8 @@ def distance_f_interval(symbol_table_list, target):
 def normal_pdf(x, mean, std):
     # print(f"----normal_pdf-----\n x: {x} \n mean: {mean} \n std: {std} \n -------")
     y = torch.exp((-((x-mean)**2)/(2*std*std)))/ (std* torch.sqrt(2*var(math.pi)))
-    res = torch.prod(y)
+    # res = torch.prod(y)
+    res = torch.sum(torch.log(y))
     # res *= var(1e)
 
     return res
@@ -220,10 +221,10 @@ def update_model_parameter(m, theta):
 
 def sampled(x):
     res = torch.normal(mean=x, std=var(1.0))
-    p = normal_pdf(res, mean=x, std=var(1.0))
+    log_p = normal_pdf(res, mean=x, std=var(1.0))
     # print(f"res: {res} \n p: {p}")
     # exit(0)
-    return res, p
+    return res, log_p
 
 
 def sample_parameters(Theta, n=5):
@@ -238,7 +239,9 @@ def sample_parameters(Theta, n=5):
         for array in Theta:
             sampled_array, sampled_p = sampled(array)
             sampled_theta.append(sampled_array)
-            theta_p *= sampled_p
+            # sum the log(p)
+            theta_p += sampled_p
+            # theta_p *= sampled_p # !incorrect
         # print(f"each sampled theta: {sampled_theta}")
         # print(f"each probability: {theta_p}")
         theta_list.append((sampled_theta, theta_p))
@@ -287,7 +290,7 @@ def gd_direct_noise(
 
     # Theta = var_list(tmp_theta_list, requires_grad=True)
 
-    m = ThermostatNN(l=10, nn_mode=nn_mode)
+    m = ThermostatNN(l=l, nn_mode=nn_mode)
     print(m)
     m.cuda()
 
@@ -312,14 +315,14 @@ def gd_direct_noise(
                 # print(f"{'#' * 15}")
                 # print(f"data_loss: {data_loss}, TIME: {time.time() - data_time}")
                 # print(f"p: {sample_theta_p}, log_p: {torch.log(sample_theta_p)}")
-                grad_data_loss += var(data_loss.data.item()) * torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
+                grad_data_loss += var(data_loss.data.item()) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                 real_data_loss += var(data_loss.data.item())
 
                 safe_time = time.time()
                 safe_loss = cal_safe_loss(m, x, width, target)
                 # print(f"safe_loss: {safe_loss.data.item()}, TIME: {time.time() - safe_time}")
                 # print(f"{'#' * 15}")
-                grad_safe_loss += var(safe_loss.data.item()) * torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
+                grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                 real_safe_loss += var(safe_loss.data.item())
 
                 # exit(0)

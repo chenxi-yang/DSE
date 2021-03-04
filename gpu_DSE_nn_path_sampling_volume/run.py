@@ -112,18 +112,6 @@ if __name__ == "__main__":
                     model_list.append(model)
 
                     # TODO: return a distribution
-                    # theta_t = list()
-                    # for i in range(len(theta)):
-                    #     theta_t.append(var(0.0))
-
-                    # for i in theta_list:
-                    #     # i is theta, is a list
-                    #     for idx, value in enumerate(i):
-                    #         theta_t[idx] = theta_t[idx].add(i)
-                    # for idx, value in enumerate(theta_t):
-                    #     theta_t[idx] = theta_t[idx].div(var(len(theta_list)))
-
-                    # theta_list.append(theta)
                     m_t = random.choice(model_list)
 
                     lambda_t = var(0.0)

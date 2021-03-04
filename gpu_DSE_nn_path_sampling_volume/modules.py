@@ -139,7 +139,7 @@ def calculate_branch(target_idx, test, symbol_table):
     # print(f"target right: {target.getRight()}")
     # print(f"test: {test}")
     # pre allocate
-    probability = pre_allocate(symbol_table)
+    # probability = pre_allocate(symbol_table)
 
     if target.getRight().data.item() <= test.data.item():
         res = x.clone()
@@ -153,7 +153,7 @@ def calculate_branch(target_idx, test, symbol_table):
         res = x.clone()
         branch = 'orelse'
         res_symbol_table = pre_build_symbol_table(symbol_table)
-        probability, counter = pre_allocate(symbol_table)
+        probability = pre_allocate(symbol_table)
         res_symbol_table = update_res_in_branch(res_symbol_table, res, probability, branch)
         res_symbol_table_list.append(res_symbol_table)
 
@@ -167,7 +167,7 @@ def calculate_branch(target_idx, test, symbol_table):
         # point cloud based
         # probability, counter = split_point_cloud(symbol_table, res, target_idx)
         # volume-based
-        probability = split_volume(symbol_table, target, c, delta)
+        probability = split_volume(symbol_table, target, delta)
         res_symbol_table_body = update_res_in_branch(res_symbol_table_body, res, probability, branch)
         res_symbol_table_list.append(res_symbol_table_body)
 
@@ -180,7 +180,7 @@ def calculate_branch(target_idx, test, symbol_table):
         # point cloud based
         # probability, counter = split_point_cloud(symbol_table, res, target_idx)
         # volume-based
-        probability = split_volume(symbol_table, target, c, delta)
+        probability = split_volume(symbol_table, target, delta)
         res_symbol_table_orelse = update_res_in_branch(res_symbol_table_orelse, res, probability, branch)
         res_symbol_table_list.append(res_symbol_table_orelse)
 

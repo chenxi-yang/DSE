@@ -41,7 +41,21 @@ def best_lambda(X_train, y_train, m, target):
 
 
 def best_theta(X_train, y_train, lambda_, target):
-    m, loss, loss_list, q, c, time_out = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=stop_val, epoch=num_epoch, lr=lr, bs=bs)
+    m, loss, loss_list, q, c, time_out = optimize_f(
+        X_train, 
+        y_train, 
+        theta_l, 
+        theta_r, 
+        target, 
+        lambda_=lambda_, 
+        stop_val=stop_val, 
+        epoch=num_epoch, 
+        lr=lr, 
+        bs=bs,
+        l=l,
+        n=n,
+        nn_mode=nn_mode,
+        )
 
     return m, loss, time_out
 
@@ -75,7 +89,20 @@ if __name__ == "__main__":
                     new_lambda = B.mul(q.exp().div(var(1.0).add(q.exp())))
 
                     # BEST_theta(lambda)
-                    m, loss, loss_list, q, c, time_out = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=new_lambda, stop_val=stop_val, epoch=num_epoch, lr=lr, bs=bs)
+                    m, loss, loss_list, q, c, time_out = optimize_f(
+                        X_train, 
+                        y_train,
+                        theta_l, 
+                        theta_r, 
+                        target, 
+                        lambda_=new_lambda, 
+                        stop_val=stop_val, 
+                        epoch=num_epoch, 
+                        lr=lr, 
+                        bs=bs,
+                        n=n,
+                        nn_mode=nn_mode,
+                        l=l)
 
                     #TODO: reduce time, because there are some issues with the gap between cal_c and cal_q
                     m_t = m
@@ -85,18 +112,6 @@ if __name__ == "__main__":
                     model_list.append(model)
 
                     # TODO: return a distribution
-                    # theta_t = list()
-                    # for i in range(len(theta)):
-                    #     theta_t.append(var(0.0))
-
-                    # for i in theta_list:
-                    #     # i is theta, is a list
-                    #     for idx, value in enumerate(i):
-                    #         theta_t[idx] = theta_t[idx].add(i)
-                    # for idx, value in enumerate(theta_t):
-                    #     theta_t[idx] = theta_t[idx].div(var(len(theta_list)))
-
-                    # theta_list.append(theta)
                     m_t = random.choice(model_list)
 
                     lambda_t = var(0.0)

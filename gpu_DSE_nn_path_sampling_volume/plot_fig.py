@@ -58,10 +58,12 @@ def read_train_log(log_file):
     with open(log_file, 'r') as log_f:
         log_f.readline()
         for line in log_f:
+            # print(line)
             if 'epoch' in line and 'loss' not in line:
                 content = line.split(",")
                 q = float(content[1].split(":")[1])/5
                 c = float(content[2].split(":")[1])/5
+                # print(q, c)
                 q_list.append(q)
                 c_list.append(c)
                 if len(q_list) >= 20:
@@ -130,12 +132,16 @@ def plot_sample(sample_file):
     plot_dot(sample_size_list, time_list, title='sample time', x_label='sample size', y_label='time', label='time', fig_title=f"figures/sample/sample_time.png", c='C0')
 
 
-def plot_training_loss(log_file, benchmark):
+def plot_training_loss(log_file, benchmark, log=False):
+    if log:
+        flag = 'log-'
+    else:
+        flag = ''
     q_list, c_list = read_train_log(log_file)
     x_list = list(range(len(q_list)))
 
-    plot_line(x_list, q_list, title='training data loss', x_label='epoch', y_label='loss', label='data loss', fig_title=f"figures/loss/{benchmark}_data_loss.png", c='C0')
-    plot_line(x_list, c_list, title='training safe loss', x_label='epoch', y_label='loss', label='safe loss', fig_title=f"figures/loss/{benchmark}_safe_loss.png", c='C1')
+    plot_line(x_list, q_list, title='training data loss', x_label='epoch', y_label=flag + 'loss', label='data loss', fig_title=f"figures/loss/{benchmark}_data_loss.png", c='C0', log=log)
+    plot_line(x_list, c_list, title='training safe loss', x_label='epoch', y_label=flag + 'loss', label='safe loss', fig_title=f"figures/loss/{benchmark}_safe_loss.png", c='C1', log=log)
 
 
 if __name__ == "__main__":
@@ -143,7 +149,7 @@ if __name__ == "__main__":
     # plot_loss_2('loss/')
     # plot_sample('data/sample_time.txt')
     # lr_bs_epoch_samplesize
-    plot_training_loss('loss/thermostat_nn_53.00_83.00_0.001_40_20_250_100_50_10.txt', benchmark='thermostat_nn_53.00_83.00_0.001_40_20_250')
+    plot_training_loss('result/thermostat_nn_volume_52.0001_85.0004_0.001_40_20_100_5000.txt', benchmark='thermostat_nn_volume_52.0001_85.0004_0.001_40_20_100_5000', log=False)
    
 
 
