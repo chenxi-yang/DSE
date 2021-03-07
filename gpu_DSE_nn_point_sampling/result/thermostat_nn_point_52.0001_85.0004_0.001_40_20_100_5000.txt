@@ -1,0 +1,152 @@
+Namespace(b=5000, benchmark_id=11.0, bs=40, data_size=20000, l=100, lr=0.001, n=5, nn_mode='all', noise=0.1, num_epoch=20, optimizer='gd_direct_noise', stop_val=0.05, t_epoch=10, test_portion=0.99, w=0.5, width=0.3)
+sample_size_list: [250, 100, 50, 10]####--PATH_SAMPLE_SIZE: 250DATA_USED_FOR_SAMPLING_PATH:100
+0-th Epochs Time: 63.30679655075073
+-----finish 0-th epoch-----, the batch loss: q: 11.074179649353027, c: 0.0
+-----finish 0-th epoch-----, q: 243.26742553710938, c: 0.8180561661720276
+1-th Epochs Time: 64.24587488174438
+-----finish 1-th epoch-----, the batch loss: q: 11.074007987976074, c: 0.0
+-----finish 1-th epoch-----, q: 51.753334045410156, c: 0.0
+One train: Optimization--128.4945845603943,2,64.24729228019714
+Real Safe Interval: [52.14149475097656, 84.9427261352539]
+Test:10.34952449798584,0.0
+Real Safe Interval: [52.000816345214844, 84.9993896484375]
+Test:10.49666976928711,0.0
+0-th Epochs Time: 69.16479015350342
+-----finish 0-th epoch-----, the batch loss: q: 11.073984146118164, c: 0.0
+-----finish 0-th epoch-----, q: 865.4014892578125, c: 2.4018750190734863
+1-th Epochs Time: 70.18357515335083
+-----finish 1-th epoch-----, the batch loss: q: 13.518261909484863, c: 0.047271568328142166
+-----finish 1-th epoch-----, q: 55.9973030090332, c: 0.08105705678462982
+2-th Epochs Time: 70.86479298273723
+-----finish 2-th epoch-----, the batch loss: q: 11.073982238769531, c: 0.0
+-----finish 2-th epoch-----, q: 51.74763870239258, c: 0.0
+One train: Optimization--212.60143995285034,3,70.86714665095012
+Real Safe Interval: [52.14149475097656, 84.9427261352539]
+Test:10.34952449798584,0.0
+Real Safe Interval: [52.000816345214844, 84.9993896484375]
+Test:10.49666976928711,0.0
+0-th Epochs Time: 70.98778510093689
+-----finish 0-th epoch-----, the batch loss: q: 39.54859161376953, c: 0.5570937991142273
+-----finish 0-th epoch-----, q: 1287.539306640625, c: 3.9539644718170166
+1-th Epochs Time: 71.52120113372803
+-----finish 1-th epoch-----, the batch loss: q: 18.477584838867188, c: 0.1452963650226593
+-----finish 1-th epoch-----, q: 1554.3624267578125, c: 3.9263970851898193
+2-th Epochs Time: 71.94997525215149
+-----finish 2-th epoch-----, the batch loss: q: 14.010716438293457, c: 0.0556487999856472
+-----finish 2-th epoch-----, q: 70.76314544677734, c: 0.4547922611236572
+3-th Epochs Time: 72.43515580892563
+-----finish 3-th epoch-----, the batch loss: q: 11.073996543884277, c: 0.0
+-----finish 3-th epoch-----, q: 52.211090087890625, c: 0.02849642187356949
+4-th Epochs Time: 72.57079310417176
+-----finish 4-th epoch-----, the batch loss: q: 10.182921409606934, c: 0.007209880743175745
+-----finish 4-th epoch-----, q: 53.618709564208984, c: 0.05808738246560097
+5-th Epochs Time: 72.62991857528687
+-----finish 5-th epoch-----, the batch loss: q: 11.073990821838379, c: 0.0
+-----finish 5-th epoch-----, q: 53.754825592041016, c: 0.04048464819788933
+6-th Epochs Time: 72.7271363394601
+-----finish 6-th epoch-----, the batch loss: q: 11.073982238769531, c: 0.0
+-----finish 6-th epoch-----, q: 51.67869567871094, c: 0.0
+One train: Optimization--509.097398519516,7,72.72819978850228
+Real Safe Interval: [52.14149475097656, 84.9427261352539]
+Test:10.34952449798584,0.0
+Real Safe Interval: [52.000816345214844, 84.9993896484375]
+Test:10.49666976928711,0.0
+0-th Epochs Time: 72.57546305656433
+-----finish 0-th epoch-----, the batch loss: q: 11.073982238769531, c: 0.0
+-----finish 0-th epoch-----, q: 215.91909790039062, c: 0.5522209405899048
+1-th Epochs Time: 72.8891589641571
+-----finish 1-th epoch-----, the batch loss: q: 11.073982238769531, c: 0.0
+-----finish 1-th epoch-----, q: 51.74763870239258, c: 0.0
+One train: Optimization--145.78543066978455,2,72.89271533489227
+Real Safe Interval: [52.14149475097656, 84.9427261352539]
+Test:10.34952449798584,0.0
+Real Safe Interval: [52.000816345214844, 84.9993896484375]
+Test:10.49666976928711,0.0
+0-th Epochs Time: 81.14581155776978
+-----finish 0-th epoch-----, the batch loss: q: 11.073982238769531, c: 0.0
+-----finish 0-th epoch-----, q: 219.61834716796875, c: 0.6664173007011414
+1-th Epochs Time: 77.56876170635223
+-----finish 1-th epoch-----, the batch loss: q: 11.073982238769531, c: 0.0
+-----finish 1-th epoch-----, q: 51.76325225830078, c: 0.0
+One train: Optimization--155.14531707763672,2,77.57265853881836
+Real Safe Interval: [52.14149475097656, 84.9427261352539]
+Test:10.34952449798584,0.0
+Real Safe Interval: [52.000816345214844, 84.9993896484375]
+Test:10.49666976928711,0.0
+####--PATH_SAMPLE_SIZE: 100DATA_USED_FOR_SAMPLING_PATH:100
+0-th Epochs Time: 72.01462650299072
+-----finish 0-th epoch-----, the batch loss: q: 10.335917472839355, c: 0.0
+-----finish 0-th epoch-----, q: 590.4443359375, c: 1.7156729698181152
+1-th Epochs Time: 72.87783861160278
+-----finish 1-th epoch-----, the batch loss: q: 10.337510108947754, c: 0.0
+-----finish 1-th epoch-----, q: 55.212345123291016, c: 0.035312484949827194
+2-th Epochs Time: 73.24979702631633
+-----finish 2-th epoch-----, the batch loss: q: 10.335884094238281, c: 0.0
+-----finish 2-th epoch-----, q: 53.02165985107422, c: 0.0
+One train: Optimization--219.75564408302307,3,73.25188136100769
+Real Safe Interval: [52.00153350830078, 84.96341705322266]
+Test:10.687803268432617,0.0
+Real Safe Interval: [52.00068283081055, 84.99795532226562]
+Test:10.481801986694336,0.0
+0-th Epochs Time: 73.25513577461243
+-----finish 0-th epoch-----, the batch loss: q: 10.33617877960205, c: 0.0
+-----finish 0-th epoch-----, q: 263.4618225097656, c: 0.5738372802734375
+1-th Epochs Time: 73.26705837249756
+-----finish 1-th epoch-----, the batch loss: q: 10.336194038391113, c: 0.0
+-----finish 1-th epoch-----, q: 53.444942474365234, c: 0.0
+One train: Optimization--146.54201912879944,2,73.27100956439972
+Real Safe Interval: [52.00153350830078, 84.96341705322266]
+Test:10.687803268432617,0.0
+Real Safe Interval: [52.00068283081055, 84.99795532226562]
+Test:10.481801986694336,0.0
+0-th Epochs Time: 67.48876357078552
+-----finish 0-th epoch-----, the batch loss: q: 9.106122016906738, c: 0.0
+-----finish 0-th epoch-----, q: 414.6813659667969, c: 1.059836506843567
+1-th Epochs Time: 68.02171528339386
+-----finish 1-th epoch-----, the batch loss: q: 10.335884094238281, c: 0.0
+-----finish 1-th epoch-----, q: 144.72653198242188, c: 0.40273338556289673
+2-th Epochs Time: 69.90322764714558
+-----finish 2-th epoch-----, the batch loss: q: 10.335884094238281, c: 0.0
+-----finish 2-th epoch-----, q: 53.43901824951172, c: 0.0
+One train: Optimization--209.7152819633484,3,69.90509398778279
+Real Safe Interval: [52.00153350830078, 84.96341705322266]
+Test:10.687803268432617,0.0
+Real Safe Interval: [52.00068283081055, 84.99795532226562]
+Test:10.481801986694336,0.0
+0-th Epochs Time: 82.97227334976196
+-----finish 0-th epoch-----, the batch loss: q: 10.335884094238281, c: 0.0
+-----finish 0-th epoch-----, q: 150.50634765625, c: 0.45272836089134216
+1-th Epochs Time: 82.13589715957642
+-----finish 1-th epoch-----, the batch loss: q: 10.335884094238281, c: 0.0
+-----finish 1-th epoch-----, q: 53.43901824951172, c: 0.0
+One train: Optimization--164.281147480011,2,82.1405737400055
+Real Safe Interval: [52.00153350830078, 84.96341705322266]
+Test:10.687803268432617,0.0
+Real Safe Interval: [52.00068283081055, 84.99795532226562]
+Test:10.481801986694336,0.0
+0-th Epochs Time: 76.1814534664154
+-----finish 0-th epoch-----, the batch loss: q: 10.335884094238281, c: 0.0
+-----finish 0-th epoch-----, q: 223.04525756835938, c: 0.5253658890724182
+1-th Epochs Time: 76.21588790416718
+-----finish 1-th epoch-----, the batch loss: q: 10.335884094238281, c: 0.0
+-----finish 1-th epoch-----, q: 53.43901824951172, c: 0.0
+One train: Optimization--152.43854403495789,2,76.21927201747894
+Real Safe Interval: [52.00153350830078, 84.96341705322266]
+Test:10.687803268432617,0.0
+Real Safe Interval: [52.00068283081055, 84.99795532226562]
+Test:10.481801986694336,0.0
+####--PATH_SAMPLE_SIZE: 50DATA_USED_FOR_SAMPLING_PATH:100
+0-th Epochs Time: 65.8666479587555
+-----finish 0-th epoch-----, the batch loss: q: 10.399284362792969, c: 0.018557634204626083
+-----finish 0-th epoch-----, q: 449.9618835449219, c: 2.192704677581787
+1-th Epochs Time: 66.63741791248322
+-----finish 1-th epoch-----, the batch loss: q: 9.950926780700684, c: 0.0002199795126216486
+-----finish 1-th epoch-----, q: 65.70771789550781, c: 0.11558830738067627
+2-th Epochs Time: 67.12039295832317
+-----finish 2-th epoch-----, the batch loss: q: 9.879884719848633, c: 0.0
+-----finish 2-th epoch-----, q: 51.703636169433594, c: 0.0
+One train: Optimization--201.36696028709412,3,67.12232009569804
+Real Safe Interval: [52.12025451660156, 84.99620056152344]
+Test:10.340719223022461,0.0
+Real Safe Interval: [52.00246047973633, 84.9989013671875]
+Test:10.485519409179688,0.0
