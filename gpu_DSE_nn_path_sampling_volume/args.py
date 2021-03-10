@@ -21,6 +21,9 @@ def get_parser():
     p.add_argument("--nn_mode", default='all', help="how many NN used in model, 'single' means only used in the first one")
     p.add_argument("--l", default=10, type=int, help="size of hidden states in NN")
     p.add_argument("--b", default=1000, type=int, help="range of lambda")
+    p.add_argument("--module", default="linearrelu", help="module in model")
+    p.add_argument("--safe_start_idx", default=0, type=int, help="start slice of safe_list")
+    p.add_argument("--safe_end_idx", default=0, type=int, help="end clide of safe_list")
     return p
 
 

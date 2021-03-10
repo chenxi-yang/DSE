@@ -51,6 +51,23 @@ class Sigmoid(nn.Module):
 
     def forward(self, x):
         return x.sigmoid()
+    
+
+class ReLu(nn.Module):
+    def __init__(self):
+        super().__init__()
+    
+    def forward(self, x):
+        return x.relu()
+
+
+class SigmoidLinear(nn.Module):
+    def __init__(self, sig_range):
+        super().__init__()
+        self.sig_range = sig_range
+    
+    def forward(self, x):
+        return x.sigmoid_linear(sig_range=self.sig_range)
 
 '''
 Program Statement
@@ -62,11 +79,12 @@ def calculate_x_list(target_idx, arg_idx, f, symbol_table_list):
         x = symbol_table['x']
         input = x.select_from_index(0, arg_idx) # torch.index_select(x, 0, arg_idx)
         # print(f"f: {f}")
-        res = f(input)
+        res, p = f(input)
         # print(f"calculate_x_list --  target_idx: {target_idx}, res: {res.c}, {res.delta}")
         x.set_from_index(target_idx, res) # x[target_idx[0]] = res
         
         symbol_table['x'] = x
+        symbol_table['probability'] = symbol_table['probability'].mul(p)
         symbol_table_list[idx] = symbol_table
     # print(f"-- assign -- calculate_x_list: {time.time() - assign_time}")
     return symbol_table_list
@@ -183,33 +201,6 @@ def calculate_branch(target_idx, test, symbol_table):
         probability = split_volume(symbol_table, target, delta)
         res_symbol_table_orelse = update_res_in_branch(res_symbol_table_orelse, res, probability, branch)
         res_symbol_table_list.append(res_symbol_table_orelse)
-
-    # if b == 'body':
-    #     branch = 'body'
-    #     if target.getRight().data.item() <= test.data.item():
-    #         res = x.clone()
-    #     elif target.getLeft().data.item() > test.data.item():
-    #         res = None
-    #     else:
-    #         res = x.clone()
-    #         c = (target.getLeft() + test) / 2.0
-    #         delta = (test - target.getLeft()) / 2.0
-    #         res.set_from_index(target_idx, domain.Box(c, delta)) # res[target_idx] = Box(c, delta)
-    #         probability, counter, point_cloud = split_point_cloud(symbol_table, res, target_idx)
-    # else:
-    #     branch = 'orelse'
-    #     if target.getRight().data.item() <= test.data.item():
-    #         res = None
-    #     elif target.getLeft().data.item() > test.data.item():
-    #         res = x.clone()
-    #     else:
-    #         res = x.clone()
-    #         c = (target.getRight() + test) / 2.0
-    #         delta = (target.getRight() - test) / 2.0
-    #         res.set_from_index(target_idx, domain.Box(c, delta))
-    #         probability, counter, point_cloud = split_point_cloud(symbol_table, res, target_idx)
-
-    # res_symbol_table = update_res_in_branch(res_symbol_table, res, probability, counter, point_cloud, branch)
 
     # print(f"branch time: {time.time() - branch_time}")
     return res_symbol_table_list

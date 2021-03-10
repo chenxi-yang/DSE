@@ -15,20 +15,6 @@ optimizer = {
 }
 
 
-def test(X_train, y_train, theta_l, theta_r, target):
-    plot_sep_quan_safe_trend(X_train, y_train, theta_l, theta_r, target, k=50)
-
-
-def evaluation(X_train, y_train, theta_l, theta_r, target, lambda_, stop_val, epoch=5, lr=0.00001):
-    # # res_theta, loss, loss_list = direct(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000)
-    res_theta, loss, loss_list, q, c = optimize_f(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=stop_val, epoch=num_epoch, lr=lr)
-    # # res_theta, loss, loss_list = gd_gaussian_noise(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000, lr=0.1)
-    # # res_theta, loss, loss_list = gd(X_train, y_train, theta_l, theta_r, target, stop_val=1.0, epoch=1000, lr=0.1)
-
-    eval(X_train, y_train, res_theta, target, 'train')
-    eval(X_test, y_test, res_theta, target, 'test')
-
-
 def best_lambda(X_train, y_train, m, target):
     c = cal_c(X_train, y_train, m, target)
     q = cal_q(X_train, y_train, m)
@@ -55,6 +41,7 @@ def best_theta(X_train, y_train, lambda_, target):
         l=l,
         n=n,
         nn_mode=nn_mode,
+        module=module,
         )
 
     return m, loss, time_out
@@ -64,11 +51,13 @@ if __name__ == "__main__":
     # torch.autograd.set_detect_anomaly(True)
 
     for path_sample_size in sample_size_list:
-        for data_for_sample in data_for_sample_list:
+        for safe_idx, safe_l in enumerate(sliced_safe_l_list):
+            safe_r = sliced_safe_r_list[safe_idx]
+
             time_out = False
             constants.SAMPLE_SIZE = path_sample_size # how many paths to sample?
             log_file = open(file_dir, 'a')
-            log_file.write('####--PATH_SAMPLE_SIZE: ' + str(constants.SAMPLE_SIZE) + 'DATA_USED_FOR_SAMPLING_PATH:' + str(data_for_sample) + '\n')
+            log_file.write(f"####--PATH_SAMPLE_SIZE: {constants.SAMPLE_SIZE)}, safe_range: [{safe_l}, {safe_r}]\n")
             log_file.close()
 
             optimize_f = optimizer[optimizer_name]
@@ -102,7 +91,8 @@ if __name__ == "__main__":
                         bs=bs,
                         n=n,
                         nn_mode=nn_mode,
-                        l=l)
+                        l=l,
+                        module=module)
 
                     #TODO: reduce time, because there are some issues with the gap between cal_c and cal_q
                     m_t = m
@@ -142,11 +132,6 @@ if __name__ == "__main__":
                 eval(X_train, y_train, m_t, target, 'train')
                 eval(X_test, y_test, m_t, target, 'test')
 
-            # Eval
-            # evaluation(X_train, y_train, theta_l, theta_r, target, lambda_=var(50.0), stop_val=stop_val, lr=lr)
-
-            # # TEST
-            # test(X_train, y_train, theta_l, theta_r, target)
 
 
 
