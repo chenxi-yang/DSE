@@ -25,7 +25,7 @@ safe_start_idx = args.safe_start_idx
 safe_end_idx = args.safe_end_idx
 # path_sample_size = args.path_sample_size
 
-sample_size_list = [200] # [250, 100, 50, 10]
+sample_size_list = [100] # [250, 100, 50, 10]
 data_for_sample_list = [100]  # [100, 50, 20]
 
 # 1, 2, 3, 4
@@ -104,6 +104,8 @@ if benchmark_id == 11:
 
     safe_l_list = [52.0, 52.0001, 52.0002, 52.1, 52.2, 52.3, 52.4]
     safe_r_list = [85.1, 85.0000, 84.998, 84.9, 84.8, 84.7, 84.6]
+    # safe_l_list = [50.0, 50.5, 51.0, 51.5, 52.0, 52.5, 53.0, 53.5]
+    # safe_r_list = [85.5, 85.0, 84.5, 84]
 
     sliced_safe_l_list = safe_l_list[safe_start_idx: safe_end_idx]
     sliced_safe_r_list = safe_r_list[safe_start_idx: safe_end_idx]
@@ -123,7 +125,7 @@ alpha_coeff = 0.9
 
 alpha_smooth_max = 0.8
 
-file_dir =  f"result/thermostat_nn_volume_{sliced_safe_l_list}_{sliced_safe_r_list}_{lr}_{bs}_{num_epoch}_{l}_{b}_{nn_mode}.txt"
+file_dir =  f"result/thermostat_nn_volume_{sliced_safe_l_list}_{sliced_safe_r_list}_{lr}_{bs}_{num_epoch}_{l}_{b}_{nn_mode}_{module}.txt"
 log_file = open(file_dir, 'w')
 log_file.write(f"{args}\n")
 log_file.write(f"sample_size_list: {sample_size_list}")

@@ -111,6 +111,7 @@ class LinearReLU(nn.Module):
         self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
 
     def forward(self, x):
+        # start_time = time.time()
         # print(f"LinearSig, before: {x.c, x.delta}")
         res = self.linear1(x)
         # print(f"LinearSig, after linear1: {res.c, res.delta}")
@@ -121,6 +122,7 @@ class LinearReLU(nn.Module):
         res, q2 = self.sigmoid_linear(res)
         # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         # exit(0)
+        # print(f"time in LinearReLU: {time.time() - start_time}")
         return res, q1.mul(q2)
 
 
@@ -162,7 +164,7 @@ class ThermostatNN(nn.Module):
             self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_tmp_up_nn)
 
         self.ifelse_tOn_block1 = Skip()
-        self.ifelse_tOn_block2 = Assign(target_idx=[1], arg_idx=[], f=lambda x: (x.set_value(var(0.0))), var(1.0))
+        self.ifelse_tOn_block2 = Assign(target_idx=[1], arg_idx=[], f=lambda x: (x.set_value(var(0.0)), var(1.0)))
         self.ifelse_tOn = IfElse(target_idx=[2], test=self.tOn, f_test=lambda x: x, body=self.ifelse_tOn_block1, orelse=self.ifelse_tOn_block2)
 
         self.ifblock2 = nn.Sequential(

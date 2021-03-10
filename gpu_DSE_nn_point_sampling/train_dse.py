@@ -277,6 +277,7 @@ def gd_direct_noise(
     n=5,
     nn_mode='all',
     l=10,
+    module='linearrelu',
     ):
 
     print("--------------------------------------------------------------")
@@ -295,7 +296,7 @@ def gd_direct_noise(
 
     # Theta = var_list(tmp_theta_list, requires_grad=True)
 
-    m = ThermostatNN(l=l, nn_mode=nn_mode)
+    m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     print(m)
     m.cuda()
 

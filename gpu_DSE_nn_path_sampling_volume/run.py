@@ -57,7 +57,7 @@ if __name__ == "__main__":
             time_out = False
             constants.SAMPLE_SIZE = path_sample_size # how many paths to sample?
             log_file = open(file_dir, 'a')
-            log_file.write(f"####--PATH_SAMPLE_SIZE: {constants.SAMPLE_SIZE)}, safe_range: [{safe_l}, {safe_r}]\n")
+            log_file.write(f"####--PATH_SAMPLE_SIZE: {constants.SAMPLE_SIZE}, safe_range: [{safe_l}, {safe_r}]\n")
             log_file.close()
 
             optimize_f = optimizer[optimizer_name]

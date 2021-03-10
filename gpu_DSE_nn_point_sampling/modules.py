@@ -52,6 +52,25 @@ class Sigmoid(nn.Module):
     def forward(self, x):
         return x.sigmoid()
 
+
+class ReLU(nn.Module):
+    def __init__(self):
+        super().__init__()
+    
+    def forward(self, x):
+        return x.relu()
+
+
+class SigmoidLinear(nn.Module):
+    def __init__(self, sig_range):
+        super().__init__()
+        self.sig_range = sig_range
+    
+    def forward(self, x):
+        return x.sigmoid_linear(sig_range=self.sig_range)
+
+
+
 '''
 Program Statement
 '''
@@ -78,13 +97,14 @@ def calculate_x_list(target_idx, arg_idx, f, symbol_table_list):
         x = symbol_table['x']
         input = x.select_from_index(0, arg_idx) # torch.index_select(x, 0, arg_idx)
         # print(f"f: {f}")
-        res = f(input)
+        res, p = f(input)
         # print(f"calculate_x_list --  target_idx: {target_idx}, res: {res.c}, {res.delta}")
         x.set_from_index(target_idx, res) # x[target_idx[0]] = res
         
         symbol_table['x'] = x
         # TODO: use point cloud
         symbol_table['point_cloud'] = update_point_cloud(target_idx, arg_idx, f, symbol_table)
+        symbol_table['probability'] = symbol_table['probability'].mul(p)
         symbol_table_list[idx] = symbol_table
     # print(f"-- assign -- calculate_x_list: {time.time() - assign_time}")
     return symbol_table_list

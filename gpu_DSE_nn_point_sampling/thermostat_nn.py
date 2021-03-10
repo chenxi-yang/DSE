@@ -96,22 +96,56 @@ class LinearSig(nn.Module):
         res = self.sigmoid(res)
         # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         # exit(0)
-        return res
+        return res, var(1.0)
+
+
+class LinearReLU(nn.Module):
+    def __init__(self, l, sig_range):
+        super().__init__()
+        self.linear1 = Linear(in_channels=2, out_channels=l)
+        self.linear2 = Linear(in_channels=l, out_channels=1)
+        self.relu = ReLU()
+        self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
+
+    def forward(self, x):
+        # start_time = time.time()
+        # print(f"LinearSig, before: {x.c, x.delta}")
+        res = self.linear1(x)
+        # print(f"LinearSig, after linear1: {res.c, res.delta}")
+        res, q1 = self.relu(res)
+        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
+        res = self.linear2(res)
+        # print(f"LinearSig, after linear2: {res.c, res.delta}")
+        res, q2 = self.sigmoid_linear(res)
+        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
+        # exit(0)
+        # print(f"time in LinearReLU: {time.time() - start_time}")
+        return res, q1.mul(q2)
 
 
 class ThermostatNN(nn.Module):
-    def __init__(self, l, nn_mode):
+    def __init__(self, l, sig_range=10, nn_mode='all', module='linearrelu'):
         super(ThermostatNN, self).__init__()
         self.tOff = var(62.0)
         self.tOn = var(80.0)
-        self.nn = LinearSig(l=l)
+        if module == 'linearsig':
+            self.nn = LinearSig(l=l)
+        if module == 'linearrelu':
+            self.nn = LinearReLU(l=l, sig_range=sig_range)
 
-        # self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=self.nn)
-        # curL = curL + NN(curL, lin)
-        self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=lambda x: x.select_from_index(0, index0).add(self.nn(x).mul(var(10.0))))
+        def f_tmp_down_nn(x):
+            plant, p = self.nn(x)
+            return x.select_from_index(0, index0).add(plant.mul(var(10.0))), p
+        
+        def f_tmp_up_nn(x):
+            plant, p = self.nn(x)
+            return x.select_from_index(0, index0).add(plant.mul(var(10.0))).add(var(5.0)), p
+
+        # curL = curL + 10.0 * NN(curL, lin)
+        self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_tmp_down_nn)
 
         # TODO: empty select index works?
-        self.ifelse_tOff_block1 = Assign(target_idx=[1], arg_idx=[], f=lambda x: x.set_value(var(1.0)))
+        self.ifelse_tOff_block1 = Assign(target_idx=[1], arg_idx=[], f=lambda x: (x.set_value(var(1.0)), var(1.0)))
         self.ifelse_tOff_block2 = Skip()
         self.ifelse_tOff = IfElse(target_idx=[2], test=self.tOff, f_test=lambda x: x, body=self.ifelse_tOff_block1, orelse=self.ifelse_tOff_block2)
         self.ifblock1 = nn.Sequential(
@@ -121,14 +155,13 @@ class ThermostatNN(nn.Module):
 
         if nn_mode == "single":
             # curL = curL + 0.1(curL - lin) + 5.0
-            self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_up_temp)
+            self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=lambda x: (f_up_temp(x), var(1.0)))
         if nn_mode == "all":
             # curL = curL + 10.0 * NN(curL, lin) + 5.0
-            self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=lambda x: x.select_from_index(0, index0).add(self.nn(x).mul(var(10.0))).add(var(5.0)))
-
+            self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_tmp_up_nn)
 
         self.ifelse_tOn_block1 = Skip()
-        self.ifelse_tOn_block2 = Assign(target_idx=[1], arg_idx=[], f=lambda x: x.set_value(var(0.0)))
+        self.ifelse_tOn_block2 = Assign(target_idx=[1], arg_idx=[], f=lambda x: (x.set_value(var(0.0)), var(1.0)))
         self.ifelse_tOn = IfElse(target_idx=[2], test=self.tOn, f_test=lambda x: x, body=self.ifelse_tOn_block1, orelse=self.ifelse_tOn_block2)
 
         self.ifblock2 = nn.Sequential(
@@ -137,7 +170,7 @@ class ThermostatNN(nn.Module):
         )
 
         self.ifelse_isOn = IfElse(target_idx=[1], test=var(0.5), f_test=lambda x: x, body=self.ifblock1, orelse=self.ifblock2)
-        self.assign_update = Assign(target_idx=[0], arg_idx=[0], f=lambda x: x.add(var(1.0)))
+        self.assign_update = Assign(target_idx=[0], arg_idx=[0], f=lambda x: (x.add(var(1.0)), var(1.0)))
         self.trajectory_update = Trajectory(target_idx=[2])
         self.whileblock = nn.Sequential(
             self.ifelse_isOn,
@@ -161,7 +194,7 @@ class ThermostatNN(nn.Module):
     def clip_norm(self):
         if not hasattr(self, "weight"):
             return
-        if not hasattr(self,"weight_g"):
+        if not hasattr(self, "weight_g"):
             if torch.__version__[0] == "0":
                 nn.utils.weight_norm(self, dim=None)
             else:

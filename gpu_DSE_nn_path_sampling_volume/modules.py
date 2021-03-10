@@ -53,7 +53,7 @@ class Sigmoid(nn.Module):
         return x.sigmoid()
     
 
-class ReLu(nn.Module):
+class ReLU(nn.Module):
     def __init__(self):
         super().__init__()
     

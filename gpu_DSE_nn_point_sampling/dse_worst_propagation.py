@@ -18,7 +18,7 @@ import constants
 from constants import *
 from helper import *
 
-target = domain.Interval(safe_l, safe_r)
+# target = domain.Interval(safe_l, safe_r)
 
 def f_beta_smooth_point(beta):
     gamma = var(0.1)

@@ -321,7 +321,7 @@ def gd_direct_noise(
 
                 safe_time = time.time()
                 safe_loss = cal_safe_loss(m, x, width, target)
-                # print(f"safe_loss: {safe_loss.data.item()}, TIME: {time.time() - safe_time}")
+                # print(f"safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - safe_time}")
                 # print(f"{'#' * 15}")
                 grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                 real_safe_loss += var(safe_loss.data.item())
@@ -370,10 +370,12 @@ def gd_direct_noise(
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
+        if c_loss.data.item() < EPSILON.data.item():
+            break
         
-        if (time.time() - start_time)/(i+1) > 1000:
+        if (time.time() - start_time)/(i+1) > 2000:
             log_file = open(file_dir, 'a')
-            log_file.write('TIMEOUT: avg epoch time > 1000s \n')
+            log_file.write('TIMEOUT: avg epoch time > 2000s \n')
             log_file.close()
             TIME_OUT = True
             break
