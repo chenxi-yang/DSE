@@ -1,0 +1,35 @@
+Namespace(b=5000, benchmark_id=11.0, bs=40, data_size=20000, l=1000, lr=0.001, module='linearrelu', n=5, nn_mode='all', noise=0.1, num_epoch=10, optimizer='gd_direct_noise', safe_end_idx=1, safe_start_idx=0, stop_val=0.05, t_epoch=10, test_portion=0.99, w=0.5, width=0.3)
+sample_size_list: [100]####--PATH_SAMPLE_SIZE: 100, safe_range: [52.0, 85.1]
+0-th Epochs Time: 309.1986153125763
+-----finish 0-th epoch-----, the batch loss: q: 9.952717781066895, c: 0.002339472295716405
+-----finish 0-th epoch-----, q: 221.27655029296875, c: 0.6269681453704834
+1-th Epochs Time: 310.28867506980896
+-----finish 1-th epoch-----, the batch loss: q: 9.952717781066895, c: 0.002343537285923958
+-----finish 1-th epoch-----, q: 50.998722076416016, c: 0.10710518062114716
+2-th Epochs Time: 310.24412202835083
+-----finish 2-th epoch-----, the batch loss: q: 9.952717781066895, c: 0.0023232109379023314
+-----finish 2-th epoch-----, q: 50.998722076416016, c: 0.014469009824097157
+3-th Epochs Time: 310.76333850622177
+-----finish 3-th epoch-----, the batch loss: q: 9.952717781066895, c: 0.002339472295716405
+-----finish 3-th epoch-----, q: 50.998722076416016, c: 0.014492971822619438
+4-th Epochs Time: 311.1933286190033
+-----finish 4-th epoch-----, the batch loss: q: 9.952717781066895, c: 0.0023448921274393797
+-----finish 4-th epoch-----, q: 50.998722076416016, c: 0.01457072701305151
+5-th Epochs Time: 319.35273309548694
+-----finish 5-th epoch-----, the batch loss: q: 9.952717781066895, c: 0.0023354068398475647
+-----finish 5-th epoch-----, q: 50.998722076416016, c: 0.014576318673789501
+6-th Epochs Time: 318.4541849749429
+-----finish 6-th epoch-----, the batch loss: q: 9.952717781066895, c: 0.0023150804918259382
+-----finish 6-th epoch-----, q: 50.998722076416016, c: 0.030339140444993973
+7-th Epochs Time: 317.5598723590374
+-----finish 7-th epoch-----, the batch loss: q: 9.952717781066895, c: 0.0023299865424633026
+-----finish 7-th epoch-----, q: 50.998722076416016, c: 0.014576046727597713
+8-th Epochs Time: 316.79699585172864
+-----finish 8-th epoch-----, the batch loss: q: 9.952717781066895, c: 0.0023367616813629866
+-----finish 8-th epoch-----, q: 50.998722076416016, c: 0.014495128765702248
+9-th Epochs Time: 317.41961274147036
+-----finish 9-th epoch-----, the batch loss: q: 9.952717781066895, c: 0.0023503131233155727
+-----finish 9-th epoch-----, q: 50.998722076416016, c: 0.014645926654338837
+One train: Optimization--3174.1997594833374,10,317.41997594833373
+Real Safe Interval: [52.02449417114258, 84.97286987304688]
+Test:10.199737548828125,0.0

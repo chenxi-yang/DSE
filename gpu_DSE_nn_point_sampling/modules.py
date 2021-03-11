@@ -70,7 +70,6 @@ class SigmoidLinear(nn.Module):
         return x.sigmoid_linear(sig_range=self.sig_range)
 
 
-
 '''
 Program Statement
 '''

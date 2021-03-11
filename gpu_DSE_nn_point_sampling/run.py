@@ -52,6 +52,8 @@ if __name__ == "__main__":
 
     for path_sample_size in sample_size_list:
         for safe_idx, safe_l in enumerate(sliced_safe_l_list):
+            safe_r = sliced_safe_r_list[safe_idx]
+            
             time_out = False
             constants.SAMPLE_SIZE = path_sample_size # how many paths to sample?
             log_file = open(file_dir, 'a')

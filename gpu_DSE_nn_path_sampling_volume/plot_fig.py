@@ -66,7 +66,7 @@ def read_train_log(log_file):
                 # print(q, c)
                 q_list.append(q)
                 c_list.append(c)
-                if len(q_list) >= 20:
+                if len(q_list) >= 10:
                     break
     return q_list, c_list
 
@@ -144,13 +144,17 @@ def plot_training_loss(log_file, benchmark, log=False):
     plot_line(x_list, c_list, title='training safe loss', x_label='epoch', y_label=flag + 'loss', label='safe loss', fig_title=f"figures/loss/{benchmark}_safe_loss.png", c='C1', log=log)
 
 
+def plot_vary_constraint(file):
+    safe_l_list, safe_r_list, p1, p2 = read_vary_constraint(file)
+    x_list = list(range(len(safe_l_list)))
+
 if __name__ == "__main__":
     # plot_loss('loss/') # the q and c loss
     # plot_loss_2('loss/')
     # plot_sample('data/sample_time.txt')
     # lr_bs_epoch_samplesize
-    plot_training_loss('result/thermostat_nn_volume_52.0001_85.0004_0.001_40_20_100_5000.txt', benchmark='thermostat_nn_volume_52.0001_85.0004_0.001_40_20_100_5000', log=False)
-   
+    # plot_training_loss('result/thermostat_nn_volume_[52.0]_[85.1]_0.001_40_10_1000_5000_all_linearrelu.txt', benchmark='thermostat_nn_volume_[52.0]_[85.1]_0.001_40_10_1000_5000_all_linearrelu', log=False)
+    plot_vary_constraint('result/vary_constraint_volume_vs_point_sampling.txt')
 
 
 

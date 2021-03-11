@@ -125,7 +125,7 @@ alpha_coeff = 0.9
 
 alpha_smooth_max = 0.8
 
-file_dir =  f"result/thermostat_nn_volume_{sliced_safe_l_list}_{sliced_safe_r_list}_{lr}_{bs}_{num_epoch}_{l}_{b}_{nn_mode}_{module}.txt"
+file_dir = f"result/thermostat_nn_volume_{sliced_safe_l_list}_{sliced_safe_r_list}_{lr}_{bs}_{num_epoch}_{l}_{b}_{nn_mode}_{module}.txt"
 log_file = open(file_dir, 'w')
 log_file.write(f"{args}\n")
 log_file.write(f"sample_size_list: {sample_size_list}")

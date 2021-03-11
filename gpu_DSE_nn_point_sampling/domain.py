@@ -440,6 +440,43 @@ class Box():
         bt = torch.sigmoid(self.c - self.delta)
         # print(f"in sigmoid, tp: {tp}, bt: {bt}")
         return self.new((tp + bt)/2, (tp - bt)/2)
+    
+    def relu(self): # monotonic function
+        # relu_time = time.time()
+        tp = F.relu(self.c + self.delta)
+        bt = F.relu(self.c - self.delta)
+        # print(f"relu: {time.time() - relu_time}")
+
+        # approximate volume
+        p0 = var(1.0)
+        # for idx, c in enumerate(self.c):
+        #     delta = self.delta[idx]
+        #     if (c + delta) > 0.0 and (c - delta).data.item() < 0.0:
+        #         p0 = p0.mul((c+delta) * 1.0/(delta * 2.0))
+        # print(f"after volume  approximation: {time.time() - relu_time}")
+        
+        return self.new((tp + bt)/2, (tp - bt)/2), p0
+    
+    def sigmoid_linear(self, sig_range):
+        # sl_time = time.time()
+        a = var(0.5/sig_range)
+        b = var(0.5)
+        x = self.mul(a).add(b)
+        tp = torch.clamp(x.c + x.delta, 0, 1)
+        bt = torch.clamp(x.c - x.delta, 0, 1)
+        # print(f"sl: {time.time() - sl_time}")
+
+        # approximate volume
+        p0 = var(1.0)
+        # for idx, c in enumerate(self.c):
+        #     delta = self.delta[idx]
+        #     if delta.data.item() > 0.0:
+        #         r = torch.clamp(c + delta, 0, 1)
+        #         l = torch.clamp(c - delta, 0, 1)
+        #         p0 = p0.mul((r - l) * 1.0/ (delta  * 2.0))
+        # print(f"after volume  approximation: {time.time() - sl_time}")
+
+        return self.new((tp + bt)/2, (tp - bt)/2), p0
 
 class Zonotope:
     def __init__(self, left=0.0, right=0.0):

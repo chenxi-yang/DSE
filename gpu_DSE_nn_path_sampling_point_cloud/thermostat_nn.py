@@ -99,12 +99,39 @@ class LinearSig(nn.Module):
         return res
 
 
+class LinearReLU(nn.Module):
+    def __init__(self, l, sig_range):
+        super().__init__()
+        self.linear1 = Linear(in_channels=2, out_channels=l)
+        self.linear2 = Linear(in_channels=l, out_channels=1)
+        self.relu = ReLU()
+        self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
+
+    def forward(self, x):
+        # start_time = time.time()
+        # print(f"LinearSig, before: {x.c, x.delta}")
+        res = self.linear1(x)
+        # print(f"LinearSig, after linear1: {res.c, res.delta}")
+        res = self.relu(res)
+        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
+        res = self.linear2(res)
+        # print(f"LinearSig, after linear2: {res.c, res.delta}")
+        res = self.sigmoid_linear(res)
+        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
+        # exit(0)
+        # print(f"time in LinearReLU: {time.time() - start_time}")
+        return res
+
+
 class ThermostatNN(nn.Module):
-    def __init__(self, l):
+    def __init__(self, l, sig_range=10, nn_mode='all', module='linearrelu'):
         super(ThermostatNN, self).__init__()
         self.tOff = var(62.0)
         self.tOn = var(80.0)
-        self.nn = LinearSig(l=l)
+        if module == 'linearsig':
+            self.nn = LinearSig(l=l)
+        if module == 'linearrelu':
+            self.nn = LinearReLU(l=l, sig_range=sig_range)
 
         # self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=self.nn)
         # curL = curL + NN(curL, lin)
@@ -119,7 +146,13 @@ class ThermostatNN(nn.Module):
             self.ifelse_tOff, # if x <= tOff: isOn=1.0 else: skip
         )
 
-        self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_up_temp)
+        if nn_mode == "single":
+            # curL = curL + 0.1(curL - lin) + 5.0
+            self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=lambda x: (f_up_temp(x), var(1.0)))
+        if nn_mode == "all":
+            # curL = curL + 10.0 * NN(curL, lin) + 5.0
+            self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_tmp_up_nn)
+
 
         self.ifelse_tOn_block1 = Skip()
         self.ifelse_tOn_block2 = Assign(target_idx=[1], arg_idx=[], f=lambda x: x.set_value(var(0.0)))
