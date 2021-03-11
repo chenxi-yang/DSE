@@ -71,6 +71,24 @@ def read_train_log(log_file):
     return q_list, c_list
 
 
+def read_vary_constraint(file):
+    safe_l_list, safe_r_list, p1_list, p2_list = list(), list(), list(), list()
+    f = open(file, 'r')
+    f.readline()
+    name_line = f.readline()
+    name_list = name_line[:-1].split(', ')
+    name1 = name_list[-2]
+    name2 = name_list[-1]
+    print(name1, name2)
+    for line in f:
+        var = line[:-1].split(', ')
+        safe_l_list.append(float(var[0]))
+        safe_r_list.append(float(var[1]))
+        p1_list.append(float(var[2]))
+        p2_list.append(float(var[3]))
+    return safe_l_list, safe_r_list, p1_list, p2_list, name1, name2
+
+
 def plot_line(x_list, y_list, title, x_label, y_label, label, fig_title, c='b', log=False):
     ax = plt.subplot(111)
     ax.get_xaxis().tick_bottom()    
@@ -103,6 +121,43 @@ def plot_dot(x_list, y_list, title, x_label, y_label, label, fig_title, c='b', l
 
     plt.title(title)
     plt.legend()
+    plt.savefig(fig_title)
+    plt.close()
+
+
+def plot_constraint(x_list, safe_l_list, safe_r_list, p1_list, p2_list, title,  x_label, y_label, label1, label2, fig_title):
+    ax = plt.subplot(111)
+    ax.get_xaxis().tick_bottom()    
+    ax.get_yaxis().tick_left()
+
+    # ax.fill_between(x_list, safe_l_list, safe_r_list, color='C3', alpha=0.5)
+
+    ax.plot(x_list, safe_l_list, color='C3')
+    ax.set_ylim([51,54])
+    ax.set_ylabel("safe bottom")
+    
+    ax1 = ax.twinx()
+    ax1.plot(x_list, safe_r_list, color='C3')
+    ax1.set_ylim([83,86])
+    ax1.set_ylabel("safe top")
+    # plt.yscale("log")
+    ax1.yaxis.grid()
+    ax1.xaxis.grid()
+
+    ax2 = ax.twinx()
+
+    ax2.plot(x_list, p1_list, label=label1)
+    ax2.plot(x_list, p2_list, label=label2)
+    ax2.get_yaxis().set_visible(False)
+
+    ax2.set_xlabel("different constraint")
+
+    # plt.xlabel(x_label)
+    # plt.ylabel(y_label)
+    
+    plt.title(title)
+    plt.legend()
+    # plt.grid()
     plt.savefig(fig_title)
     plt.close()
 
@@ -145,8 +200,11 @@ def plot_training_loss(log_file, benchmark, log=False):
 
 
 def plot_vary_constraint(file):
-    safe_l_list, safe_r_list, p1, p2 = read_vary_constraint(file)
+    safe_l_list, safe_r_list, p1, p2, name1, name2 = read_vary_constraint(file)
     x_list = list(range(len(safe_l_list)))
+
+    plot_constraint(x_list, safe_l_list, safe_r_list, p1, p2, title='Percentage of Safe Programs with Variable Constraints ',  x_label='constraint', y_label='safe percentage', label1=name1, label2=name2, fig_title=f"figures/vary_constraint_{name1}_{name2}.png")
+
 
 if __name__ == "__main__":
     # plot_loss('loss/') # the q and c loss
