@@ -86,7 +86,7 @@ def read_vary_constraint(file):
         safe_r_list.append(float(var[1]))
         p1_list.append(float(var[2]))
         p2_list.append(float(var[3]))
-    return safe_l_list, safe_r_list, p1_list, p2_list, name1, name2
+    return safe_l_list[:5], safe_r_list[:5], p1_list[:5], p2_list[:5], name1, name2
 
 
 def plot_line(x_list, y_list, title, x_label, y_label, label, fig_title, c='b', log=False):
@@ -127,36 +127,57 @@ def plot_dot(x_list, y_list, title, x_label, y_label, label, fig_title, c='b', l
 
 def plot_constraint(x_list, safe_l_list, safe_r_list, p1_list, p2_list, title,  x_label, y_label, label1, label2, fig_title):
     ax = plt.subplot(111)
-    ax.get_xaxis().tick_bottom()    
+    # ax.get_xaxis().tick_bottom()    
     ax.get_yaxis().tick_left()
 
-    # ax.fill_between(x_list, safe_l_list, safe_r_list, color='C3', alpha=0.5)
-
-    ax.plot(x_list, safe_l_list, color='C3')
-    ax.set_ylim([51,54])
-    ax.set_ylabel("safe bottom")
     
-    ax1 = ax.twinx()
-    ax1.plot(x_list, safe_r_list, color='C3')
-    ax1.set_ylim([83,86])
-    ax1.set_ylabel("safe top")
-    # plt.yscale("log")
-    ax1.yaxis.grid()
-    ax1.xaxis.grid()
-
     ax2 = ax.twinx()
 
-    ax2.plot(x_list, p1_list, label=label1)
-    ax2.plot(x_list, p2_list, label=label2)
-    ax2.get_yaxis().set_visible(False)
+    lns2 = ax.plot(x_list, p1_list, marker='o', label=label1)
+    lns3 = ax.plot(x_list, p2_list, marker='o', label=label2)
+    ax.set_ylabel("Percentage of Safe Programs")
+    ax.set_xlabel("Case Index")
+    ax.grid()
+    
+    # ax.fill_between(x_list, safe_l_list, safe_r_list, color='C3', alpha=0.5)
+    range_list = [r - safe_l_list[idx] for idx, r in enumerate(safe_r_list)]
+    lns1 = ax2.plot(x_list, range_list, color='C3', label='Constraint Range')
+    ax2.set_ylim([32.4,33.3])
+    ax2.set_ylabel("Constraint Range")
+    # ax2.legend(None)
+    # ax2.grid(None)
 
-    ax2.set_xlabel("different constraint")
+    lns = lns2+lns3+lns1
+    labs = [l.get_label() for l in lns]
+    ax.legend(lns, labs, loc=0)
+
+    # ax.plot(x_list, safe_l_list, color='C3')
+    # ax.set_ylim([51,54])
+    # ax.set_ylabel("safe bottom")
+    
+    # ax1 = ax.twinx()
+    # ax1.plot(x_list, safe_r_list, color='C3')
+    # ax1.set_ylim([83,86])
+    # ax1.set_ylabel("safe top")
+    # # plt.yscale("log")
+    # ax1.yaxis.grid()
+    # ax1.xaxis.grid()
+
+    # ax2 = ax.twinx()
+
+    # ax2.plot(x_list, p1_list, label=label1)
+    # ax2.plot(x_list, p2_list, label=label2)
+    # ax2.get_yaxis().set_visible(False)
+
+    # ax2.set_xlabel("different constraint")
 
     # plt.xlabel(x_label)
     # plt.ylabel(y_label)
+
+    plt.xticks(range(0,5))
     
     plt.title(title)
-    plt.legend()
+    # plt.legend()
     # plt.grid()
     plt.savefig(fig_title)
     plt.close()

@@ -1,0 +1,5 @@
+Namespace(b=5000, benchmark_id=11.0, bs=40, data_size=20000, l=10, lr=0.001, n=5, nn_mode='single', noise=0.1, num_epoch=20, optimizer='gd_direct_noise', stop_val=0.05, t_epoch=10, test_portion=0.99, w=0.5, width=0.3)
+sample_size_list: [250, 100, 50, 10]####--PATH_SAMPLE_SIZE: 250DATA_USED_FOR_SAMPLING_PATH:100
+0-th Epochs Time: 482.6884741783142
+-----finish 0-th epoch-----, the batch loss: q: 371.1707458496094, c: 0.8865675926208496
+-----finish 0-th epoch-----, q: 1680.957275390625, c: 3.7837483882904053
