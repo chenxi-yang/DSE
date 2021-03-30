@@ -420,119 +420,6 @@ def cal_q(X_train, y_train, m):
     return q
 
 
-def gd_direct_noise_old(X_train, y_train, theta_l, theta_r, target, lambda_=lambda_, stop_val=0.01, epoch=1000, lr=0.00001, theta=None):
-    print("--------------------------------------------------------------")
-    print('----Gradient Direct Noise Descent Train DSE----')
-    print('====Start Training====')
-    len_theta = len(theta_l)
-    TIME_OUT = False
-
-    x_min = var(10000.0)
-    x_max = var(0.0)
-    x_smooth_min = var(10000.0)
-    x_smooth_max = var(0.0)
-
-    loop_list = list()
-    loss_list = list()
-
-    tmp_theta_list = [random.uniform(theta_l[idx], theta_r[idx]) for idx, value in enumerate(theta_l)]
-
-    Theta = var_list(tmp_theta_list, requires_grad=True)
-
-    root = construct_syntax_tree(Theta)
-    root_smooth_point = construct_syntax_tree_smooth_point(Theta)
-    root_point = construct_syntax_tree_point(Theta)
-
-    theta_training_time = 0.0
-    start_time = time.time()
-    for i in range(epoch):
-        num_partition = 0.0
-        cur_time = time.time()
-        # data_loss_total = var(0.0)
-        # safe_loss_total = var(0.0)
-        f_loss = var(0.0)
-        q_loss = var(0.0)
-        c_loss = var(0.0)
-
-        q_loss_wo_p = var(0.0)
-        c_loss_wo_p = var(0.0)
-        for idx, x in enumerate(X_train):
-            data_time = time.time()
-            x, y = x, y_train[idx]
-            sample_theta_list = generate_theta_sample_set(Theta)
-            real_data_loss = var(0.0)
-            real_safe_loss = var(0.0)
-            loss = var(0.0)
-            tmp_q_loss_wo_p = var(0.0)
-            tmp_c_loss_wo_p = var(0.0)
-            for (sample_theta, sample_theta_p) in sample_theta_list:
-                theta_time = time.time()
-                data_loss = cal_data_loss(sample_theta, x, y)
-                safe_loss = cal_safe_loss(sample_theta, x, width)
-                res = data_loss + lambda_.mul(safe_loss)
-                
-                real_data_loss += data_loss * sample_theta_p
-                real_safe_loss += safe_loss * sample_theta_p
-                # data_loss_total = data_loss_total.add(data_loss)
-                # safe_loss_total = safe_loss_total.add(safe_loss)
-                tmp_q_loss_wo_p += data_loss
-                tmp_c_loss_wo_p += safe_loss
-
-                loss += var(res.data.item()).mul(var(sample_theta_p.data.item())).mul(torch.log(sample_theta_p))
-                theta_training_time += time.time() - theta_time
-            q_loss += real_data_loss
-            c_loss += real_safe_loss
-
-            q_loss_wo_p += tmp_q_loss_wo_p.div(len(sample_theta_list))
-            c_loss_wo_p += tmp_c_loss_wo_p.div(len(sample_theta_list))
-            # print(f"average training time for one theta, {theta_training_time/len(sample_theta_list)}")
-            loss.backward(retain_graph=True)
-            
-            with torch.no_grad():
-                # print(f"grad:{Theta.grad}")
-                for theta_idx in range(len_theta):
-                    try:
-                        # print(noise)
-                        # Theta[theta_idx].data -= lr * (dTheta[theta_idx].data + var(random.uniform(-noise, noise)))
-                        Theta[theta_idx].data -= lr * (Theta.grad[theta_idx] + var(random.uniform(-noise, noise)))
-                        
-                    except RuntimeError: # for the case no gradient with Theta[theta_idx]
-                        Theta[theta_idx].data -= lr * (var(random.uniform(-noise, noise)))
-                Theta.grad.zero_()
-            
-            for theta_idx in range(len_theta):
-                if Theta[theta_idx].data.item() <= theta_l[theta_idx] or Theta[theta_idx].data.item() >= theta_r[theta_idx]:
-                    Theta[theta_idx].data.fill_(random.uniform(theta_l[theta_idx], theta_r[theta_idx]))
-            
-            # print(f"training time for one data point, {time.time() - data_time}")
-            # print(f"real data loss:{real_data_loss}, real safe loss:{real_safe_loss}, probability")
-            if i > 30:
-                lr *= 0.5
-        
-        f_loss = q_loss + lambda_ * c_loss
-        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
-        print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
-        print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train))}")
-        # if torch.abs(f_loss.data) < var(stop_val):
-        #     break
-        
-        if (time.time() - start_time)/(i+1) > 300:
-            log_file = open(file_dir, 'a')
-            log_file.write('TIMEOUT: avg epoch time > 300s \n')
-            log_file.close()
-            TIME_OUT = True
-            break
-    
-    res = f_loss.div(len(X_train))
-
-    log_file = open(file_dir, 'a')
-    spend_time = time.time() - start_time
-    log_file.write('Optimization:' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
-    log_file.close()
-    
-    return Theta, res, [], data_loss, safe_loss, TIME_OUT
-
-
 def distance_f_interval_REINFORCE(X_list, target, Theta):
     alpha_smooth_max_var = var(alpha_smooth_max)
     res = var(0.0)
@@ -635,14 +522,125 @@ def extract_result_safty(symbol_table_list):
     return res_l.data.item(), res_r.data.item()
 
 
+def create_ball_perturbation(X_train, distribution_list, w):
+    perturbation_x_dict = {
+        distribution: list() for distribution in distribution_list
+    }
+    for X in X_train:
+        # TODO: for now, only one input variable
+        x = X[0]
+        l, r = x - w, x + w
+        for distribuion in distribution_list:
+            x_list = generate_distribution(x, l, r, distribution, unit=6)
+            perturbation_x_dict[distribution].extend(x_list)
+    return perturbation_x_dict
+
+
+def split_component(perturbation_x_dict, x_l, x_r, num_components):
+    # TODO: add vector-wise component split
+    x_min, x_max = x_l[0], x_r[0]
+    for distribution in perturbation_x_dict:
+        x_min, x_max = min(min(perturbation_x_dict[distribution]), x_min), max(max(perturbation_x_dict[distribution]), x_max)
+    component_length = (x_max - x_min) / num_components
+    component_list = list()
+    for i in range(num_components):
+        l = x_min + i * component_length
+        r = x_min + (i + 1) * component_length
+        center = [(l + r) /  2.0]
+        width = [(l - r) / 2.0]
+        component_group = {
+            'center': center,
+            'width': width,
+        }
+        component_list.append(component_group)
+    return component_list
+
+
+def extract_upper_probability_per_component(component, perturbation_x_dict):
+    p_list = list()
+    for distribution in perturbation_x_dict:
+        x_list = perturbation_x_dict[distribution]
+        cnt = 0
+        for X in x_list:
+            x = [X] #TODO: X is a value
+            if in_component(x, component):
+                cnt += 1
+        p = cnt * 1.0 / len(x_list) + eps + random.uniform(0, 0.05)
+        p_list.append(p)
+    return max(p_list)
+
+
+def assign_probability(perturbation_x_dict, component_list):
+    '''
+    perturbation_x_dict = {
+        distribution: x_list, # x in x_list are in the form of value
+    }
+    component_list:
+    component: {
+        'center': center # center is vector
+        'width': width # width is vector
+    }
+    keep track of under each distribution, what portiton of x_list fall 
+    in to this component
+    '''
+    for idx, component in enumerate(component_list):
+        p = extract_upper_probability_per_component(component, perturbation_x_dict)
+        component['p'] = p
+        component_list[idx] = component
+    return component_list
+
+
+def in_component(X, component):
+    # TODO: 
+    center = component['center']
+    width = component['width']
+    for idx, x in enumerate(X):
+        if x >= center[i] - width[i] and x < center[i] + width[i]:
+            pass
+        else:
+            return False
+    return True
+
+
+def assign_data_point(X_train, y_train, component_list):
+    for idx, component in enumerate(component_list):
+        component.update(
+            'x': list(),
+            'y': list(),
+        )
+        for idx, X in enumerate(X_train):
+            if in_component(X, component):
+                component['x'].append(X)
+                component['y'].append(y_train[idx])
+        component_list[idx] = component
+    return component_list
+        
+
 def extract_abstract_representation(
     X_train, 
     y_train, 
     x_l, 
     x_r, 
     num_components, 
-    bs):
-    # bs < num_components
-    # TODO: 1. generate perturbation 2. measure  probability 3. slice X_train, y_train into component wise
+    bs,
+    w=0.3):
+    # bs < num_components, w is half of the ball width
+
+    # TODO: 
+    # 1. generate perturbation, small ball covering following normal, uniform, poission
+    # 2. measure probability 
+    # 3. slice X_train, y_train into component-wise
     
-    return X, Y, abstract_representation
+    perturbation_x_dict = create_ball_perturbation(X_train, 
+        distribution_list=["normal", "uniform", "chi-square", "original"], 
+        w=w)
+    component_list = split_component(perturbation_x, x_l, x_r, num_components)
+
+    # create data for batching, each containing component and cooresponding x, y
+    component_list = assign_probability(perturbation_x_dict, component_list)
+    print(component_list)
+    exit(0)
+    component_list = assign_data_point(X_train, y_train, component_list)
+    random.shuffle(component_list)
+
+    return component_list

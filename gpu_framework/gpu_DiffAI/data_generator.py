@@ -19,7 +19,7 @@ def load_data(
     data_list = list()
     for line in f:
         content = line[:-1].split(",")
-        x, y = float(content[0]), float(content[1])
+        x, y = [float(content[0])], float(content[1])
         data_list.append([x, y])
 
     data_list = np.array(data_list)

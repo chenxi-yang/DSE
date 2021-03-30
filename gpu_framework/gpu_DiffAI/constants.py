@@ -72,6 +72,7 @@ gamma = 0.55
 alpha_coeff = 0.9
 
 alpha_smooth_max = 0.8
+eps = 1e-10
 
 file_dir = f"result/thermostat_nn_volume_{sliced_safe_l_list}_{sliced_safe_r_list}_{lr}_{bs}_{num_epoch}_{l}_{b}_{nn_mode}_{module}.txt"
 log_file = open(file_dir, 'w')

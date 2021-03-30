@@ -8,6 +8,7 @@ from args import *
 
 from data_generator import load_data
 import random
+import time
 
 #TODO:  change arguments
 def best_lambda(X_train, y_train, m, target):
@@ -52,8 +53,11 @@ if __name__ == "__main__":
         log_file.close()
 
         # data points generation
+        preprocessing_time = time.time()
+        # TODO: the data is one-dimension (x = a value)
         X_train, X_test, y_train, y_test = load_data(train_size=train_size, test_size=test_size, dataset_path=DATASET_PATH)
         X, Y, abstract_representation = extract_abstract_representation(X_train, y_train, x_l, x_r, num_components, bs)
+        print(f"prepare data: {time.time() - preprocessing_time}")
         # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 
         for i in range(5):

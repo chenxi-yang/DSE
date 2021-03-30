@@ -15,7 +15,7 @@ def get_parser():
     p.add_argument("--test_portion", default=0.99, type=float, help="portion of test set of the entire dataset")
     p.add_argument("--num_epoch", default=10, type=int, help="number of epochs for training")
     p.add_argument("--width", default=0.1, type=float, help="width of perturbation") # for DiffAI
-    p.add_argument("--bs", default=10, type=int, help="batch size")
+    
     p.add_argument("--n", default=5, type=int, help="number of theta sampled around mean")
     p.add_argument("--nn_mode", default='all', help="how many NN used in model, 'single' means only used in the first one")
     p.add_argument("--l", default=10, type=int, help="size of hidden states in NN")
@@ -28,7 +28,8 @@ def get_parser():
     p.add_argument("--test_size", default=20000, type=int, help="test size")
 
     # perturbation
-    p.add_argument("--num_components", default=)
+    p.add_argument("--num_components", default=10, type=int, help="number of components to split")
+    p.add_argument("--bs", default=10, type=int, help="batch size by number of component")
     return p
 
 
