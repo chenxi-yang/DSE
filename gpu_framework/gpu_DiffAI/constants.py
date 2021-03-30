@@ -14,15 +14,14 @@ train_size = args.train_size
 test_size = args.test_size
 num_epoch = args.num_epoch
 width = args.width
-noise = args.noise
 bs = args.bs
 n = args.n
 l = args.l
 nn_mode = args.nn_mode
 b = args.b
 module = args.module
-safe_start_idx = args.safe_start_idx
-safe_end_idx = args.safe_end_idx
+# safe_start_idx = args.safe_start_idx
+# safe_end_idx = args.safe_end_idx
 # path_sample_size = args.path_sample_size
 data_attr = args.data_attr
 
@@ -74,7 +73,7 @@ alpha_coeff = 0.9
 alpha_smooth_max = 0.8
 eps = 1e-10
 
-file_dir = f"result/thermostat_nn_volume_{sliced_safe_l_list}_{sliced_safe_r_list}_{lr}_{bs}_{num_epoch}_{l}_{b}_{nn_mode}_{module}.txt"
+file_dir = f"result/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{num_component}_{l}_{b}_{nn_mode}_{module}.txt"
 log_file = open(file_dir, 'w')
 log_file.write(f"{args}\n")
 log_file.write(f"sample_size_list: {sample_size_list}")
