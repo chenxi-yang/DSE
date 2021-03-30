@@ -14,6 +14,7 @@ def load_data(
     test_size,
     dataset_path=DATASET_PATH,
     ):
+    start_t = time.time()
     f = open(dataset_path, 'r')
     f.readline()
     data_list = list()
@@ -30,5 +31,5 @@ def load_data(
 
     # X_train, X_test, y_train, y_test
     print("---Data Generation---")
-    print("--- %s seconds ---" % (timer() - start_t))
+    print("--- %s seconds ---" % (time.time() - start_t))
     return train_list[:, 0], test_list[:, 0], train_list[:, 1], test_list[:, 1]

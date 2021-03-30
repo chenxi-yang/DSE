@@ -20,6 +20,7 @@ l = args.l
 nn_mode = args.nn_mode
 b = args.b
 module = args.module
+num_components = args.num_components
 # safe_start_idx = args.safe_start_idx
 # safe_end_idx = args.safe_end_idx
 # path_sample_size = args.path_sample_size
@@ -32,7 +33,7 @@ SAMPLE_SIZE = 500
 DOMAIN = "interval" # [interval, zonotope]
 
 
-CURRENT_PROGRAM = 'program' + str(benchmark_id) # 'program_test_disjunction_2'
+CURRENT_PROGRAM = 'program' + benchmark_name # 'program_test_disjunction_2'
 DATASET_PATH = f"../dataset/{benchmark_name}_{data_attr}.txt"
 
 
@@ -73,10 +74,10 @@ alpha_coeff = 0.9
 alpha_smooth_max = 0.8
 eps = 1e-10
 
-file_dir = f"result/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{num_component}_{l}_{b}_{nn_mode}_{module}.txt"
+file_dir = f"result/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{num_components}_{l}_{b}_{nn_mode}_{module}.txt"
 log_file = open(file_dir, 'w')
 log_file.write(f"{args}\n")
-log_file.write(f"sample_size_list: {sample_size_list}")
+log_file.write(f"path_num_list: {path_num_list}")
 log_file.close()
 
 

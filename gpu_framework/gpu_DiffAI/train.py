@@ -14,6 +14,7 @@ import constants
 
 from thermostat_nn import * 
 
+from utils import generate_distribution
 
 def distance_f_point(pred_y, y):
     return torch.abs(pred_y.sub(y)) # l1-distance
@@ -530,7 +531,7 @@ def create_ball_perturbation(X_train, distribution_list, w):
         # TODO: for now, only one input variable
         x = X[0]
         l, r = x - w, x + w
-        for distribuion in distribution_list:
+        for distribution in distribution_list:
             x_list = generate_distribution(x, l, r, distribution, unit=6)
             perturbation_x_dict[distribution].extend(x_list)
     return perturbation_x_dict
@@ -547,7 +548,7 @@ def split_component(perturbation_x_dict, x_l, x_r, num_components):
         l = x_min + i * component_length
         r = x_min + (i + 1) * component_length
         center = [(l + r) /  2.0]
-        width = [(l - r) / 2.0]
+        width = [(r - l) / 2.0]
         component_group = {
             'center': center,
             'width': width,
@@ -565,7 +566,7 @@ def extract_upper_probability_per_component(component, perturbation_x_dict):
             x = [X] #TODO: X is a value
             if in_component(x, component):
                 cnt += 1
-        p = cnt * 1.0 / len(x_list) + eps + random.uniform(0, 0.05)
+        p = cnt * 1.0 / len(x_list) + eps + random.uniform(0, 0.1)
         p_list.append(p)
     return max(p_list)
 
@@ -587,6 +588,7 @@ def assign_probability(perturbation_x_dict, component_list):
         p = extract_upper_probability_per_component(component, perturbation_x_dict)
         component['p'] = p
         component_list[idx] = component
+    print(f"sum of upper bound: {sum([component['p'] for component in component_list])}")
     return component_list
 
 
@@ -594,7 +596,7 @@ def in_component(X, component):
     # TODO: 
     center = component['center']
     width = component['width']
-    for idx, x in enumerate(X):
+    for i, x in enumerate(X):
         if x >= center[i] - width[i] and x < center[i] + width[i]:
             pass
         else:
@@ -605,8 +607,10 @@ def in_component(X, component):
 def assign_data_point(X_train, y_train, component_list):
     for idx, component in enumerate(component_list):
         component.update(
+            {
             'x': list(),
             'y': list(),
+            }
         )
         for idx, X in enumerate(X_train):
             if in_component(X, component):
@@ -626,19 +630,21 @@ def extract_abstract_representation(
     w=0.3):
     # bs < num_components, w is half of the ball width
 
-    # TODO: 
     # 1. generate perturbation, small ball covering following normal, uniform, poission
     # 2. measure probability 
     # 3. slice X_train, y_train into component-wise
-    
+    start_t = time.time()
+
     perturbation_x_dict = create_ball_perturbation(X_train, 
-        distribution_list=["normal", "uniform", "chi-square", "original"], 
+        distribution_list=["normal", "uniform", "beta", "original"], 
         w=w)
-    component_list = split_component(perturbation_x, x_l, x_r, num_components)
+    component_list = split_component(perturbation_x_dict, x_l, x_r, num_components)
 
     # create data for batching, each containing component and cooresponding x, y
     component_list = assign_probability(perturbation_x_dict, component_list)
     print(component_list)
+    print(f"-- Generate Perturbation Set --")
+    print(f"--- {time.time() - start_t} sec ---")
     exit(0)
     component_list = assign_data_point(X_train, y_train, component_list)
     random.shuffle(component_list)

@@ -1,5 +1,5 @@
 from scipy.stats import truncnorm
-from scipy.stats import poission
+from scipy.stats import poisson
 
 import numpy as np
 
@@ -17,7 +17,7 @@ def generate_distribution(x, l, r, distribution, unit):
     if distribution == "normal":
         X = get_truncated_normal(x, sd=1, low=l, upp=r)
         x_list = X.rvs(unit).tolist()
-    if distribution == "chi-square":
+    if distribution == "beta":
         l_list = np.random.beta(2, 5, int(unit/2))
         r_list = np.random.beta(2, 5, int(unit/2))
         for v in l_list:
