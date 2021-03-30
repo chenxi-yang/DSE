@@ -51,7 +51,7 @@ def distance_f_interval(symbol_table_list, target):
             reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
         # print(f"reward for one partition: {reward}")
     
-        tmp_res = reward.mul(p) 
+        tmp_res = reward.mul(p)
         res = res.add(tmp_res)
     res = res.div(var(len(symbol_table_list)).add(EPSILON))
 
@@ -258,12 +258,9 @@ def extract_parameters(m):
     return Theta
 
 
-def gd_direct_noise(
+def learning(
         X_train, 
-        y_train, 
-        theta_l, 
-        theta_r, 
-        target, 
+        y_train,
         lambda_=lambda_,
         stop_val=0.01, 
         epoch=1000, 
@@ -276,9 +273,9 @@ def gd_direct_noise(
         module='linearrelu'
         ):
     print("--------------------------------------------------------------")
-    print('----Gradient Direct Noise Descent Train DSE PyTorch New----')
     print('====Start Training====')
-    len_theta = len(theta_l)
+
+    # TODO change all.....
     TIME_OUT = False
 
     x_min = var(10000.0)
@@ -286,10 +283,6 @@ def gd_direct_noise(
 
     loop_list = list()
     loss_list = list()
-
-    tmp_theta_list = [random.uniform(theta_l[idx], theta_r[idx]) for idx, value in enumerate(theta_l)]
-
-    # Theta = var_list(tmp_theta_list, requires_grad=True)
 
     m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     print(m)
@@ -640,3 +633,16 @@ def extract_result_safty(symbol_table_list):
         res_r = torch.max(res_r, symbol_table['x_max'].getInterval().right)
     
     return res_l.data.item(), res_r.data.item()
+
+
+def extract_abstract_representation(
+    X_train, 
+    y_train, 
+    x_l, 
+    x_r, 
+    num_components, 
+    bs):
+    # bs < num_components
+    # TODO: 1. generate perturbation 2. measure  probability 3. slice X_train, y_train into component wise
+    
+    return X, Y, abstract_representation

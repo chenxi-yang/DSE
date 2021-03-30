@@ -8,57 +8,56 @@ from point_interpretor import *
 # safe: x
 # return(y): res
 
-if MODE == 5:
-    # from disjunction_of_intervals_interpretor_loop_importance_sampling import *
-    from dse_worst_propagation import *
+# from disjunction_of_intervals_interpretor_loop_importance_sampling import *
+from dse_worst_propagation import *
 
-    if DOMAIN == "interval":
-        def initialization(x_l, x_r, X_train, y_train):
-            symbol_table_list = list()
-            symbol_table = dict()
-            symbol_table['i'] = domain.Interval(0, 0)
-            symbol_table['x'] = domain.Interval(x_l[0], x_r[0])
-            symbol_table['lin'] = domain.Interval(0.0, 0.0)
-            symbol_table['isOn'] = domain.Interval(0.0, 0.0)
+if DOMAIN == "interval":
+    def initialization(x_l, x_r, X_train, y_train):
+        symbol_table_list = list()
+        symbol_table = dict()
+        symbol_table['i'] = domain.Interval(0, 0)
+        symbol_table['x'] = domain.Interval(x_l[0], x_r[0])
+        symbol_table['lin'] = domain.Interval(0.0, 0.0)
+        symbol_table['isOn'] = domain.Interval(0.0, 0.0)
 
-            symbol_table['res'] = domain.Interval(0.0, 0.0)
-            symbol_table['x_min'] = domain.Interval(P_INFINITY.data.item(), P_INFINITY.data.item())
-            symbol_table['x_max'] = domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())
-            symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())])
-            symbol_table['probability'] = var(1.0)
-            symbol_table['explore_probability'] = var(1.0)
+        symbol_table['res'] = domain.Interval(0.0, 0.0)
+        symbol_table['x_min'] = domain.Interval(P_INFINITY.data.item(), P_INFINITY.data.item())
+        symbol_table['x_max'] = domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())
+        symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())])
+        symbol_table['probability'] = var(1.0)
+        symbol_table['explore_probability'] = var(1.0)
 
-            # symbol_table['counter'] = var(len(X_train))
-            #  ['point_cloud']
-            # symbol_table_list.append(symbol_table)
+        # symbol_table['counter'] = var(len(X_train))
+        #  ['point_cloud']
+        # symbol_table_list.append(symbol_table)
 
-            # ! no sampling
-            # symbol_table = build_point_cloud(symbol_table, X_train, y_train, initialization_smooth_point)
-            symbol_table_list.append(symbol_table)
+        # ! no sampling
+        # symbol_table = build_point_cloud(symbol_table, X_train, y_train, initialization_smooth_point)
+        symbol_table_list.append(symbol_table)
 
-            # symbol_table_list = split_symbol_table(symbol_table, ['x'], partition=10)
+        # symbol_table_list = split_symbol_table(symbol_table, ['x'], partition=10)
 
-            return symbol_table_list
-    
-    if DOMAIN == "zonotope":
-        def initialization(x_l, x_r):
-            symbol_table_list = list()
-            symbol_table = dict()
-            symbol_table['i'] = domain.Interval(0, 0).getZonotope()
-            symbol_table['x'] = domain.Interval(x_l[0], x_r[0]).getZonotope()
-            symbol_table['lin'] = domain.Interval(x_l[0], x_r[0])
-            symbol_table['isOn'] = domain.Interval(0.0, 0.0).getZonotope()
+        return symbol_table_list
 
-            symbol_table['res'] = domain.Interval(0.0, 0.0).getZonotope()
-            symbol_table['x_min'] = domain.Interval(P_INFINITY.data.item(), P_INFINITY.data.item())
-            symbol_table['x_max'] = domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())
-            symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())])
-            symbol_table['probability'] = var(1.0)
-            symbol_table['explore_probability'] = var(1.0)
+if DOMAIN == "zonotope":
+    def initialization(x_l, x_r):
+        symbol_table_list = list()
+        symbol_table = dict()
+        symbol_table['i'] = domain.Interval(0, 0).getZonotope()
+        symbol_table['x'] = domain.Interval(x_l[0], x_r[0]).getZonotope()
+        symbol_table['lin'] = domain.Interval(x_l[0], x_r[0])
+        symbol_table['isOn'] = domain.Interval(0.0, 0.0).getZonotope()
 
-            symbol_table_list.append(symbol_table)
+        symbol_table['res'] = domain.Interval(0.0, 0.0).getZonotope()
+        symbol_table['x_min'] = domain.Interval(P_INFINITY.data.item(), P_INFINITY.data.item())
+        symbol_table['x_max'] = domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())
+        symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY.data.item(), N_INFINITY.data.item())])
+        symbol_table['probability'] = var(1.0)
+        symbol_table['explore_probability'] = var(1.0)
 
-            return symbol_table_list   
+        symbol_table_list.append(symbol_table)
+
+        return symbol_table_list   
 
 
 def initialization_smooth_point(x, y):
