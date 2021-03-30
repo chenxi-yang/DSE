@@ -34,7 +34,8 @@ def initialization_nn(x, width, point_set):
     symbol_table['explore_probability'] = var(1.0)
     symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY, N_INFINITY)])
     symbol_table['branch'] = ''
-    symbol_table = create_point_cloud(symbol_table, point_set, initialization_one_point_nn)
+    # volume-based does not need point cloud
+    # symbol_table = create_point_cloud(symbol_table, point_set, initialization_one_point_nn)
     symbol_table_list.append(symbol_table)
 
     return symbol_table_list
@@ -52,7 +53,8 @@ def initialization_point_nn(x):
     symbol_table['probability'] = var(1.0)
     symbol_table['explore_probability'] = var(1.0)
     symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY, N_INFINITY)])
-    symbol_table['point_cloud'] = list()
+    # volume-based does not need point cloud
+    # symbol_table['point_cloud'] = list()
     symbol_table['counter'] = var(0.0)
     point_symbol_table_list.append(symbol_table)
 
@@ -77,6 +79,7 @@ def f_update_i(x):
 
 def f_self(x):
     return x
+
 
 class LinearSig(nn.Module):
     def __init__(self, l):
@@ -160,7 +163,7 @@ class ThermostatNN(nn.Module):
             # curL = curL + 10.0 * NN(curL, lin) + 5.0
             self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_tmp_up_nn)
 
-        self.ifelse_tOn_block1 = Skip()s
+        self.ifelse_tOn_block1 = Skip()
         self.ifelse_tOn_block2 = Assign(target_idx=[1], arg_idx=[], f=lambda x: (x.set_value(var(0.0)), var(1.0)))
         self.ifelse_tOn = IfElse(target_idx=[2], test=self.tOn, f_test=lambda x: x, body=self.ifelse_tOn_block1, orelse=self.ifelse_tOn_block2)
 
@@ -199,8 +202,6 @@ class ThermostatNN(nn.Module):
                 nn.utils.weight_norm(self, dim=None)
             else:
                 nn.utils.weight_norm(self)
-
-
 
 
 

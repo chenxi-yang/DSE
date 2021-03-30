@@ -180,82 +180,40 @@ def extract_large_ball(ball_list):
     return center, new_width
 
 
-def create_small_ball(x_list, width):
-    center_list, width_list = list(), list()
-    for X in x_list:
-        center, w = list(), list()
-        for x in X:
-            center.append(x)
-            w.append(width)
-        center_list.append(center)
-        width_list.append(w)
-    return center_list, width_list
-
-
 def cal_safe_loss(m, x, width, target):
-    '''
-    DiffAI 
-    each x is surrounded by a small ball: (x-width, x+width)
-    '''
-    center_list, width_list = create_small_ball(x, width)
-    safe_loss = var(0.0)
-    for x_ball in x_ball_list:
-        abstract_data = initialization_nn(center_list, width_list)
-        # TODO: change the split way
+    # for each x, generate a small ball:(x-e, x+e)
+    # in each ball, follow the distribution predefined to generate point cloud
+    # 1). take the union of all point cloud and the larget point cloud
+    # 2). take the boundry of all the small ball as the large ball: abstract data
+    point_cloud, ball_list = create_ball_cloud(x, width, distribution="Gaussian", n=50)
+    center, new_width = extract_large_ball(ball_list) # new width is a list, after generating the new distribution around the point, the width of each element might be different
+    # print(f"center: {center}, new_width: {new_width}")
+    abstract_data = initialization_nn(center, new_width, point_cloud)
+    y_abstract_list = list()
+    # TODO: partition in one batch, split strategy
+    for i in range(constants.SAMPLE_SIZE):
+        # sample one path each time
+        # sample_time = time.time()
         abstract_list = m(abstract_data, 'abstract')
-        safe_loss += safe_distance(abstract_list[0], target)
-    safe_loss /= len(x)
+        # print(f"sample {i+1}-th path: {time.time() - sample_time}")
+        y_abstract_list.append(abstract_list[0])
+    # print(f"length: {len(y_abstract_list)}")
+    safe_loss = distance_f_interval(y_abstract_list, target)
     return safe_loss
 
-    # y_abstract_list = list()
-    # # TODO: partition in one batch, split strategy
-    # for i in range(constants.SAMPLE_SIZE):
-    #     # sample one path each time
-    #     # sample_time = time.time()
-    #     abstract_list = m(abstract_data, 'abstract')
-    #     # print(f"sample {i+1}-th path: {time.time() - sample_time}")
-    #     y_abstract_list.append(abstract_list[0])
-    # # print(f"length: {len(y_abstract_list)}")
-    # safe_loss = distance_f_interval(y_abstract_list, target)
-    # return safe_loss
 
-
-def divide_chunks(component_list, bs=1):
-    '''
-    component: {
-        'center': 
-        'width':
-        'p':
-        'x':
-        'y':
-    }
-    return the component={
-        'center':
-        'width':
-        'p':
-    },X, Y
-    '''
-    for i in range(0, len(component_list), bs):
-        components = component_list[i:i + bs]
-        abstract_state = list()
-        x_list, y_list = list(), list()
-        for component in components:
-            one_abstract_state = {
-                'center': component['center'],
-                'width': component['width'],
-                'upper_bound': component['p'],
-            }
-            x_list.extend(component['x'])
-            y_list.extend(component['y'])
-            abstract_state.append(one_abstract_state)
-
-        yield x_list, y_list, abstract_state
+def divide_chunks(X, y, bs=10):
+    # return the chunk of size bs from X and 
+    # print(f"bs: {bs}")
+    for i in range(0, len(X), bs):
+        yield X[i:i + bs], y[i:i + bs]
 
 
 def update_model_parameter(m, theta):
     # for a given parameter module: theta
     # update the parameters in m with theta
     # no grad required
+    # TODO: use theta to actually update the element in m.parameters
     with torch.no_grad():
         for idx, p in enumerate(list(m.parameters())):
             p.copy_(theta[idx])
@@ -302,7 +260,8 @@ def extract_parameters(m):
 
 
 def learning(
-        component_list,
+        X_train, 
+        y_train,
         lambda_=lambda_,
         stop_val=0.01, 
         epoch=1000, 
@@ -320,6 +279,9 @@ def learning(
     # TODO change all.....
     TIME_OUT = False
 
+    x_min = var(10000.0)
+    x_max = var(0.0)
+
     loop_list = list()
     loss_list = list()
 
@@ -333,23 +295,56 @@ def learning(
     for i in range(epoch):
         q_loss, c_loss = var(0.0), var(0.0)
         count = 0
-        for x, y, abstract_states in divide_chunks(component_list, bs=bs):
+        for x, y in divide_chunks(X_train, y_train, bs=bs):
             # print(f"x length: {len(x)}")
             batch_time = time.time()
+            grad_data_loss, grad_safe_loss = var(0.0), var(0.0)
+            real_data_loss, real_safe_loss = var(0.0), var(0.0)
+            
+            Theta = extract_parameters(m) # extract the parameters now, and then sample around it
+            # print(f"Theta before: {Theta}")
+            for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
+                m = update_model_parameter(m, sample_theta)
+                data_time = time.time()
+                data_loss = cal_data_loss(m, x, y)
+                # print(f"{'#' * 15}")
+                # print(f"data_loss: {data_loss}, TIME: {time.time() - data_time}")
+                # print(f"p: {sample_theta_p}, log_p: {torch.log(sample_theta_p)}")
+                grad_data_loss += var(data_loss.data.item()) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
+                real_data_loss += var(data_loss.data.item())
 
-            data_loss = cal_data_loss(m, x, y)
-            safe_loss = cal_safe_loss(m, x, width, target)
+                safe_time = time.time()
+                safe_loss = cal_safe_loss(m, x, width, target)
+                # print(f"safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - safe_time}")
+                # print(f"{'#' * 15}")
+                grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
+                real_safe_loss += var(safe_loss.data.item())
 
-            print(f"data_loss: {data_loss}, safe_loss: {safe_loss}, loss TIME: {time.time() - batch_time}")
-            loss = data_loss + lambda_.mul(safe_loss)
+                # exit(0)
+
+            # To maintain the real theta
+            m = update_model_parameter(m, Theta)
+
+            real_data_loss /= n
+            real_safe_loss /= n
+
+            print(f"real data_loss: {real_data_loss}")
+            print(f"real safe_loss: {real_safe_loss}, data and safe TIME: {time.time() - batch_time}")
+            q_loss += real_data_loss
+            c_loss += real_safe_loss
+            loss = grad_data_loss + lambda_.mul(grad_safe_loss)
             loss.backward()
             for partial_theta in Theta:
                 torch.nn.utils.clip_grad_norm_(partial_theta, 1)
-
+            # print(m.nn.linear1.weight.grad)
+            # print(m.nn.linear2.weight.grad)
+            # check: remove all the theta_p, only leave loss.data.item(), check the grad check guola
             optimizer.step()
             optimizer.zero_grad()
+            # new_theta = extract_parameters(m)
+            # print(f"Theta after step: {new_theta}")
 
-            # count += 1
+            count += 1
             # if count >= 10:
             #     exit(0)
             
@@ -359,10 +354,12 @@ def learning(
         
         # f_loss = q_loss + lambda_ * c_loss
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
-        print(f"-----finish {i}-th epoch-----, the batch loss: q: {data_loss.data.item()}, c: {safe_loss.data.item()}")
+        print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}")
+        print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
         log_file = open(file_dir, 'a')
         log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
-        log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {data_loss.data.item()}, c: {safe_loss.data.item()}\n")
+        log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}\n")
+        log_file.write(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}\n")
 
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
@@ -421,7 +418,109 @@ def cal_q(X_train, y_train, m):
     # q = q.div(var(len(X_train)))
     print(f"cal_q, {data_loss}")
     
-    return qs
+    return q
+
+
+def distance_f_interval_REINFORCE(X_list, target, Theta):
+    alpha_smooth_max_var = var(alpha_smooth_max)
+    res = var(0.0)
+    # print('X_list', len(X_list))
+    reward_list = list()
+    log_p_list = list()
+    p_list = list()
+    #! Smooth Max
+    res_up = var(0.0)
+    res_base = var(0.0)
+    if len(X_list) == 0:
+        res = var(1.0)
+        return res
+    for X_table in X_list:
+        X_min = X_table['x_min'].getInterval()
+        X_max = X_table['x_max'].getInterval()
+        pi = X_table['probability']
+        p = X_table['explore_probability']
+        # print('pi, p', pi.data.item(), p.data.item())
+
+        X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
+        X.left = torch.min(X_min.left, X_max.left)
+        X.right = torch.max(X_min.right, X_max.right)
+
+        reward = var(0.0)
+        intersection_interval = get_intersection(X, target)
+        if intersection_interval.isEmpty():
+            reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
+        else:
+            reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
+
+        tmp_res = reward.mul(pi.div(p))
+        # tmp_res is the reward
+        tmp_p = torch.log(pi)
+
+        log_p_list.append(tmp_p)
+        reward_list.append(reward)
+        p_list.append(p)
+
+        res = res.add(tmp_res)
+    res = res.div(var(len(X_list)).add(EPSILON))
+    
+    return res, p_list, log_p_list, reward_list
+
+
+def distance_f_interval_new(X_list, target):
+    for X_table in X_list:
+        X_min = X_table['x_min'].getInterval()
+        X_max = X_table['x_max'].getInterval()
+        res = var(0.0)
+
+        X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
+        X.left = torch.min(X_min.left, X_max.left)
+        X.right = torch.max(X_min.right, X_max.right)
+
+        reward = var(0.0)
+        intersection_interval = get_intersection(X, target)
+        if intersection_interval.isEmpty():
+            # print('isempty')
+            reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
+        else:
+            # print('not empty')
+            reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
+        
+        res = torch.max(res, reward)
+    # print(f"result length, {len(X_list)}, reward: {res}")
+    # res is the worst case cost of X_list
+    return res
+
+
+def distance_f_interval_center(X_list, target):
+    res = var(0.0)
+    for X_table in X_list:
+        c = X_table.c
+        delta = X_table.delta
+
+        X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
+        X.left = c.sub(delta)
+        X.right = c.add(delta)
+
+        reward = var(0.0)
+        intersection_interval = get_intersection(X, target)
+        if intersection_interval.isEmpty():
+            # print('isempty')
+            reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
+        else:
+            # print('not empty')
+            reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
+        
+        res = torch.max(res, reward)
+    return res
+
+
+def extract_result_safty(symbol_table_list):
+    res_l, res_r = P_INFINITY, N_INFINITY
+    for symbol_table in symbol_table_list:
+        res_l = torch.min(res_l, symbol_table['x_min'].getInterval().left)
+        res_r = torch.max(res_r, symbol_table['x_max'].getInterval().right)
+    
+    return res_l.data.item(), res_r.data.item()
 
 
 def create_ball_perturbation(X_train, distribution_list, w):
