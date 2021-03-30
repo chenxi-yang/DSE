@@ -588,7 +588,7 @@ def assign_probability(perturbation_x_dict, component_list):
         p = extract_upper_probability_per_component(component, perturbation_x_dict)
         component['p'] = p
         component_list[idx] = component
-    print(f"sum of upper bound: {sum([component['p'] for component in component_list])}")
+    # print(f"sum of upper bound: {sum([component['p'] for component in component_list])}")
     return component_list
 
 
@@ -626,13 +626,14 @@ def extract_abstract_representation(
     x_l, 
     x_r, 
     num_components, 
-    bs,
     w=0.3):
     # bs < num_components, w is half of the ball width
-
+    '''
+    Steps:
     # 1. generate perturbation, small ball covering following normal, uniform, poission
     # 2. measure probability 
     # 3. slice X_train, y_train into component-wise
+    '''
     start_t = time.time()
 
     perturbation_x_dict = create_ball_perturbation(X_train, 
@@ -642,11 +643,11 @@ def extract_abstract_representation(
 
     # create data for batching, each containing component and cooresponding x, y
     component_list = assign_probability(perturbation_x_dict, component_list)
+    component_list = assign_data_point(X_train, y_train, component_list)
+    random.shuffle(component_list)
+
     print(component_list)
     print(f"-- Generate Perturbation Set --")
     print(f"--- {time.time() - start_t} sec ---")
-    exit(0)
-    component_list = assign_data_point(X_train, y_train, component_list)
-    random.shuffle(component_list)
 
     return component_list

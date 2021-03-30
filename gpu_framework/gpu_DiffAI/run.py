@@ -52,11 +52,16 @@ if __name__ == "__main__":
         log_file.write(f"path_sample_size: {path_sample_size}\n")
         log_file.close()
 
+        target = {
+            "condition": domain.Interval(var(SAFE_RANGE[0]), var(SAFE_RANGE[1])),
+            "phi": var(PHI),
+        }
+
         # data points generation
         preprocessing_time = time.time()
         # TODO: the data is one-dimension (x = a value)
         X_train, X_test, y_train, y_test = load_data(train_size=train_size, test_size=test_size, dataset_path=DATASET_PATH)
-        X, Y, abstract_representation = extract_abstract_representation(X_train, y_train, x_l, x_r, num_components, bs)
+        component_list = extract_abstract_representation(X_train, y_train, x_l, x_r, num_components)
         print(f"prepare data: {time.time() - preprocessing_time}")
         # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 
@@ -70,9 +75,7 @@ if __name__ == "__main__":
 
                 # BEST_theta(lambda)
                 m, loss, loss_list, q, c, time_out = learning(
-                    X, 
-                    Y,
-                    abstract_representation,
+                    component_list,
                     lambda_=new_lambda, 
                     stop_val=stop_val, 
                     epoch=num_epoch, 
@@ -119,7 +122,9 @@ if __name__ == "__main__":
             if time_out == True:
                 break
 
-            # TODO: change arguments here
+            # TODO: change verification and test
+            # verification, going through the program without sampling
+            # test for the quantitative accuracy
             eval(X_train, y_train, m_t, target, 'train')
             eval(X_test, y_test, m_t, target, 'test')
 

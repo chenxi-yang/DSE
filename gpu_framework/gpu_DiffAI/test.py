@@ -33,27 +33,6 @@ def eval(X, Y, m, target, category):
     safe_min = P_INFINITY.data.item()
     safe_max = N_INFINITY.data.item()
 
-    '''
-    # add for program test_disjuction_2
-    '''
-    ##########################################
-    # if benchmark_id == 9:
-    #     x = [theta.data.item()-0.0101]
-    #     symbol_table_point = initialization_point(x)
-    #     root_target_point = construct_syntax_tree_point(var(5.49))
-    #     symbol_table_point = root_target_point['entry'].execute(symbol_table_point)
-    #     # safe_l = symbol_table_point['x_min'].data.item()
-    #     # safe_r = symbol_table_point['x_max'].data.item()
-    #     y = symbol_table_point['res'].data.item()
-    #     # print('add data:', theta.data.item(), y, safe_l, safe_r)
-    #     X = list(X)
-    #     X.append(x)
-    #     X = np.array(X)
-    #     Y = list(Y)
-    #     Y.append([y])
-    #     Y = np.array(Y)
-    ###########################################
-
     # quantative distance
     data_loss = var(0.0)
     for idx, x in enumerate(X):
@@ -64,13 +43,6 @@ def eval(X, Y, m, target, category):
         # symbol_table_point = root_point['entry'].execute(symbol_table_point)
 
         y_pred.append(y_point_list[0]['x'].c[2].data.item())
-
-        # symbol_table_point = initialization_point(x)
-        # symbol_table_point = root_point['entry'].execute(symbol_table_point)
-
-        # real_y = symbol_table_point['res'].data.item()
-        # y_min = min(real_y, y_min)
-        # y_max = max(real_y, y_max)
 
         safe_property_min = y_point_list[0]['safe_range'].left.data.item()
         safe_property_max = y_point_list[0]['safe_range'].right.data.item()

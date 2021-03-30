@@ -39,10 +39,10 @@ DATASET_PATH = f"../dataset/{benchmark_name}_{data_attr}.txt"
 
 # Linear nn, Sigmoid
 if benchmark_name == "thermostat":
-    x_l = [52.0]
-    x_r = [59.0]
-    SAFE_RANGE = [52.0, 82.99]
-    PHI = 0.95 # safe probability
+    x_l = [55.0]
+    x_r = [62.0]
+    SAFE_RANGE = [55.0, 81.34]
+    PHI = 0.05 # unafe probability
 
 
 # args
