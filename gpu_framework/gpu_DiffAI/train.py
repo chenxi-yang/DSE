@@ -132,7 +132,7 @@ def cal_data_loss(m, x, y):
         data_loss += distance_f_point(y_point_list[0]['x'].c[2], var(label))
         # sanity check 
         # data_loss.backward(retain_graph=True)
-    data_loss /= len(x)
+    data_loss /= var(len(x)).add(EPSILON)
     return data_loss
 
 
@@ -239,7 +239,7 @@ def cal_safe_loss(m, x, width, target):
         # TODO: change the split way
         abstract_list = m(abstract_data, 'abstract')
         safe_loss += safe_distance(abstract_list, target)
-    safe_loss /= len(x)
+    safe_loss /= var(len(x)).add(EPSILON)
     return safe_loss
 
     # y_abstract_list = list()
@@ -373,6 +373,7 @@ def learning(
         for x, y, abstract_states in divide_chunks(component_list, bs=bs):
             # print(f"x length: {len(x)}")
             print(f"batch size, x: {len(x)}, y: {len(y)}, abstract_states: {len(abstract_states)}")
+            if len(x) == 0: continue  # because DiffAI only makes use of x, y
             batch_time = time.time()
 
             data_loss = cal_data_loss(m, x, y)
@@ -387,10 +388,14 @@ def learning(
             optimizer.step()
             optimizer.zero_grad()
 
+            q_loss += data_loss
+            c_loss += safe_loss
+
             # count += 1
             # if count >= 10:
             #     exit(0)
-        save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}", epoch=i)
+        # TODO: save model 
+        # save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}", epoch=i)
         
         if i >= 7 and i%2 == 0:
             for param_group in optimizer.param_groups:
@@ -399,9 +404,11 @@ def learning(
         # f_loss = q_loss + lambda_ * c_loss
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
         print(f"-----finish {i}-th epoch-----, the batch loss: q: {data_loss.data.item()}, c: {safe_loss.data.item()}")
+        print(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss.data.item()}, c: {c_loss.data.item()}")
         log_file = open(file_dir, 'a')
         log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
         log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {data_loss.data.item()}, c: {safe_loss.data.item()}\n")
+        log_file.write(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss.data.item()}, c: {c_loss.data.item()}\n")
 
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
