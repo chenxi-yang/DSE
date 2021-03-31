@@ -59,15 +59,16 @@ def read_train_log(log_file):
         log_f.readline()
         for line in log_f:
             # print(line)
-            if 'epoch' in line and 'loss' not in line:
+            if 'epoch loss' in line:
                 content = line.split(",")
-                q = float(content[1].split(":")[1])/5
+                q = float(content[1].split(":")[2])/5
                 c = float(content[2].split(":")[1])/5
                 # print(q, c)
                 q_list.append(q)
                 c_list.append(c)
-                if len(q_list) >= 10:
-                    break
+                # if len(q_list) >= 10:
+                #     break
+    print(q_list, c_list)
     return q_list, c_list
 
 
@@ -151,29 +152,6 @@ def plot_constraint(x_list, safe_l_list, safe_r_list, p1_list, p2_list, title,  
     labs = [l.get_label() for l in lns]
     ax.legend(lns, labs, loc=0)
 
-    # ax.plot(x_list, safe_l_list, color='C3')
-    # ax.set_ylim([51,54])
-    # ax.set_ylabel("safe bottom")
-    
-    # ax1 = ax.twinx()
-    # ax1.plot(x_list, safe_r_list, color='C3')
-    # ax1.set_ylim([83,86])
-    # ax1.set_ylabel("safe top")
-    # # plt.yscale("log")
-    # ax1.yaxis.grid()
-    # ax1.xaxis.grid()
-
-    # ax2 = ax.twinx()
-
-    # ax2.plot(x_list, p1_list, label=label1)
-    # ax2.plot(x_list, p2_list, label=label2)
-    # ax2.get_yaxis().set_visible(False)
-
-    # ax2.set_xlabel("different constraint")
-
-    # plt.xlabel(x_label)
-    # plt.ylabel(y_label)
-
     plt.xticks(range(0,5))
     
     plt.title(title)
@@ -232,8 +210,9 @@ if __name__ == "__main__":
     # plot_loss_2('loss/')
     # plot_sample('data/sample_time.txt')
     # lr_bs_epoch_samplesize
-    # plot_training_loss('result/thermostat_nn_volume_[52.0]_[85.1]_0.001_40_10_1000_5000_all_linearrelu.txt', benchmark='thermostat_nn_volume_[52.0]_[85.1]_0.001_40_10_1000_5000_all_linearrelu', log=False)
-    plot_vary_constraint('result/vary_constraint_volume_vs_point_sampling.txt')
+    plot_training_loss('result/thermostat_diffAI_1e-06_2_14_10_100_1000_all_linearrelu.txt', benchmark='thermostat_diffAI_1e-06_2_14_10_100_1000_all_linearrelu', log=False)
+    # plot_training_loss('result/thermostat_diffAI_1e-06_2_15_10_100_1000_all_linearrelu.txt', benchmark='thermostat_diffAI_1e-06_2_15_10_100_1000_all_linearrelu', log=False)
+    # plot_vary_constraint('result/vary_constraint_volume_vs_point_sampling.txt')
 
 
 

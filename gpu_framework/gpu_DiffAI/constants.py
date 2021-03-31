@@ -21,6 +21,7 @@ nn_mode = args.nn_mode
 b = args.b
 module = args.module
 num_components = args.num_components
+use_smooth_kernel = args.use_smooth_kernel
 # safe_start_idx = args.safe_start_idx
 # safe_end_idx = args.safe_end_idx
 # path_sample_size = args.path_sample_size
@@ -73,7 +74,7 @@ alpha_coeff = 0.9
 alpha_smooth_max = 0.8
 eps = 1e-10
 
-file_dir = f"result/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{num_components}_{l}_{b}_{nn_mode}_{module}.txt"
+file_dir = f"result/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}.txt"
 log_file = open(file_dir, 'w')
 log_file.write(f"{args}\n")
 log_file.write(f"path_num_list: {path_num_list}")

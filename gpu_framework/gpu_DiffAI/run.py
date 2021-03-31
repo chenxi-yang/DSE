@@ -37,6 +37,7 @@ def best_theta(component_list, lambda_, target):
         nn_mode=nn_mode,
         module=module,
         target=target,
+        use_smooth_kernel=use_smooth_kernel,
         )
 
     return m, loss, time_out
@@ -88,8 +89,8 @@ if __name__ == "__main__":
                         n=n,
                         nn_mode=nn_mode,
                         l=l,
-                        module=module)
-                exit(0)
+                        module=module,
+                        use_smooth_kernel=use_smooth_kernel)
                 #TODO: reduce time, because there are some issues with the gap between cal_c and cal_q
                 m_t = m
                 break
@@ -126,9 +127,10 @@ if __name__ == "__main__":
             if time_out == True:
                 break
 
-            # TODO: change verification and test
+            # TODO: add verification and test
             # verification, going through the program without sampling
             # test for the quantitative accuracy
+            exit(0)
             eval(X_train, y_train, m_t, target, 'train')
             eval(X_test, y_test, m_t, target, 'test')
 

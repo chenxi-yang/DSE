@@ -62,16 +62,6 @@ def distance_f_interval(symbol_table_list, target):
     return res
 
 
-def normal_pdf(x, mean, std):
-    # print(f"----normal_pdf-----\n x: {x} \n mean: {mean} \n std: {std} \n -------")
-    y = torch.exp((-((x-mean)**2)/(2*std*std)))/ (std* torch.sqrt(2*var(math.pi)))
-    # res = torch.prod(y)
-    res = torch.sum(torch.log(y))
-    # res *= var(1e)
-
-    return res
-
-
 def generate_theta_sample_set(Theta):
     # sample_theta_list = list()
     # sample_theta_probability_list = list()
@@ -297,6 +287,16 @@ def update_model_parameter(m, theta):
     return m
 
 
+def normal_pdf(x, mean, std):
+    # print(f"----normal_pdf-----\n x: {x} \n mean: {mean} \n std: {std} \n -------")
+    y = torch.exp((-((x-mean)**2)/(2*std*std)))/ (std* torch.sqrt(2*var(math.pi)))
+    # res = torch.prod(y)
+    res = torch.sum(torch.log(y))
+    # res *= var(1e)
+
+    return res
+
+
 def sampled(x):
     res = torch.normal(mean=x, std=var(1.0))
     log_p = normal_pdf(res, mean=x, std=var(1.0))
@@ -306,10 +306,15 @@ def sampled(x):
 
 
 def sample_parameters(Theta, n=5):
+    '''
+    This is Gaussian Smooth, TODO: accuracy?
     # theta_0 is a parameter method
     # sample n theta based on the normal distribution with mean=Theta std=1.0
     # return a list of <theta, theta_p>
     # each theta, Theta is a list of Tensor
+    '''
+    sample_parameter_time = time.time()
+
     theta_list = list()
     for i in range(n):
         sampled_theta = list()
@@ -321,7 +326,6 @@ def sample_parameters(Theta, n=5):
             theta_p += sampled_p
             # theta_p *= sampled_p # !incorrect
         # print(f"each sampled theta: {sampled_theta}")
-        # print(f"each probability: {theta_p}")
         theta_list.append((sampled_theta, theta_p))
 
     return theta_list
@@ -347,16 +351,14 @@ def learning(
         n=5,
         nn_mode='all',
         l=10,
-        module='linearrelu'
+        module='linearrelu',
+        use_smooth_kernel=use_smooth_kernel,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
 
     # TODO change all.....
     TIME_OUT = False
-
-    loop_list = list()
-    loss_list = list()
 
     _, m = load_model(MODEL_PATH, name=f"{benchmark_name}_{data_attr}")
 
@@ -376,20 +378,53 @@ def learning(
             if len(x) == 0: continue  # because DiffAI only makes use of x, y
             batch_time = time.time()
 
-            data_loss = cal_data_loss(m, x, y)
-            safe_loss = cal_safe_loss(m, x, width, target)
+            if use_smooth_kernel:
+                Theta = extract_parameters(m)
+                grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
+                real_data_loss, real_safe_loss = var_list([0.0]), var_list([0.0])
+                for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
+                    # sample_theta_p is actually log(theta_p)
 
-            print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
-            loss = data_loss + lambda_.mul(safe_loss)
+                    # sample_time = time.time()
+                    m = update_model_parameter(m, sample_theta)
+                    data_loss = cal_data_loss(m, x, y)
+                    safe_loss = cal_safe_loss(m, x, width, target)
+                    # print(f"in sample, data loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}")
+
+                    # gradient = \exp_{\theta' \sim N(\theta)}[loss * \grad_{\theta}(log(p(\theta', \theta)))]
+                    grad_data_loss += var_list([data_loss.data.item()]) * sample_theta_p
+                    real_data_loss += var_list([data_loss.data.item()])
+                    grad_safe_loss += var_list([safe_loss.data.item()]) * sample_theta_p
+                    real_safe_loss += var_list([safe_loss.data.item()])
+
+                    # print(f"sample time: {time.time() - sample_time}")
+                loss = grad_data_loss + lambda_.mul(grad_safe_loss)
+
+                real_data_loss /= n
+                real_safe_loss /= n
+
+                # print(f"grad data_loss: {grad_data_loss.data.item()}, grad safe_loss: {grad_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
+
+            else:
+                data_loss = cal_data_loss(m, x, y)
+                safe_loss = cal_safe_loss(m, x, width, target)
+                loss = data_loss + lambda_.mul(safe_loss)
+
+                real_data_loss = data_loss
+                real_safe_loss = safe_loss
+            
+            print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
             loss.backward(retain_graph=True)
+
             # for partial_theta in Theta:
             #     torch.nn.utils.clip_grad_norm_(partial_theta, 1)
 
             optimizer.step()
             optimizer.zero_grad()
 
-            q_loss += data_loss
-            c_loss += safe_loss
+            #  calculate the epoch loss: sum up the loss of each  batch
+            q_loss += real_data_loss
+            c_loss += real_safe_loss
 
             # count += 1
             # if count >= 10:
@@ -403,18 +438,19 @@ def learning(
         
         # f_loss = q_loss + lambda_ * c_loss
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
-        print(f"-----finish {i}-th epoch-----, the batch loss: q: {data_loss.data.item()}, c: {safe_loss.data.item()}")
+        print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}")
         print(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss.data.item()}, c: {c_loss.data.item()}")
         log_file = open(file_dir, 'a')
         log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
-        log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {data_loss.data.item()}, c: {safe_loss.data.item()}\n")
+        log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}\n")
         log_file.write(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss.data.item()}, c: {c_loss.data.item()}\n")
 
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
-        if loss.data.item() < EPSILON.data.item():
-            break
+
+        # if loss.data.item() < EPSILON.data.item():
+        #     break
         
         if (time.time() - start_time)/(i+1) > 2000:
             log_file = open(file_dir, 'a')
