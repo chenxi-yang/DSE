@@ -359,6 +359,7 @@ def learning(
     m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     print(m)
     m.cuda()
+    save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}", epoch=0)
 
     optimizer = torch.optim.SGD(m.parameters(), lr=lr)
     
@@ -385,7 +386,8 @@ def learning(
             # count += 1
             # if count >= 10:
             #     exit(0)
-            
+        save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}", epoch=i+1)
+        
         if i >= 7 and i%2 == 0:
             for param_group in optimizer.param_groups:
                 param_group["lr"] *= 0.5
@@ -400,7 +402,7 @@ def learning(
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
-        if c_loss.data.item() < EPSILON.data.item():
+        if loss.data.item() < EPSILON.data.item():
             break
         
         if (time.time() - start_time)/(i+1) > 2000:
@@ -410,7 +412,7 @@ def learning(
             TIME_OUT = True
             break
     
-    res = real_data_loss + lambda_ * real_safe_loss# loss # f_loss.div(len(X_train))
+    res = loss # loss # f_loss.div(len(X_train))
 
     log_file = open(file_dir, 'a')
     spend_time = time.time() - start_time

@@ -32,10 +32,9 @@ K_DISJUNCTS = 10000000
 SAMPLE_SIZE = 500
 DOMAIN = "interval" # [interval, zonotope]
 
-
 CURRENT_PROGRAM = 'program' + benchmark_name # 'program_test_disjunction_2'
 DATASET_PATH = f"../dataset/{benchmark_name}_{data_attr}.txt"
-
+MODEL_PATH = f"."
 
 # Linear nn, Sigmoid
 if benchmark_name == "thermostat":

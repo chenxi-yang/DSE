@@ -7,6 +7,8 @@ from helper import *
 from constants import *
 import domain
 
+import os
+
 # x_list
 # i, isOn, x, lin  = 0.0, 0.0, input, x
 # tOff = 62.0
@@ -203,6 +205,31 @@ class ThermostatNN(nn.Module):
                 nn.utils.weight_norm(self, dim=None)
             else:
                 nn.utils.weight_norm(self)
+
+
+def load_model(folder, name, epoch=None):
+    if os.path.isfile(folder):
+        return None, torch.loader(folder)
+    model_dir = os.path.join(folder, f"model_{name}")
+    if not os.path.exists(model_dir):
+        return None, None
+    if epoch is None and os.listdir(model_dir):
+        epoch = max(os.listdir(model_dir), key=int)
+    path = os.path.join(model_dir, str(epoch))
+    if not os.path.exists(path):
+        return None, None
+    return int(epoch), torch.load(path)
+
+
+def save_model(model, folder, name, epoch):
+    path = os.path.join(folder, f"model_{name}", str(epoch))
+    try:
+        os.makedirs(os.path.dirname(path))
+    except FileExistsError:
+        pass
+    torch.save(model, path)
+    
+
 
 
 
