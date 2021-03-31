@@ -34,7 +34,7 @@ DOMAIN = "interval" # [interval, zonotope]
 
 CURRENT_PROGRAM = 'program' + benchmark_name # 'program_test_disjunction_2'
 DATASET_PATH = f"../dataset/{benchmark_name}_{data_attr}.txt"
-MODEL_PATH = f"."
+MODEL_PATH = f"models"
 
 # Linear nn, Sigmoid
 if benchmark_name == "thermostat":

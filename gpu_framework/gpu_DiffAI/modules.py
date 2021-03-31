@@ -178,7 +178,8 @@ def calculate_branch(target_idx, test, symbol_table):
         delta = (test - target.getLeft()) / 2.0
         res.set_from_index(target_idx, domain.Box(c, delta)) # res[target_idx] = Box(c, delta)
         res_symbol_table_body = pre_build_symbol_table(symbol_table)
-        # This is DiffAI, so probability is not needed any more
+        # This is DiffAI, so probability is not needed any more (for place holder)
+        probability = pre_allocate(symbol_table)
         res_symbol_table_body = update_res_in_branch(res_symbol_table_body, res, probability, branch)
         res_symbol_table_list.append(res_symbol_table_body)
 
@@ -189,6 +190,7 @@ def calculate_branch(target_idx, test, symbol_table):
         res.set_from_index(target_idx, domain.Box(c, delta))
         res_symbol_table_orelse = pre_build_symbol_table(symbol_table)
 
+        probability = pre_allocate(symbol_table)
         res_symbol_table_orelse = update_res_in_branch(res_symbol_table_orelse, res, probability, branch)
         res_symbol_table_list.append(res_symbol_table_orelse)
 
@@ -199,6 +201,7 @@ def calculate_branch(target_idx, test, symbol_table):
 def calculate_branch_list(target_idx, test, symbol_table_list):
     res_list = list()
     for symbol_table in symbol_table_list: # for each element, split it. # c, delta
+        # print(symbol_table)
         res_symbol_table = calculate_branch(target_idx, test, symbol_table)
         # if res_symbol_table['x'] is None:
         #     continue
@@ -207,7 +210,8 @@ def calculate_branch_list(target_idx, test, symbol_table_list):
 
 
 def sound_join_symbol_table(symbol_table_1, symbol_table_2):
-    assert(len(symbol_table_1) == 0 and len(symbol_table_2) == 0)
+    # assert(len(symbol_table_1) == 0 and len(symbol_table_2) == 0)
+    # print(f"In Sound Join Symbol Table")
     if len(symbol_table_1) == 0:
         return symbol_table_2
     if len(symbol_table_2) == 0:
@@ -217,10 +221,11 @@ def sound_join_symbol_table(symbol_table_1, symbol_table_2):
 
     symbol_table = {
         'x': symbol_table_1['x'].sound_join(symbol_table_2['x']),
-        'p': torch.max(symbol_table_1['p'], symbol_table_2['p']),
+        'probability': torch.max(symbol_table_1['probability'], symbol_table_2['probability']),
         'trajectory': [state for state in res_trajectory],
         'branch': '',
     }
+    # print(f"Out Sound Join Symbol Table: {symbol_table['trajectory']}")
 
     return symbol_table
 
@@ -228,15 +233,21 @@ def sound_join_symbol_table(symbol_table_1, symbol_table_2):
 def sound_join(l1, l2):
     # join all symbol_table, only one symbol_table left
     # when joining trajectory, select the trajectory with longer length, TODO in the future
+    # print(f"In Sound Join")
     res_list = list()
     res_symbol_table = dict()
+    # print(f"{len(l1)}, {len(l2)}")
     for symbol_table in l1:
         res_symbol_table = sound_join_symbol_table(res_symbol_table, symbol_table)
     for symbol_table in l2:
-        res_symbol_table  = sound_join_symbol_table(res_symbol_table, symbol_table)
+        res_symbol_table = sound_join_symbol_table(res_symbol_table, symbol_table)
     
-    res_list.append(res_symbol_table)
-    assert(len(res_list) == 1)
+    if len(res_symbol_table) > 1: # res_symbol_table not None
+        # print(res_symbol_table['trajectory'])
+        res_list.append(res_symbol_table)
+        
+    # print(f"Out Sound Join")
+
     return res_list
 
 
@@ -277,18 +288,25 @@ class IfElse(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, x_list):
-        #TODO: join
-
-        res_list = list()
         test = self.f_test(self.test)
 
-        res_list = calculate_branch_list(self.target_idx, test, x_list)
+        branch_list = calculate_branch_list(self.target_idx, test, x_list)
+        # print(f"{len(branch_list)}")
+        # print(f"{[symbol_table['branch'] for symbol_table in branch_list]}")
+
         body_list, else_list = list(), list()
         for symbol_table in branch_list:
             if symbol_table['branch'] == 'body':
                 body_list.append(symbol_table)
             else:
                 else_list.append(symbol_table)
+        
+        # print(f"In IfElse, {len(body_list)}, {len(else_list)}")
+        
+        if len(body_list) > 0:
+            body_list = self.body(body_list)
+        if len(else_list) > 0:
+            else_list = self.orelse(else_list)
 
         res_list = sound_join(body_list, else_list)
 
@@ -323,6 +341,7 @@ class While(nn.Module):
             res_list = sound_join(res_list, else_list)
 
             if len(body_list) == 0:
+                # print(f"---In While Out, {len(res_list)}, {res_list[0]['trajectory']}")
                 return res_list
             
             symbol_table_list = self.body(body_list)
@@ -337,7 +356,9 @@ def update_trajectory(symbol_table, target_idx):
     # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
     assert input_interval.left.data.item() <= input_interval.right.data.item()
 
+    # print(f"In update trajectory")
     symbol_table['trajectory'].append(input_interval)
+    # print(f"Finish update trajectory")
 
     return symbol_table
 

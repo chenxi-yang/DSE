@@ -122,7 +122,7 @@ def cal_data_loss(m, x, y):
     # for the point in the same batch
     # calculate the data loss of each point
     # add the point data loss together
-    data_loss = var(0.0)
+    data_loss = var_list([0.0])
     for idx in range(len(x)):
         point, label = x[idx], y[idx]
         point_data = initialization_point_nn(point)
@@ -130,6 +130,8 @@ def cal_data_loss(m, x, y):
         # should be only one partition in y['x']
         # the return value in thermostat is x, index: 2
         data_loss += distance_f_point(y_point_list[0]['x'].c[2], var(label))
+        # sanity check 
+        # data_loss.backward(retain_graph=True)
     data_loss /= len(x)
     return data_loss
 
@@ -199,25 +201,25 @@ def safe_distance(symbol_table_list, target):
     # all_unsafe_value = max_i(unsafe_value(s_i, target))
     # TODO: or avg?
     # loss violate the safe constraint: 
-    # TODO: measure the trajectory violation
-    loss = var(0.0)
+
+    loss = var_list([0.0])
     for symbol_table in symbol_table_list:
-        trajectory_loss = var(0.0)
+        trajectory_loss = var_list([0.0])
         for X in symbol_table['trajectory']:
             safe_interval = target["condition"]
             unsafe_probability_condition = target["phi"]
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
-                unsafe_value = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
+                unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
             else:
-                safe_probability = intersection_interval.getLength().div(X.getLength())
-                if safe_probability.data.item() > 1 - unsafe_probability_condition:
-                    unsafe_value = var(0.0)
+                safe_portion = intersection_interval.getLength().div(X.getLength())
+                safe_probability = torch.index_select(safe_portion, 0, index0)
+                if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
+                    unsafe_value = var_list([0.0])
                 else:
                     unsafe_value = ((1 - unsafe_probability_condition) - safe_probability) / safe_probability
             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
         loss += trajectory_loss
-    
     loss = loss / (var(len(symbol_table_list)).add(EPSILON))
 
     return loss
@@ -230,13 +232,13 @@ def cal_safe_loss(m, x, width, target):
     calculate the loss in a batch-wise view
     '''
     center_list, width_list = create_small_ball(x, width)
-    safe_loss = var(0.0)
+    safe_loss = var_list([0.0])
     for idx, center in enumerate(center_list):
         width = width_list[idx]
         abstract_data = initialization_nn([center], [width])
         # TODO: change the split way
         abstract_list = m(abstract_data, 'abstract')
-        safe_loss += safe_distance(abstract_list[0], target)
+        safe_loss += safe_distance(abstract_list, target)
     safe_loss /= len(x)
     return safe_loss
 
@@ -361,26 +363,26 @@ def learning(
     m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     print(m)
     m.cuda()
-    save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}", epoch=0)
 
     optimizer = torch.optim.SGD(m.parameters(), lr=lr)
     
     start_time = time.time()
     for i in range(epoch):
-        q_loss, c_loss = var(0.0), var(0.0)
+        q_loss, c_loss = var_list([0.0]), var_list([0.0])
         count = 0
         for x, y, abstract_states in divide_chunks(component_list, bs=bs):
             # print(f"x length: {len(x)}")
+            print(f"batch size, x: {len(x)}, y: {len(y)}, abstract_states: {len(abstract_states)}")
             batch_time = time.time()
 
             data_loss = cal_data_loss(m, x, y)
             safe_loss = cal_safe_loss(m, x, width, target)
 
-            print(f"data_loss: {data_loss}, safe_loss: {safe_loss}, loss TIME: {time.time() - batch_time}")
+            print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
             loss = data_loss + lambda_.mul(safe_loss)
-            loss.backward()
-            for partial_theta in Theta:
-                torch.nn.utils.clip_grad_norm_(partial_theta, 1)
+            loss.backward(retain_graph=True)
+            # for partial_theta in Theta:
+            #     torch.nn.utils.clip_grad_norm_(partial_theta, 1)
 
             optimizer.step()
             optimizer.zero_grad()
@@ -388,7 +390,7 @@ def learning(
             # count += 1
             # if count >= 10:
             #     exit(0)
-        save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}", epoch=i+1)
+        save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}", epoch=i)
         
         if i >= 7 and i%2 == 0:
             for param_group in optimizer.param_groups:

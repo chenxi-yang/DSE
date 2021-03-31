@@ -64,7 +64,9 @@ class Interval:
         if self.right.data.item() < self.left.data.item():
             return var(0.0)
         else:
-            return torch.max(EPSILON, (self.right.sub(self.left)))
+            # print(f"in getLength: {self.right}, {self.left}")
+            # print(f"in getLength: {self.right.sub(self.left)}")
+            return torch.max(EPSILON, self.right.sub(self.left))
         
     def getVolumn(self):
         if self.right.data.item() < self.left.data.item():

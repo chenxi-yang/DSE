@@ -4,7 +4,6 @@ from termcolor import colored
 from constants import *
 from data_generator import *
 # from optimization import *
-from train_dse import * 
 
 
 def check_safety(res, target):

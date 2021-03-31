@@ -24,10 +24,9 @@ def best_lambda(X_train, y_train, m, target):
 
 
 # TODO: change arguments
-def best_theta(X_train, y_train, lambda_, target):
+def best_theta(component_list, lambda_, target):
     m, loss, loss_list, q, c, time_out = learning(
-        X_train, 
-        y_train,
+        component_list, 
         lambda_=lambda_, 
         stop_val=stop_val, 
         epoch=num_epoch, 
