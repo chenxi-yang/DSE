@@ -356,6 +356,8 @@ def learning(
     loop_list = list()
     loss_list = list()
 
+    _, m = load_model(MODEL_PATH, name=f"{benchmark_name}_{data_attr}")
+
     m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     print(m)
     m.cuda()
@@ -548,10 +550,10 @@ def assign_data_point(X_train, y_train, component_list):
             'y': list(),
             }
         )
-        for idx, X in enumerate(X_train):
+        for i, X in enumerate(X_train):
             if in_component(X, component):
                 component['x'].append(X)
-                component['y'].append(y_train[idx])
+                component['y'].append(y_train[i])
         component_list[idx] = component
     return component_list
         
@@ -582,7 +584,7 @@ def extract_abstract_representation(
     component_list = assign_data_point(X_train, y_train, component_list)
     random.shuffle(component_list)
 
-    print(component_list)
+    # print(component_list)
     print(f"-- Generate Perturbation Set --")
     print(f"--- {time.time() - start_t} sec ---")
 

@@ -7,6 +7,8 @@ from helper import *
 from constants import *
 import domain
 
+import os
+
 # x_list
 # i, isOn, x, lin  = 0.0, 0.0, input, x
 # tOff = 62.0
@@ -24,19 +26,22 @@ if torch.cuda.is_available():
     index3 = index3.cuda()
 
 
-def initialization_nn(x, width, point_set):
+# DiffAI version
+def initialization_nn(center_list, width_list, p_list=None):
     # print(f"in initialization_nn")
     symbol_table_list = list()
-    symbol_table = dict()
-    symbol_table['x'] = domain.Box(var_list([0.0, 0.0, x[0], x[0]]), var_list([0.0, 0.0, width[0], width[0]]))
-    symbol_table['safe_range'] = domain.Interval(P_INFINITY, N_INFINITY)
-    symbol_table['probability'] = var(1.0)
-    symbol_table['explore_probability'] = var(1.0)
-    symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY, N_INFINITY)])
-    symbol_table['branch'] = ''
-    # volume-based does not need point cloud
-    # symbol_table = create_point_cloud(symbol_table, point_set, initialization_one_point_nn)
-    symbol_table_list.append(symbol_table)
+    for idx, center in enumerate(center_list):
+        width = width_list[idx]
+        p = var(1.0) if p_list is None else p_list[i]
+        symbol_table = {
+            'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
+            # 'safe_range': domain.Interval(P_INFINITY, N_INFINITY),
+            'probability': p,
+            'trajectory': list(),
+            'branch': '',
+        }
+
+        symbol_table_list.append(symbol_table)
 
     return symbol_table_list
 
@@ -53,8 +58,7 @@ def initialization_point_nn(x):
     symbol_table['probability'] = var(1.0)
     symbol_table['explore_probability'] = var(1.0)
     symbol_table['x_memo_list'] = list([domain.Interval(N_INFINITY, N_INFINITY)])
-    # volume-based does not need point cloud
-    # symbol_table['point_cloud'] = list()
+    symbol_table['point_cloud'] = list()
     symbol_table['counter'] = var(0.0)
     point_symbol_table_list.append(symbol_table)
 
@@ -79,7 +83,6 @@ def f_update_i(x):
 
 def f_self(x):
     return x
-
 
 class LinearSig(nn.Module):
     def __init__(self, l):
@@ -129,8 +132,8 @@ class LinearReLU(nn.Module):
 class ThermostatNN(nn.Module):
     def __init__(self, l, sig_range=10, nn_mode='all', module='linearrelu'):
         super(ThermostatNN, self).__init__()
-        self.tOff = var(62.0)
-        self.tOn = var(80.0)
+        self.tOff = var(78.0)
+        self.tOn = var(66.0)
         if module == 'linearsig':
             self.nn = LinearSig(l=l)
         if module == 'linearrelu':
@@ -148,12 +151,12 @@ class ThermostatNN(nn.Module):
         self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_tmp_down_nn)
 
         # TODO: empty select index works?
-        self.ifelse_tOff_block1 = Assign(target_idx=[1], arg_idx=[], f=lambda x: (x.set_value(var(1.0)), var(1.0)))
-        self.ifelse_tOff_block2 = Skip()
-        self.ifelse_tOff = IfElse(target_idx=[2], test=self.tOff, f_test=lambda x: x, body=self.ifelse_tOff_block1, orelse=self.ifelse_tOff_block2)
+        self.ifelse_tOn_block1 = Assign(target_idx=[1], arg_idx=[], f=lambda x: (x.set_value(var(1.0)), var(1.0)))
+        self.ifelse_tOn_block2 = Skip()
+        self.ifelse_tOn = IfElse(target_idx=[2], test=self.tOn, f_test=lambda x: x, body=self.ifelse_tOn_block1, orelse=self.ifelse_tOn_block2)
         self.ifblock1 = nn.Sequential(
             self.assign1, # DNN
-            self.ifelse_tOff, # if x <= tOff: isOn=1.0 else: skip
+            self.ifelse_tOn, # if x <= tOn: isOn=1.0 else: skip
         )
 
         if nn_mode == "single":
@@ -163,13 +166,13 @@ class ThermostatNN(nn.Module):
             # curL = curL + 10.0 * NN(curL, lin) + 5.0
             self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_tmp_up_nn)
 
-        self.ifelse_tOn_block1 = Skip()
-        self.ifelse_tOn_block2 = Assign(target_idx=[1], arg_idx=[], f=lambda x: (x.set_value(var(0.0)), var(1.0)))
-        self.ifelse_tOn = IfElse(target_idx=[2], test=self.tOn, f_test=lambda x: x, body=self.ifelse_tOn_block1, orelse=self.ifelse_tOn_block2)
+        self.ifelse_tOff_block1 = Skip()
+        self.ifelse_tOff_block2 = Assign(target_idx=[1], arg_idx=[], f=lambda x: (x.set_value(var(0.0)), var(1.0)))
+        self.ifelse_tOff = IfElse(target_idx=[2], test=self.tOff, f_test=lambda x: x, body=self.ifelse_tOff_block1, orelse=self.ifelse_tOff_block2)
 
         self.ifblock2 = nn.Sequential(
             self.assign2,
-            self.ifelse_tOn,
+            self.ifelse_tOff,  # if x <= tOff: skip else: isOn=0.0
         )
 
         self.ifelse_isOn = IfElse(target_idx=[1], test=var(0.5), f_test=lambda x: x, body=self.ifblock1, orelse=self.ifblock2)
@@ -202,6 +205,33 @@ class ThermostatNN(nn.Module):
                 nn.utils.weight_norm(self, dim=None)
             else:
                 nn.utils.weight_norm(self)
+
+
+def load_model(folder, name, epoch=None):
+    if os.path.isfile(folder):
+        return None, torch.loader(folder)
+    model_dir = os.path.join(folder, f"model_{name}")
+    if not os.path.exists(model_dir):
+        return None, None
+    if epoch is None and os.listdir(model_dir):
+        epoch = max(os.listdir(model_dir), key=int)
+    path = os.path.join(model_dir, str(epoch))
+    if not os.path.exists(path):
+        return None, None
+    return int(epoch), torch.load(path)
+
+
+def save_model(model, folder, name, epoch):
+    path = os.path.join(folder, f"model_{name}", str(epoch))
+    try:
+        os.makedirs(os.path.dirname(path))
+    except FileExistsError:
+        pass
+    torch.save(model, path)
+    
+
+
+
 
 
 
