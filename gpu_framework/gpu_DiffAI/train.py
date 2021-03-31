@@ -341,6 +341,7 @@ def extract_parameters(m):
 
 
 def learning(
+        m, 
         component_list,
         lambda_=lambda_,
         stop_val=0.01, 
@@ -354,6 +355,7 @@ def learning(
         module='linearrelu',
         use_smooth_kernel=use_smooth_kernel,
         save=save,
+        epochs_to_skip=epochs_to_skip,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
@@ -361,14 +363,18 @@ def learning(
     # TODO change all.....
     TIME_OUT = False
 
-    m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     print(m)
     m.cuda()
+
+    if epochs_to_skip is None:
+        epochs_to_skip = -1
 
     optimizer = torch.optim.SGD(m.parameters(), lr=lr)
     
     start_time = time.time()
     for i in range(epoch):
+        if i <= epochs_to_skip:
+            continue
         q_loss, c_loss = var_list([0.0]), var_list([0.0])
         count = 0
         for x, y, abstract_states in divide_chunks(component_list, bs=bs):
@@ -417,6 +423,8 @@ def learning(
 
             # for partial_theta in Theta:
             #     torch.nn.utils.clip_grad_norm_(partial_theta, 1)
+            print(m.nn.linear1.weight.grad)
+            print(m.nn.linear2.weight.grad)
 
             optimizer.step()
             optimizer.zero_grad()
@@ -430,7 +438,7 @@ def learning(
             #     exit(0)
         # TODO: save model 
         if save:
-            save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}", epoch=i)
+            save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}", epoch=i)
         
         if i >= 7 and i%2 == 0:
             for param_group in optimizer.param_groups:

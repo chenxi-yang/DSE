@@ -2,10 +2,15 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from modules import *
 from helper import * 
 from constants import *
+import constants
 import domain
+
+if constants.STATUS == "Training":
+    from modules import *
+elif constants.STATUS == "Verifying":
+    from modules_sound import *
 
 import os
 

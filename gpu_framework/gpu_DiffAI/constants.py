@@ -29,6 +29,8 @@ test_mode = args.test_mode
 # path_sample_size = args.path_sample_size
 data_attr = args.data_attr
 
+STATUS = 'Training' # a global status, if Training: use normal module, if Verifying: use sound module
+
 path_num_list = [250]
 
 K_DISJUNCTS = 10000000

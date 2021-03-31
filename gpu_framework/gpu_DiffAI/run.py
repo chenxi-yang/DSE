@@ -2,7 +2,7 @@
 from constants import *
 
 from train import *
-from test import *
+from evaluation import *
 
 from args import *
 
@@ -76,29 +76,27 @@ if __name__ == "__main__":
                 new_lambda = B.mul(q.exp().div(var(1.0).add(q.exp())))
 
                 # BEST_theta(lambda)
-                if test_mode:
-                    m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-                    _, m = load_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}")
-                else:
-                    m = None
+                m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
+                epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}")
 
-                if m is None:
-                    m, loss, loss_list, q, c, time_out = learning(
-                        component_list,
-                        lambda_=new_lambda, 
-                        stop_val=stop_val, 
-                        epoch=num_epoch, 
-                        target=target,
-                        lr=lr, 
-                        bs=bs,
-                        n=n,
-                        nn_mode=nn_mode,
-                        l=l,
-                        module=module,
-                        use_smooth_kernel=use_smooth_kernel, 
-                        save=save)
-                else:
-                    m.eval()
+                m, loss, loss_list, q, c, time_out = learning(
+                    m, 
+                    component_list,
+                    lambda_=new_lambda, 
+                    stop_val=stop_val, 
+                    epoch=num_epoch, 
+                    target=target,
+                    lr=lr, 
+                    bs=bs,
+                    n=n,
+                    nn_mode=nn_mode,
+                    l=l,
+                    module=module,
+                    use_smooth_kernel=use_smooth_kernel, 
+                    save=save,
+                    epochs_to_skip=epochs_to_skip,
+                    )
+                m.eval()
 
                 #TODO: reduce time, because there are some issues with the gap between cal_c and cal_q
                 m_t = m
