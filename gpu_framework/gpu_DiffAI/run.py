@@ -76,7 +76,12 @@ if __name__ == "__main__":
                 new_lambda = B.mul(q.exp().div(var(1.0).add(q.exp())))
 
                 # BEST_theta(lambda)
-                _, m = load_model(MODEL_PATH, name=f"{benchmark_name}_{data_attr}")
+                if test_mode:
+                    m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
+                    _, m = load_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}")
+                else:
+                    m = None
+
                 if m is None:
                     m, loss, loss_list, q, c, time_out = learning(
                         component_list,
@@ -90,7 +95,11 @@ if __name__ == "__main__":
                         nn_mode=nn_mode,
                         l=l,
                         module=module,
-                        use_smooth_kernel=use_smooth_kernel)
+                        use_smooth_kernel=use_smooth_kernel, 
+                        save=save)
+                else:
+                    m.eval()
+
                 #TODO: reduce time, because there are some issues with the gap between cal_c and cal_q
                 m_t = m
                 break

@@ -353,14 +353,13 @@ def learning(
         l=10,
         module='linearrelu',
         use_smooth_kernel=use_smooth_kernel,
+        save=save,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
 
     # TODO change all.....
     TIME_OUT = False
-
-    _, m = load_model(MODEL_PATH, name=f"{benchmark_name}_{data_attr}")
 
     m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     print(m)
@@ -430,7 +429,8 @@ def learning(
             # if count >= 10:
             #     exit(0)
         # TODO: save model 
-        # save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}", epoch=i)
+        if save:
+            save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}", epoch=i)
         
         if i >= 7 and i%2 == 0:
             for param_group in optimizer.param_groups:

@@ -72,4 +72,6 @@ def eval(X, Y, m, target, category):
 
     return
 
-    # return quan_dist.data.item(), safe_dist.data.item(), np.array(y_pred)
+
+def verification(m, component_list, target):
+    pass
