@@ -8,13 +8,14 @@ import matplotlib.pyplot as plt
 import copy
 
 from helper import *
-from data_generator import *
+# from data_generator import *
 from constants import *
 import constants
 
 from thermostat_nn import * 
 
 from utils import generate_distribution
+
 
 def distance_f_point(pred_y, y):
     return torch.abs(pred_y.sub(y)) # l1-distance
@@ -192,15 +193,47 @@ def create_small_ball(x_list, width):
     return center_list, width_list
 
 
+def safe_distance(symbol_table_list, target):
+    # measure DiffAI safe distance
+    # for one trajectory <s1, s2, ..., sn>
+    # all_unsafe_value = max_i(unsafe_value(s_i, target))
+    # TODO: or avg?
+    # loss violate the safe constraint: 
+    # TODO: measure the trajectory violation
+    loss = var(0.0)
+    for symbol_table in symbol_table_list:
+        trajectory_loss = var(0.0)
+        for X in symbol_table['trajectory']:
+            safe_interval = target["condition"]
+            unsafe_probability_condition = target["phi"]
+            intersection_interval = get_intersection(X, safe_interval)
+            if intersection_interval.isEmpty():
+                unsafe_value = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
+            else:
+                safe_probability = intersection_interval.getLength().div(X.getLength())
+                if safe_probability.data.item() > 1 - unsafe_probability_condition:
+                    unsafe_value = var(0.0)
+                else:
+                    unsafe_value = ((1 - unsafe_probability_condition) - safe_probability) / safe_probability
+            trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+        loss += trajectory_loss
+    
+    loss = loss / (var(len(symbol_table_list)).add(EPSILON))
+
+    return loss
+
+
 def cal_safe_loss(m, x, width, target):
     '''
     DiffAI 
     each x is surrounded by a small ball: (x-width, x+width)
+    calculate the loss in a batch-wise view
     '''
     center_list, width_list = create_small_ball(x, width)
     safe_loss = var(0.0)
-    for x_ball in x_ball_list:
-        abstract_data = initialization_nn(center_list, width_list)
+    for idx, center in enumerate(center_list):
+        width = width_list[idx]
+        abstract_data = initialization_nn([center], [width])
         # TODO: change the split way
         abstract_list = m(abstract_data, 'abstract')
         safe_loss += safe_distance(abstract_list[0], target)
@@ -305,9 +338,9 @@ def learning(
         component_list,
         lambda_=lambda_,
         stop_val=0.01, 
-        epoch=1000, 
+        epoch=1000,
+        target=None, 
         lr=0.00001, 
-        theta=None, 
         bs=10, 
         n=5,
         nn_mode='all',

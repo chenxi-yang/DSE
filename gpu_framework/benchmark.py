@@ -8,13 +8,13 @@ def thermostat(lin):
     isOn = 0.0
 
     for i in range(40):
-        if isOn <= 0.5:
+        if isOn <= 0.5: # ifblock1
             x = x - 0.1 * (x - lin)
-            if x <= tOn:
+            if x <= tOn: # ifelse_tOn
                 isOn = 1.0
             else:
                 isOn = 0.0
-        else:
+        else: # ifblock2
             x = x - 0.1 * (x - lin) + 5.0
             if x <= tOff:
                 isOn = 1.0

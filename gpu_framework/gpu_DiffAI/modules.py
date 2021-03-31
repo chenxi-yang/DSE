@@ -93,10 +93,9 @@ def calculate_x_list(target_idx, arg_idx, f, symbol_table_list):
 def pre_build_symbol_table(symbol_table):
     # clone safe_range and x_memo_list
     res_symbol_table = dict()
-    res_symbol_table['x_memo_list'] = list()
-    for x_memo in symbol_table['x_memo_list']:
-        res_symbol_table['x_memo_list'].append(x_memo.clone())
-    res_symbol_table['safe_range'] = symbol_table['safe_range'].clone()
+    res_symbol_table['trajectory'] = list()
+    for state in symbol_table['trajectory']:
+        res_symbol_table['trajectory'].append(state)
 
     return res_symbol_table
 
@@ -137,7 +136,6 @@ def split_volume(symbol_table, target, delta):
 def update_res_in_branch(res_symbol_table, res, probability, branch):
     res_symbol_table['x'] = res
     res_symbol_table['probability'] = probability
-    res_symbol_table['explore_probability'] = probability
     res_symbol_table['branch'] = branch
 
     return res_symbol_table
@@ -166,7 +164,6 @@ def calculate_branch(target_idx, test, symbol_table):
         probability = pre_allocate(symbol_table)
         res_symbol_table = update_res_in_branch(res_symbol_table, res, probability, branch)
         res_symbol_table_list.append(res_symbol_table)
-
     elif target.getLeft().data.item() > test.data.item():
         res = x.clone()
         branch = 'orelse'
@@ -174,7 +171,6 @@ def calculate_branch(target_idx, test, symbol_table):
         probability = pre_allocate(symbol_table)
         res_symbol_table = update_res_in_branch(res_symbol_table, res, probability, branch)
         res_symbol_table_list.append(res_symbol_table)
-
     else:
         res = x.clone()
         branch = 'body'
@@ -182,10 +178,7 @@ def calculate_branch(target_idx, test, symbol_table):
         delta = (test - target.getLeft()) / 2.0
         res.set_from_index(target_idx, domain.Box(c, delta)) # res[target_idx] = Box(c, delta)
         res_symbol_table_body = pre_build_symbol_table(symbol_table)
-        # point cloud based
-        # probability, counter = split_point_cloud(symbol_table, res, target_idx)
-        # volume-based
-        probability = split_volume(symbol_table, target, delta)
+        # This is DiffAI, so probability is not needed any more
         res_symbol_table_body = update_res_in_branch(res_symbol_table_body, res, probability, branch)
         res_symbol_table_list.append(res_symbol_table_body)
 
@@ -195,10 +188,7 @@ def calculate_branch(target_idx, test, symbol_table):
         delta = (target.getRight() - test) / 2.0
         res.set_from_index(target_idx, domain.Box(c, delta))
         res_symbol_table_orelse = pre_build_symbol_table(symbol_table)
-        # point cloud based
-        # probability, counter = split_point_cloud(symbol_table, res, target_idx)
-        # volume-based
-        probability = split_volume(symbol_table, target, delta)
+
         res_symbol_table_orelse = update_res_in_branch(res_symbol_table_orelse, res, probability, branch)
         res_symbol_table_list.append(res_symbol_table_orelse)
 
@@ -216,75 +206,38 @@ def calculate_branch_list(target_idx, test, symbol_table_list):
     return res_list
 
 
-def adapt_sampling_distribution(res_symbol_table_list):
-    # print(f"adapt res symbol_table: {len(res_symbol_table_list)}")
-    adapt_time = time.time()
-    if SAMPLE_METHOD == 3: # directly pass the probability
-        # length = len(res_symbol_table_list)
-        # tmp_explore_probability = res_symbol_table_list[0]['explore_probability']
-        
-        # for idx, res_symbol_table in enumerate(res_symbol_table_list):
-        #     re_idx = (idx - c) % length
-        #     if re_idx == 0:
-        #         res_symbol_table_list[idx]['explore_probability'] = tmp_explore_probability
-        #     else:
-        #         res_symbol_table_list[idx]['explore_probability'] = res_symbol_table_list[re_idx]['explore_probability']
-        pass
+def sound_join_symbol_table(symbol_table_1, symbol_table_2):
+    assert(len(symbol_table_1) == 0 and len(symbol_table_2) == 0)
+    if len(symbol_table_1) == 0:
+        return symbol_table_2
+    if len(symbol_table_2) == 0:
+        return symbol_table_1
+    trajectory_1, trajectory_2 = symbol_table_1['trajectory'], symbol_table_2['trajectory']
+    res_trajectory = trajectory_2 if len(trajectory_1) < len(trajectory_2) else trajectory_1
+
+    symbol_table = {
+        'x': symbol_table_1['x'].sound_join(symbol_table_2['x']),
+        'p': torch.max(symbol_table_1['p'], symbol_table_2['p']),
+        'trajectory': [state for state in res_trajectory],
+        'branch': '',
+    }
+
+    return symbol_table
+
+
+def sound_join(l1, l2):
+    # join all symbol_table, only one symbol_table left
+    # when joining trajectory, select the trajectory with longer length, TODO in the future
+    res_list = list()
+    res_symbol_table = dict()
+    for symbol_table in l1:
+        res_symbol_table = sound_join_symbol_table(res_symbol_table, symbol_table)
+    for symbol_table in l2:
+        res_symbol_table  = sound_join_symbol_table(res_symbol_table, symbol_table)
     
-    if SAMPLE_METHOD == 4:
-        # adaptive translation
-        length = len(res_symbol_table_list)
-        score_list = list()
-        for res_symbol_table in res_symbol_table_list:
-            x = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
-            # TODO: should adapt to different domains
-            x.left = torch.min(res_symbol_table['safe_range'].left, res_symbol_table['safe_range'].left)
-            x.right = torch.max(res_symbol_table['safe_range'].right, res_symbol_table['safe_range'].right)
-            score_list.append(get_score_gradient(res_symbol_table['x_memo_list'], x, target))
-
-        score_idx_list = [x for x, y in sorted(enumerate(score_list), key = lambda x:x[1].data.item(), reverse=True)]
-        probability_idx_list = [x for x, y in sorted(enumerate(res_symbol_table_list), key = lambda x:x[1]['explore_probability'].data.item(), reverse=True)]
-        for idx, score_idx in enumerate(score_idx_list):
-            # print(score_list[score_idx], res_symbol_table_list[probability_idx_list[idx]]['explore_probability'])
-            #! change【change】
-            # new weight p(x)/pi(x)
-            res_symbol_table_list[score_idx]['explore_probability'] = res_symbol_table_list[probability_idx_list[idx]]['explore_probability']
-            # res_symbol_table_list[score_idx]['explore_probability'] = res_symbol_table_list[score_idx]['probability'].div(res_symbol_table_list[probability_idx_list[idx]]['explore_probability'])
-    # if len(res_symbol_table) > constants.SAMPLE_SIZE: 
-    #     print(f"adapt time: {time.time() - adapt_time}")
-    return res_symbol_table_list
-
-
-def sample(symbol_table_list):
-    sample_time = time.time()
-    if SAMPLE_METHOD == 3:
-        res_symbol_table_list = random.choices(symbol_table_list, weights=[symbol_table['probability'].data.item() for symbol_table in symbol_table_list], k=1)
-
-    if SAMPLE_METHOD == 4:
-        length_before = len(symbol_table_list)
-
-        # just for pofiling
-        # print(f"sampling time: {time.time() - sample_time}, length before: {length_before}")
-
-        shuffle(symbol_table_list)
-        res_symbol_table_list = list()
-
-        symbol_table_idx = 0
-        max_explore_probability = N_INFINITY
-        for symbol_table in symbol_table_list:
-            max_explore_probability = torch.max(symbol_table['explore_probability'], max_explore_probability)
-
-        for idx, symbol_table in enumerate(symbol_table_list):
-            symbol_table_list[idx]['explore_probability'] = symbol_table_list[idx]['explore_probability'].div(max_explore_probability)
-        
-        res_symbol_table_list = random.choices(symbol_table_list, weights=[symbol_table['explore_probability'].data.item() for symbol_table in symbol_table_list], k=1)
-        
-        for idx, symbol_table in enumerate(res_symbol_table_list):
-            res_symbol_table_list[idx]['explore_probability'] = res_symbol_table_list[idx]['explore_probability'].mul(max_explore_probability)
-        
-    # print(f"sampling time: {time.time() - sample_time}") # , length before: {length_before}, length after: {len(res_symbol_table_list)}")
-
-    return res_symbol_table_list
+    res_list.append(res_symbol_table)
+    assert(len(res_list) == 1)
+    return res_list
 
 
 class Skip(nn.Module):
@@ -324,55 +277,21 @@ class IfElse(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, x_list):
-        # print(f"Ifelse: target_idx: {self.target_idx}")
-        # print(f"############one ifelse ##################")
+        #TODO: join
+
         res_list = list()
         test = self.f_test(self.test)
-        # print(f"target_idx, {self.target_idx}")
-        # print(f"test: {test}")
-        # for x in x_list:
-        #     print(f"x: {x['x'].c, x['x'].delta}")
 
-        # if_branch_time = time.time()
         res_list = calculate_branch_list(self.target_idx, test, x_list)
-        # print(f"-- ifelse -- branch: {time.time() - if_branch_time}")
-        # orelse_list = calculate_branch_list(self.target_idx, test, x_list)
-        # print(f"Length, body: {len(body_list)}, orelse: {len(orelse_list)}")
+        body_list, else_list = list(), list()
+        for symbol_table in branch_list:
+            if symbol_table['branch'] == 'body':
+                body_list.append(symbol_table)
+            else:
+                else_list.append(symbol_table)
 
-        # res_list.extend(body_list)
-        # res_list.extend(orelse_list)
-        
-        # if_sample_time = time.time()
-        res_list = adapt_sampling_distribution(res_list)
-        res_list = sample(res_list)
-        # print(f"-- ifelse -- sample: {time.time() - if_sample_time}")
+        res_list = sound_join(body_list, else_list)
 
-
-        if res_list[0]['branch'] == 'body':
-            # if_body_time = time.time()
-            res_list = self.body(res_list)
-            # print(f"-- ifelse -- body: {time.time() - if_body_time}")
-        else:
-            # if_orelse_time = time.time()
-            res_list = self.orelse(res_list)
-            # print(f"-- ifelse -- orelse: {time.time() - if_orelse_time}")
-
-        # if len(body_list) > 0:
-        #     body_list = self.body(body_list) # , cur_sample_size+len(body_list))
-        #     res_list.extend(body_list)
-
-        # if len(orelse_list) > 0:
-        #     orelse_list = self.orelse(orelse_list) # , cur_sample_size+len(orelse_list))
-        #     res_list.extend(orelse_list)
-
-        # # print(f"length, res: {len(res_list)}")
-        # # SAMPLING
-        # res_symbol_table_list = adapt_sampling_distribution(res_list)
-        # res_symbol_table_list = sample(res_symbol_table_list)
-        # res_symbol_table_list, cur_sample_size = sample(res_symbol_table_list, cur_sample_size)
-
-        # print(f"Result of IFelse: {[(res['x'].c, res['x'].delta) for res in res_list]}")
-        # print(f"############end one ifelse ##################")
         return res_list
 
 
@@ -387,31 +306,26 @@ class While(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, symbol_table_list):
-        # res_symbol_table_list = list()
-        # counter = 0
-
+        '''
+        super set of E_{i-th step} and [\neg condition]
+        '''
+        res_list = list()
         while(len(symbol_table_list) > 0):
             # counter += 1
-            res_list = list()
+            branch_list = calculate_branch_list(self.target_idx, self.test, symbol_table_list)
+            body_list, else_list = list(), list()
+            for symbol_table in branch_list:
+                if symbol_table['branch'] == 'body':
+                    body_list.append(symbol_table)
+                else:
+                    else_list.append(symbol_table)
 
-            # before_calculate_branch = time.time()
-            res_list = calculate_branch_list(self.target_idx, self.test, symbol_table_list)
-            # print(f"calculate branch list time: {time.time() - before_calculate_branch}")
-            # orelse_list= calculate_branch_list(self.target_idx, self.test, symbol_table_list, 'orelse')
-            # print(f"length: {len(body_list)}, {len(orelse_list)}")
+            res_list = sound_join(res_list, else_list)
 
-            # before_sample = time.time()
-            res_list = adapt_sampling_distribution(res_list)
-            res_list = sample(res_list)
-            # print(f"sample in while: {time.time() - before_sample}")
-
-            if res_list[0]['branch'] == 'body':
-                # before_body = time.time()
-                symbol_table_list = self.body(res_list)
-                # print(f"run body: {time.time() - before_body}")
-            else:
-                # print(f"enter while {counter} times.")
+            if len(body_list) == 0:
                 return res_list
+            
+            symbol_table_list = self.body(body_list)
 
         return res_list
 
@@ -423,12 +337,13 @@ def update_trajectory(symbol_table, target_idx):
     # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
     assert input_interval.left.data.item() <= input_interval.right.data.item()
 
-    symbol_table['safe_range'].left = torch.min(symbol_table['safe_range'].left, input_interval.left)
-    symbol_table['safe_range'].right = torch.max(symbol_table['safe_range'].right, input_interval.right)
+    symbol_table['trajectory'].append(input_interval)
+
     return symbol_table
 
 
 class Trajectory(nn.Module):
+    # TODO: update, add state in trajectory list
     def __init__(self, target_idx):
         super().__init__()
         self.target_idx = torch.tensor(target_idx)

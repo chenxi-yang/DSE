@@ -42,7 +42,7 @@ if benchmark_name == "thermostat":
     x_l = [55.0]
     x_r = [62.0]
     SAFE_RANGE = [55.0, 81.34]
-    PHI = 0.05 # unafe probability
+    PHI = 0.05 # unsafe probability
 
 
 # args
@@ -61,7 +61,7 @@ P_INFINITY = var(10000.0)
 INTERVAL_BETA = var(1.0) # 2.0
 POINT_BETA = var(5.0) # var(50.0) # var(100.0) # 10.0s
 PARTIAL_BETA = var(1.0) # 1.0
-EPSILON = var(0.00001)
+EPSILON = var(1e-10)
 SMALL_PROBABILITY = var(0.01)
 B = var(b) # the range of lambda
 

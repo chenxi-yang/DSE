@@ -36,6 +36,7 @@ def best_theta(X_train, y_train, lambda_, target):
         n=n,
         nn_mode=nn_mode,
         module=module,
+        target=target,
         )
 
     return m, loss, time_out
@@ -79,6 +80,7 @@ if __name__ == "__main__":
                     lambda_=new_lambda, 
                     stop_val=stop_val, 
                     epoch=num_epoch, 
+                    target=target,
                     lr=lr, 
                     bs=bs,
                     n=n,
