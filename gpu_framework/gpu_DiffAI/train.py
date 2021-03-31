@@ -355,7 +355,7 @@ def learning(
         module='linearrelu',
         use_smooth_kernel=use_smooth_kernel,
         save=save,
-        epochs_to_skip=epochs_to_skip,
+        epochs_to_skip=None,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
