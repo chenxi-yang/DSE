@@ -407,6 +407,9 @@ def learning(
 
                 m = update_model_parameter(m, Theta)
 
+                for partial_theta in Theta:
+                    torch.nn.utils.clip_grad_norm_(partial_theta, 1)
+
                 real_data_loss /= n
                 real_safe_loss /= n
 
@@ -423,10 +426,8 @@ def learning(
             print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
             loss.backward(retain_graph=True)
 
-            # for partial_theta in Theta:
-            #     torch.nn.utils.clip_grad_norm_(partial_theta, 1)
-            # print(torch.max(m.nn.linear1.weight.grad))
-            # print(m.nn.linear2.weight.grad)
+            print(f"Linear1 grad: [{torch.min(m.nn.linear1.weight.grad)}, {torch.max(m.nn.linear1.weight.grad)}]")
+            print(f"Linear2 grad: [{torch.min(m.nn.linear2.weight.grad)}, {torch.max(m.nn.linear2.weight.grad)}]")
 
             optimizer.step()
             optimizer.zero_grad()
