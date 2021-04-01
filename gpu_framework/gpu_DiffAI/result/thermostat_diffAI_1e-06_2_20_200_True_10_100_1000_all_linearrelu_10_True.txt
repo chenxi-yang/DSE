@@ -1,0 +1,8 @@
+Namespace(b=1000, benchmark_name='thermostat', bs=2, data_attr='normal_55.0_62.0', data_size=10000, l=100, lr=1e-06, module='linearrelu', n=10, nn_mode='all', num_components=10, num_epoch=20, optimizer='direct', save='True', stop_val=0.05, t_epoch=10, test_mode=False, test_portion=0.99, test_size=20000, train_size=200, use_smooth_kernel=True, w=0.5, width=0.3)
+path_num_list: [250]path_sample_size: 250
+15-th Epochs Time: 19.32539477944374
+-----finish 15-th epoch-----, the batch loss: q: 13.359399795532227, c: 1.1755181550979614
+-----finish 15-th epoch-----, the epoch loss: q: 45.41229248046875, c: 10.13452434539795
+16-th Epochs Time: 36.627517475801355
+-----finish 16-th epoch-----, the batch loss: q: 13.359399795532227, c: 1.1755181550979614
+-----finish 16-th epoch-----, the epoch loss: q: 45.41229248046875, c: 10.13452434539795

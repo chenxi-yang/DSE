@@ -61,8 +61,8 @@ def read_train_log(log_file):
             # print(line)
             if 'epoch loss' in line:
                 content = line.split(",")
-                q = float(content[1].split(":")[2])/5
-                c = float(content[2].split(":")[1])/5
+                q = float(content[1].split(":")[2])
+                c = float(content[2].split(":")[1])
                 # print(q, c)
                 q_list.append(q)
                 c_list.append(c)
@@ -210,7 +210,10 @@ if __name__ == "__main__":
     # plot_loss_2('loss/')
     # plot_sample('data/sample_time.txt')
     # lr_bs_epoch_samplesize
-    plot_training_loss('result/thermostat_diffAI_1e-06_2_14_10_100_1000_all_linearrelu.txt', benchmark='thermostat_diffAI_1e-06_2_14_10_100_1000_all_linearrelu', log=False)
+    for file_name in os.listdir('result/'):
+        plot_training_loss(f"result/{file_name}", benchmark=file_name[:-4], log=False)
+
+    # plot_training_loss('result/thermostat_diffAI_1e-06_2_14_10_100_1000_all_linearrelu.txt', benchmark='thermostat_diffAI_1e-06_2_14_10_100_1000_all_linearrelu', log=False)
     # plot_training_loss('result/thermostat_diffAI_1e-06_2_15_10_100_1000_all_linearrelu.txt', benchmark='thermostat_diffAI_1e-06_2_15_10_100_1000_all_linearrelu', log=False)
     # plot_vary_constraint('result/vary_constraint_volume_vs_point_sampling.txt')
 

@@ -1,0 +1,48 @@
+Namespace(b=1000, benchmark_name='thermostat', bs=2, data_attr='normal_55.0_62.0', data_size=10000, l=100, lr=1e-06, module='linearrelu', n=5, nn_mode='all', num_components=10, num_epoch=15, optimizer='direct', stop_val=0.05, t_epoch=10, test_portion=0.99, test_size=20000, train_size=200, use_smooth_kernel=True, w=0.5, width=0.3)
+path_num_list: [250]path_sample_size: 250
+0-th Epochs Time: 150.70260381698608
+-----finish 0-th epoch-----, the batch loss: q: 81.05929565429688, c: 30.93463134765625
+-----finish 0-th epoch-----, the epoch loss: q: 1065.3677978515625, c: 1478.860107421875
+1-th Epochs Time: 149.76243007183075
+-----finish 1-th epoch-----, the batch loss: q: 86.70372772216797, c: 129.533203125
+-----finish 1-th epoch-----, the epoch loss: q: 583.6466674804688, c: 726.7401733398438
+2-th Epochs Time: 149.54762196540833
+-----finish 2-th epoch-----, the batch loss: q: 30.724445343017578, c: 40.52350997924805
+-----finish 2-th epoch-----, the epoch loss: q: 307.55963134765625, c: 435.0887756347656
+3-th Epochs Time: 149.42564916610718
+-----finish 3-th epoch-----, the batch loss: q: 9.05925464630127, c: 0.529176652431488
+-----finish 3-th epoch-----, the epoch loss: q: 368.88641357421875, c: 578.4851684570312
+4-th Epochs Time: 149.67595772743226
+-----finish 4-th epoch-----, the batch loss: q: 109.94818115234375, c: 24.132415771484375
+-----finish 4-th epoch-----, the epoch loss: q: 303.19915771484375, c: 293.3623352050781
+5-th Epochs Time: 149.60135547320047
+-----finish 5-th epoch-----, the batch loss: q: 9.05925464630127, c: 0.529176652431488
+-----finish 5-th epoch-----, the epoch loss: q: 178.38392639160156, c: 171.90667724609375
+6-th Epochs Time: 149.6016706398555
+-----finish 6-th epoch-----, the batch loss: q: 9.05925464630127, c: 0.529176652431488
+-----finish 6-th epoch-----, the epoch loss: q: 402.3101501464844, c: 305.3841247558594
+7-th Epochs Time: 149.71958616375923
+-----finish 7-th epoch-----, the batch loss: q: 189.23709106445312, c: 152.0870819091797
+-----finish 7-th epoch-----, the epoch loss: q: 460.48809814453125, c: 550.85546875
+8-th Epochs Time: 149.90338622199164
+-----finish 8-th epoch-----, the batch loss: q: 98.3481674194336, c: 141.8651885986328
+-----finish 8-th epoch-----, the epoch loss: q: 919.4268798828125, c: 1091.6129150390625
+9-th Epochs Time: 149.92098679542542
+-----finish 9-th epoch-----, the batch loss: q: 9.05925464630127, c: 0.529176652431488
+-----finish 9-th epoch-----, the epoch loss: q: 57.33019256591797, c: 71.98817443847656
+10-th Epochs Time: 149.893399216912
+-----finish 10-th epoch-----, the batch loss: q: 9.05925464630127, c: 0.529176652431488
+-----finish 10-th epoch-----, the epoch loss: q: 46.310218811035156, c: 10.682230949401855
+11-th Epochs Time: 149.876586218675
+-----finish 11-th epoch-----, the batch loss: q: 9.05925464630127, c: 0.529176652431488
+-----finish 11-th epoch-----, the epoch loss: q: 46.310218811035156, c: 10.682230949401855
+12-th Epochs Time: 149.864558329949
+-----finish 12-th epoch-----, the batch loss: q: 33.94814682006836, c: 2.6065471172332764
+-----finish 12-th epoch-----, the epoch loss: q: 71.19911193847656, c: 12.759601593017578
+13-th Epochs Time: 149.91500679084234
+-----finish 13-th epoch-----, the batch loss: q: 160.3481903076172, c: 134.4557647705078
+-----finish 13-th epoch-----, the epoch loss: q: 197.59915161132812, c: 1203.7938232421875
+14-th Epochs Time: 149.9797310034434
+-----finish 14-th epoch-----, the batch loss: q: 397.2815856933594, c: 645.54931640625
+-----finish 14-th epoch-----, the epoch loss: q: 1882.466796875, c: 1911.37646484375
+One train: Optimization--2249.702269554138,15,149.9801513036092

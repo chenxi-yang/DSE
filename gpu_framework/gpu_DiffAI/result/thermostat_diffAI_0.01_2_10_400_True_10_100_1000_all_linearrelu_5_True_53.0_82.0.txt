@@ -1,0 +1,23 @@
+Namespace(b=1000, benchmark_name='thermostat', bs=2, data_attr='normal_55.0_62.0', data_size=10000, l=100, lr=0.01, module='linearrelu', n=5, nn_mode='all', num_components=10, num_epoch=10, optimizer='direct', save='True', stop_val=0.05, t_epoch=10, test_mode=False, test_portion=0.99, test_size=20000, train_size=400, use_smooth_kernel=True, w=0.5, width=0.3)
+path_num_list: [250]path_sample_size: 250
+0-th Epochs Time: 309.16013050079346
+-----finish 0-th epoch-----, the batch loss: q: 10.344436645507812, c: 3.8848137855529785
+-----finish 0-th epoch-----, the epoch loss: q: 198.0400390625, c: 140.20840454101562
+1-th Epochs Time: 311.1960541009903
+-----finish 1-th epoch-----, the batch loss: q: 10.344436645507812, c: 3.8848137855529785
+-----finish 1-th epoch-----, the epoch loss: q: 44.06859588623047, c: 4.1747894287109375
+2-th Epochs Time: 311.13848996162415
+-----finish 2-th epoch-----, the batch loss: q: 10.344436645507812, c: 3.8848137855529785
+-----finish 2-th epoch-----, the epoch loss: q: 44.06859588623047, c: 4.1747894287109375
+3-th Epochs Time: 311.7006051540375
+-----finish 3-th epoch-----, the batch loss: q: 10.344436645507812, c: 3.8848137855529785
+-----finish 3-th epoch-----, the epoch loss: q: 44.06859588623047, c: 4.1747894287109375
+4-th Epochs Time: 311.5920696735382
+-----finish 4-th epoch-----, the batch loss: q: 10.344436645507812, c: 3.8848137855529785
+-----finish 4-th epoch-----, the epoch loss: q: 44.06859588623047, c: 4.1747894287109375
+5-th Epochs Time: 311.8965160449346
+-----finish 5-th epoch-----, the batch loss: q: 10.344436645507812, c: 3.8848137855529785
+-----finish 5-th epoch-----, the epoch loss: q: 44.06859588623047, c: 4.1747894287109375
+6-th Epochs Time: 311.769863980157
+-----finish 6-th epoch-----, the batch loss: q: 10.344436645507812, c: 3.8848137855529785
+-----finish 6-th epoch-----, the epoch loss: q: 44.06859588623047, c: 4.1747894287109375
