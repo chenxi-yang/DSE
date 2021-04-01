@@ -363,7 +363,7 @@ def learning(
     # TODO change all.....
     TIME_OUT = False
 
-    print(m)
+    # print(m)
     m.cuda()
 
     if epochs_to_skip is None:
@@ -421,10 +421,10 @@ def learning(
             print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
             loss.backward(retain_graph=True)
 
-            # for partial_theta in Theta:
-            #     torch.nn.utils.clip_grad_norm_(partial_theta, 1)
-            print(m.nn.linear1.weight.grad)
-            print(m.nn.linear2.weight.grad)
+            for partial_theta in Theta:
+                torch.nn.utils.clip_grad_norm_(partial_theta, 1)
+            print(torch.max(m.nn.linear1.weight.grad))
+            # print(m.nn.linear2.weight.grad)
 
             optimizer.step()
             optimizer.zero_grad()
@@ -438,7 +438,7 @@ def learning(
             #     exit(0)
         # TODO: save model 
         if save:
-            save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}", epoch=i)
+            save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}_{lr}", epoch=i)
         
         if i >= 7 and i%2 == 0:
             for param_group in optimizer.param_groups:
@@ -636,6 +636,8 @@ def extract_abstract_representation(
     component_list = assign_probability(perturbation_x_dict, component_list)
     component_list = assign_data_point(X_train, y_train, component_list)
     random.shuffle(component_list)
+
+    print(f"component-wise x length: {[len(component['x']) for component in component_list]}")
 
     # print(component_list)
     print(f"-- Generate Perturbation Set --")

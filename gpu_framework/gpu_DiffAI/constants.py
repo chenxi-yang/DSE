@@ -28,6 +28,8 @@ test_mode = args.test_mode
 # safe_end_idx = args.safe_end_idx
 # path_sample_size = args.path_sample_size
 data_attr = args.data_attr
+# print(f"test_mode: {test_mode}")
+
 
 STATUS = 'Training' # a global status, if Training: use normal module, if Verifying: use sound module
 
@@ -45,7 +47,9 @@ MODEL_PATH = f"models"
 if benchmark_name == "thermostat":
     x_l = [55.0]
     x_r = [62.0]
-    SAFE_RANGE = [55.0, 81.34]
+    # SAFE_RANGE = [55.0, 81.34] # strict
+    SAFE_RANGE = [52.0, 83.0] # not that strict
+    # SAFE_RANGE = [50.0, 85.0] # not that loose
     PHI = 0.05 # unsafe probability
 
 
@@ -78,11 +82,10 @@ alpha_coeff = 0.9
 alpha_smooth_max = 0.8
 eps = 1e-10
 
-
 if test_mode:
-    file_dir = f"result_test/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}.txt"
+    file_dir = f"result_test/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{SAFE_RANGE[1]}.txt"
 else:
-    file_dir = f"result/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}.txt"
+    file_dir = f"result/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{SAFE_RANGE[1]}.txt"
 log_file = open(file_dir, 'w')
 log_file.write(f"{args}\n")
 log_file.write(f"path_num_list: {path_num_list}")

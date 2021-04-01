@@ -77,7 +77,10 @@ if __name__ == "__main__":
 
                 # BEST_theta(lambda)
                 m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-                epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}")
+                if test_mode:
+                    epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}")
+                else:
+                    epochs_to_skip = None
 
                 m, loss, loss_list, q, c, time_out = learning(
                     m, 

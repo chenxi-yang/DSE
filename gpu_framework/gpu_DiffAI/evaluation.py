@@ -69,9 +69,8 @@ def eval(X, Y, m, target, category):
     log_file.write('Test:' + str(quan_dist.data.item()) + ',' + str(safe_dist.data.item()) + '\n')
     log_file.close()
 
-
     return
 
 
 def verification(m, component_list, target):
-    pass
+    cal_safe_loss

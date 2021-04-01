@@ -212,12 +212,17 @@ class ThermostatNN(nn.Module):
         )
         self.while1 = While(target_idx=[0], test=var(40.0), body=self.whileblock)
     
-    def forward(self, x_list, transition='interval'):
+    def forward(self, x_list, transition='interval', version=None):
         # if transition == 'abstract':
         # #     print(f"# of Partitions Before: {len(x_list)}")
         #     for x in x_list:
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
-        res_list = self.while1(x_list)
+        if version == "sound":
+            input_list = [x_list]
+        else:
+            input_list = x_list
+
+        res_list = self.while1(input_list)
         # if transition == 'abstract':
         #     print(f"# of Partitions After: {len(res_list)}")
         #     # for x in res_list:
@@ -240,12 +245,12 @@ def load_model(m, folder, name, epoch=None):
         return None, m
     model_dir = os.path.join(folder, f"model_{name}")
     if not os.path.exists(model_dir):
-        return None, None
+        return None, m
     if epoch is None and os.listdir(model_dir):
         epoch = max(os.listdir(model_dir), key=int)
     path = os.path.join(model_dir, str(epoch))
     if not os.path.exists(path):
-        return None, None
+        return None, m
     m.load_state_dict(torch.load(path))
     return int(epoch), m
 
