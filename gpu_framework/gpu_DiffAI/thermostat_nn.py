@@ -51,6 +51,24 @@ def initialization_nn(center_list, width_list, p_list=None):
     return symbol_table_list
 
 
+def initialization_abstract_state(component_list):
+    abstract_state_list = list()
+    # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
+    abstract_state = list()
+    for component in component_list:
+        center, width, p = component['center'], component['width'], component['p']
+        symbol_table = {
+            'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
+            'probability': p,
+            'trajectory': list(),
+            'branch': '',
+        }
+
+        abstract_state.append(symbol_table)
+    abstract_state_list.append(abstract_state)
+    return abstract_state_list
+
+
 def initialization_one_point_nn(x):
     return domain.Box(var_list([0.0, 0.0, x[0], x[0]]), var_list([0.0] * 4))
 
@@ -212,16 +230,11 @@ class ThermostatNN(nn.Module):
         )
         self.while1 = While(target_idx=[0], test=var(40.0), body=self.whileblock)
     
-    def forward(self, x_list, transition='interval', version=None):
+    def forward(self, input_list, transition='interval', version=None):
         # if transition == 'abstract':
         # #     print(f"# of Partitions Before: {len(x_list)}")
         #     for x in x_list:
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
-        if version == "sound":
-            input_list = [x_list]
-        else:
-            input_list = x_list
-
         res_list = self.while1(input_list)
         # if transition == 'abstract':
         #     print(f"# of Partitions After: {len(res_list)}")

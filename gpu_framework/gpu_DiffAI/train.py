@@ -457,8 +457,8 @@ def learning(
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
 
-        # if loss.data.item() < EPSILON.data.item():
-        #     break
+        if c_loss.data.item() < EPSILON.data.item():
+            break
         
         if (time.time() - start_time)/(i+1) > 2000:
             log_file = open(file_dir, 'a')

@@ -5,6 +5,8 @@ from constants import *
 from data_generator import *
 # from optimization import *
 
+from thermostat_nn import *
+
 
 def check_safety(res, target):
     intersection_interval = get_intersection(res, target)
@@ -72,5 +74,10 @@ def eval(X, Y, m, target, category):
     return
 
 
+def verify(abstract_state_list, target):
+    pass
+
 def verification(m, component_list, target):
-    cal_safe_loss
+    abstract_state_list = initialization_abstract_state(component_list)
+    abstract_state_list = m(abstract_state_list)
+    verify(abstract_state_list, target)

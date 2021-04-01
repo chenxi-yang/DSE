@@ -140,9 +140,10 @@ if __name__ == "__main__":
             # TODO: add verification and test
             # verification, going through the program without sampling
             # test for the quantitative accuracy
-            exit(0)
-            eval(X_train, y_train, m_t, target, 'train')
-            eval(X_test, y_test, m_t, target, 'test')
+            verification(m, component_list, target)
+            # exit(0)
+            # eval(X_train, y_train, m_t, target, 'train')
+            # eval(X_test, y_test, m_t, target, 'test')
 
 
 
