@@ -2,10 +2,16 @@ import numpy as np
 from termcolor import colored
 
 from constants import *
-from data_generator import *
 # from optimization import *
 
-from thermostat_nn import *
+from thermostat_nn_sound import (
+    ThermostatNN,
+    load_model,
+    save_model,
+    initialization_abstract_state,
+)
+
+import domain
 
 
 def check_safety(res, target):
@@ -74,10 +80,65 @@ def eval(X, Y, m, target, category):
     return
 
 
-def verify(abstract_state_list, target):
-    pass
+def get_intersection(interval_1, interval_2):
+    res_interval = domain.Interval()
+    res_interval.left = torch.max(interval_1.left, interval_2.left)
+    res_interval.right = torch.min(interval_1.right, interval_2.right)
+    return res_interval
 
-def verification(m, component_list, target):
+
+def get_symbol_table_trajectory_unsafe_value(symbol_table, target):
+    trajectory_loss = var_list([0.0])
+    for X in symbol_table['trajectory']:
+        print(f"X:{X.left.data.item(), X.right.data.item()}")
+        safe_interval = target["condition"]
+        unsafe_probability_condition = target["phi"]
+        intersection_interval = get_intersection(X, safe_interval)
+        if intersection_interval.isEmpty():
+            unsafe_value = var_list([1.0])
+        else:
+            safe_probability = intersection_interval.getLength().div(X.getLength())
+            if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
+                unsafe_value = var_list([0.0])
+            else:
+                unsafe_value = 1 - safe_probability
+        trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+    return trajectory_loss
+
+
+def extract_unsafe(abstract_state, target):
+    aggregation_p = var_list([0.0])
+    abstract_state_unsafe_value = var_list([0.0])
+    for symbol_table in abstract_state:
+        trajectory_unsafe_value = get_symbol_table_trajectory_unsafe_value(symbol_table, target)
+        abstract_state_unsafe_value += symbol_table['probability'] * trajectory_unsafe_value
+        aggregation_p += symbol_table['probability']
+    return aggregation_p, abstract_state_unsafe_value
+
+
+def verify(abstract_state_list, target):
+    all_unsafe_probability = var_list([0.0])
+    print(f"# of abstract state: {len(abstract_state_list)}")
+    for abstract_state in abstract_state_list:
+        aggregation_p, unsafe_probability = extract_unsafe(abstract_state, target)
+        all_unsafe_probability += aggregation_p * unsafe_probability
+    if all_unsafe_probability.data.item() <= target['phi'].data.item():
+        print(colored(f"Verified Safe!", "green"))
+    else:
+        print(colored(f"Not Verified Safe!", "red"))
+    
+    print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target['phi'].data.item()}")
+    
+
+def verification(model_path, model_name, component_list, target):
+    m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
+    _, m = load_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}_{lr}")
+    if m is None:
+        print(f"No model to Verify!!")
+        exit(0)
+    m.cuda()
+    m.eval()
+
     abstract_state_list = initialization_abstract_state(component_list)
     abstract_state_list = m(abstract_state_list)
     verify(abstract_state_list, target)

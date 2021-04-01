@@ -405,6 +405,8 @@ def learning(
                     # print(f"sample time: {time.time() - sample_time}")
                 loss = grad_data_loss + lambda_.mul(grad_safe_loss)
 
+                m = update_model_parameter(m, Theta)
+
                 real_data_loss /= n
                 real_safe_loss /= n
 
@@ -421,9 +423,9 @@ def learning(
             print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
             loss.backward(retain_graph=True)
 
-            for partial_theta in Theta:
-                torch.nn.utils.clip_grad_norm_(partial_theta, 1)
-            print(torch.max(m.nn.linear1.weight.grad))
+            # for partial_theta in Theta:
+            #     torch.nn.utils.clip_grad_norm_(partial_theta, 1)
+            # print(torch.max(m.nn.linear1.weight.grad))
             # print(m.nn.linear2.weight.grad)
 
             optimizer.step()
@@ -438,7 +440,7 @@ def learning(
             #     exit(0)
         # TODO: save model 
         if save:
-            save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}_{lr}", epoch=i)
+            save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}", epoch=i)
         
         if i >= 7 and i%2 == 0:
             for param_group in optimizer.param_groups:

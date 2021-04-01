@@ -327,6 +327,7 @@ class While(nn.Module):
         '''
         super set of E_{i-th step} and [\neg condition]
         '''
+        # print(f"##############In while DiffAI#########")
         res_list = list()
         while(len(symbol_table_list) > 0):
             # counter += 1

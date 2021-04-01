@@ -73,7 +73,7 @@ class SigmoidLinear(nn.Module):
 Program Statement
 '''
 
-def calculate_abstarct_state(target_idx, arg_idx, f, abstract_state):
+def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
     # assign_time = time.time()
     for idx, symbol_table in enumerate(abstract_state):
         x = symbol_table['x']
@@ -197,7 +197,7 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
     return body_symbol_table, orelse_symbol_table
             
 
-def split_branch_abstract_state(target_dix, test, abstract_state):
+def split_branch_abstract_state(target_idx, test, abstract_state):
     body_abstract_state, orelse_abstract_state = list(), list()
     for symbol_table in abstract_state:
         body_symbol_table, orelse_symbol_table = split_branch_symbol_table(target_idx, test, symbol_table)
@@ -215,10 +215,10 @@ list of symbol table with domain, probability
 def split_branch_list(target_idx, test, abstract_state_list):
     body_abstract_state_list, orelse_abstract_state_list = list(), list()
     for abstract_state in abstract_state_list:
-        body_abstract_state, orelse_abstract_state = split_branch_abstract_state(target_dix, test, abstract_state)
+        body_abstract_state, orelse_abstract_state = split_branch_abstract_state(target_idx, test, abstract_state)
         if len(body_abstract_state) > 0:
             body_abstract_state_list.append(body_abstract_state)
-        if len(orrelse_abstract_state) > 0:
+        if len(orelse_abstract_state) > 0:
             orelse_abstract_state_list.append(orelse_abstract_state)
     
     return body_abstract_state_list, orelse_abstract_state_list 

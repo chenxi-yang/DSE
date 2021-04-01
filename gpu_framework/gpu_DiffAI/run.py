@@ -2,7 +2,7 @@
 from constants import *
 
 from train import *
-from evaluation import *
+from evaluation import verification
 
 from args import *
 
@@ -78,7 +78,11 @@ if __name__ == "__main__":
                 # BEST_theta(lambda)
                 m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
                 if test_mode:
-                    epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}")
+                    epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}")
+                    # TODO: for quick result
+                    if m is not None and epochs_to_skip is not None:
+                        print(f"Load Model.")
+                        break
                 else:
                     epochs_to_skip = None
 
@@ -140,8 +144,12 @@ if __name__ == "__main__":
             # TODO: add verification and test
             # verification, going through the program without sampling
             # test for the quantitative accuracy
-            verification(m, component_list, target)
-            # exit(0)
+
+            print(f"------------start verification------------")
+            verification_time = time.time()
+            verification(model_path=MODEL_PATH, model_name=f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}", component_list=component_list, target=target)
+            print(f"---verification time: {time.time() - verification_time} sec---")
+            exit(0)
             # eval(X_train, y_train, m_t, target, 'train')
             # eval(X_test, y_test, m_t, target, 'test')
 
