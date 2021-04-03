@@ -2,6 +2,16 @@ import os
 
 import argparse
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('true', 'y', 't'):
+        return True
+    elif v.lower() in ('false', 'n', 'f'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
+
 def get_parser():
     p = argparse.ArgumentParser()
     p.add_argument("--lr", default=0.000001, type=float, help="learning rate")
@@ -30,6 +40,13 @@ def get_parser():
     # perturbation
     p.add_argument("--num_components", default=10, type=int, help="number of components to split")
     p.add_argument("--bs", default=10, type=int, help="batch size by number of component")
+    
+    # training
+    p.add_argument("--use_smooth_kernel", default=False, type=str2bool, help="decide whether to use smooth kernel")
+    p.add_argument("--save", default=True, help="decide whether to save the model or not")
+
+    # evaluation
+    p.add_argument("--test_mode", default=False, type=str2bool, help="decide whether check load model and then test")
     return p
 
 

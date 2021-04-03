@@ -1,7 +1,7 @@
 """
 Definition of different domains
 1. interval
-2. disjunction of intervals
+2. disjunction of intervalss
 3. octagon
 4. zonotope
 5. polyhedra
@@ -24,7 +24,7 @@ def show_value(x):
     if isinstance(x, torch.Tensor):
         print('value', x.data.item())
     elif isinstance(x, Interval):
-        print('interval', x.left.data.item(), x.right.data.item())
+        print('interval', x.left.data.item(), x.righst.data.item())
 
 def show_op(x):
     if not TEST:
@@ -64,7 +64,9 @@ class Interval:
         if self.right.data.item() < self.left.data.item():
             return var(0.0)
         else:
-            return torch.max(EPSILON, (self.right.sub(self.left)))
+            # print(f"in getLength: {self.right}, {self.left}")
+            # print(f"in getLength: {self.right.sub(self.left)}")
+            return torch.max(EPSILON, self.right.sub(self.left))
         
     def getVolumn(self):
         if self.right.data.item() < self.left.data.item():
@@ -382,6 +384,13 @@ class Box():
         # print(f"value: {value}")
         return self.new(value, var(0.0))
     
+    def sound_join(self, other):
+        l1, r1 = self.c - self.delta, other.c + self.delta
+        l2, r2 = self.c - self.delta, other.c + self.delta
+        l = torch.min(l1, l2)
+        r = torch.max(r1, r2)
+        return self.new((r + l) / 2, (r - l) / 2)
+        
     def getRight(self):
         return self.c.add(self.delta)
     

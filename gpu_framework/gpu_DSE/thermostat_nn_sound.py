@@ -7,7 +7,7 @@ from constants import *
 import constants
 import domain
 
-from modules import *
+from modules_sound import *
 
 import os
 

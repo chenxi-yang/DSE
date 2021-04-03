@@ -2,13 +2,14 @@
 from constants import *
 
 from train import *
-from test import *
+from evaluation import verification
 
 from args import *
 
 from data_generator import load_data
 import random
 import time
+
 
 #TODO:  change arguments
 def best_lambda(X_train, y_train, m, target):
@@ -23,10 +24,9 @@ def best_lambda(X_train, y_train, m, target):
 
 
 # TODO: change arguments
-def best_theta(X_train, y_train, lambda_, target):
+def best_theta(component_list, lambda_, target):
     m, loss, loss_list, q, c, time_out = learning(
-        X_train, 
-        y_train,
+        component_list, 
         lambda_=lambda_, 
         stop_val=stop_val, 
         epoch=num_epoch, 
@@ -36,6 +36,8 @@ def best_theta(X_train, y_train, lambda_, target):
         n=n,
         nn_mode=nn_mode,
         module=module,
+        target=target,
+        use_smooth_kernel=use_smooth_kernel,
         )
 
     return m, loss, time_out
@@ -74,17 +76,34 @@ if __name__ == "__main__":
                 new_lambda = B.mul(q.exp().div(var(1.0).add(q.exp())))
 
                 # BEST_theta(lambda)
+                m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
+                if test_mode:
+                    epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}")
+                    # TODO: for quick result
+                    if m is not None and epochs_to_skip is not None:
+                        print(f"Load Model.")
+                        break
+                else:
+                    epochs_to_skip = None
+
                 m, loss, loss_list, q, c, time_out = learning(
+                    m, 
                     component_list,
                     lambda_=new_lambda, 
                     stop_val=stop_val, 
                     epoch=num_epoch, 
+                    target=target,
                     lr=lr, 
                     bs=bs,
                     n=n,
                     nn_mode=nn_mode,
                     l=l,
-                    module=module)
+                    module=module,
+                    use_smooth_kernel=use_smooth_kernel, 
+                    save=save,
+                    epochs_to_skip=epochs_to_skip,
+                    )
+                m.eval()
 
                 #TODO: reduce time, because there are some issues with the gap between cal_c and cal_q
                 m_t = m
@@ -122,11 +141,17 @@ if __name__ == "__main__":
             if time_out == True:
                 break
 
-            # TODO: change verification and test
+            # TODO: add verification and test
             # verification, going through the program without sampling
             # test for the quantitative accuracy
-            eval(X_train, y_train, m_t, target, 'train')
-            eval(X_test, y_test, m_t, target, 'test')
+
+            print(f"------------start verification------------")
+            verification_time = time.time()
+            verification(model_path=MODEL_PATH, model_name=f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}", component_list=component_list, target=target)
+            print(f"---verification time: {time.time() - verification_time} sec---")
+            exit(0)
+            # eval(X_train, y_train, m_t, target, 'train')
+            # eval(X_test, y_test, m_t, target, 'test')
 
 
 

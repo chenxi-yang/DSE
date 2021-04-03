@@ -202,11 +202,36 @@ def cal_safe_loss(m, x, width, target):
     return safe_loss
 
 
-def divide_chunks(X, y, bs=10):
-    # return the chunk of size bs from X and 
-    # print(f"bs: {bs}")
-    for i in range(0, len(X), bs):
-        yield X[i:i + bs], y[i:i + bs]
+def divide_chunks(component_list, bs=1):
+    '''
+    component: {
+        'center': 
+        'width':
+        'p':
+        'x':
+        'y':
+    }
+    return the component={
+        'center':
+        'width':
+        'p':
+    },X, Y
+    '''
+    for i in range(0, len(component_list), bs):
+        components = component_list[i:i + bs]
+        abstract_state = list()
+        x_list, y_list = list(), list()
+        for component in components:
+            one_abstract_state = {
+                'center': component['center'],
+                'width': component['width'],
+                'upper_bound': component['p'],
+            }
+            x_list.extend(component['x'])
+            y_list.extend(component['y'])
+            abstract_state.append(one_abstract_state)
+
+        yield x_list, y_list, abstract_state
 
 
 def update_model_parameter(m, theta):
@@ -260,18 +285,21 @@ def extract_parameters(m):
 
 
 def learning(
-        X_train, 
-        y_train,
+        m, 
+        component_list,
         lambda_=lambda_,
         stop_val=0.01, 
-        epoch=1000, 
+        epoch=1000,
+        target=None, 
         lr=0.00001, 
-        theta=None, 
         bs=10, 
         n=5,
         nn_mode='all',
         l=10,
-        module='linearrelu'
+        module='linearrelu',
+        use_smooth_kernel=use_smooth_kernel,
+        save=save,
+        epochs_to_skip=None,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
@@ -293,13 +321,15 @@ def learning(
     
     start_time = time.time()
     for i in range(epoch):
-        q_loss, c_loss = var(0.0), var(0.0)
+        if i <= epochs_to_skip:
+            continue
+        q_loss, c_loss = var_list([0.0]), var_list([0.0])
         count = 0
-        for x, y in divide_chunks(X_train, y_train, bs=bs):
+        for x, y, abstract_states in divide_chunks(component_list, bs=bs):
             # print(f"x length: {len(x)}")
             batch_time = time.time()
-            grad_data_loss, grad_safe_loss = var(0.0), var(0.0)
-            real_data_loss, real_safe_loss = var(0.0), var(0.0)
+            grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
+            real_data_loss, real_safe_loss = var_list([0.0]), var_list([0.0])
             
             Theta = extract_parameters(m) # extract the parameters now, and then sample around it
             # print(f"Theta before: {Theta}")
@@ -347,6 +377,9 @@ def learning(
             count += 1
             # if count >= 10:
             #     exit(0)
+        
+        if save:
+            save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}", epoch=i)
             
         if i >= 7 and i%2 == 0:
             for param_group in optimizer.param_groups:
@@ -421,106 +454,7 @@ def cal_q(X_train, y_train, m):
     return q
 
 
-def distance_f_interval_REINFORCE(X_list, target, Theta):
-    alpha_smooth_max_var = var(alpha_smooth_max)
-    res = var(0.0)
-    # print('X_list', len(X_list))
-    reward_list = list()
-    log_p_list = list()
-    p_list = list()
-    #! Smooth Max
-    res_up = var(0.0)
-    res_base = var(0.0)
-    if len(X_list) == 0:
-        res = var(1.0)
-        return res
-    for X_table in X_list:
-        X_min = X_table['x_min'].getInterval()
-        X_max = X_table['x_max'].getInterval()
-        pi = X_table['probability']
-        p = X_table['explore_probability']
-        # print('pi, p', pi.data.item(), p.data.item())
-
-        X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
-        X.left = torch.min(X_min.left, X_max.left)
-        X.right = torch.max(X_min.right, X_max.right)
-
-        reward = var(0.0)
-        intersection_interval = get_intersection(X, target)
-        if intersection_interval.isEmpty():
-            reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
-        else:
-            reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
-
-        tmp_res = reward.mul(pi.div(p))
-        # tmp_res is the reward
-        tmp_p = torch.log(pi)
-
-        log_p_list.append(tmp_p)
-        reward_list.append(reward)
-        p_list.append(p)
-
-        res = res.add(tmp_res)
-    res = res.div(var(len(X_list)).add(EPSILON))
-    
-    return res, p_list, log_p_list, reward_list
-
-
-def distance_f_interval_new(X_list, target):
-    for X_table in X_list:
-        X_min = X_table['x_min'].getInterval()
-        X_max = X_table['x_max'].getInterval()
-        res = var(0.0)
-
-        X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
-        X.left = torch.min(X_min.left, X_max.left)
-        X.right = torch.max(X_min.right, X_max.right)
-
-        reward = var(0.0)
-        intersection_interval = get_intersection(X, target)
-        if intersection_interval.isEmpty():
-            # print('isempty')
-            reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
-        else:
-            # print('not empty')
-            reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
-        
-        res = torch.max(res, reward)
-    # print(f"result length, {len(X_list)}, reward: {res}")
-    # res is the worst case cost of X_list
-    return res
-
-
-def distance_f_interval_center(X_list, target):
-    res = var(0.0)
-    for X_table in X_list:
-        c = X_table.c
-        delta = X_table.delta
-
-        X = domain.Interval(P_INFINITY.data.item(), N_INFINITY.data.item())
-        X.left = c.sub(delta)
-        X.right = c.add(delta)
-
-        reward = var(0.0)
-        intersection_interval = get_intersection(X, target)
-        if intersection_interval.isEmpty():
-            # print('isempty')
-            reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
-        else:
-            # print('not empty')
-            reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
-        
-        res = torch.max(res, reward)
-    return res
-
-
-def extract_result_safty(symbol_table_list):
-    res_l, res_r = P_INFINITY, N_INFINITY
-    for symbol_table in symbol_table_list:
-        res_l = torch.min(res_l, symbol_table['x_min'].getInterval().left)
-        res_r = torch.max(res_r, symbol_table['x_max'].getInterval().right)
-    
-    return res_l.data.item(), res_r.data.item()
+##### create symbolic approximation of perturbation set of input distribution
 
 
 def create_ball_perturbation(X_train, distribution_list, w):
@@ -612,10 +546,10 @@ def assign_data_point(X_train, y_train, component_list):
             'y': list(),
             }
         )
-        for idx, X in enumerate(X_train):
+        for i, X in enumerate(X_train):
             if in_component(X, component):
                 component['x'].append(X)
-                component['y'].append(y_train[idx])
+                component['y'].append(y_train[i])
         component_list[idx] = component
     return component_list
         
@@ -646,7 +580,9 @@ def extract_abstract_representation(
     component_list = assign_data_point(X_train, y_train, component_list)
     random.shuffle(component_list)
 
-    print(component_list)
+    print(f"component-wise x length: {[len(component['x']) for component in component_list]}")
+
+    # print(component_list)
     print(f"-- Generate Perturbation Set --")
     print(f"--- {time.time() - start_t} sec ---")
 
