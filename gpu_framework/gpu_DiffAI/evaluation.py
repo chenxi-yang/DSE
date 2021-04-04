@@ -132,7 +132,7 @@ def verify(abstract_state_list, target):
 
 def verification(model_path, model_name, component_list, target):
     m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-    _, m = load_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}_{lr}")
+    _, m = load_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}")
     if m is None:
         print(f"No model to Verify!!")
         exit(0)
