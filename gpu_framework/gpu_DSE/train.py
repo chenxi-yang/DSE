@@ -166,7 +166,7 @@ def divide_chunks(component_list, bs=1):
             x_list.extend(component['x'])
             y_list.extend(component['y'])
             abstract_states.append(abstract_state)
-            print(f"component probability: {component['p']}")
+            # print(f"component probability: {component['p']}")
 
         yield x_list, y_list, abstract_states
 
@@ -289,7 +289,7 @@ def learning(
                 data_loss = cal_data_loss(m, x, y)
                 safe_loss = cal_safe_loss(m, abstract_states, target)
 
-                print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
+                # print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
                 # print(f"{'#' * 15}")
                 grad_data_loss += var(data_loss.data.item()) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                 real_data_loss += var(data_loss.data.item())
