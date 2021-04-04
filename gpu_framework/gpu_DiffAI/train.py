@@ -193,24 +193,27 @@ def safe_distance(symbol_table_list, target):
     # loss violate the safe constraint: 
 
     loss = var_list([0.0])
+    unsafe_probability_condition = target["phi"]
+    safe_interval = target["condition"]
     for symbol_table in symbol_table_list:
         trajectory_loss = var_list([0.0])
         for X in symbol_table['trajectory']:
-            safe_interval = target["condition"]
-            unsafe_probability_condition = target["phi"]
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
             else:
                 safe_portion = intersection_interval.getLength().div(X.getLength())
-                safe_probability = torch.index_select(safe_portion, 0, index0)
-                if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
-                    unsafe_value = var_list([0.0])
-                else:
-                    unsafe_value = ((1 - unsafe_probability_condition) - safe_probability) / safe_probability
+                # safe_probability = torch.index_select(safe_portion, 0, index0)
+                unsafe_value = 1 - safe_portion
+                # if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
+                #     unsafe_value = var_list([0.0])
+                # else:
+                #     # unsafe_value = ((1 - unsafe_probability_condition) - safe_probability) / safe_probability
+                #     unsafe_value = 1 - safe_probability
             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
         loss += trajectory_loss
     loss = loss / (var(len(symbol_table_list)).add(EPSILON))
+    loss = loss - unsafe_probability_condition
 
     return loss
 
@@ -231,18 +234,6 @@ def cal_safe_loss(m, x, width, target):
         safe_loss += safe_distance(abstract_list, target)
     safe_loss /= var(len(x)).add(EPSILON)
     return safe_loss
-
-    # y_abstract_list = list()
-    # # TODO: partition in one batch, split strategy
-    # for i in range(constants.SAMPLE_SIZE):
-    #     # sample one path each time
-    #     # sample_time = time.time()
-    #     abstract_list = m(abstract_data, 'abstract')
-    #     # print(f"sample {i+1}-th path: {time.time() - sample_time}")
-    #     y_abstract_list.append(abstract_list[0])
-    # # print(f"length: {len(y_abstract_list)}")
-    # safe_loss = distance_f_interval(y_abstract_list, target)
-    # return safe_loss
 
 
 def divide_chunks(component_list, bs=1):

@@ -61,60 +61,38 @@ def distance_f_interval(symbol_table_list, target):
     return res
 
 
-def normal_pdf(x, mean, std):
-    # print(f"----normal_pdf-----\n x: {x} \n mean: {mean} \n std: {std} \n -------")
-    y = torch.exp((-((x-mean)**2)/(2*std*std)))/ (std* torch.sqrt(2*var(math.pi)))
-    # res = torch.prod(y)
-    res = torch.sum(torch.log(y))
-    # res *= var(1e)
+def extract_abstract_state_safe_loss(abstract_state, target):
+    # weighted sum of symbol_table loss in one abstract_state
+    abstract_loss = var_list([0.0])
+    unsafe_probability_condition = target["phi"]
+    safe_interval = target["condition"]
+    for symbol_table in abstract_state:
+        trajectory_loss = var_list([0.0])
+        for X in symbol_table['trajectory']:
+            intersection_interval = get_intersection(X, safe_interval)
+            if intersection_interval.isEmpty():
+                unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
+            else:
+                safe_portion = intersection_interval.getLength().div(X.getLength())
+                unsafe_value = 1 - safe_portion
+            trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+        abstract_loss += trajectory_loss * symbol_table['probability']
+    return abstract_loss
+    
 
-    return res
+def safe_distance(abstract_state_list, target):
+    # measure safe distance in DSE
+    # I am using sampling, and many samples the eventual average will be the same as the expectation
+    loss = var_list([0.0])
+    for abstract_state in abstract_state_list:
+        abstract_state_safe_loss = extract_abstract_state_safe_loss(
+            abstract_stete, target
+        )
+        loss += abstract_state_safe_loss
+    loss = loss / var(len(abstract_state_list)).add(EPSILON)
+    loss = loss - unsafe_probability_condition
 
-
-def generate_theta_sample_set(Theta):
-    # sample_theta_list = list()
-    # sample_theta_probability_list = list()
-    # print(f"----------generating Theta --------------")
-    # print(f"Original theta: {Theta}")
-    sample_theta_list = list()
-    for i in range(THETA_SAMPLE_SIZE):
-        sample_theta = torch.normal(mean=Theta, std=var(1.0))
-        # print(f"Sampled theta: {Theta}")
-        # sample_theta = torch.distributions.multivariate_normal.MultivariateNormal(loc=Theta, torch.eye(1.0))
-        sample_theta_probability = normal_pdf(sample_theta, Theta, var(1.0))
-        sample_theta_list.append((sample_theta, sample_theta_probability))
-    # print(f"---------finish generating Theta----------")
-    return sample_theta_list
-
-
-def update_symbol_table_with_sample_theta(sample_theta_list, sample_theta_probability_list, symbol_table_list):
-    for symbol_table in symbol_table_list:
-        symbol_table['sample_theta'] = copy.deepcopy(sample_theta_list)
-        symbol_table['sample_theta_probability'] = copy.deepcopy(sample_theta_probability_list)
-    return symbol_table_list
-
-
-def create_ball(x, width):
-    res_l = list()
-    res_r = list()
-    for value in x:
-        res_l.append(value-width)
-        res_r.append(value+width)
-    return res_l, res_r
-
-
-def create_point_cloud(res_l, res_r, n=50):
-    assert(len(res_l) == len(res_r))
-    point_cloud = list()
-    for i in range(n):
-        point = list()
-        for idx, v in enumerate(res_l):
-            l = v
-            r = res_r[idx]
-            x = random.uniform(l, r)
-            point.append(x)
-        point_cloud.append(point)
-    return point_cloud
+    return loss
 
 
 def cal_data_loss(m, x, y):
@@ -133,55 +111,9 @@ def cal_data_loss(m, x, y):
     return data_loss
 
 
-def generate_small_ball_point(center, width, distribution="Gaussian", unit=10):
-    point = list()
-    tp_list = list()
-    bw_list = list()
-    for c in center:
-        tp = c + width
-        bw = c - width
-        x = random.uniform(bw, tp)
-        point.append(x)
-        tp_list.append(tp)
-        bw_list.append(bw)
-    ball = (tp_list, bw_list)
-    return ball, point
-
-
-# x: list of points
-# width: a number 
-# distribution: over small balls
-# n: number allowed in one point cloud
-def create_ball_cloud(x, width, distribution="Gaussian", n=50):
-    point_cloud = list()
-    ball_list = list() # list of pair <tp, bw>, tp is a list, bw is a list
-    unit = int(n/len(x))
-    for idx in range(len(x)):
-        center = x[idx]
-        ball, points = generate_small_ball_point(center, width, distribution, unit)
-        point_cloud.append(points)
-        ball_list.append(ball)
-
-    return point_cloud, ball_list
-
-
-def extract_large_ball(ball_list):
-    max_tp, min_bw = ball_list[0][0], ball_list[0][1]
-    for ball in ball_list:
-        tp, bw = ball[0], ball[1]
-        for i in range(len(tp)):
-            max_tp[i] = max(tp[i], max_tp[i])
-            min_bw[i] = min(bw[i], min_bw[i])
-    
-    center, new_width = list(), list()
-    for i in range(len(max_tp)):
-        center.append((max_tp[i] + min_bw[i])/2.0)
-        new_width.append((max_tp[i] - min_bw[i])/2.0)
-    return center, new_width
-
-
 def cal_safe_loss(m, abstract_state, target):
     '''
+    DSE: sample paths
     abstract_state = list<{
         'center': vector, 
         'width': vector, 
@@ -196,12 +128,11 @@ def cal_safe_loss(m, abstract_state, target):
         # sample one path each time
         # sample_time = time.time()
         abstract_list = m(ini_abstract_state_list, 'abstract')
-        # print(f"sample {i+1}-th path: {time.time() - sample_time}")
-        res_abstract_state_list.append(abstract_list[0])
+        res_abstract_state_list.append(abstract_list[0]) # only one abstract state returned
     # print(f"length: {len(y_abstract_list)}")
     
     # TODO: the new safe loss function
-    safe_loss = distance_f_interval(res_abstract_state_list, target)
+    safe_loss = safe_distance(res_abstract_state_list, target)
     return safe_loss
 
 
@@ -246,6 +177,16 @@ def update_model_parameter(m, theta):
         for idx, p in enumerate(list(m.parameters())):
             p.copy_(theta[idx])
     return m
+
+
+def normal_pdf(x, mean, std):
+    # print(f"----normal_pdf-----\n x: {x} \n mean: {mean} \n std: {std} \n -------")
+    y = torch.exp((-((x-mean)**2)/(2*std*std)))/ (std* torch.sqrt(2*var(math.pi)))
+    # res = torch.prod(y)
+    res = torch.sum(torch.log(y))
+    # res *= var(1e)
+
+    return res
 
 
 def sampled(x):
@@ -350,25 +291,22 @@ def learning(
                 grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                 real_safe_loss += var(safe_loss.data.item())
 
-                # exit(0)
-
             # To maintain the real theta
             m = update_model_parameter(m, Theta)
 
             real_data_loss /= n
             real_safe_loss /= n
 
-            print(f"real data_loss: {real_data_loss}")
-            print(f"real safe_loss: {real_safe_loss}, data and safe TIME: {time.time() - batch_time}")
+            print(f"real data_loss: {real_data_loss}, real safe_loss: {real_safe_loss}, data and safe TIME: {time.time() - batch_time}")
             q_loss += real_data_loss
             c_loss += real_safe_loss
+
             loss = grad_data_loss + lambda_.mul(grad_safe_loss)
             loss.backward()
             for partial_theta in Theta:
                 torch.nn.utils.clip_grad_norm_(partial_theta, 1)
             # print(m.nn.linear1.weight.grad)
             # print(m.nn.linear2.weight.grad)
-            # check: remove all the theta_p, only leave loss.data.item(), check the grad check guola
             optimizer.step()
             optimizer.zero_grad()
             # new_theta = extract_parameters(m)
