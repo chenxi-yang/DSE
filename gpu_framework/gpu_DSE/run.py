@@ -64,7 +64,7 @@ if __name__ == "__main__":
         # TODO: the data is one-dimension (x = a value)
         X_train, X_test, y_train, y_test = load_data(train_size=train_size, test_size=test_size, dataset_path=DATASET_PATH)
         component_list = extract_abstract_representation(X_train, y_train, x_l, x_r, num_components)
-        print(f"prepare data: {time.time() - preprocessing_time}")
+        print(f"prepare data: {time.time() - preprocessing_time} sec.")
         # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 
         for i in range(5):
