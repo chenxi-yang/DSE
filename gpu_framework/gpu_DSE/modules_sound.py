@@ -173,6 +173,11 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
         probability = pre_allocate(symbol_table)
         orelse_symbol_table = update_res_in_branch(orelse_symbol_table, res, probability, branch)
     else:
+        # print(f"In split branch symbol table\n \
+        #     x: {x.c, x.delta}\n  \
+        #     target: {target.getLeft(), target.getRight()}\n \
+        #     test: {test.data.item()}")
+        # exit(0)
         res = x.clone()
         branch = 'body'
         c = (target.getLeft() + test) / 2.0

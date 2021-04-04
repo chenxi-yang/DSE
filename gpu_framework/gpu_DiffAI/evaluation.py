@@ -122,6 +122,7 @@ def verify(abstract_state_list, target):
     for abstract_state in abstract_state_list:
         aggregation_p, unsafe_probability = extract_unsafe(abstract_state, target)
         print(f"aggregation_p: {aggregation_p.data.item()}, unsafe_probability: {unsafe_probability.data.item()}")
+        aggregation_p = torch.min(var(1.0), aggregation_p)
         all_unsafe_probability += aggregation_p * unsafe_probability
     if all_unsafe_probability.data.item() <= target['phi'].data.item():
         print(colored(f"Verified Safe!", "green"))
