@@ -160,7 +160,7 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
         res.set_from_index(target_idx, domain.Box(c, delta)) # res[target_idx] = Box(c, delta)
         body_symbol_table = pre_build_symbol_table(symbol_table)
         # in DSE, each component's probability upper bound is kept
-        probability = pre_allocate(body_symbol_table)
+        probability = pre_allocate(symbol_table)
         body_symbol_table = update_res_in_branch(body_symbol_table, res, probability, branch)
 
         res = x.clone()
@@ -170,7 +170,7 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
         res.set_from_index(target_idx, domain.Box(c, delta))
         orelse_symbol_table = pre_build_symbol_table(symbol_table)
         # in DSE, each component's probability upper bound is kept
-        probability = pre_allocate(orelse_symbol_table)
+        probability = pre_allocate(symbol_table)
         orelse_symbol_table = update_res_in_branch(orelse_symbol_table, res, probability, branch)
 
     # print(f"branch time: {time.time() - branch_time}")
@@ -190,7 +190,7 @@ def split_branch_abstract_state(target_idx, test, abstract_state):
 
 def calculate_branch_list(target_idx, test, abstract_state_list):
     res_abstract_state_list = list()
-    assert(len(abstract_state_list) == 0)
+    assert(len(abstract_state_list) == 1)
     for abstract_state in abstract_state_list: 
         body_abstract_state, orelse_abstract_state = split_branch_abstract_state(target_idx, test, abstract_state)
         if len(body_abstract_state) > 0:
@@ -256,11 +256,11 @@ class IfElse(nn.Module):
         # print(f"############one ifelse ##################")
 
         test = self.f_test(self.test)
-        res_list = calculate_branch_list(self.target_idx, test, x_list)
+        res_list = calculate_branch_list(self.target_idx, test, abstract_state_list)
 
         res_list = sample(res_list) # sample before executing
 
-        assert(len(res_list) == 0)
+        assert(len(res_list) == 1)
         # the first component in the first abstract state represents the res_list branch
         if res_list[0][0]['branch'] == 'body':
             res_list = self.body(res_list)
@@ -285,7 +285,7 @@ class While(nn.Module):
             pre_abstract_state_list = calculate_branch_list(self.target_idx, self.test, abstract_state_list)
             res_abstract_state_list = sample(pre_abstract_state_list)
 
-            assert(len(res_abstract_state_list) == 0)
+            assert(len(res_abstract_state_list) == 1)
 
             if res_abstract_state_list[0][0]['branch'] == 'body': # if the abstract state in  res_abstract_state_list falls into 'body'
                 abstract_state_list = self.body(res_abstract_state_list)

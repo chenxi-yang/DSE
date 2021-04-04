@@ -33,7 +33,7 @@ data_attr = args.data_attr
 
 STATUS = 'Training' # a global status, if Training: use normal module, if Verifying: use sound module
 
-path_num_list = [250]
+path_num_list = [50]
 
 K_DISJUNCTS = 10000000
 SAMPLE_SIZE = 500

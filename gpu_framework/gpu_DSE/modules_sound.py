@@ -161,7 +161,7 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
     # res_symbol_table = pre_build_symbol_table(symbol_table)
 
     if target.getRight().data.item() <= test.data.item():
-        res = x.clone()self_left
+        res = x.clone()
         branch = 'body'
         body_symbol_table = pre_build_symbol_table(symbol_table)
         probability = pre_allocate(symbol_table) # the pobability represents the upper bound, so it does not change when splitting

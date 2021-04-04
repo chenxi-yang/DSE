@@ -37,7 +37,7 @@ def initialization_abstract_state(component_list):
         center, width, p = component['center'], component['width'], component['p']
         symbol_table = {
             'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
-            'probability': p,
+            'probability': var(p),
             'trajectory': list(),
             'branch': '',
         }
@@ -62,7 +62,8 @@ def initialization_point_nn(x):
 
     point_symbol_table_list.append(symbol_table)
 
-    return point_symbol_table_list
+    # to map to the execution of distribution, add one dimension
+    return [point_symbol_table_list]
 
 
 def f_isOn(x):

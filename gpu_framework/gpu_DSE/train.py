@@ -83,14 +83,15 @@ def extract_abstract_state_safe_loss(abstract_state, target):
 def safe_distance(abstract_state_list, target):
     # measure safe distance in DSE
     # I am using sampling, and many samples the eventual average will be the same as the expectation
+    
     loss = var_list([0.0])
     for abstract_state in abstract_state_list:
         abstract_state_safe_loss = extract_abstract_state_safe_loss(
-            abstract_stete, target
+            abstract_state, target
         )
         loss += abstract_state_safe_loss
     loss = loss / var(len(abstract_state_list)).add(EPSILON)
-    loss = loss - unsafe_probability_condition
+    loss = loss - target['phi']
 
     return loss
 
@@ -106,7 +107,8 @@ def cal_data_loss(m, x, y):
         y_point_list = m(point_data, 'concrete')
         # should be only one partition in y['x']
         # the return value in thermostat is x, index: 2
-        data_loss += distance_f_point(y_point_list[0]['x'].c[2], var(label))
+        # be the first point symbol_table in the first point_list
+        data_loss += distance_f_point(y_point_list[0][0]['x'].c[2], var(label))
     data_loss /= var(len(x)).add(EPSILON)
     return data_loss
 
@@ -121,7 +123,7 @@ def cal_safe_loss(m, abstract_state, target):
     }>
     '''
     ini_abstract_state_list = initialization_abstract_state(abstract_state)
-    assert(len(ini_abstract_state_list) == 0)
+    assert(len(ini_abstract_state_list) == 1)
     res_abstract_state_list = list()
 
     for i in range(constants.SAMPLE_SIZE):
@@ -159,11 +161,12 @@ def divide_chunks(component_list, bs=1):
             abstract_state = {
                 'center': component['center'],
                 'width': component['width'],
-                'upper_bound': component['p'],
+                'p': component['p'],
             }
             x_list.extend(component['x'])
             y_list.extend(component['y'])
             abstract_states.append(abstract_state)
+            print(f"component probability: {component['p']}")
 
         yield x_list, y_list, abstract_states
 
@@ -248,7 +251,6 @@ def learning(
     print("--------------------------------------------------------------")
     print('====Start Training====')
 
-    # TODO change all.....
     TIME_OUT = False
 
     x_min = var(10000.0)
@@ -262,6 +264,9 @@ def learning(
     m.cuda()
 
     optimizer = torch.optim.SGD(m.parameters(), lr=lr)
+
+    if epochs_to_skip is None:
+        epochs_to_skip = -1
     
     start_time = time.time()
     for i in range(epoch):
@@ -297,7 +302,7 @@ def learning(
             real_data_loss /= n
             real_safe_loss /= n
 
-            print(f"real data_loss: {real_data_loss}, real safe_loss: {real_safe_loss}, data and safe TIME: {time.time() - batch_time}")
+            print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
             q_loss += real_data_loss
             c_loss += real_safe_loss
 
