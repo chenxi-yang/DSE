@@ -340,8 +340,8 @@ def learning(
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
-        if c_loss.data.item() < EPSILON.data.item():
-            break
+        # if c_loss.data.item() < EPSILON.data.item():
+        #     break
         
         if (time.time() - start_time)/(i+1) > 2000:
             log_file = open(file_dir, 'a')
