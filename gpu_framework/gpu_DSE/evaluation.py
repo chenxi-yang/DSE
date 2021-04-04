@@ -114,6 +114,7 @@ def extract_unsafe(abstract_state, target):
         print(f"component p: {symbol_table['probability'].data.item()}, trajectory_unsafe_value: {trajectory_unsafe_value}")
         abstract_state_unsafe_value += symbol_table['probability'] * trajectory_unsafe_value
         aggregation_p += symbol_table['probability']
+        print(f"temporary aggragation p: {aggregation_p}")
     return aggregation_p, abstract_state_unsafe_value
 
 

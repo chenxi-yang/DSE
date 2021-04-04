@@ -16,6 +16,8 @@ from thermostat_nn import *
 
 from utils import generate_distribution
 
+random.seed(1)
+
 def distance_f_point(pred_y, y):
     return torch.abs(pred_y.sub(y)) # l1-distance
     # return torch.square(pred_y.sub(y)) # l2-distance
@@ -435,6 +437,7 @@ def split_component(perturbation_x_dict, x_l, x_r, num_components):
 
 
 def extract_upper_probability_per_component(component, perturbation_x_dict):
+
     p_list = list()
     for distribution in perturbation_x_dict:
         x_list = perturbation_x_dict[distribution]

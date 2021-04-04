@@ -16,6 +16,7 @@ from thermostat_nn import *
 
 from utils import generate_distribution
 
+random.seed(1)
 
 def distance_f_point(pred_y, y):
     return torch.abs(pred_y.sub(y)) # l1-distance

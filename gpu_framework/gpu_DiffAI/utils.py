@@ -2,6 +2,7 @@ from scipy.stats import truncnorm
 from scipy.stats import poisson
 
 import numpy as np
+np.random.seed(seed=1)
 
 
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
