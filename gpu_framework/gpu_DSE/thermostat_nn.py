@@ -28,25 +28,6 @@ if torch.cuda.is_available():
     index3 = index3.cuda()
 
 
-# DiffAI version
-def initialization_nn(center_list, width_list, p_list=None):
-    # print(f"in initialization_nn")
-    symbol_table_list = list()
-    for idx, center in enumerate(center_list):
-        width = width_list[idx]
-        p = var(1.0) if p_list is None else p_list[i]
-        symbol_table = {
-            'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
-            # 'safe_range': domain.Interval(P_INFINITY, N_INFINITY),
-            'probability': p,
-            'trajectory': list(),
-            'branch': '',
-        }
-
-        symbol_table_list.append(symbol_table)
-
-    return symbol_table_list
-
 
 def initialization_abstract_state(component_list):
     abstract_state_list = list()

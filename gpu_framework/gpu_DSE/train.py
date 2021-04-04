@@ -121,7 +121,7 @@ def cal_data_loss(m, x, y):
     # for the point in the same batch
     # calculate the data loss of each point
     # add the point data loss together
-    data_loss = var(0.0)
+    data_loss = var_list([0.0])
     for idx in range(len(x)):
         point, label = x[idx], y[idx]
         point_data = initialization_point_nn(point)
@@ -129,7 +129,7 @@ def cal_data_loss(m, x, y):
         # should be only one partition in y['x']
         # the return value in thermostat is x, index: 2
         data_loss += distance_f_point(y_point_list[0]['x'].c[2], var(label))
-    data_loss /= len(x)
+    data_loss /= var(len(x)).add(EPSILON)
     return data_loss
 
 
@@ -180,25 +180,28 @@ def extract_large_ball(ball_list):
     return center, new_width
 
 
-def cal_safe_loss(m, x, width, target):
-    # for each x, generate a small ball:(x-e, x+e)
-    # in each ball, follow the distribution predefined to generate point cloud
-    # 1). take the union of all point cloud and the larget point cloud
-    # 2). take the boundry of all the small ball as the large ball: abstract data
-    point_cloud, ball_list = create_ball_cloud(x, width, distribution="Gaussian", n=50)
-    center, new_width = extract_large_ball(ball_list) # new width is a list, after generating the new distribution around the point, the width of each element might be different
-    # print(f"center: {center}, new_width: {new_width}")
-    abstract_data = initialization_nn(center, new_width, point_cloud)
-    y_abstract_list = list()
-    # TODO: partition in one batch, split strategy
+def cal_safe_loss(m, abstract_state, target):
+    '''
+    abstract_state = list<{
+        'center': vector, 
+        'width': vector, 
+        'p': var
+    }>
+    '''
+    ini_abstract_state_list = initialization_abstract_state(abstract_state)
+    assert(len(ini_abstract_state_list) == 0)
+    res_abstract_state_list = list()
+
     for i in range(constants.SAMPLE_SIZE):
         # sample one path each time
         # sample_time = time.time()
-        abstract_list = m(abstract_data, 'abstract')
+        abstract_list = m(ini_abstract_state_list, 'abstract')
         # print(f"sample {i+1}-th path: {time.time() - sample_time}")
-        y_abstract_list.append(abstract_list[0])
+        res_abstract_state_list.append(abstract_list[0])
     # print(f"length: {len(y_abstract_list)}")
-    safe_loss = distance_f_interval(y_abstract_list, target)
+    
+    # TODO: the new safe loss function
+    safe_loss = distance_f_interval(res_abstract_state_list, target)
     return safe_loss
 
 
@@ -219,19 +222,19 @@ def divide_chunks(component_list, bs=1):
     '''
     for i in range(0, len(component_list), bs):
         components = component_list[i:i + bs]
-        abstract_state = list()
+        abstract_states = list()
         x_list, y_list = list(), list()
         for component in components:
-            one_abstract_state = {
+            abstract_state = {
                 'center': component['center'],
                 'width': component['width'],
                 'upper_bound': component['p'],
             }
             x_list.extend(component['x'])
             y_list.extend(component['y'])
-            abstract_state.append(one_abstract_state)
+            abstract_states.append(abstract_state)
 
-        yield x_list, y_list, abstract_state
+        yield x_list, y_list, abstract_states
 
 
 def update_model_parameter(m, theta):
@@ -335,18 +338,15 @@ def learning(
             # print(f"Theta before: {Theta}")
             for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
                 m = update_model_parameter(m, sample_theta)
-                data_time = time.time()
+                sample_time = time.time()
+
                 data_loss = cal_data_loss(m, x, y)
+                safe_loss = cal_safe_loss(m, abstract_states, target)
+
+                print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
                 # print(f"{'#' * 15}")
-                # print(f"data_loss: {data_loss}, TIME: {time.time() - data_time}")
-                # print(f"p: {sample_theta_p}, log_p: {torch.log(sample_theta_p)}")
                 grad_data_loss += var(data_loss.data.item()) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                 real_data_loss += var(data_loss.data.item())
-
-                safe_time = time.time()
-                safe_loss = cal_safe_loss(m, x, width, target)
-                # print(f"safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - safe_time}")
-                # print(f"{'#' * 15}")
                 grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                 real_safe_loss += var(safe_loss.data.item())
 
