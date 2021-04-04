@@ -52,7 +52,7 @@ if benchmark_name == "thermostat":
     # SAFE_RANGE = [53.0, 82.0]
     # SAFE_RANGE = [52.0, 83.0] # not that strict
     # SAFE_RANGE = [50.0, 85.0] # not that loose
-    PHI = 0.05 # unsafe probability
+    PHI = 0.2 # unsafe probability
 
 
 # args

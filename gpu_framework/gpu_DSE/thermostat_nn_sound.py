@@ -38,7 +38,7 @@ def initialization_nn(center_list, width_list, p_list=None):
         symbol_table = {
             'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
             # 'safe_range': domain.Interval(P_INFINITY, N_INFINITY),
-            'probability': p,
+            'probability': var(p),
             'trajectory': list(),
             'branch': '',
         }
@@ -56,7 +56,7 @@ def initialization_abstract_state(component_list):
         center, width, p = component['center'], component['width'], component['p']
         symbol_table = {
             'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
-            'probability': p,
+            'probability': var(p),
             'trajectory': list(),
             'branch': '',
         }
