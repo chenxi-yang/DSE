@@ -1,6 +1,7 @@
 from helper import *
 from args import *
 
+import numpy as np
 # import domain
 
 args = get_args()
@@ -30,6 +31,7 @@ test_mode = args.test_mode
 data_attr = args.data_attr
 # print(f"test_mode: {test_mode}")
 
+model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}"
 
 STATUS = 'Training' # a global status, if Training: use normal module, if Verifying: use sound module
 
@@ -49,6 +51,7 @@ if benchmark_name == "thermostat":
     x_r = [62.0]
     # SAFE_RANGE = [55.0, 81.34] # strict
     SAFE_RANGE = [53.0, 82.8]
+    safe_range_upper_bound_list = np.arange(81.5, 83.0, 0.1).tolist()
     # SAFE_RANGE = [53.0, 82.6]
     # SAFE_RANGE = [53.0, 82.0]
     # SAFE_RANGE = [52.0, 83.0] # not that strict
@@ -86,9 +89,9 @@ alpha_smooth_max = 0.8
 eps = 1e-10
 
 if test_mode:
-    file_dir = f"result_test/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{SAFE_RANGE[1]}.txt"
+    file_dir = f"result_test/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}.txt"
 else:
-    file_dir = f"result/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{SAFE_RANGE[1]}.txt"
+    file_dir = f"result/thermostat_diffAI_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}.txt"
 log_file = open(file_dir, 'w')
 log_file.write(f"{args}\n")
 log_file.write(f"safe range: {SAFE_RANGE}\n")

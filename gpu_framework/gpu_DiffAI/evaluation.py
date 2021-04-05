@@ -111,8 +111,10 @@ def extract_unsafe(abstract_state, target):
     abstract_state_unsafe_value = var_list([0.0])
     for symbol_table in abstract_state:
         trajectory_unsafe_value = get_symbol_table_trajectory_unsafe_value(symbol_table, target)
+        # print(f"component p: {symbol_table['probability'].data.item()}, trajectory_unsafe_value: {trajectory_unsafe_value}")
         abstract_state_unsafe_value += symbol_table['probability'] * trajectory_unsafe_value
         aggregation_p += symbol_table['probability']
+        print(f"temporary aggragation p: {aggregation_p}")
     return aggregation_p, abstract_state_unsafe_value
 
 
@@ -122,19 +124,34 @@ def verify(abstract_state_list, target):
     for abstract_state in abstract_state_list:
         aggregation_p, unsafe_probability = extract_unsafe(abstract_state, target)
         print(f"aggregation_p: {aggregation_p.data.item()}, unsafe_probability: {unsafe_probability.data.item()}")
+        #! make the aggregation_p make more sense
         aggregation_p = torch.min(var(1.0), aggregation_p)
         all_unsafe_probability += aggregation_p * unsafe_probability
+    
+    log_file = open(file_dir, 'a')
     if all_unsafe_probability.data.item() <= target['phi'].data.item():
         print(colored(f"Verified Safe!", "green"))
+        log_file.write(f"Verification: Verified Safe!\n")
     else:
         print(colored(f"Not Verified Safe!", "red"))
+        log_file.write(f"Verification: Not Verified Safe!\n")
     
     print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target['phi'].data.item()}")
-    
+    log_file.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target['phi'].data.item()}\n")
+
+def show_component_p(component_list):
+    component_p_list = list()
+    for component in component_list:
+        component_p_list.append(component['p'])
+        # print(f"component p: {component['p']}, center: {component['center']}, width: {component['width']}")
+    # print(f"component p list: {component_p_list}")
+    print(f"sum of component p: {sum(component_p_list)}")
+    return 
+
 
 def verification(model_path, model_name, component_list, target):
     m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-    _, m = load_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}")
+    _, m = load_model(m, MODEL_PATH, name=model_name)
     if m is None:
         print(f"No model to Verify!!")
         exit(0)
@@ -142,5 +159,7 @@ def verification(model_path, model_name, component_list, target):
     m.eval()
 
     abstract_state_list = initialization_abstract_state(component_list)
+    print(f"Ini # of abstract state: {len(abstract_state_list)}")
+    # show_component_p(component_list)
     abstract_state_list = m(abstract_state_list)
     verify(abstract_state_list, target)

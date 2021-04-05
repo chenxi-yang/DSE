@@ -348,6 +348,7 @@ def learning(
         use_smooth_kernel=use_smooth_kernel,
         save=save,
         epochs_to_skip=None,
+        model_name=None,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
@@ -431,9 +432,8 @@ def learning(
             # count += 1
             # if count >= 10:
             #     exit(0)
-        # TODO: save model 
         if save:
-            save_model(m, MODEL_PATH, name=f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}", epoch=i)
+            save_model(m, MODEL_PATH, name=model_name, epoch=i)
         
         if i >= 7 and i%2 == 0:
             for param_group in optimizer.param_groups:
