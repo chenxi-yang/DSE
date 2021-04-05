@@ -51,7 +51,7 @@ if benchmark_name == "thermostat":
     x_r = [62.0]
     # SAFE_RANGE = [55.0, 81.34] # strict
     SAFE_RANGE = [53.0, 82.8]
-    safe_range_upper_bound_list = np.arange(81.5, 83.0, 0.1).tolist()
+    safe_range_upper_bound_list = np.arange(82.0, 83.0, 0.1).tolist()
     # SAFE_RANGE = [53.0, 82.6]
     # SAFE_RANGE = [53.0, 82.0]
     # SAFE_RANGE = [52.0, 83.0] # not that strict
