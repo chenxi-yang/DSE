@@ -1,12 +1,22 @@
 
 from constants import *
 
-from train import *
-from evaluation import verification
+if mode == 'DSE':
+    from gpu_DSE.train import *
+    from gpu_DSE.data_generator import load_data
+if mode == 'DiffAI':
+    from gpu_DiffAI.train import *
+    from gpu_DiffAI.data_generator import load_data
+if mode == 'SPS':
+    from gpu_SPS.train import *
+    from gpu_SPS.data_generator import load_data
+if mode == 'SPS-sound':
+    from gpu_SPS_sound.train import *
+    from gpu_SPS_sound.data_generator import load_data
 
 from args import *
+from evaluation import verification
 
-from data_generator import load_data
 import random
 import time
 
@@ -48,6 +58,7 @@ if __name__ == "__main__":
 
     for path_sample_size in path_num_list:
         for safe_range_upper_bound in safe_range_upper_bound_list:
+
             time_out = False
             constants.SAMPLE_SIZE = path_sample_size # show number of paths to sample
             log_file = open(file_dir, 'a')

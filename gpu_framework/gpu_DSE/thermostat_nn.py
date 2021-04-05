@@ -7,7 +7,7 @@ from constants import *
 import constants
 import domain
 
-from modules import *
+from gpu_DSE.modules import *
 
 import os
 
@@ -26,7 +26,6 @@ if torch.cuda.is_available():
     index1 = index1.cuda()
     index2 = index2.cuda()
     index3 = index3.cuda()
-
 
 
 def initialization_abstract_state(component_list):

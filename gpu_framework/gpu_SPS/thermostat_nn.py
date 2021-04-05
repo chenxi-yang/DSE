@@ -7,7 +7,7 @@ from constants import *
 import constants
 import domain
 
-from modules_sound import *
+from gpu_DSE.modules import *
 
 import os
 
@@ -28,26 +28,6 @@ if torch.cuda.is_available():
     index3 = index3.cuda()
 
 
-# DiffAI version
-def initialization_nn(center_list, width_list, p_list=None):
-    # print(f"in initialization_nn")
-    symbol_table_list = list()
-    for idx, center in enumerate(center_list):
-        width = width_list[idx]
-        p = var(1.0) if p_list is None else p_list[i]
-        symbol_table = {
-            'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
-            # 'safe_range': domain.Interval(P_INFINITY, N_INFINITY),
-            'probability': p,
-            'trajectory': list(),
-            'branch': '',
-        }
-
-        symbol_table_list.append(symbol_table)
-
-    return symbol_table_list
-
-
 def initialization_abstract_state(component_list):
     abstract_state_list = list()
     # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
@@ -56,7 +36,7 @@ def initialization_abstract_state(component_list):
         center, width, p = component['center'], component['width'], component['p']
         symbol_table = {
             'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
-            'probability': p,
+            'probability': var(p),
             'trajectory': list(),
             'branch': '',
         }
@@ -81,7 +61,8 @@ def initialization_point_nn(x):
 
     point_symbol_table_list.append(symbol_table)
 
-    return point_symbol_table_list
+    # to map to the execution of distribution, add one dimension
+    return [point_symbol_table_list]
 
 
 def f_isOn(x):

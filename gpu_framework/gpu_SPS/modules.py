@@ -85,13 +85,13 @@ def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
         
         symbol_table['x'] = x
         #! probability of each component does not change
-        # symbol_table['probability'] = symbol_table['probability']
+        # symbol_table['probability'] = symbol_table['probability'].mul(p)
         abstract_state[idx] = symbol_table
     # print(f"-- assign -- calculate_x_list: {time.time() - assign_time}")
     return abstract_state
 
 
-def calculate_abstract_states_list(target_idx, arg_idx, f, abstract_state_list):
+def calculate_abstract_state_list(target_idx, arg_idx, f, abstract_state_list):
     res_list = list()
     for abstract_state in abstract_state_list:
         res_abstract_state = calculate_abstract_state(target_idx, arg_idx, f, abstract_state)
@@ -100,7 +100,7 @@ def calculate_abstract_states_list(target_idx, arg_idx, f, abstract_state_list):
 
 
 def pre_build_symbol_table(symbol_table):
-    # clone safe_range and x_memo_list
+    # clone trajectory
     res_symbol_table = dict()
     res_symbol_table['trajectory'] = list()
     for state in symbol_table['trajectory']:
@@ -113,27 +113,8 @@ def pre_allocate(symbol_table):
     return symbol_table['probability']
 
 
-def split_point_cloud(symbol_table, res, target_idx):
-    # split the point cloud, count and calculate the probability
-    counter = 0.0
-    old_point_cloud = symbol_table['point_cloud']
-    point_cloud = list()
-    for point in old_point_cloud:
-        # TODO: brute-forcely check the point, a smarter way is to check based on the target_idx
-        if res.check_in(point):
-            counter += 1
-            point_cloud.append(point)
-    
-    if counter > 0:
-        probability = symbol_table['probability'].mul(var(counter).div(symbol_table['counter']))
-    else:
-        probability = SMALL_PROBABILITY
-    counter = var(counter)
-
-    return probability, counter, point_cloud
-
-
 def split_volume(symbol_table, target, delta):
+    # 
     target_volume = target.getRight() - target.getLeft()
     new_volume = delta.mul(var(2.0))
     probability = symbol_table['probability'].mul(new_volume.div(target_volume))
@@ -151,10 +132,7 @@ def update_res_in_branch(res_symbol_table, res, probability, branch):
 
 def split_branch_symbol_table(target_idx, test, symbol_table):
     body_symbol_table, orelse_symbol_table = dict(), dict()
-
     branch_time = time.time()
-    # print(f"calculate branch -- target_idx: {target_idx}")
-    # print(f"x: {x.c, x.delta}")
 
     x = symbol_table['x']
     target = x.select_from_index(0, target_idx)
@@ -164,14 +142,16 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
         res = x.clone()
         branch = 'body'
         body_symbol_table = pre_build_symbol_table(symbol_table)
-        probability = pre_allocate(symbol_table) # the pobability represents the upper bound, so it does not change when splitting
+        probability = pre_allocate(symbol_table)
         body_symbol_table = update_res_in_branch(body_symbol_table, res, probability, branch)
+
     elif target.getLeft().data.item() > test.data.item():
         res = x.clone()
         branch = 'orelse'
         orelse_symbol_table = pre_build_symbol_table(symbol_table)
         probability = pre_allocate(symbol_table)
         orelse_symbol_table = update_res_in_branch(orelse_symbol_table, res, probability, branch)
+
     else:
         res = x.clone()
         branch = 'body'
@@ -179,7 +159,7 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
         delta = (test - target.getLeft()) / 2.0
         res.set_from_index(target_idx, domain.Box(c, delta)) # res[target_idx] = Box(c, delta)
         body_symbol_table = pre_build_symbol_table(symbol_table)
-        # This is sound SE, so probability is the kept
+        # in DSE, each component's probability upper bound is kept
         probability = pre_allocate(symbol_table)
         body_symbol_table = update_res_in_branch(body_symbol_table, res, probability, branch)
 
@@ -189,13 +169,13 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
         delta = (target.getRight() - test) / 2.0
         res.set_from_index(target_idx, domain.Box(c, delta))
         orelse_symbol_table = pre_build_symbol_table(symbol_table)
-
+        # in DSE, each component's probability upper bound is kept
         probability = pre_allocate(symbol_table)
         orelse_symbol_table = update_res_in_branch(orelse_symbol_table, res, probability, branch)
 
     # print(f"branch time: {time.time() - branch_time}")
     return body_symbol_table, orelse_symbol_table
-            
+
 
 def split_branch_abstract_state(target_idx, test, abstract_state):
     body_abstract_state, orelse_abstract_state = list(), list()
@@ -206,30 +186,41 @@ def split_branch_abstract_state(target_idx, test, abstract_state):
         if len(orelse_symbol_table) > 0:
             orelse_abstract_state.append(orelse_symbol_table)
     return body_abstract_state, orelse_abstract_state
+            
 
-
-'''
-abstract_state:
-list of symbol table with domain, probability
-'''
-def split_branch_list(target_idx, test, abstract_state_list):
-    body_abstract_state_list, orelse_abstract_state_list = list(), list()
-    for abstract_state in abstract_state_list:
+def calculate_branch_list(target_idx, test, abstract_state_list):
+    res_abstract_state_list = list()
+    assert(len(abstract_state_list) == 1)
+    for abstract_state in abstract_state_list: 
         body_abstract_state, orelse_abstract_state = split_branch_abstract_state(target_idx, test, abstract_state)
         if len(body_abstract_state) > 0:
-            body_abstract_state_list.append(body_abstract_state)
+            res_abstract_state_list.append(body_abstract_state)
         if len(orelse_abstract_state) > 0:
-            orelse_abstract_state_list.append(orelse_abstract_state)
-    
-    return body_abstract_state_list, orelse_abstract_state_list 
+            res_abstract_state_list.append(orelse_abstract_state)
+    return res_abstract_state_list
+
+
+def calculate_abstract_state_weight(abstract_state):
+    # abstract state's probability equalling to the sum of the upper bound probability of all components
+    return sum([symbol_table['probability'].data.item() for symbol_table in abstract_state])
+
+
+def sample(abstract_state_list):
+    # only sample one abstract state
+    assert(len(abstract_state_list) <= 2)
+    # sample_time = time.time()
+    res_symbol_table_list = random.choices(abstract_state_list, weights=[calculate_abstract_state_weight(abstract_state) for abstract_state in abstract_state_list], k=1)
+    # print(f"sampling time: {time.time() - sample_time}") # , length before: {length_before}, length after: {len(res_symbol_table_list)}")
+
+    return res_symbol_table_list
 
 
 class Skip(nn.Module):
     def __init__(self):
         super().__init__()
     
-    def forward(self, x_list, cur_sample_size=0):
-        return x_list
+    def forward(self, abstract_state_list, cur_sample_size=0):
+        return abstract_state_list
 
 
 class Assign(nn.Module):
@@ -244,7 +235,7 @@ class Assign(nn.Module):
     
     def forward(self, abstract_state_list, cur_sample_size=0):
         # print(f"Assign Before: {[(res['x'].c, res['x'].delta) for res in x_list]}")
-        res_list = calculate_abstract_states_list(self.target_idx, self.arg_idx, self.f, abstract_state_list)
+        res_list = calculate_abstract_state_list(self.target_idx, self.arg_idx, self.f, abstract_state_list)
         # print(f"Assign After: {[(res['x'].c, res['x'].delta) for res in x_list]}")
         return res_list
 
@@ -261,17 +252,20 @@ class IfElse(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, abstract_state_list):
-        test = self.f_test(self.test)
-        res_list = list()
+        # print(f"Ifelse: target_idx: {self.target_idx}")
+        # print(f"############one ifelse ##################")
 
-        body_list, else_list = split_branch_list(self.target_idx, self.test, abstract_state_list)
-        
-        if len(body_list) > 0:
-            body_list = self.body(body_list)
-            res_list.extend(body_list)
-        if len(else_list) > 0:
-            else_list = self.orelse(else_list)
-            res_list.extend(else_list)
+        test = self.f_test(self.test)
+        res_list = calculate_branch_list(self.target_idx, test, abstract_state_list)
+
+        res_list = sample(res_list) # sample before executing
+
+        assert(len(res_list) == 1)
+        # the first component in the first abstract state represents the res_list branch
+        if res_list[0][0]['branch'] == 'body':
+            res_list = self.body(res_list)
+        else:
+            res_list = self.orelse(res_list)
 
         return res_list
 
@@ -283,28 +277,22 @@ class While(nn.Module):
         self.test = test
         self.body = body
         if torch.cuda.is_available():
-            # print(f"CHECK: cuda")
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, abstract_state_list):
-        '''
-        super set of E_{i-th step} and [\neg condition]
-        '''
-        print(f"##############In while sound#########")
-        res_list = list()
+
         while(len(abstract_state_list) > 0):
-            # counter += 1
-            body_list, else_list = split_branch_list(self.target_idx, self.test, abstract_state_list)
+            pre_abstract_state_list = calculate_branch_list(self.target_idx, self.test, abstract_state_list)
+            res_abstract_state_list = sample(pre_abstract_state_list)
 
-            if len(else_list) > 0:
-                res_list.extend(else_list)
+            assert(len(res_abstract_state_list) == 1)
 
-            if len(body_list) > 0:
-                abstract_state_list = self.body(body_list)
+            if res_abstract_state_list[0][0]['branch'] == 'body': # if the abstract state in  res_abstract_state_list falls into 'body'
+                abstract_state_list = self.body(res_abstract_state_list)
             else:
-                return res_list
+                return res_abstract_state_list
 
-        return res_list
+        return res_abstract_state_list
 
 
 def update_trajectory(symbol_table, target_idx):
