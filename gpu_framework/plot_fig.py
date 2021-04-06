@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 import re
 import os
+import numpy as np
+
+import seaborn as sns
 
 from args import *
-import numpy as np
 
 def read_loss(loss_path):
     q_list = list()
@@ -207,6 +209,29 @@ def plot_vary_constraint(file):
     plot_constraint(x_list, safe_l_list, safe_r_list, p1, p2, title='Percentage of Safe Programs with Variable Constraints ',  x_label='constraint', y_label='safe percentage', label1=name1, label2=name2, fig_title=f"figures/vary_constraint_{name1}_{name2}.png")
 
 
+def plot_verification_result(result_dict, figure_name):
+    sns.set_theme()
+
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+
+    for method in result_dict:
+        x_list = result_dict[method]['res_safe_upper_list']
+        y1_list = result_dict[method]['avg_verification_probability_list']
+        y2_list = result_dict[method]['safe_percentage_probability_list']
+        
+        sns.lineplot(x_list, y1_list, label=method, ax=ax1)
+        sns.lineplot(x_list, y2_list, label=method, ax=ax2)
+    
+    ax1.set_xlabel('Safe Range Upper Bound')
+    ax1.set_ylabel('Expectation Unsafe Probability of Learnt Programs')
+    ax2.set_xlabel('Safe Range Upper Bound')
+    ax2.set_ylabel('Percentage of Verified Safe Learnt Programs')
+
+    plt.legend()
+    plt.savefig(f"all_figures/{figure_name}.png")
+    # plt.show()
+        
+
 def vary_safe_bound():
     args = get_args()
     lr = args.lr
@@ -308,6 +333,8 @@ def vary_safe_bound():
         for key in result_dict[method]:
             all_result_f.write(f"{key}: {result_dict[method][key]}\n")
     all_result_f.close()
+
+    # plot_verification_result(result_dict, figure_name=f"thermostat_{lr}_{bs}_{num_epoch}_{train_size}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{PHI}_{safe_range_upper_bound_list}")
 
 
 if __name__ == "__main__":
