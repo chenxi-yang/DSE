@@ -55,7 +55,9 @@ if benchmark_name == "thermostat":
     # first expr
     # safe_range_upper_bound_list = np.arange(82.0, 83.0, 0.1).tolist()
     # PHI = 0.05 # unsafe probability
-    safe_range_upper_bound_list = np.arange(82.5, 83.0, 0.15).tolist()
+    # safe_range_upper_bound_list = np.arange(82.5, 83.0, 0.15).tolist()
+    safe_range_upper_bound_list = np.arange(82.81, 82.999, 0.046).tolist()
+
     PHI = 0.10
     # SAFE_RANGE = [53.0, 82.0]
     # SAFE_RANGE = [52.0, 83.0] # not that strict

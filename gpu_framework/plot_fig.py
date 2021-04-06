@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import re
 import os
 
+from args import *
+import numpy as np
+
 def read_loss(loss_path):
     q_list = list()
     c_list = list()
@@ -151,29 +154,6 @@ def plot_constraint(x_list, safe_l_list, safe_r_list, p1_list, p2_list, title,  
     labs = [l.get_label() for l in lns]
     ax.legend(lns, labs, loc=0)
 
-    # ax.plot(x_list, safe_l_list, color='C3')
-    # ax.set_ylim([51,54])
-    # ax.set_ylabel("safe bottom")
-    
-    # ax1 = ax.twinx()
-    # ax1.plot(x_list, safe_r_list, color='C3')
-    # ax1.set_ylim([83,86])
-    # ax1.set_ylabel("safe top")
-    # # plt.yscale("log")
-    # ax1.yaxis.grid()
-    # ax1.xaxis.grid()
-
-    # ax2 = ax.twinx()
-
-    # ax2.plot(x_list, p1_list, label=label1)
-    # ax2.plot(x_list, p2_list, label=label2)
-    # ax2.get_yaxis().set_visible(False)
-
-    # ax2.set_xlabel("different constraint")
-
-    # plt.xlabel(x_label)
-    # plt.ylabel(y_label)
-
     plt.xticks(range(0,5))
     
     plt.title(title)
@@ -227,13 +207,116 @@ def plot_vary_constraint(file):
     plot_constraint(x_list, safe_l_list, safe_r_list, p1, p2, title='Percentage of Safe Programs with Variable Constraints ',  x_label='constraint', y_label='safe percentage', label1=name1, label2=name2, fig_title=f"figures/vary_constraint_{name1}_{name2}.png")
 
 
+def vary_safe_bound():
+    args = get_args()
+    lr = args.lr
+    stop_val = args.stop_val
+    t_epoch = args.t_epoch
+    optimizer_name = args.optimizer
+    w = args.w
+    benchmark_name = args.benchmark_name
+    train_size = args.train_size
+    test_size = args.test_size
+    num_epoch = args.num_epoch
+    width = args.width
+    bs = args.bs
+    n = args.n
+    l = args.l
+    nn_mode = args.nn_mode
+    b = args.b
+    module = args.module
+    num_components = args.num_components
+    use_smooth_kernel = args.use_smooth_kernel
+    save = args.save
+    test_mode = args.test_mode
+    # safe_start_idx = args.safe_start_idx
+    # safe_end_idx = args.safe_end_idx
+    # path_sample_size = args.path_sample_size
+    data_attr = args.data_attr
+    
+    method_list = ['DiffAI', 'DiffAI-Kernel', 'DSE', 'SPS']
+
+    if benchmark_name == "thermostat":
+        x_l = [55.0]
+        x_r = [62.0]
+        # SAFE_RANGE = [55.0, 81.34] # strict
+        SAFE_RANGE = [53.0, 82.8]
+        # first expr
+        # safe_range_upper_bound_list = np.arange(82.0, 83.0, 0.1).tolist()
+        # PHI = 0.05 # unsafe probability
+        safe_range_upper_bound_list = np.arange(82.5, 83.0, 0.15).tolist()
+        PHI = 0.10
+        # SAFE_RANGE = [53.0, 82.0]
+        # SAFE_RANGE = [52.0, 83.0] # not that strict
+        # SAFE_RANGE = [50.0, 85.0] # not that loose
+
+    train_time = 3
+    result_dict = dict()
+    for method in method_list:
+        res_safe_upper_list = list()
+        avg_verification_probability_list = list()
+        safe_percentage_probability_list = list()
+        if method == 'DiffAI':
+            use_smooth_kernel = False
+            log_file_name = f"thermostat_DiffAI_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}"
+            log_file = f"gpu_DiffAI/result/{log_file_name}.txt"
+        if method == 'DiffAI-Kernel':
+            use_smooth_kernel = True
+            log_file_name = f"thermostat_DiffAI_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}"
+            log_file = f"gpu_DiffAI/result/{log_file_name}.txt"
+        if method == 'DSE':
+            use_smooth_kernel = True
+            log_file_name = f"thermostat_DSE_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}"
+            log_file = f"gpu_DSE/result/{log_file_name}.txt"
+        if method == 'SPS':
+            use_smooth_kernel = True
+            log_file_name = f"thermostat_SPS_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}"
+            log_file = f"gpu_SPS/result/{log_file_name}.txt"
+
+        f = open(log_file, 'r')
+        for line in f:
+            if 'safe_range_upper_bound' in line:
+                safe_upper_bound = float(line[:-1].split(': ')[-1])
+                res_safe_upper_list.append(safe_upper_bound)
+                tmp_avg_list = list()
+                tmp_safe_percentage_list = list()
+            if 'Details' in line:
+                if len(tmp_avg_list) < 3:
+                    unsafe_probability = float(line.split(',')[0].split(': ')[1])
+                    tmp_avg_list.append(unsafe_probability)
+                    if unsafe_probability <= PHI:
+                        tmp_safe_percentage_list.append(1.0)
+                    else:
+                        tmp_safe_percentage_list.append(0.0)
+                if len(tmp_avg_list) == 3:
+                    # remove the maximum probability
+                    avg_verification_probability = (sum(tmp_avg_list) - max(tmp_avg_list))/train_time
+                    safe_percentage_probability = sum(tmp_safe_percentage_list) / train_time
+                    avg_verification_probability_list.append(avg_verification_probability)
+                    safe_percentage_probability_list.append(safe_percentage_probability)
+        f.close()
+        result_dict[method] = {
+            'res_safe_upper_list': res_safe_upper_list,
+            'avg_verification_probability_list': avg_verification_probability_list,
+            'safe_percentage_probability_list': safe_percentage_probability_list,
+        }
+
+    all_result_f = open(f"all_results/thermostat_{lr}_{bs}_{num_epoch}_{train_size}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{PHI}.txt", 'w')
+    for method in result_dict:
+        all_result_f.write(f"# {method}\n")
+        for key in result_dict[method]:
+            all_result_f.write(f"{key}: {result_dict[method][key]}\n")
+    all_result_f.close()
+
+
 if __name__ == "__main__":
     # plot_loss('loss/') # the q and c loss
     # plot_loss_2('loss/')
     # plot_sample('data/sample_time.txt')
     # lr_bs_epoch_samplesize
     # plot_training_loss('result/thermostat_nn_volume_[52.0]_[85.1]_0.001_40_10_1000_5000_all_linearrelu.txt', benchmark='thermostat_nn_volume_[52.0]_[85.1]_0.001_40_10_1000_5000_all_linearrelu', log=False)
-    plot_vary_constraint('result/vary_constraint_volume_vs_point_sampling.txt')
+    # plot_vary_constraint('result/vary_constraint_volume_vs_point_sampling.txt')
+    vary_safe_bound()
 
 
 
