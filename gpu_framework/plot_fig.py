@@ -301,7 +301,7 @@ def vary_safe_bound():
             'safe_percentage_probability_list': safe_percentage_probability_list,
         }
 
-    all_result_f = open(f"all_results/thermostat_{lr}_{bs}_{num_epoch}_{train_size}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{PHI}.txt", 'w')
+    all_result_f = open(f"all_results/thermostat_{lr}_{bs}_{num_epoch}_{train_size}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{PHI}_{safe_range_upper_bound_list}.txt", 'w')
     for method in result_dict:
         all_result_f.write(f"# {method}\n")
         for key in result_dict[method]:
