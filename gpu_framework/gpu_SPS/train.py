@@ -276,19 +276,19 @@ def learning(
             data_loss = cal_data_loss(m, x, y)
             safe_loss = cal_safe_loss(m, abstract_states, target)
 
-            print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
+            print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - batch_time}")
             
             grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
             real_data_loss, real_safe_loss = var_list([0.0]), var_list([0.0])
             
-            Theta = extract_parameters(m) # extract the parameters now, and then sample around it
-            m = update_model_parameter(m, Theta)
+            # Theta = extract_parameters(m) # extract the parameters now, and then sample around it
+            # m = update_model_parameter(m, Theta)
 
             # print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
             loss = data_loss + lambda_.mul(safe_loss)
             loss.backward()
-            for partial_theta in Theta:
-                torch.nn.utils.clip_grad_norm_(partial_theta, 1)
+            # for partial_theta in Theta:
+            #     torch.nn.utils.clip_grad_norm_(partial_theta, 1)
             # print(m.nn.linear1.weight.grad)
             # print(m.nn.linear2.weight.grad)
             optimizer.step()
@@ -312,11 +312,11 @@ def learning(
         
         # f_loss = q_loss + lambda_ * c_loss
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
-        print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}")
+        print(f"-----finish {i}-th epoch-----, the batch loss: q: {data_loss.data.item()}, c: {safe_loss.data.item()}")
         print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
         log_file = open(file_dir, 'a')
         log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
-        log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}\n")
+        log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {data_loss.data.item()}, c: {safe_loss.data.item()}\n")
         log_file.write(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}\n")
 
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
