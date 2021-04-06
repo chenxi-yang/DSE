@@ -449,3 +449,54 @@ Details#learnt unsafe_probability: 0.0, target unsafe_probability: 0.10000000149
 4-th Epochs Time: 310.8282519817352
 -----finish 4-th epoch-----, the batch loss: q: 11.080948829650879, c: -0.09332814067602158
 -----finish 4-th epoch-----, q: 30.228801727294922, c: -0.49332815408706665
+5-th Epochs Time: 310.16015609105426
+-----finish 5-th epoch-----, the batch loss: q: 11.080948829650879, c: -0.09349813312292099
+-----finish 5-th epoch-----, q: 30.228801727294922, c: -0.49349814653396606
+6-th Epochs Time: 309.7420743533543
+-----finish 6-th epoch-----, the batch loss: q: 11.080948829650879, c: -0.09341313689947128
+-----finish 6-th epoch-----, q: 30.228801727294922, c: -0.49341315031051636
+7-th Epochs Time: 309.5973382592201
+-----finish 7-th epoch-----, the batch loss: q: 11.080948829650879, c: -0.09269069880247116
+-----finish 7-th epoch-----, q: 30.228801727294922, c: -0.49269071221351624
+8-th Epochs Time: 309.40476253297595
+-----finish 8-th epoch-----, the batch loss: q: 11.080948829650879, c: -0.0931156650185585
+-----finish 8-th epoch-----, q: 30.228801727294922, c: -0.4931156635284424
+9-th Epochs Time: 309.11210572719574
+-----finish 9-th epoch-----, the batch loss: q: 11.080948829650879, c: -0.09371060878038406
+-----finish 9-th epoch-----, q: 30.228801727294922, c: -0.49371060729026794
+One train: Optimization--3091.1222760677338,10,309.1122276067734
+Verification: Verified Safe!
+Details#learnt unsafe_probability: 0.0, target unsafe_probability: 0.10000000149011612
+0-th Epochs Time: 331.9397003650665
+-----finish 0-th epoch-----, the batch loss: q: 398.36505126953125, c: 325.7027893066406
+-----finish 0-th epoch-----, q: 1795.2763671875, c: 920.9736328125
+1-th Epochs Time: 335.9300307035446
+-----finish 1-th epoch-----, the batch loss: q: 398.36505126953125, c: 325.7027893066406
+-----finish 1-th epoch-----, q: 1975.910400390625, c: 990.596923828125
+2-th Epochs Time: 336.765864610672
+-----finish 2-th epoch-----, the batch loss: q: 398.36505126953125, c: 325.7027893066406
+-----finish 2-th epoch-----, q: 1975.910400390625, c: 986.241943359375
+3-th Epochs Time: 337.24461752176285
+-----finish 3-th epoch-----, the batch loss: q: 398.36505126953125, c: 325.7027893066406
+-----finish 3-th epoch-----, q: 1878.274169921875, c: 930.830322265625
+4-th Epochs Time: 337.52538776397705
+-----finish 4-th epoch-----, the batch loss: q: 398.36505126953125, c: 325.7027893066406
+-----finish 4-th epoch-----, q: 1975.910400390625, c: 987.680419921875
+5-th Epochs Time: 337.904035449028
+-----finish 5-th epoch-----, the batch loss: q: 398.36505126953125, c: 325.7027893066406
+-----finish 5-th epoch-----, q: 1975.910400390625, c: 989.486328125
+6-th Epochs Time: 338.0903137070792
+-----finish 6-th epoch-----, the batch loss: q: 398.36505126953125, c: 325.7027893066406
+-----finish 6-th epoch-----, q: 1975.910400390625, c: 987.858154296875
+7-th Epochs Time: 338.18593111634254
+-----finish 7-th epoch-----, the batch loss: q: 398.36505126953125, c: 325.7027893066406
+-----finish 7-th epoch-----, q: 1975.910400390625, c: 987.823974609375
+8-th Epochs Time: 338.2757827440898
+-----finish 8-th epoch-----, the batch loss: q: 398.36505126953125, c: 325.7027893066406
+-----finish 8-th epoch-----, q: 1975.910400390625, c: 988.169189453125
+9-th Epochs Time: 338.40003247261046
+-----finish 9-th epoch-----, the batch loss: q: 398.36505126953125, c: 325.7027893066406
+-----finish 9-th epoch-----, q: 1975.910400390625, c: 989.486328125
+One train: Optimization--3384.005245447159,10,338.4005245447159
+Verification: Not Verified Safe!
+Details#learnt unsafe_probability: 1.788631796836853, target unsafe_probability: 0.10000000149011612

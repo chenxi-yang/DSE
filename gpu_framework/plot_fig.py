@@ -210,8 +210,7 @@ def plot_vary_constraint(file):
 
 
 def plot_verification_result(result_dict, figure_name):
-    sns.set_theme()
-
+    # sns.set_theme()
     fig, (ax1, ax2) = plt.subplots(1, 2)
 
     for method in result_dict:
@@ -219,14 +218,15 @@ def plot_verification_result(result_dict, figure_name):
         y1_list = result_dict[method]['avg_verification_probability_list']
         y2_list = result_dict[method]['safe_percentage_probability_list']
         
-        sns.lineplot(x_list, y1_list, label=method, ax=ax1)
-        sns.lineplot(x_list, y2_list, label=method, ax=ax2)
+        sns.lineplot(x=x_list, y=y1_list, label=method, ax=ax1)
+        sns.lineplot(x=x_list, y=y2_list, label=method, ax=ax2)
     
     ax1.set_xlabel('Safe Range Upper Bound')
-    ax1.set_ylabel('Expectation Unsafe Probability of Learnt Programs')
+    ax1.set_ylabel('Average Unsafe Probability of Learnt Programs')
     ax2.set_xlabel('Safe Range Upper Bound')
     ax2.set_ylabel('Percentage of Verified Safe Learnt Programs')
 
+    plt.subplots_adjust(wspace = 0.25)
     plt.legend()
     plt.savefig(f"all_figures/{figure_name}.png")
     # plt.show()
@@ -269,8 +269,8 @@ def vary_safe_bound():
         # first expr
         # safe_range_upper_bound_list = np.arange(82.0, 83.0, 0.1).tolist()
         # PHI = 0.05 # unsafe probability
-        # safe_range_upper_bound_list = np.arange(82.5, 83.0, 0.15).tolist()
-        safe_range_upper_bound_list = np.arange(82.81, 82.999, 0.046).tolist()
+        safe_range_upper_bound_list = np.arange(82.5, 83.0, 0.15).tolist()
+        # safe_range_upper_bound_list = np.arange(82.81, 82.999, 0.046).tolist()
         PHI = 0.10
         # SAFE_RANGE = [53.0, 82.0]
         # SAFE_RANGE = [52.0, 83.0] # not that strict
@@ -317,6 +317,8 @@ def vary_safe_bound():
                 if len(tmp_avg_list) == 3:
                     # remove the maximum probability
                     avg_verification_probability = (sum(tmp_avg_list) - max(tmp_avg_list))/train_time
+                    # keep all the probability
+                    # avg_verification_probability = (sum(tmp_avg_list))/train_time
                     safe_percentage_probability = sum(tmp_safe_percentage_list) / train_time
                     avg_verification_probability_list.append(avg_verification_probability)
                     safe_percentage_probability_list.append(safe_percentage_probability)
@@ -334,7 +336,7 @@ def vary_safe_bound():
             all_result_f.write(f"{key}: {result_dict[method][key]}\n")
     all_result_f.close()
 
-    # plot_verification_result(result_dict, figure_name=f"thermostat_{lr}_{bs}_{num_epoch}_{train_size}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{PHI}_{safe_range_upper_bound_list}")
+    plot_verification_result(result_dict, figure_name=f"thermostat_{lr}_{bs}_{num_epoch}_{train_size}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{PHI}_{safe_range_upper_bound_list}")
 
 
 if __name__ == "__main__":
