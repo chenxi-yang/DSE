@@ -90,7 +90,7 @@ def get_intersection(interval_1, interval_2):
 def get_symbol_table_trajectory_unsafe_value(symbol_table, target):
     trajectory_loss = var_list([0.0])
     for X in symbol_table['trajectory']:
-        # print(f"X:{X.left.data.item(), X.right.data.item()}")
+        print(f"X:{X.left.data.item(), X.right.data.item()}")
         safe_interval = target["condition"]
         unsafe_probability_condition = target["phi"]
         intersection_interval = get_intersection(X, safe_interval)
@@ -98,6 +98,7 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target):
             unsafe_value = var_list([1.0])
         else:
             safe_probability = intersection_interval.getLength().div(X.getLength())
+            # TODO: remove this part
             if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
                 unsafe_value = var_list([0.0])
             else:
@@ -128,16 +129,20 @@ def verify(abstract_state_list, target):
         aggregation_p = torch.min(var(1.0), aggregation_p)
         all_unsafe_probability += aggregation_p * unsafe_probability
     
-    log_file = open(file_dir, 'a')
+    if not debug:
+        log_file = open(file_dir, 'a')
     if all_unsafe_probability.data.item() <= target['phi'].data.item():
         print(colored(f"Verified Safe!", "green"))
-        log_file.write(f"Verification: Verified Safe!\n")
+        if not debug:
+            log_file.write(f"Verification: Verified Safe!\n")
     else:
         print(colored(f"Not Verified Safe!", "red"))
-        log_file.write(f"Verification: Not Verified Safe!\n")
+        if not debug:
+            log_file.write(f"Verification: Not Verified Safe!\n")
     
     print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target['phi'].data.item()}")
-    log_file.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target['phi'].data.item()}\n")
+    if not debug:
+        log_file.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target['phi'].data.item()}\n")
 
 def show_component_p(component_list):
     component_p_list = list()
@@ -157,6 +162,7 @@ def verification(model_path, model_name, component_list, target):
         exit(0)
     m.cuda()
     m.eval()
+    print(m.nn.linear1.weight)
 
     abstract_state_list = initialization_abstract_state(component_list)
     print(f"Ini # of abstract state: {len(abstract_state_list)}")

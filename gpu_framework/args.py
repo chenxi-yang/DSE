@@ -56,7 +56,8 @@ def get_parser():
     # evaluation
     p.add_argument("--test_mode", default=False, type=str2bool, help="decide whether check load model and then test")
 
-    # p.add
+    # debug
+    p.add_argument("--debug", default=False, type=str2bool, help="decide whether debug")
     
     return p
 

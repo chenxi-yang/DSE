@@ -61,9 +61,10 @@ if __name__ == "__main__":
 
             time_out = False
             constants.SAMPLE_SIZE = path_sample_size # show number of paths to sample
-            log_file = open(file_dir, 'a')
-            log_file.write(f"path_sample_size: {path_sample_size}, safe_range_upper_bound: {safe_range_upper_bound}\n")
-            log_file.close()
+            if not debug:
+                log_file = open(file_dir, 'a')
+                log_file.write(f"path_sample_size: {path_sample_size}, safe_range_upper_bound: {safe_range_upper_bound}\n")
+                log_file.close()
 
             target = {
                 "condition": domain.Interval(var(SAFE_RANGE[0]), var(safe_range_upper_bound)),

@@ -31,6 +31,8 @@ test_mode = args.test_mode
 data_attr = args.data_attr
 # print(f"test_mode: {test_mode}")
 mode = args.mode
+debug = args.debug
+
 
 model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}"
 
@@ -55,8 +57,8 @@ if benchmark_name == "thermostat":
     # first expr
     # safe_range_upper_bound_list = np.arange(82.0, 83.0, 0.1).tolist()
     # PHI = 0.05 # unsafe probability
-    # safe_range_upper_bound_list = np.arange(82.5, 83.0, 0.15).tolist()
-    safe_range_upper_bound_list = np.arange(82.81, 82.999, 0.046).tolist()
+    safe_range_upper_bound_list = np.arange(82.5, 83.0, 0.15).tolist()
+    # safe_range_upper_bound_list = np.arange(82.81, 82.999, 0.046).tolist()
 
     PHI = 0.10
     # SAFE_RANGE = [53.0, 82.0]
@@ -94,16 +96,16 @@ alpha_coeff = 0.9
 alpha_smooth_max = 0.8
 eps = 1e-10
 
-
-if test_mode:
-    file_dir = f"gpu_{mode}/result_test/thermostat_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}.txt"
-else:
-    file_dir = f"gpu_{mode}/result/thermostat_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}.txt"
-log_file = open(file_dir, 'w')
-log_file.write(f"{args}\n")
-log_file.write(f"safe range: {SAFE_RANGE}\n")
-log_file.write(f"path_num_list: {path_num_list}")
-log_file.close()
+if not debug:
+    if test_mode:
+        file_dir = f"gpu_{mode}/result_test/thermostat_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}.txt"
+    else:
+        file_dir = f"gpu_{mode}/result/thermostat_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}.txt"
+    log_file = open(file_dir, 'w')
+    log_file.write(f"{args}\n")
+    log_file.write(f"safe range: {SAFE_RANGE}\n")
+    log_file.write(f"path_num_list: {path_num_list}")
+    log_file.close()
 
 
 def dataset_arg(dataset):

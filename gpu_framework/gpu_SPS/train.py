@@ -311,13 +311,14 @@ def learning(
                 param_group["lr"] *= 0.5
         
         # f_loss = q_loss + lambda_ * c_loss
-        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
-        print(f"-----finish {i}-th epoch-----, the batch loss: q: {data_loss.data.item()}, c: {safe_loss.data.item()}")
-        print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
-        log_file = open(file_dir, 'a')
-        log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
-        log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {data_loss.data.item()}, c: {safe_loss.data.item()}\n")
-        log_file.write(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}\n")
+        if not debug:
+            print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
+            print(f"-----finish {i}-th epoch-----, the batch loss: q: {data_loss.data.item()}, c: {safe_loss.data.item()}")
+            print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
+            log_file = open(file_dir, 'a')
+            log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
+            log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {data_loss.data.item()}, c: {safe_loss.data.item()}\n")
+            log_file.write(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}\n")
 
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
