@@ -126,17 +126,9 @@ def cal_safe_loss(m, abstract_state, target):
     '''
     ini_abstract_state_list = initialization_abstract_state(abstract_state)
     assert(len(ini_abstract_state_list) == 1)
-    res_abstract_state_list = list()
-
-    for i in range(constants.SAMPLE_SIZE):
-        # sample one path each time
-        # sample_time = time.time()
-        abstract_list = m(ini_abstract_state_list, 'abstract')
-        res_abstract_state_list.append(abstract_list[0]) # only one abstract state returned
-    # print(f"length: {len(y_abstract_list)}")
-    
-    # TODO: the new safe loss function
+    res_abstract_state_list = m(ini_abstract_state_list, 'abstract')
     safe_loss = safe_distance(res_abstract_state_list, target)
+
     return safe_loss
 
 
@@ -214,7 +206,7 @@ def sample_parameters(Theta, n=5):
         for array in Theta:
             sampled_array, sampled_p = sampled(array)
             sampled_theta.append(sampled_array)
-            # sum the log(p)
+            # sum the log(p)s
             theta_p += sampled_p
             # theta_p *= sampled_p # !incorrect
         # print(f"each sampled theta: {sampled_theta}")
@@ -263,7 +255,7 @@ def learning(
     loss_list = list()
 
     m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-    print(m)
+    # print(m)
     m.cuda()
 
     optimizer = torch.optim.SGD(m.parameters(), lr=lr)
@@ -280,36 +272,20 @@ def learning(
         for x, y, abstract_states in divide_chunks(component_list, bs=bs):
             # print(f"x length: {len(x)}")
             batch_time = time.time()
+
+            data_loss = cal_data_loss(m, x, y)
+            safe_loss = cal_safe_loss(m, abstract_states, target)
+
+            print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
+            
             grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
             real_data_loss, real_safe_loss = var_list([0.0]), var_list([0.0])
             
             Theta = extract_parameters(m) # extract the parameters now, and then sample around it
-            # print(f"Theta before: {Theta}")
-            for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
-                m = update_model_parameter(m, sample_theta)
-                sample_time = time.time()
-
-                data_loss = cal_data_loss(m, x, y)
-                safe_loss = cal_safe_loss(m, abstract_states, target)
-
-                # print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
-                # print(f"{'#' * 15}")
-                grad_data_loss += var(data_loss.data.item()) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
-                real_data_loss += var(data_loss.data.item())
-                grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
-                real_safe_loss += var(safe_loss.data.item())
-
-            # To maintain the real theta
             m = update_model_parameter(m, Theta)
 
-            real_data_loss /= n
-            real_safe_loss /= n
-
-            print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
-            q_loss += real_data_loss
-            c_loss += real_safe_loss
-
-            loss = grad_data_loss + lambda_.mul(grad_safe_loss)
+            # print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
+            loss = data_loss + lambda_.mul(safe_loss)
             loss.backward()
             for partial_theta in Theta:
                 torch.nn.utils.clip_grad_norm_(partial_theta, 1)
@@ -320,6 +296,9 @@ def learning(
             # new_theta = extract_parameters(m)
             # print(f"Theta after step: {new_theta}")
 
+            q_loss += data_loss
+            c_loss += safe_loss
+
             count += 1
             # if count >= 10:
             #     exit(0)
@@ -327,7 +306,7 @@ def learning(
         if save:
             save_model(m, MODEL_PATH, name=model_name, epoch=i)
             
-        if i >= 7 and i%2 == 0:
+        if i >= 5 and i%2 == 0:
             for param_group in optimizer.param_groups:
                 param_group["lr"] *= 0.5
         

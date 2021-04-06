@@ -2,12 +2,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from helper import * 
-from constants import *
-import constants
-import domain
-
-from modules import *
+from gpu_DiffAI.modules import *
 
 import os
 
@@ -26,7 +21,6 @@ if torch.cuda.is_available():
     index1 = index1.cuda()
     index2 = index2.cuda()
     index3 = index3.cuda()
-
 
 # DiffAI version
 def initialization_nn(center_list, width_list, p_list=None):

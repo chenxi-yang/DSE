@@ -7,10 +7,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 
-from helper import *
-from constants import *
-import constants
-
 from gpu_DSE.thermostat_nn import * 
 from gpu_DSE.data_generator import *
 
@@ -263,7 +259,7 @@ def learning(
     loss_list = list()
 
     m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-    print(m)
+    # print(m)
     m.cuda()
 
     optimizer = torch.optim.SGD(m.parameters(), lr=lr)
@@ -327,7 +323,7 @@ def learning(
         if save:
             save_model(m, MODEL_PATH, name=model_name, epoch=i)
             
-        if i >= 7 and i%2 == 0:
+        if i >= 5 and i%2 == 0:
             for param_group in optimizer.param_groups:
                 param_group["lr"] *= 0.5
         

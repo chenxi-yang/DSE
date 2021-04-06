@@ -37,6 +37,7 @@ def initialization_abstract_state(component_list):
         symbol_table = {
             'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
             'probability': var(p),
+            'alpha': var(1.0), 
             'trajectory': list(),
             'branch': '',
         }

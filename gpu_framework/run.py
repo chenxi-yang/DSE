@@ -78,7 +78,7 @@ if __name__ == "__main__":
             print(f"prepare data: {time.time() - preprocessing_time} sec.")
             # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 
-            for i in range(5):
+            for i in range(3):
                 lambda_list = list()
                 model_list = list()
                 q = var(0.0)

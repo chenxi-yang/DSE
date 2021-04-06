@@ -7,12 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 
-from helper import *
-# from data_generator import *
-from constants import *
-import constants
-
-from thermostat_nn import * 
+from gpu_DiffAI.thermostat_nn import * 
 
 from utils import generate_distribution
 
@@ -435,7 +430,7 @@ def learning(
         if save:
             save_model(m, MODEL_PATH, name=model_name, epoch=i)
         
-        if i >= 7 and i%2 == 0:
+        if i >= 5 and i%2 == 0:
             for param_group in optimizer.param_groups:
                 param_group["lr"] *= 0.5
         

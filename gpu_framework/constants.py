@@ -30,7 +30,7 @@ test_mode = args.test_mode
 # path_sample_size = args.path_sample_size
 data_attr = args.data_attr
 # print(f"test_mode: {test_mode}")
-Mode = args.mode
+mode = args.mode
 
 model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}"
 
@@ -43,8 +43,8 @@ SAMPLE_SIZE = 500
 DOMAIN = "interval" # [interval, zonotope]
 
 CURRENT_PROGRAM = 'program' + benchmark_name # 'program_test_disjunction_2'
-DATASET_PATH = f"../dataset/{benchmark_name}_{data_attr}.txt"
-MODEL_PATH = f"models"
+DATASET_PATH = f"dataset/{benchmark_name}_{data_attr}.txt"
+MODEL_PATH = f"gpu_{mode}/models"
 
 # Linear nn, Sigmoid
 if benchmark_name == "thermostat":
@@ -52,12 +52,15 @@ if benchmark_name == "thermostat":
     x_r = [62.0]
     # SAFE_RANGE = [55.0, 81.34] # strict
     SAFE_RANGE = [53.0, 82.8]
+    # first expr
     # safe_range_upper_bound_list = np.arange(82.0, 83.0, 0.1).tolist()
-    safe_range_upper_bound_list = np.arange(78.0, 83.0, 0.1).tolist()
+    # PHI = 0.05 # unsafe probability
+    safe_range_upper_bound_list = np.arange(82.5, 83.0, 0.15).tolist()
+    PHI = 0.10
     # SAFE_RANGE = [53.0, 82.0]
     # SAFE_RANGE = [52.0, 83.0] # not that strict
     # SAFE_RANGE = [50.0, 85.0] # not that loose
-    PHI = 0.05 # unsafe probability
+    
 
 
 # args
@@ -75,7 +78,7 @@ P_INFINITY = var(10000.0)
 
 INTERVAL_BETA = var(1.0) # 2.0
 POINT_BETA = var(5.0) # var(50.0) # var(100.0) # 10.0s
-PARTIAL_BETA = var(1.0) # 1.0
+PARTIAL_BETA = var(2.0) # 1.0
 EPSILON = var(1e-10)
 SMALL_PROBABILITY = var(0.01)
 B = var(b) # the range of lambda
@@ -89,10 +92,11 @@ alpha_coeff = 0.9
 alpha_smooth_max = 0.8
 eps = 1e-10
 
+
 if test_mode:
-    file_dir = f"gpu_{Mode}/result_test/thermostat_{Mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}.txt"
+    file_dir = f"gpu_{mode}/result_test/thermostat_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}.txt"
 else:
-    file_dir = f"gpu_{Mode}result/thermostat_{Mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}.txt"
+    file_dir = f"gpu_{mode}/result/thermostat_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}.txt"
 log_file = open(file_dir, 'w')
 log_file.write(f"{args}\n")
 log_file.write(f"safe range: {SAFE_RANGE}\n")

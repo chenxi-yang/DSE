@@ -4,10 +4,7 @@ import torch.nn as nn
 
 from random import shuffle
 
-import domain
-from helper import * 
-from constants import *
-import constants
+from constants import PARTIAL_BETA as beta
 
 import math
 import time
@@ -113,19 +110,24 @@ def pre_allocate(symbol_table):
     return symbol_table['probability']
 
 
+def f_beta():
+    return beta
+
+
 def split_volume(symbol_table, target, delta):
     # 
     target_volume = target.getRight() - target.getLeft()
     new_volume = delta.mul(var(2.0))
-    probability = symbol_table['probability'].mul(new_volume.div(target_volume))
+    alpha = symbol_table['alpha'].mul(torch.min(var(1.0), new_volume.div(target_volume.mul(f_beta()))))
 
-    return probability
+    return alpha
 
 
-def update_res_in_branch(res_symbol_table, res, probability, branch):
+def update_res_in_branch(res_symbol_table, res, probability, branch, alpha):
     res_symbol_table['x'] = res
     res_symbol_table['probability'] = probability
     res_symbol_table['branch'] = branch
+    res_symbol_table['alpha'] = alpha
 
     return res_symbol_table
 
@@ -143,14 +145,16 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
         branch = 'body'
         body_symbol_table = pre_build_symbol_table(symbol_table)
         probability = pre_allocate(symbol_table)
-        body_symbol_table = update_res_in_branch(body_symbol_table, res, probability, branch)
+        alpha = symbol_table['alpha'] * (1.0 / f_beta())
+        body_symbol_table = update_res_in_branch(body_symbol_table, res, probability, branch, alpha)
 
     elif target.getLeft().data.item() > test.data.item():
         res = x.clone()
         branch = 'orelse'
         orelse_symbol_table = pre_build_symbol_table(symbol_table)
         probability = pre_allocate(symbol_table)
-        orelse_symbol_table = update_res_in_branch(orelse_symbol_table, res, probability, branch)
+        alpha = symbol_table['alpha'] * (1.0 / f_beta())
+        orelse_symbol_table = update_res_in_branch(orelse_symbol_table, res, probability, branch, alpha)
 
     else:
         res = x.clone()
@@ -159,9 +163,10 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
         delta = (test - target.getLeft()) / 2.0
         res.set_from_index(target_idx, domain.Box(c, delta)) # res[target_idx] = Box(c, delta)
         body_symbol_table = pre_build_symbol_table(symbol_table)
-        # in DSE, each component's probability upper bound is kept
+        # in SPS, alpha is changed by volume
         probability = pre_allocate(symbol_table)
-        body_symbol_table = update_res_in_branch(body_symbol_table, res, probability, branch)
+        alpha = split_volume(symbol_table, target, delta)
+        body_symbol_table = update_res_in_branch(body_symbol_table, res, probability, branch, alpha)
 
         res = x.clone()
         branch = 'orelse'
@@ -169,50 +174,90 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
         delta = (target.getRight() - test) / 2.0
         res.set_from_index(target_idx, domain.Box(c, delta))
         orelse_symbol_table = pre_build_symbol_table(symbol_table)
-        # in DSE, each component's probability upper bound is kept
+        # in SPS, alpha is changed by volume
         probability = pre_allocate(symbol_table)
-        orelse_symbol_table = update_res_in_branch(orelse_symbol_table, res, probability, branch)
+        alpha = split_volume(symbol_table, target, delta)
+        orelse_symbol_table = update_res_in_branch(orelse_symbol_table, res, probability, branch, alpha)
 
     # print(f"branch time: {time.time() - branch_time}")
     return body_symbol_table, orelse_symbol_table
 
 
 def split_branch_abstract_state(target_idx, test, abstract_state):
+    # because there is join here, allow empty
     body_abstract_state, orelse_abstract_state = list(), list()
     for symbol_table in abstract_state:
         body_symbol_table, orelse_symbol_table = split_branch_symbol_table(target_idx, test, symbol_table)
-        if len(body_symbol_table) > 0:
-            body_abstract_state.append(body_symbol_table)
-        if len(orelse_symbol_table) > 0:
-            orelse_abstract_state.append(orelse_symbol_table)
+        body_abstract_state.append(body_symbol_table)
+        orelse_abstract_state.append(orelse_symbol_table)
     return body_abstract_state, orelse_abstract_state
             
 
-def calculate_branch_list(target_idx, test, abstract_state_list):
-    res_abstract_state_list = list()
-    assert(len(abstract_state_list) == 1)
+def split_branch_list(target_idx, test, abstract_state_list):
+    # because there is join here, allow empty
+    body_abstract_state_list = list(), else_abstract_state_list = list()
+    assert(len(abstract_state_list) == 1) # only before split, because there is smooth join
     for abstract_state in abstract_state_list: 
         body_abstract_state, orelse_abstract_state = split_branch_abstract_state(target_idx, test, abstract_state)
-        if len(body_abstract_state) > 0:
-            res_abstract_state_list.append(body_abstract_state)
-        if len(orelse_abstract_state) > 0:
-            res_abstract_state_list.append(orelse_abstract_state)
-    return res_abstract_state_list
+        body_abstract_state_list.append(body_abstract_state)
+        else_abstract_state_list.append(orelse_abstract_state)
+    return body_abstract_state_list, else_abstract_state_list
 
 
-def calculate_abstract_state_weight(abstract_state):
-    # abstract state's probability equalling to the sum of the upper bound probability of all components
-    return sum([symbol_table['probability'].data.item() for symbol_table in abstract_state])
+def smooth_join_symbol_table(symbol_table_list):
+    alpha_out = var(0.0)
+    alpha_max = var(0.0)
+    c_out = var_list([0.0])
+    assert(len(symbol_table_list) > 1)
+    for symbol_table in symbol_table_list:
+        if len(symbol_table) == 0:
+            continue
+        alpha_max = torch.max(symbol_table['alpha'], alpha_max)
+        alpha_out.add(symbol_table['alpha'])
+        c_out.add(symbol_table['alpha'] * symbol_table['x'].c)
+    c_out = c_out / alpha_out
+    alpha_out = torch.min(alpha_out, var(1.0))
+
+    # adjust domain
+    joined_symbol_table = {
+        'x': None,
+        'alpha': alpha_out,
+        'branch': '',
+        'probability': var(0.0), 
+        'trajectory': list(),
+    }
+    for idx, symbol_table in enumerate(symbol_table_list):
+        alpha_prime = symbol_table['alpha'] / alpha_max
+        symbol_table['x'].delta = alpha_prime * symbol_table['x'].delta
+        symbol_table['x'].c = alpha_prime * symbol_table['x'].c + (1 - alpha_prime) * c_out
+        if joined_symbol_table['x'] is None:
+            joined_symbol_table['x'] = symbol_table['x']
+        else:
+            joined_symbol_table['x'] = joined_symbol_table['x'].sound_join(symbol_table['x'])
+        
+        # longer trajectory is taken
+        if len(symbol_table['trajectory']) > joined_symbol_table['trajectory']:
+            joined_symbol_table['trajectory'] = [state for state in symbol_table['trajectory']]
+        joined_symbol_table['probability'] = torch.max(joined_symbol_table['probability'], symbol_table['probability'])
+
+    return joined_symbol_table
 
 
-def sample(abstract_state_list):
-    # only sample one abstract state
-    assert(len(abstract_state_list) <= 2)
-    # sample_time = time.time()
-    res_symbol_table_list = random.choices(abstract_state_list, weights=[calculate_abstract_state_weight(abstract_state) for abstract_state in abstract_state_list], k=1)
-    # print(f"sampling time: {time.time() - sample_time}") # , length before: {length_before}, length after: {len(res_symbol_table_list)}")
-
-    return res_symbol_table_list
+def smooth_join(abstract_state_list_1, abstract_state_list_2):
+    assert(len(abstract_state_list_1) == 1 and len(abstract_state_list_2) == 1)
+    to_join_abstract_state_list = list()
+    to_join_abstract_state_list.extend(abstract_state_list_1)
+    to_join_abstract_state_list.extend(abstract_state_list_2)
+    
+    res_abstract_state = list()
+    length_symbol_tables = len(to_join_abstract_state_list[0])
+    for i in range(length_symbol_table):
+        to_join_symbol_table_list = list()
+        for abstract_state in to_join_abstract_state_list:
+            to_join_symbol_table_list.append(abstract_state[i])
+        joined_symbol_table = smooth_join_symbol_table(to_join_symbol_table_list)
+        res_abstract_state.append(joined_symbol_table)
+    return res_abstract_state
 
 
 class Skip(nn.Module):
@@ -256,16 +301,12 @@ class IfElse(nn.Module):
         # print(f"############one ifelse ##################")
 
         test = self.f_test(self.test)
-        res_list = calculate_branch_list(self.target_idx, test, abstract_state_list)
-
-        res_list = sample(res_list) # sample before executing
-
-        assert(len(res_list) == 1)
-        # the first component in the first abstract state represents the res_list branch
-        if res_list[0][0]['branch'] == 'body':
-            res_list = self.body(res_list)
-        else:
-            res_list = self.orelse(res_list)
+        body_list, else_list = split_branch_list(self.target_idx, self.test, abstract_state_list)
+        if len(body_list) > 0:
+            body_list = self.body(body_list)
+        if len(else_list) > 0:
+            else_list = self.orelse(else_list)
+        res_list = smooth_join(body_list, else_list)
 
         return res_list
 
@@ -280,19 +321,18 @@ class While(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, abstract_state_list):
-
+        res_list = list()
         while(len(abstract_state_list) > 0):
-            pre_abstract_state_list = calculate_branch_list(self.target_idx, self.test, abstract_state_list)
-            res_abstract_state_list = sample(pre_abstract_state_list)
+            body_list, else_list = split_branch_list(self.target_idx, self.test, abstract_state_list)
+            assert(len(body_list) == 1 and len(else_list) == 1)
 
-            assert(len(res_abstract_state_list) == 1)
-
-            if res_abstract_state_list[0][0]['branch'] == 'body': # if the abstract state in  res_abstract_state_list falls into 'body'
-                abstract_state_list = self.body(res_abstract_state_list)
+            res_list = smooth_join(res_list, else_list)
+            if len(body_list) > 0:
+                abstract_state_list = self.body(body_list)
             else:
-                return res_abstract_state_list
+                return res_list
 
-        return res_abstract_state_list
+        return res_list
 
 
 def update_trajectory(symbol_table, target_idx):
