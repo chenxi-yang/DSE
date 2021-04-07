@@ -29,9 +29,14 @@ test_mode = args.test_mode
 # safe_end_idx = args.safe_end_idx
 # path_sample_size = args.path_sample_size
 data_attr = args.data_attr
+# thermostat: normal_55.0_62.0
+# mountain_car: normal_-0.6_-0.4
 # print(f"test_mode: {test_mode}")
 mode = args.mode
 debug = args.debug
+perturbation_width = args.perturbation_width
+# thermostat: 0.3
+# mountain_car: 0.01
 
 
 model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}"

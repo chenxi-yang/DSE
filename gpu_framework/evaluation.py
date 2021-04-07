@@ -4,12 +4,20 @@ from termcolor import colored
 from constants import *
 # from optimization import *
 
-from thermostat_nn_sound import (
-    ThermostatNN,
-    load_model,
-    save_model,
-    initialization_abstract_state,
-)
+if benchmark_name == "thermostat":
+    from thermostat_nn_sound import (
+        ThermostatNN,
+        load_model,
+        save_model,
+        initialization_abstract_state,
+    )
+if benchmark_name == "mountain_car":
+    from mountain_car_sound import (
+        MountainCar,
+        load_model,
+        save_model,
+        initialization_abstract_state,
+    )
 
 import domain
 

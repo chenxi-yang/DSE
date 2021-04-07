@@ -47,7 +47,8 @@ def get_parser():
     # perturbation
     p.add_argument("--num_components", default=10, type=int, help="number of components to split")
     p.add_argument("--bs", default=10, type=int, help="batch size by number of component")
-    
+    p.add_argument("--perturbation_width", default=0.3, type=float, help="the perturbation width in extracting input distribution")
+
     # training
     p.add_argument("--use_smooth_kernel", default=False, type=str2bool, help="decide whether to use smooth kernel")
     p.add_argument("--save", default=True, help="decide whether to save the model or not")

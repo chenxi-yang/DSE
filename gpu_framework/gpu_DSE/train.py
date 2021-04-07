@@ -7,7 +7,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 
-from gpu_DSE.thermostat_nn import * 
+from constants import benchmark_name
+
+if benchmark_name == "thermostat":
+    from gpu_DSE.thermostat_nn import * 
+if benchmark_name == "mountain_car":
+    from gpu_DSE.mountain_car import *
+
 from gpu_DSE.data_generator import *
 
 from utils import generate_distribution
@@ -407,9 +413,12 @@ def create_ball_perturbation(X_train, distribution_list, w):
         # TODO: for now, only one input variable
         x = X[0]
         l, r = x - w, x + w
+        # print(f"l, r: {l, r}")
         for distribution in distribution_list:
             x_list = generate_distribution(x, l, r, distribution, unit=6)
+            # print(f"x_list of {distribution}: {x_list}")
             perturbation_x_dict[distribution].extend(x_list)
+        # exit(0)
     return perturbation_x_dict
 
 
@@ -512,11 +521,15 @@ def extract_abstract_representation(
     # 3. slice X_train, y_train into component-wise
     '''
     start_t = time.time()
+    # print(f"w: {w}")
 
     perturbation_x_dict = create_ball_perturbation(X_train, 
-        distribution_list=["normal", "uniform", "beta", "original"], 
+        # distribution_list=["normal", "uniform", "beta", "original"], 
+        distribution_list=["normal", "uniform", "original"],  
+        #TODO:  beta distribution does not account for range
         w=w)
     component_list = split_component(perturbation_x_dict, x_l, x_r, num_components)
+    # print(f"after split components: {component_list}")
 
     # create data for batching, each containing component and cooresponding x, y
     component_list = assign_probability(perturbation_x_dict, component_list)
@@ -528,5 +541,6 @@ def extract_abstract_representation(
     # print(component_list)
     print(f"-- Generate Perturbation Set --")
     print(f"--- {time.time() - start_t} sec ---")
+    # exit(0)
 
     return component_list
