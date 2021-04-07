@@ -428,6 +428,10 @@ class Box():
     
     def mul(self, other):
         interval = self.getInterval()
+        if isinstance(other, torch.Tensor):
+            pass
+        else:
+            other = other.getInterval()
         res_interval = interval.mul(other)
         return res_interval.getBox()
     
@@ -451,7 +455,7 @@ class Box():
         tp = torch.sigmoid(self.c + self.delta)
         bt = torch.sigmoid(self.c - self.delta)
         # print(f"in sigmoid, tp: {tp}, bt: {bt}")
-        return self.new((tp + bt)/2, (tp - bt)/2), var(1.0)
+        return self.new((tp + bt)/2, (tp - bt)/2)
     
     def relu(self): # monotonic function
         # relu_time = time.time()
@@ -467,7 +471,7 @@ class Box():
         #         p0 = p0.mul((c+delta) * 1.0/(delta * 2.0))
         # print(f"after volume  approximation: {time.time() - relu_time}")
         
-        return self.new((tp + bt)/2, (tp - bt)/2), p0
+        return self.new((tp + bt)/2, (tp - bt)/2)
     
     def sigmoid_linear(self, sig_range):
         # sl_time = time.time()
@@ -488,7 +492,7 @@ class Box():
         #         p0 = p0.mul((r - l) * 1.0/ (delta  * 2.0))
         # print(f"after volume  approximation: {time.time() - sl_time}")
 
-        return self.new((tp + bt)/2, (tp - bt)/2), p0
+        return self.new((tp + bt)/2, (tp - bt)/2)
 
 
 class Zonotope:

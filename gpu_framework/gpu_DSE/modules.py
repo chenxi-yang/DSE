@@ -79,7 +79,7 @@ def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
         x = symbol_table['x']
         input = x.select_from_index(0, arg_idx) # torch.index_select(x, 0, arg_idx)
         # print(f"f: {f}")
-        res, p = f(input)
+        res = f(input)
         # print(f"calculate_x_list --  target_idx: {target_idx}, res: {res.c}, {res.delta}")
         x.set_from_index(target_idx, res) # x[target_idx[0]] = res
         
@@ -280,7 +280,7 @@ class While(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, abstract_state_list):
-
+        i = 0
         while(len(abstract_state_list) > 0):
             pre_abstract_state_list = calculate_branch_list(self.target_idx, self.test, abstract_state_list)
             res_abstract_state_list = sample(pre_abstract_state_list)
@@ -291,6 +291,10 @@ class While(nn.Module):
                 abstract_state_list = self.body(res_abstract_state_list)
             else:
                 return res_abstract_state_list
+            
+            i += 1
+            if i > 1000:
+                break
 
         return res_abstract_state_list
 

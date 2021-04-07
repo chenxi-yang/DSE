@@ -264,8 +264,8 @@ def learning(
     loop_list = list()
     loss_list = list()
 
-    m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-    # print(m)
+    # m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
+    print(m)
     m.cuda()
 
     optimizer = torch.optim.SGD(m.parameters(), lr=lr)
