@@ -43,23 +43,36 @@ def mountain_car(p0):
     v = 0
     p = p0
     min_position = -1.2
-    goal_positition = 0.5
+    goal_position = 0.5
     min_speed = -0.07
     max_speed = 0.07
-
+    reward = 0
+    i = 0
     while p <= goal_position:
+        if i > 500:
+            break
         if p <= min_position:
             p = min_position
             v = 0
         u = acceleration(p, v)
         reward = reward + (-0.1) * u  * u
-        v = 0.0015 * v - 0.0025 * math.cos(3 * p)
-        if v <= min_speed: v = min_speed
-        elif v >= max_speed: v = max_speed
-        else: v = v
+        v = v + 0.0015 * u - 0.0025 * math.cos(3 * p)
+        if v <= min_speed: 
+            v = min_speed
+        else:
+            if v <= max_speed:
+                v = v # skip()
+            else:
+                v = max_speed
         p = p + v
+
+        i += 1
     
-    reward += 100
+    if p <= goal_position:
+        reward = reward
+    else:
+        reward += 100
+    # exit(0)
         
     return p0, v, reward, reward
 

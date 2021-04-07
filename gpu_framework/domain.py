@@ -430,10 +430,12 @@ class Box():
         interval = self.getInterval()
         res_interval = interval.mul(other)
         return res_interval.getBox()
-        # if isinstance(other, torch.Tensor):
-        #     return self.new(self.c.mul(other), self.delta.mul(other.abs()))
-        # else:
-        #     return 
+    
+    def cos(self):
+        #TODO: only for box, not for zonotope
+        interval = self.getInterval()
+        res_interval = interval.cos()
+        return res_interval.getBox()
     
     def exp(self):
         a = self.delta.exp()

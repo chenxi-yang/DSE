@@ -210,6 +210,7 @@ def calculate_branch_list(target_idx, test, symbol_table_list):
 
 
 def sound_join_symbol_table(symbol_table_1, symbol_table_2):
+    # TODO: trajectory join, one by one, every state do sound join one by one
     # assert(len(symbol_table_1) == 0 and len(symbol_table_2) == 0)
     # print(f"In Sound Join Symbol Table")
     if len(symbol_table_1) == 0:

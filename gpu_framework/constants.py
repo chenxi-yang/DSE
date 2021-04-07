@@ -64,6 +64,13 @@ if benchmark_name == "thermostat":
     # SAFE_RANGE = [53.0, 82.0]
     # SAFE_RANGE = [52.0, 83.0] # not that strict
     # SAFE_RANGE = [50.0, 85.0] # not that loose
+
+if benchmark_name == "mountain_car":
+    x_l = [-0.6]
+    x_r =  [-0.4]
+    SAFE_RANGE = [100.0, 100.0]
+    safe_range_upper_bound_list = np.arange(80.0, 95.0, 5.0).tolist()
+    PHI = 0.1
     
 
 
@@ -98,20 +105,11 @@ eps = 1e-10
 
 if not debug:
     if test_mode:
-        file_dir = f"gpu_{mode}/result_test/thermostat_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}.txt"
+        file_dir = f"gpu_{mode}/result_test/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}.txt"
     else:
-        file_dir = f"gpu_{mode}/result/thermostat_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}.txt"
+        file_dir = f"gpu_{mode}/result/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}.txt"
     log_file = open(file_dir, 'w')
     log_file.write(f"{args}\n")
     log_file.write(f"safe range: {SAFE_RANGE}\n")
     log_file.write(f"path_num_list: {path_num_list}")
     log_file.close()
-
-
-def dataset_arg(dataset):
-    if dataset == "thermostat":
-        range_ = [55.0, 62.0]
-    if dataset == "mountain_car":
-        range_ = [-0.6, -0.4]
-    
-    return range_
