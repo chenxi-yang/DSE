@@ -111,7 +111,8 @@ class LinearReLU(nn.Module):
         self.linear1 = Linear(in_channels=2, out_channels=l)
         self.linear2 = Linear(in_channels=l, out_channels=1)
         self.relu = ReLU()
-        self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
+        self.sigmoid = Sigmoid()
+        # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
 
     def forward(self, x):
         # start_time = time.time()
@@ -122,11 +123,12 @@ class LinearReLU(nn.Module):
         # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         res = self.linear2(res)
         # print(f"LinearSig, after linear2: {res.c, res.delta}")
-        res, q2 = self.sigmoid_linear(res)
+        # res, q2 = self.sigmoid_linear(res)
+        res, q2 = self.sigmoid(res)
         # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         # exit(0)
         # print(f"time in LinearReLU: {time.time() - start_time}")
-        return res, q1.mul(q2)
+        return res, var(1.0)
 
 
 def f_wrap_up_tmp_down_nn(nn):

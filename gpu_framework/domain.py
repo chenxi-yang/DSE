@@ -449,7 +449,7 @@ class Box():
         tp = torch.sigmoid(self.c + self.delta)
         bt = torch.sigmoid(self.c - self.delta)
         # print(f"in sigmoid, tp: {tp}, bt: {bt}")
-        return self.new((tp + bt)/2, (tp - bt)/2)
+        return self.new((tp + bt)/2, (tp - bt)/2), var(1.0)
     
     def relu(self): # monotonic function
         # relu_time = time.time()

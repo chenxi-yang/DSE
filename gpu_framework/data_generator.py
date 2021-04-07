@@ -49,6 +49,8 @@ def run():
 
     if dataset == "thermostat":
         func = benchmark.thermostat
+    if dataset == "mountain_car":
+        func = benchmark.mountain_car
     
     input_range = dataset_arg(dataset)
 
