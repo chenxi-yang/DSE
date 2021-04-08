@@ -294,11 +294,11 @@ class While(nn.Module):
                 return res_abstract_state_list
             
             i += 1
-            if i > 2000:
-                res_abstract_state = res_abstract_state_list[0]
-                for symbol_table in res_abstract_state:
-                    print(symbol_table['x'].c, symbol_table['x'].delta)
-                print(f"Have to END.")
+            if i > 1000:
+                # res_abstract_state = res_abstract_state_list[0]
+                # for symbol_table in res_abstract_state:
+                #     print(symbol_table['x'].c, symbol_table['x'].delta)
+                print(f"Exceed maximum iterations: Have to END.")
                 break
             
         return res_abstract_state_list

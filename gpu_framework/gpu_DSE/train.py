@@ -271,7 +271,6 @@ def learning(
     criterion = torch.nn.MSELoss()
     optimizer = torch.optim.SGD(m.parameters(), lr=lr)
     
-
     if epochs_to_skip is None:
         epochs_to_skip = -1
     
@@ -405,7 +404,6 @@ def cal_q(X_train, y_train, m):
 
 
 ##### create symbolic approximation of perturbation set of input distribution
-
 
 def create_ball_perturbation(Trajectory_train, distribution_list, w):
     perturbation_x_dict = {

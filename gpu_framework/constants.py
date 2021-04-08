@@ -74,7 +74,7 @@ if benchmark_name == "mountain_car":
     x_l = [-0.6]
     x_r =  [-0.4]
     SAFE_RANGE = [100.0, 100.0]
-    safe_range_upper_bound_list = np.arange(80.0, 95.0, 5.0).tolist()
+    safe_range_upper_bound_list = np.arange(80.0, 96.0, 5.0).tolist()
     PHI = 0.1
     
 

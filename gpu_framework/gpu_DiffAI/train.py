@@ -356,7 +356,8 @@ def learning(
 
     if epochs_to_skip is None:
         epochs_to_skip = -1
-
+    
+    criterion = torch.nn.MSELoss()
     optimizer = torch.optim.SGD(m.parameters(), lr=lr)
     
     start_time = time.time()
@@ -365,10 +366,10 @@ def learning(
             continue
         q_loss, c_loss = var_list([0.0]), var_list([0.0])
         count = 0
-        for x, y, abstract_states in divide_chunks(component_list, bs=bs):
+        for trajectory_list, abstract_states in divide_chunks(component_list, bs=bs):
             # print(f"x length: {len(x)}")
             print(f"batch size, x: {len(x)}, y: {len(y)}, abstract_states: {len(abstract_states)}")
-            if len(x) == 0: continue  # because DiffAI only makes use of x, y
+            # if len(x) == 0: continue  # because DiffAI only makes use of x, y
             batch_time = time.time()
 
             if use_smooth_kernel:
@@ -380,8 +381,8 @@ def learning(
 
                     # sample_time = time.time()
                     m = update_model_parameter(m, sample_theta)
-                    data_loss = cal_data_loss(m, x, y)
-                    safe_loss = cal_safe_loss(m, x, width, target)
+                    data_loss = cal_data_loss(m, trajectory_list, criterion)
+                    safe_loss = cal_safe_loss(m, trajectory_list, width, target)
                     # print(f"in sample, data loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}")
 
                     # gradient = \exp_{\theta' \sim N(\theta)}[loss * \grad_{\theta}(log(p(\theta', \theta)))]
@@ -404,8 +405,8 @@ def learning(
                 # print(f"grad data_loss: {grad_data_loss.data.item()}, grad safe_loss: {grad_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
 
             else:
-                data_loss = cal_data_loss(m, x, y)
-                safe_loss = cal_safe_loss(m, x, width, target)
+                data_loss = cal_data_loss(m, trajectory_list, criterion)
+                safe_loss = cal_safe_loss(m, trajectory_list, width, target)
                 loss = data_loss + lambda_.mul(safe_loss)
 
                 real_data_loss = data_loss
@@ -504,17 +505,23 @@ def cal_q(X_train, y_train, m):
     return qs
 
 
-def create_ball_perturbation(X_train, distribution_list, w):
+##### create symbolic approximation of perturbation set of input distribution
+
+def create_ball_perturbation(Trajectory_train, distribution_list, w):
     perturbation_x_dict = {
         distribution: list() for distribution in distribution_list
     }
-    for X in X_train:
-        # TODO: for now, only one input variable
-        x = X[0]
+    for trajectory in Trajectory_train:
+        state, _ = ini_trajectory(trajectory)
+        # TODO: for now, only use the first input variable
+        x = state[0]
         l, r = x - w, x + w
+        # print(f"l, r: {l, r}")
         for distribution in distribution_list:
             x_list = generate_distribution(x, l, r, distribution, unit=6)
+            # print(f"x_list of {distribution}: {x_list}")
             perturbation_x_dict[distribution].extend(x_list)
+        # exit(0)
     return perturbation_x_dict
 
 
@@ -539,6 +546,7 @@ def split_component(perturbation_x_dict, x_l, x_r, num_components):
 
 
 def extract_upper_probability_per_component(component, perturbation_x_dict):
+
     p_list = list()
     for distribution in perturbation_x_dict:
         x_list = perturbation_x_dict[distribution]
@@ -585,25 +593,24 @@ def in_component(X, component):
     return True
 
 
-def assign_data_point(X_train, y_train, component_list):
+def assign_data_point(Trajectory_train, component_list):
     for idx, component in enumerate(component_list):
         component.update(
             {
-            'x': list(),
-            'y': list(),
+            'trajectory_list': list(),
             }
         )
-        for i, X in enumerate(X_train):
-            if in_component(X, component):
-                component['x'].append(X)
-                component['y'].append(y_train[i])
+        for i, trajectory in enumerate(Trajectory_train):
+            state, action = ini_trajectory(trajectory) # get the initial <state, action> pair in trajectory
+            # when test, only test the first value in state
+            if in_component([state[0]], component): # if the initial state in component
+                component['trajectory_list'].append(trajectory)
         component_list[idx] = component
     return component_list
         
 
 def extract_abstract_representation(
-    X_train, 
-    y_train, 
+    Trajectory_train, 
     x_l, 
     x_r, 
     num_components, 
@@ -615,19 +622,24 @@ def extract_abstract_representation(
     # 2. measure probability 
     # 3. slice X_train, y_train into component-wise
     '''
+    # TODO: generate small ball based on init(trajectory), others remain
     start_t = time.time()
+    # print(f"w: {w}")
 
-    perturbation_x_dict = create_ball_perturbation(X_train, 
-        distribution_list=["normal", "uniform", "beta", "original"], 
+    perturbation_x_dict = create_ball_perturbation(Trajectory_train, 
+        # distribution_list=["normal", "uniform", "beta", "original"], 
+        distribution_list=["normal", "uniform", "original"],  
+        #TODO:  beta distribution does not account for range
         w=w)
     component_list = split_component(perturbation_x_dict, x_l, x_r, num_components)
+    # print(f"after split components: {component_list}")
 
     # create data for batching, each containing component and cooresponding x, y
     component_list = assign_probability(perturbation_x_dict, component_list)
-    component_list = assign_data_point(X_train, y_train, component_list)
+    component_list = assign_data_point(Trajectory_train, component_list)
     random.shuffle(component_list)
 
-    print(f"component-wise x length: {[len(component['x']) for component in component_list]}")
+    print(f"component-wise x length: {[len(component['trajectory_list']) for component in component_list]}")
 
     # print(component_list)
     print(f"-- Generate Perturbation Set --")
