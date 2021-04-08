@@ -109,11 +109,12 @@ def cal_data_loss(m, trajectory_list, criterion):
     # calculate the data loss of each point
     # add the point data loss together
     X, y = batch_pair(trajectory_list, data_bs=256)
-    X, y = torch.from_numpy(X).cuda(), torch.from_numpy(y).cuda()
-    print(X.shape, y.shape)
+    # print(f"after batch pair: {X.shape}, {y.shape}")
+    X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
+    # print(X.shape, y.shape)
     yp = m(X, version="single_nn_learning")
     data_loss = criterion(yp, y)
-    print(f"data_loss: {data_loss}")
+    # print(f"data_loss: {data_loss}")
     return data_loss
 
 
@@ -293,7 +294,7 @@ def learning(
                 data_loss = cal_data_loss(m, trajectory_list, criterion)
                 safe_loss = cal_safe_loss(m, abstract_states, target)
 
-                # print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
+                print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
                 # print(f"{'#' * 15}")
                 grad_data_loss += var(data_loss.data.item()) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                 real_data_loss += var(data_loss.data.item())

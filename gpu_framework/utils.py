@@ -52,7 +52,7 @@ def batch_pair(trajectory_list, data_bs=256):
     states, actions = np.array(states), np.array(actions)
     # print(states.shape, actions.shape)
     # print(f"after shuffle: {states[0], actions[0]}")
-    return np.concatenate(states)[:data_bs], np.concatenate(actions)[:data_bs]
+    return states[:data_bs], actions[:data_bs]
     
 
 

@@ -42,7 +42,7 @@ class Linear(nn.Module):
     def forward(self, x):
         # print(f"weight: \n {self.weight}")
         # print(f"bias: \n {self.bias}")
-        print(f"x: {x.shape}, weight: {self.weight.shape}, bias: {bias.shape}")
+        # print(f"x: {x.shape}, weight: {self.weight.shape}, bias: {self.bias.shape}")
         return x.matmul(self.weight).add(self.bias)
 
 
