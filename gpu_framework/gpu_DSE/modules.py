@@ -284,7 +284,11 @@ class While(nn.Module):
         i = 0
         while(len(abstract_state_list) > 0):
             pre_abstract_state_list = calculate_branch_list(self.target_idx, self.test, abstract_state_list)
+            print(f"pre_abstract_state_list:")
+            for tmp_abstract_state_list in pre_abstract_state_list:
+                
             res_abstract_state_list = sample(pre_abstract_state_list)
+            # for abstract_state in res_abstract_state_list:
 
             assert(len(res_abstract_state_list) == 1)
 

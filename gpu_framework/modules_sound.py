@@ -79,7 +79,7 @@ def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
         x = symbol_table['x']
         input = x.select_from_index(0, arg_idx) # torch.index_select(x, 0, arg_idx)
         # print(f"f: {f}")
-        res, p = f(input)
+        res  = f(input)
         # print(f"calculate_x_list --  target_idx: {target_idx}, res: {res.c}, {res.delta}")
         x.set_from_index(target_idx, res) # x[target_idx[0]] = res
         
@@ -296,6 +296,7 @@ class While(nn.Module):
         super set of E_{i-th step} and [\neg condition]
         '''
         print(f"##############In while sound#########")
+        i = 0
         res_list = list()
         while(len(abstract_state_list) > 0):
             # counter += 1
@@ -308,6 +309,10 @@ class While(nn.Module):
                 abstract_state_list = self.body(body_list)
             else:
                 return res_list
+            i += 1
+            print(len(abstract_state_list))
+            if i > 1000:
+                break
 
         return res_list
 

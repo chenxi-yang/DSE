@@ -89,7 +89,7 @@ class LinearSig(nn.Module):
         res = self.sigmoid(res)
         # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         # exit(0)
-        return res, var(1.0)
+        return res
 
 
 class LinearReLU(nn.Module):
@@ -104,22 +104,15 @@ class LinearReLU(nn.Module):
     def forward(self, x):
         # start_time = time.time()
         res = self.linear1(x)
-        res, q1 = self.relu(res)
+        res = self.relu(res)
         res = self.linear2(res)
-        res, q2 = self.sigmoid(res)
+        res = self.sigmoid(res)
         # print(f"time in LinearReLU: {time.time() - start_time}")
-        return res, var(1.0)
-
-
-def f_wrap_up_tmp_up_nn(nn):
-    def f_tmp_up_nn(x):
-        plant, p = nn(x)
-        return x.select_from_index(0, index0).add(plant.mul(var(10.0))).add(var(5.0)), p
-    return f_tmp_up_nn
+        return res
 
 
 def reward_reach(x):
-    return x.add(var(100.0)), var(1.0)
+    return x.add(var(100.0)) 
 
 def f_assign_min_p(x):
     return x.set_value(var(-1.2))
@@ -147,6 +140,7 @@ def f_assign_v(x):
     # TODO: cos
     return v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
 
+
 class MountainCar(nn.Module):
     def __init__(self, l, sig_range=10, nn_mode='all', module='linearrelu'):
         super(MountainCar, self).__init__()
@@ -168,7 +162,7 @@ class MountainCar(nn.Module):
             self.assign_min_v,
         )
         self.ifelse_p_block2 = Skip()
-        self.ifelse_p = IfElse(target_idx=[0], test=self.min_position, body=self.ifelse_p_block1, orelse=self.ifelse_p_block2)
+        self.ifelse_p = IfElse(target_idx=[0], test=self.min_position, f_test=f_test, body=self.ifelse_p_block1, orelse=self.ifelse_p_block2)
 
         self.assign_acceleration = Assign(target_idx=[2], arg_idx=[0, 1], f=self.nn)
         self.assign_reward_update = Assign(target_idx=[3], arg_idx=[2, 3], f=f_assign_reward_update)
@@ -181,10 +175,10 @@ class MountainCar(nn.Module):
 
         self.ifelse_max_speed_block1 = Skip()
         self.assign_max_speed = Assign(target_idx=[1], arg_idx=[1], f=f_assign_max_speed)
-        self.ifelse_max_speed = IfElse(target_idx=[1], test=self.max_speed, body=if_else_max_speed_block1, orelse=assign_max_speed)
+        self.ifelse_max_speed = IfElse(target_idx=[1], test=self.max_speed, f_test=f_test, body=self.ifelse_max_speed_block1, orelse=self.assign_max_speed)
         
         self.assign_min_speed = Assign(target_idx=[1], arg_idx=[1], f=f_assign_min_speed)
-        self.ifelse_v = IfElse(target_idx=[1], test=self.min_speed, body=self.assign_min_speed, orelse=self.ifelse_max_speed)
+        self.ifelse_v = IfElse(target_idx=[1], test=self.min_speed, f_test=f_test, body=self.assign_min_speed, orelse=self.ifelse_max_speed)
         
         self.assign_update_p = Assign(target_idx=[0], arg_idx=[0, 1], f=f_assign_update_p)
         self.whileblock = nn.Sequential(
@@ -207,18 +201,21 @@ class MountainCar(nn.Module):
         )
 
 
-    def forward(self, input_list, transition='interval', version=None):
+    def forward(self, input, transition='interval', version=None):
         # if transition == 'abstract':
         # #     print(f"# of Partitions Before: {len(x_list)}")
         #     for x in x_list:
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
-        res_list = self.program(input_list)
+        if version == "single_nn_learning":
+            res = self.nn(input)
+        else:
+            res = self.program(input)
         # if transition == 'abstract':
         #     print(f"# of Partitions After: {len(res_list)}")
         #     # for x in res_list:
         #     #     print(f"x: {x['x'].c}, {x['x'].delta}")
-        return res_list
-    
+        return res
+
     def clip_norm(self):
         if not hasattr(self, "weight"):
             return

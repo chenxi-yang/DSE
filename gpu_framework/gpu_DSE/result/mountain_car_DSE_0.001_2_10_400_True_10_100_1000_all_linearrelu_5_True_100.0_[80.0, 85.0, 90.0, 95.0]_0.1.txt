@@ -1,0 +1,34 @@
+Namespace(b=1000, benchmark_name='mountain_car', bs=2, data_attr='normal_-0.6_-0.4', data_size=10000, dataset='thermostat', dataset_distribution='normal', debug=False, l=100, lr=0.001, mode='DSE', module='linearrelu', n=5, nn_mode='all', num_components=10, num_epoch=10, optimizer='direct', perturbation_width=0.01, save='True', stop_val=0.05, t_epoch=10, test_mode=False, test_portion=0.99, test_size=200, train_size=400, use_smooth_kernel=True, w=0.5, width=0.01)
+safe range: [100.0, 100.0]
+path_num_list: [50]path_sample_size: 50, safe_range_upper_bound: 80.0
+0-th Epochs Time: 742.4447402954102
+-----finish 0-th epoch-----, the batch loss: q: 1.0, c: 4.4508957862854
+-----finish 0-th epoch-----, q: 8.343976974487305, c: 21.01837730407715
+1-th Epochs Time: 722.6263505220413
+-----finish 1-th epoch-----, the batch loss: q: 1.154559850692749, c: 1.9864784479141235
+-----finish 1-th epoch-----, q: 9.865355491638184, c: 7.328253746032715
+2-th Epochs Time: 739.8644768397013
+-----finish 2-th epoch-----, the batch loss: q: 2.1184024810791016, c: 3.893364429473877
+-----finish 2-th epoch-----, q: 10.923943519592285, c: 12.461572647094727
+3-th Epochs Time: 696.2271909117699
+-----finish 3-th epoch-----, the batch loss: q: 1.167543649673462, c: 3.052422285079956
+-----finish 3-th epoch-----, q: 5.357038497924805, c: 15.688459396362305
+4-th Epochs Time: 665.546853351593
+-----finish 4-th epoch-----, the batch loss: q: 0.7968642115592957, c: 2.8810362815856934
+-----finish 4-th epoch-----, q: 4.768805980682373, c: 16.50287437438965
+5-th Epochs Time: 651.4158800045649
+-----finish 5-th epoch-----, the batch loss: q: 0.852343738079071, c: 3.97007417678833
+-----finish 5-th epoch-----, q: 4.244510650634766, c: 19.693021774291992
+6-th Epochs Time: 655.2331754820688
+-----finish 6-th epoch-----, the batch loss: q: 0.8812500238418579, c: 4.577434062957764
+-----finish 6-th epoch-----, q: 4.4998698234558105, c: 21.510818481445312
+7-th Epochs Time: 832.4587180614471
+-----finish 7-th epoch-----, the batch loss: q: 1.0, c: 6.506341457366943
+-----finish 7-th epoch-----, q: 4.9483747482299805, c: 35.462120056152344
+8-th Epochs Time: 792.8757961591085
+-----finish 8-th epoch-----, the batch loss: q: 2.336941957473755, c: 2.058934211730957
+-----finish 8-th epoch-----, q: 10.259821891784668, c: 14.551740646362305
+9-th Epochs Time: 757.5730117321015
+-----finish 9-th epoch-----, the batch loss: q: 2.267963171005249, c: 3.102172613143921
+-----finish 9-th epoch-----, q: 12.007366180419922, c: 14.468417167663574
+One train: Optimization--7575.738304376602,10,757.5738304376603

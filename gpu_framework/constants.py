@@ -22,6 +22,7 @@ nn_mode = args.nn_mode
 b = args.b
 module = args.module
 num_components = args.num_components
+verification_num_components = args.verification_num_components
 use_smooth_kernel = args.use_smooth_kernel
 save = args.save
 test_mode = args.test_mode

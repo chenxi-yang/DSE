@@ -117,7 +117,7 @@ def cal_data_loss(m, trajectory_list, criterion):
     # for the point in the same batch
     # calculate the data loss of each point
     # add the point data loss together
-    X, y = batch_pair(trajectory_list, data_bs=256)
+    X, y = batch_pair(trajectory_list, data_bs=512)
     # print(f"after batch pair: {X.shape}, {y.shape}")
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     # print(X.shape, y.shape)
@@ -199,7 +199,7 @@ def safe_distance(symbol_table_list, target):
     for symbol_table in symbol_table_list:
         trajectory_loss = var_list([0.0])
         for X in symbol_table['trajectory']:
-            print(f"X: {X.left}, {X.right}")
+            # print(f"X: {X.left}, {X.right}")
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())

@@ -105,7 +105,7 @@ if __name__ == "__main__":
                         # TODO: for quick result
                         if m is not None and epochs_to_skip is not None:
                             print(f"Load Model.")
-                            break
+                            # break
                     else:
                         epochs_to_skip = None
 
@@ -171,6 +171,7 @@ if __name__ == "__main__":
 
                 print(f"------------start verification------------")
                 verification_time = time.time()
+                component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, verification_num_components, w=perturbation_width)
                 verification(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_upper_bound}_{i}", component_list=component_list, target=target)
                 print(f"---verification time: {time.time() - verification_time} sec---")
                 # exit(0)

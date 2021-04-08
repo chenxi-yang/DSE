@@ -173,7 +173,7 @@ def verification(model_path, model_name, component_list, target):
         exit(0)
     m.cuda()
     m.eval()
-    print(m.nn.linear1.weight)
+    # print(m.nn.linear1.weight)
 
     abstract_state_list = initialization_abstract_state(component_list)
     print(f"Ini # of abstract state: {len(abstract_state_list)}")

@@ -56,7 +56,7 @@ def get_parser():
 
     # evaluation
     p.add_argument("--test_mode", default=False, type=str2bool, help="decide whether check load model and then test")
-
+    p.add_argument("--verification_num_components", default=1000, type=int, help="componentts in  verification")
     # debug
     p.add_argument("--debug", default=False, type=str2bool, help="decide whether debug")
     

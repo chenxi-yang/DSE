@@ -86,6 +86,7 @@ def extract_abstract_state_safe_loss(abstract_state, target):
                 safe_portion = intersection_interval.getLength().div(X.getLength())
                 unsafe_value = 1 - safe_portion
             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+            # print(f"unsafe value: {unsafe_value}")
         abstract_loss += trajectory_loss * symbol_table['probability']
     return abstract_loss
     
@@ -110,7 +111,7 @@ def cal_data_loss(m, trajectory_list, criterion):
     # for the point in the same batch
     # calculate the data loss of each point
     # add the point data loss together
-    X, y = batch_pair(trajectory_list, data_bs=256)
+    X, y = batch_pair(trajectory_list, data_bs=128)
     # print(f"after batch pair: {X.shape}, {y.shape}")
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     # print(X.shape, y.shape)
@@ -303,6 +304,7 @@ def learning(
                 real_data_loss += var(data_loss.data.item())
                 grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                 real_safe_loss += var(safe_loss.data.item())
+                print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
 
             # To maintain the real theta
             m = update_model_parameter(m, Theta)

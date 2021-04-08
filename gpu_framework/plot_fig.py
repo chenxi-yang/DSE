@@ -344,9 +344,9 @@ if __name__ == "__main__":
     # plot_loss_2('loss/')
     # plot_sample('data/sample_time.txt')
     # lr_bs_epoch_samplesize
-    # plot_training_loss('result/thermostat_nn_volume_[52.0]_[85.1]_0.001_40_10_1000_5000_all_linearrelu.txt', benchmark='thermostat_nn_volume_[52.0]_[85.1]_0.001_40_10_1000_5000_all_linearrelu', log=False)
+    plot_training_loss('gpu_DSE/result/thermostat_nn_volume_[52.0]_[85.1]_0.001_40_10_1000_5000_all_linearrelu.txt', benchmark='thermostat_nn_volume_[52.0]_[85.1]_0.001_40_10_1000_5000_all_linearrelu', log=False)
     # plot_vary_constraint('result/vary_constraint_volume_vs_point_sampling.txt')
-    vary_safe_bound()
+    # vary_safe_bound()
 
 
 
