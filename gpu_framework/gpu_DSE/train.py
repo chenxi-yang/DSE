@@ -109,8 +109,11 @@ def cal_data_loss(m, trajectory_list, criterion):
     # calculate the data loss of each point
     # add the point data loss together
     X, y = batch_pair(trajectory_list, data_bs=256)
+    X, y = torch.from_numpy(X).cuda(), torch.from_numpy(y).cuda()
+    print(X.shape, y.shape)
     yp = m(X, version="single_nn_learning")
     data_loss = criterion(yp, y)
+    print(f"data_loss: {data_loss}")
     return data_loss
 
 
@@ -163,10 +166,9 @@ def divide_chunks(component_list, bs=1):
                 'width': component['width'],
                 'p': component['p'],
             }
-            trajectory_list.append(component['trajectory_list'])
+            trajectory_list.extend(component['trajectory_list'])
             abstract_states.append(abstract_state)
             # print(f"component probability: {component['p']}")
-
         yield trajectory_list, abstract_states
 
 
@@ -260,7 +262,7 @@ def learning(
     loss_list = list()
 
     # m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-    print(m)
+    # print(m)
     m.cuda()
 
     criterion = torch.nn.MSELoss()

@@ -45,11 +45,14 @@ def batch_pair(trajectory_list, data_bs=256):
     for trajectory in trajectory_list:
         for (state, action) in trajectory:
             states.append(state)
-            actions.append(action)
+            actions.append([action])
     c = list(zip(states, actions))
     random.shuffle(c)
     states, actions = zip(*c)
-    return np.concatenate(states[:data_bs]), np.concatenate(actions[:data_bs])
+    states, actions = np.array(states), np.array(actions)
+    # print(states.shape, actions.shape)
+    # print(f"after shuffle: {states[0], actions[0]}")
+    return np.concatenate(states)[:data_bs], np.concatenate(actions)[:data_bs]
     
 
 
