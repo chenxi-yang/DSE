@@ -257,9 +257,18 @@ class IfElse(nn.Module):
         # print(f"############one ifelse ##################")
 
         test = self.f_test(self.test)
+        # print(f"if else test: {test}")
         res_list = calculate_branch_list(self.target_idx, test, abstract_state_list)
+        # print(f"If else:")
+        # for abstract_state in res_list:
+        #     for symbol_table in abstract_state:
+        #         print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
 
         res_list = sample(res_list) # sample before executing
+        # print(f"If else after sampling:")
+        # for abstract_state in res_list:
+        #     for symbol_table in abstract_state:
+        #         print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
 
         assert(len(res_list) == 1)
         # the first component in the first abstract state represents the res_list branch
@@ -284,17 +293,27 @@ class While(nn.Module):
         i = 0
         while(len(abstract_state_list) > 0):
             pre_abstract_state_list = calculate_branch_list(self.target_idx, self.test, abstract_state_list)
-            print(f"pre_abstract_state_list:")
-            for tmp_abstract_state_list in pre_abstract_state_list:
-                
+            # print(f"pre_abstract_state_list:")
+            # for abstract_state in pre_abstract_state_list:
+            #     for symbol_table in abstract_state:
+            #         print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
+
             res_abstract_state_list = sample(pre_abstract_state_list)
             # for abstract_state in res_abstract_state_list:
+            # print(f"after sample:")
+            # for abstract_state in res_abstract_state_list:
+            #     for symbol_table in abstract_state:
+            #         print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
 
             assert(len(res_abstract_state_list) == 1)
 
             if res_abstract_state_list[0][0]['branch'] == 'body': # if the abstract state in  res_abstract_state_list falls into 'body'
                 abstract_state_list = self.body(res_abstract_state_list)
             else:
+                # print(f"Return!")
+                # for abstract_state in res_abstract_state_list:
+                #     for symbol_table in abstract_state:
+                #         print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
                 return res_abstract_state_list
             
             i += 1
@@ -304,6 +323,11 @@ class While(nn.Module):
                 #     print(symbol_table['x'].c, symbol_table['x'].delta)
                 print(f"Exceed maximum iterations: Have to END.")
                 break
+        
+        # print(f"Normal Return!")
+        # for abstract_state in res_abstract_state_list:
+        #     for symbol_table in abstract_state:
+        #         print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
             
         return res_abstract_state_list
 

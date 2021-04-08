@@ -76,9 +76,9 @@ def extract_abstract_state_safe_loss(abstract_state, target):
     safe_interval = target["condition"]
     for symbol_table in abstract_state:
         trajectory_loss = var_list([0.0])
-        print(f"trajec length: {len(symbol_table['trajectory'])}")
+        # print(f"trajec length: {len(symbol_table['trajectory'])}")
         for X in symbol_table['trajectory']:
-            print(f"X: {X.left.data.item()}, {X.right.data.item()}")
+            # print(f"X: {X.left.data.item()}, {X.right.data.item()}")
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())

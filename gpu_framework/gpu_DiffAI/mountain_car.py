@@ -201,7 +201,7 @@ class MountainCar(nn.Module):
 
         self.check_non = Skip() # nothing changes
         self.check_reach = Assign(target_idx=[3], arg_idx=[3], f=reward_reach)
-        self.check_position = IfElse(target_idx=[0], test=self.goal_position, f_test=f_test, body=self.check_non, orelse=self.check_reach)
+        self.check_position = IfElse(target_idx=[0], test=self.goal_position-var(1e-5), f_test=f_test, body=self.check_non, orelse=self.check_reach)
         
         self.trajectory_update = Trajectory(target_idx=[3])
         self.program = nn.Sequential(

@@ -55,7 +55,7 @@ def mountain_car(p0):
     trajectory_list = list()
 
     while p <= goal_position:
-        if i > 500:
+        if i > 1000:
             break
         if p <= min_position:
             p = min_position
@@ -76,7 +76,7 @@ def mountain_car(p0):
 
         i += 1
     
-    # if p <= goal_position:
+    # if p < goal_position:
     #     reward = reward
     # else:
     #     reward += 100
@@ -85,3 +85,39 @@ def mountain_car(p0):
     return trajectory_list
 
 
+def mountain_car(p, v):
+    while p <= goal_position:
+        if p <= min_position: p, v = Reset(p, v)
+        u = DNN(p, v)
+        v = Update(v, p, u)
+        if v <= min_speed or v >= max_speed: 
+            v = Reset(v)
+        p = p + v
+
+        reward = reward + (-0.1) * u  * u
+
+        i += 1
+        if i > 1000:
+            break
+    
+    if p >= goal_position:
+        reward += 100
+    
+    return reward
+
+
+def mountain_car(p, v):
+    trajectory = list()
+    while p <= goal_position:
+        if p <= min_position: p, v = Reset(p, v)
+
+        u = acceleration(p, v)
+        trajectory.append((p, v, u))
+
+        v = Update(v, p, u)
+        if v <= min_speed or v >= max_speed: 
+            v = Reset(v)
+
+        p = p + v
+    
+    return trajectory

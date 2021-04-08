@@ -191,7 +191,7 @@ class MountainCar(nn.Module):
 
         self.check_non = Skip() # nothing changes
         self.check_reach = Assign(target_idx=[3], arg_idx=[3], f=reward_reach)
-        self.check_position = IfElse(target_idx=[0], test=self.goal_position, f_test=f_test, body=self.check_non, orelse=self.check_reach)
+        self.check_position = IfElse(target_idx=[0], test=self.goal_position-var(1e-5), f_test=f_test, body=self.check_non, orelse=self.check_reach)
         
         self.trajectory_update = Trajectory(target_idx=[3])
         self.program = nn.Sequential(
@@ -214,6 +214,12 @@ class MountainCar(nn.Module):
         #     print(f"# of Partitions After: {len(res_list)}")
         #     # for x in res_list:
         #     #     print(f"x: {x['x'].c}, {x['x'].delta}")
+        # if version is None:
+        #     print(f"Final Results")
+        #     for abstract_state in res:
+        #         for symbol_table in abstract_state:
+        #             print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
+        #     exit(0)
         return res
 
     def clip_norm(self):

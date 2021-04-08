@@ -190,7 +190,7 @@ def plot_sample(sample_file):
     plot_dot(sample_size_list, time_list, title='sample time', x_label='sample size', y_label='time', label='time', fig_title=f"figures/sample/sample_time.png", c='C0')
 
 
-def plot_training_loss(log_file, benchmark, log=False):
+def plot_training_loss(log_file, benchmark, method_name, log=False):
     if log:
         flag = 'log-'
     else:
@@ -198,8 +198,8 @@ def plot_training_loss(log_file, benchmark, log=False):
     q_list, c_list = read_train_log(log_file)
     x_list = list(range(len(q_list)))
 
-    plot_line(x_list, q_list, title='training data loss', x_label='epoch', y_label=flag + 'loss', label='data loss', fig_title=f"figures/loss/{benchmark}_data_loss.png", c='C0', log=log)
-    plot_line(x_list, c_list, title='training safe loss', x_label='epoch', y_label=flag + 'loss', label='safe loss', fig_title=f"figures/loss/{benchmark}_safe_loss.png", c='C1', log=log)
+    plot_line(x_list, q_list, title='training data loss', x_label='epoch', y_label=flag + 'loss', label='data loss', fig_title=f"gpu_{method_name}/figures/{benchmark}_data_loss.png", c='C0', log=log)
+    plot_line(x_list, c_list, title='training safe loss', x_label='epoch', y_label=flag + 'loss', label='safe loss', fig_title=f"gpu_{method_name}/figures/{benchmark}_safe_loss.png", c='C1', log=log)
 
 
 def plot_vary_constraint(file):
@@ -344,7 +344,7 @@ if __name__ == "__main__":
     # plot_loss_2('loss/')
     # plot_sample('data/sample_time.txt')
     # lr_bs_epoch_samplesize
-    plot_training_loss('gpu_DSE/result/thermostat_nn_volume_[52.0]_[85.1]_0.001_40_10_1000_5000_all_linearrelu.txt', benchmark='thermostat_nn_volume_[52.0]_[85.1]_0.001_40_10_1000_5000_all_linearrelu', log=False)
+    plot_training_loss('gpu_DSE/result/mountain_car_DSE_0.001_2_10_400_True_10_100_1000_all_linearrelu_5_True_100.0_[80.0, 85.0, 90.0, 95.0]_0.1.txt', benchmark='mountain_car_DSE_0.001_2_10_400_True_10_100_1000_all_linearrelu_5_True_100.0_[80.0, 85.0, 90.0, 95.0]_0.1', method_name='DSE', log=False)
     # plot_vary_constraint('result/vary_constraint_volume_vs_point_sampling.txt')
     # vary_safe_bound()
 
