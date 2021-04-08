@@ -7,9 +7,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 
-from gpu_DiffAI.thermostat_nn import * 
+from constants import benchmark_name
 
-from utils import generate_distribution
+if benchmark_name == "thermostat":
+    from gpu_DiffAI.thermostat_nn import * 
+if benchmark_name == "mountain_car":
+    from gpu_DiffAI.mountain_car import *
+
+from utils import (
+    generate_distribution,
+    ini_trajectory,
+    batch_pair,
+)
 
 random.seed(1)
 
@@ -104,21 +113,17 @@ def create_point_cloud(res_l, res_r, n=50):
     return point_cloud
 
 
-def cal_data_loss(m, x, y):
+def cal_data_loss(m, trajectory_list, criterion):
     # for the point in the same batch
     # calculate the data loss of each point
     # add the point data loss together
-    data_loss = var_list([0.0])
-    for idx in range(len(x)):
-        point, label = x[idx], y[idx]
-        point_data = initialization_point_nn(point)
-        y_point_list = m(point_data, 'concrete')
-        # should be only one partition in y['x']
-        # the return value in thermostat is x, index: 2
-        data_loss += distance_f_point(y_point_list[0]['x'].c[2], var(label))
-        # sanity check 
-        # data_loss.backward(retain_graph=True)
-    data_loss /= var(len(x)).add(EPSILON)
+    X, y = batch_pair(trajectory_list, data_bs=256)
+    # print(f"after batch pair: {X.shape}, {y.shape}")
+    X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
+    # print(X.shape, y.shape)
+    yp = m(X, version="single_nn_learning")
+    data_loss = criterion(yp, y)
+    # print(f"data_loss: {data_loss}")s
     return data_loss
 
 
@@ -194,6 +199,7 @@ def safe_distance(symbol_table_list, target):
     for symbol_table in symbol_table_list:
         trajectory_loss = var_list([0.0])
         for X in symbol_table['trajectory']:
+            print(f"X: {X.left}, {X.right}")
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
@@ -214,12 +220,14 @@ def safe_distance(symbol_table_list, target):
     return loss
 
 
-def cal_safe_loss(m, x, width, target):
+def cal_safe_loss(m, trajectory_list, width, target):
     '''
     DiffAI 
     each x is surrounded by a small ball: (x-width, x+width)
     calculate the loss in a batch-wise view
     '''
+    #  TODO: for now, we  only  keep 
+    x = [[ini_trajectory(trajectory)[0][0]] for trajectory in trajectory_list]
     center_list, width_list = create_small_ball(x, width)
     safe_loss = var_list([0.0])
     for idx, center in enumerate(center_list):
@@ -238,30 +246,28 @@ def divide_chunks(component_list, bs=1):
         'center': 
         'width':
         'p':
-        'x':
-        'y':
+        'trajectory_list':
     }
     return the component={
         'center':
         'width':
         'p':
-    },X, Y
+    }, trajectory
     '''
     for i in range(0, len(component_list), bs):
         components = component_list[i:i + bs]
-        abstract_state = list()
-        x_list, y_list = list(), list()
+        abstract_states = list()
+        trajectory_list, y_list = list(), list()
         for component in components:
-            one_abstract_state = {
+            abstract_state = {
                 'center': component['center'],
                 'width': component['width'],
-                'upper_bound': component['p'],
+                'p': component['p'],
             }
-            x_list.extend(component['x'])
-            y_list.extend(component['y'])
-            abstract_state.append(one_abstract_state)
-
-        yield x_list, y_list, abstract_state
+            trajectory_list.extend(component['trajectory_list'])
+            abstract_states.append(abstract_state)
+            # print(f"component probability: {component['p']}")
+        yield trajectory_list, abstract_states
 
 
 def update_model_parameter(m, theta):
@@ -368,7 +374,7 @@ def learning(
         count = 0
         for trajectory_list, abstract_states in divide_chunks(component_list, bs=bs):
             # print(f"x length: {len(x)}")
-            print(f"batch size, x: {len(x)}, y: {len(y)}, abstract_states: {len(abstract_states)}")
+            # print(f"batch size, x: {len(x)}, y: {len(y)}, abstract_states: {len(abstract_states)}")
             # if len(x) == 0: continue  # because DiffAI only makes use of x, y
             batch_time = time.time()
 
@@ -383,7 +389,7 @@ def learning(
                     m = update_model_parameter(m, sample_theta)
                     data_loss = cal_data_loss(m, trajectory_list, criterion)
                     safe_loss = cal_safe_loss(m, trajectory_list, width, target)
-                    # print(f"in sample, data loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}")
+                    print(f"in sample, data loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}")
 
                     # gradient = \exp_{\theta' \sim N(\theta)}[loss * \grad_{\theta}(log(p(\theta', \theta)))]
                     grad_data_loss += var_list([data_loss.data.item()]) * sample_theta_p

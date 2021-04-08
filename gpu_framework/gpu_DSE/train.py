@@ -76,7 +76,9 @@ def extract_abstract_state_safe_loss(abstract_state, target):
     safe_interval = target["condition"]
     for symbol_table in abstract_state:
         trajectory_loss = var_list([0.0])
+        print(f"trajec length: {len(symbol_table['trajectory'])}")
         for X in symbol_table['trajectory']:
+            print(f"X: {X.left.data.item()}, {X.right.data.item()}")
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
@@ -114,7 +116,7 @@ def cal_data_loss(m, trajectory_list, criterion):
     # print(X.shape, y.shape)
     yp = m(X, version="single_nn_learning")
     data_loss = criterion(yp, y)
-    # print(f"data_loss: {data_loss}")
+    # print(f"data_loss: {data_loss}")s
     return data_loss
 
 
@@ -328,7 +330,8 @@ def learning(
             #     exit(0)
         
         if save:
-            save_model(m, MODEL_PATH, name=model_name, epoch=i)
+            if not debug:
+                save_model(m, MODEL_PATH, name=model_name, epoch=i)
             
         if i >= 5 and i%2 == 0:
             for param_group in optimizer.param_groups:
@@ -338,10 +341,11 @@ def learning(
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
         print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}")
         print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
-        log_file = open(file_dir, 'a')
-        log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
-        log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}\n")
-        log_file.write(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}\n")
+        if not debug:
+            log_file = open(file_dir, 'a')
+            log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
+            log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}\n")
+            log_file.write(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}\n")
 
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):

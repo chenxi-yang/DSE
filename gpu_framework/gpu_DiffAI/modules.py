@@ -79,12 +79,12 @@ def calculate_x_list(target_idx, arg_idx, f, symbol_table_list):
         x = symbol_table['x']
         input = x.select_from_index(0, arg_idx) # torch.index_select(x, 0, arg_idx)
         # print(f"f: {f}")
-        res, p = f(input)
+        res = f(input)
         # print(f"calculate_x_list --  target_idx: {target_idx}, res: {res.c}, {res.delta}")
         x.set_from_index(target_idx, res) # x[target_idx[0]] = res
         
         symbol_table['x'] = x
-        symbol_table['probability'] = symbol_table['probability'].mul(p)
+        # symbol_table['probability'] = symbol_table['probability'].mul(p)
         symbol_table_list[idx] = symbol_table
     # print(f"-- assign -- calculate_x_list: {time.time() - assign_time}")
     return symbol_table_list
@@ -329,6 +329,7 @@ class While(nn.Module):
         super set of E_{i-th step} and [\neg condition]
         '''
         # print(f"##############In while DiffAI#########")
+        i = 0
         res_list = list()
         while(len(symbol_table_list) > 0):
             # counter += 1
@@ -347,6 +348,11 @@ class While(nn.Module):
                 return res_list
             
             symbol_table_list = self.body(body_list)
+
+            i += 1
+            if i > 1000:
+                print(f"Exceed maximum iterations: Have to END.")
+                break
 
         return res_list
 
