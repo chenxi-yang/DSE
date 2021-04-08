@@ -201,18 +201,21 @@ class MountainCar(nn.Module):
         )
 
 
-    def forward(self, input_list, transition='interval', version=None):
+    def forward(self, input, transition='interval', version=None):
         # if transition == 'abstract':
         # #     print(f"# of Partitions Before: {len(x_list)}")
         #     for x in x_list:
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
-        res_list = self.program(input_list)
+        if version == "single_nn_learning":
+            res = self.nn(input)
+        else:
+            res = self.program(input)
         # if transition == 'abstract':
         #     print(f"# of Partitions After: {len(res_list)}")
         #     # for x in res_list:
         #     #     print(f"x: {x['x'].c}, {x['x'].delta}")
-        return res_list
-    
+        return res
+
     def clip_norm(self):
         if not hasattr(self, "weight"):
             return

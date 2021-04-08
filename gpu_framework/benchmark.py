@@ -48,6 +48,8 @@ def mountain_car(p0):
     max_speed = 0.07
     reward = 0
     i = 0
+    trajectory_list = list()
+
     while p <= goal_position:
         if i > 500:
             break
@@ -55,7 +57,9 @@ def mountain_car(p0):
             p = min_position
             v = 0
         u = acceleration(p, v)
-        reward = reward + (-0.1) * u  * u
+        trajectory_list.append((p, v, u))
+
+        # reward = reward + (-0.1) * u  * u
         v = v + 0.0015 * u - 0.0025 * math.cos(3 * p)
         if v <= min_speed: 
             v = min_speed
@@ -68,12 +72,12 @@ def mountain_car(p0):
 
         i += 1
     
-    if p <= goal_position:
-        reward = reward
-    else:
-        reward += 100
+    # if p <= goal_position:
+    #     reward = reward
+    # else:
+    #     reward += 100
     # exit(0)
         
-    return p0, v, reward, reward
+    return trajectory_list
 
 

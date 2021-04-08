@@ -82,8 +82,8 @@ if __name__ == "__main__":
             # data points generation
             preprocessing_time = time.time()
             # TODO: the data is one-dimension (x = a value)
-            X_train, X_test, y_train, y_test = load_data(train_size=train_size, test_size=test_size, dataset_path=DATASET_PATH)
-            component_list = extract_abstract_representation(X_train, y_train, x_l, x_r, num_components, w=perturbation_width)
+            Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=DATASET_PATH)
+            component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components, w=perturbation_width)
             print(f"prepare data: {time.time() - preprocessing_time} sec.")
             # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 

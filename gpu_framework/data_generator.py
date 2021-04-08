@@ -31,11 +31,11 @@ def generate_dataset(func, distribution, input_range, data_size=50000):
         x_list = X.rvs(data_size).tolist()
     
     for x in x_list:
-        x, y, trajectory_l, trajectory_r = func(x)
-        res_list.append((x, y, trajectory_l, trajectory_r))
-        min_tra, max_tra = min(trajectory_l, min_tra), max(trajectory_r, max_tra)
+        trajectory_list = func(x)
+        res_list.append(trajectory_list)
+        # min_tra, max_tra = min(trajectory_l, min_tra), max(trajectory_r, max_tra)
     
-    print(f"min-tra, max_tra: {min_tra}, {max_tra}")
+    # print(f"min-tra, max_tra: {min_tra}, {max_tra}")
     # thermostat: min-tra, max_tra: 52.01157295666703, 82.79782533533135
     
     return res_list
@@ -43,9 +43,11 @@ def generate_dataset(func, distribution, input_range, data_size=50000):
 
 def write_dataset(res_list, path):
     f = open(path, 'w')
-    f.write("x, y, trajectory_l, trajectory_r\n")
-    for (x, y, trajectory_l, trajectory_r) in res_list:
-        f.write(f"{x}, {y}, {trajectory_l}, {trajectory_r}\n")
+    f.write("trajectory_list\n")
+    for trajectory_list in res_list:
+        for state in trajectory_list:
+            f.write(f"{state};")
+        f.write(f"\n")
     f.close()
     return 
 

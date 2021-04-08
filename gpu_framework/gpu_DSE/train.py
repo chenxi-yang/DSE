@@ -507,8 +507,7 @@ def assign_data_point(X_train, y_train, component_list):
         
 
 def extract_abstract_representation(
-    X_train, 
-    y_train, 
+    Trajectory_train, 
     x_l, 
     x_r, 
     num_components, 
@@ -520,10 +519,11 @@ def extract_abstract_representation(
     # 2. measure probability 
     # 3. slice X_train, y_train into component-wise
     '''
+    # TODO: generate small ball based on init(trajectory), others remain
     start_t = time.time()
     # print(f"w: {w}")
 
-    perturbation_x_dict = create_ball_perturbation(X_train, 
+    perturbation_x_dict = create_ball_perturbation(Trajectory_train, 
         # distribution_list=["normal", "uniform", "beta", "original"], 
         distribution_list=["normal", "uniform", "original"],  
         #TODO:  beta distribution does not account for range
@@ -533,7 +533,7 @@ def extract_abstract_representation(
 
     # create data for batching, each containing component and cooresponding x, y
     component_list = assign_probability(perturbation_x_dict, component_list)
-    component_list = assign_data_point(X_train, y_train, component_list)
+    component_list = assign_data_point(Trajectory_train, component_list)
     random.shuffle(component_list)
 
     print(f"component-wise x length: {[len(component['x']) for component in component_list]}")
