@@ -163,7 +163,10 @@ def show_component_p(component_list):
 
 
 def verification(model_path, model_name, component_list, target):
-    m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
+    if benchmark_name == "thermostat":
+        m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
+    if benchmark_name == "mountain_car":
+        m = MountainCar(l=l, nn_mode=nn_mode, module=module)
     _, m = load_model(m, MODEL_PATH, name=model_name)
     if m is None:
         print(f"No model to Verify!!")

@@ -137,6 +137,8 @@ def cal_safe_loss(m, abstract_state, target):
         abstract_list = m(ini_abstract_state_list, 'abstract')
         res_abstract_state_list.append(abstract_list[0]) # only one abstract state returned
     # print(f"length: {len(y_abstract_list)}")
+        # print(f"result: {abstract_list[0][0]['x'].c, abstract_list[0][0]['x'].delta}")
+        # print(f"run one time")
     
     # TODO: the new safe loss function
     safe_loss = safe_distance(res_abstract_state_list, target)
