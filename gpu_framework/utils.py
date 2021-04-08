@@ -2,8 +2,10 @@ from scipy.stats import truncnorm
 from scipy.stats import poisson
 
 import numpy as np
+import random
 
 np.random.seed(seed=1)
+random.seed(1)
 
 
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
@@ -30,6 +32,26 @@ def generate_distribution(x, l, r, distribution, unit):
         x_list = [x] * unit
     
     return x_list
+
+
+def ini_trajectory(trajectory):
+    state = trajectory[0][0]
+    action = trajectory[0][1]
+    return state, action
+
+
+def batch_pair(trajectory_list, data_bs=256):
+    states, actions = list(), list()
+    for trajectory in trajectory_list:
+        for (state, action) in trajectory:
+            states.append(state)
+            actions.append(action)
+    c = list(zip(states, actions))
+    random.shuffle(c)
+    states, actions = zip(*c)
+    return np.concatenate(states[:data_bs]), np.concatenate(actions[:data_bs])
+    
+
 
 
 

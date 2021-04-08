@@ -7,9 +7,12 @@ def thermostat(lin):
     tOff = 78.0
     tOn = 66.0
     isOn = 0.0
+    trajectory_list = list()
 
     for i in range(40):
+        state = (lin, x)
         if isOn <= 0.5: # ifblock1
+            state = (lin, x)
             x = x - 0.1 * (x - lin)
             if x <= tOn: # ifelse_tOn
                 isOn = 1.0
@@ -21,12 +24,13 @@ def thermostat(lin):
                 isOn = 1.0
             else:
                 isOn = 0.0
+        trajectory_list.append((state[0], state[1], x))
         # print(f"x: {x}, isOn:{isOn}")
         x_min = min(x, x_min)
         x_max = max(x, x_max)
     # exit(0)
     
-    return lin, x, x_min, x_max
+    return trajectory_list
 
 
 def acceleration(p, v):

@@ -16,7 +16,11 @@ if benchmark_name == "mountain_car":
 
 from gpu_DSE.data_generator import *
 
-from utils import generate_distribution
+from utils import (
+    generate_distribution,
+    ini_trajectory,
+    batch_pair, 
+)
 
 random.seed(1)
 
@@ -100,20 +104,13 @@ def safe_distance(abstract_state_list, target):
     return loss
 
 
-def cal_data_loss(m, x, y):
+def cal_data_loss(m, trajectory_list, criterion):
     # for the point in the same batch
     # calculate the data loss of each point
     # add the point data loss together
-    data_loss = var_list([0.0])
-    for idx in range(len(x)):
-        point, label = x[idx], y[idx]
-        point_data = initialization_point_nn(point)
-        y_point_list = m(point_data, 'concrete')
-        # should be only one partition in y['x']
-        # the return value in thermostat is x, index: 2
-        # be the first point symbol_table in the first point_list
-        data_loss += distance_f_point(y_point_list[0][0]['x'].c[2], var(label))
-    data_loss /= var(len(x)).add(EPSILON)
+    X, y = batch_pair(trajectory_list, data_bs=256)
+    yp = m(X, version="single_nn_learning")
+    data_loss = criterion(yp, y)
     return data_loss
 
 
@@ -148,31 +145,29 @@ def divide_chunks(component_list, bs=1):
         'center': 
         'width':
         'p':
-        'x':
-        'y':
+        'trajectory_list':
     }
     return the component={
         'center':
         'width':
         'p':
-    },X, Y
+    }, trajectory
     '''
     for i in range(0, len(component_list), bs):
         components = component_list[i:i + bs]
         abstract_states = list()
-        x_list, y_list = list(), list()
+        trajectory_list, y_list = list(), list()
         for component in components:
             abstract_state = {
                 'center': component['center'],
                 'width': component['width'],
                 'p': component['p'],
             }
-            x_list.extend(component['x'])
-            y_list.extend(component['y'])
+            trajectory_list.append(component['trajectory_list'])
             abstract_states.append(abstract_state)
             # print(f"component probability: {component['p']}")
 
-        yield x_list, y_list, abstract_states
+        yield trajectory_list, abstract_states
 
 
 def update_model_parameter(m, theta):
@@ -268,7 +263,9 @@ def learning(
     print(m)
     m.cuda()
 
+    criterion = torch.nn.MSELoss()
     optimizer = torch.optim.SGD(m.parameters(), lr=lr)
+    
 
     if epochs_to_skip is None:
         epochs_to_skip = -1
@@ -279,7 +276,7 @@ def learning(
             continue
         q_loss, c_loss = var_list([0.0]), var_list([0.0])
         count = 0
-        for x, y, abstract_states in divide_chunks(component_list, bs=bs):
+        for trajectory_list, abstract_states in divide_chunks(component_list, bs=bs):
             # print(f"x length: {len(x)}")
             batch_time = time.time()
             grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
@@ -291,7 +288,7 @@ def learning(
                 m = update_model_parameter(m, sample_theta)
                 sample_time = time.time()
 
-                data_loss = cal_data_loss(m, x, y)
+                data_loss = cal_data_loss(m, trajectory_list, criterion)
                 safe_loss = cal_safe_loss(m, abstract_states, target)
 
                 # print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
@@ -405,13 +402,14 @@ def cal_q(X_train, y_train, m):
 ##### create symbolic approximation of perturbation set of input distribution
 
 
-def create_ball_perturbation(X_train, distribution_list, w):
+def create_ball_perturbation(Trajectory_train, distribution_list, w):
     perturbation_x_dict = {
         distribution: list() for distribution in distribution_list
     }
-    for X in X_train:
-        # TODO: for now, only one input variable
-        x = X[0]
+    for trajectory in Trajectory_train:
+        state, _ = ini_trajectory(trajectory)
+        # TODO: for now, only use the first input variable
+        x = state[0]
         l, r = x - w, x + w
         # print(f"l, r: {l, r}")
         for distribution in distribution_list:
@@ -490,18 +488,18 @@ def in_component(X, component):
     return True
 
 
-def assign_data_point(X_train, y_train, component_list):
+def assign_data_point(Trajectory_train, component_list):
     for idx, component in enumerate(component_list):
         component.update(
             {
-            'x': list(),
-            'y': list(),
+            'trajectory_list': list(),
             }
         )
-        for i, X in enumerate(X_train):
-            if in_component(X, component):
-                component['x'].append(X)
-                component['y'].append(y_train[i])
+        for i, trajectory in enumerate(Trajectory_train):
+            state, action = ini_trajectory(trajectory) # get the initial <state, action> pair in trajectory
+            # when test, only test the first value in state
+            if in_component([state[0]], component): # if the initial state in component
+                component['trajectory_list'].append(trajectory)
         component_list[idx] = component
     return component_list
         
@@ -536,11 +534,10 @@ def extract_abstract_representation(
     component_list = assign_data_point(Trajectory_train, component_list)
     random.shuffle(component_list)
 
-    print(f"component-wise x length: {[len(component['x']) for component in component_list]}")
+    print(f"component-wise x length: {[len(component['trajectory_list']) for component in component_list]}")
 
     # print(component_list)
     print(f"-- Generate Perturbation Set --")
     print(f"--- {time.time() - start_t} sec ---")
-    # exit(0)
 
     return component_list

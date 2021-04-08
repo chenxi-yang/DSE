@@ -293,7 +293,8 @@ class While(nn.Module):
                 return res_abstract_state_list
             
             i += 1
-            if i > 1000:
+            if i > 500:
+                print(f"Have to END.")
                 break
 
         return res_abstract_state_list

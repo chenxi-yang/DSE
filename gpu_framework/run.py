@@ -170,6 +170,7 @@ if __name__ == "__main__":
                 # test for the quantitative accuracy
 
                 print(f"------------start verification------------")
+                exit(0)
                 verification_time = time.time()
                 verification(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_upper_bound}_{i}", component_list=component_list, target=target)
                 print(f"---verification time: {time.time() - verification_time} sec---")
