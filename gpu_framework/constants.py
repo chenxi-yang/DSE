@@ -74,9 +74,19 @@ if benchmark_name == "thermostat":
 if benchmark_name == "mountain_car":
     x_l = [-0.6]
     x_r =  [-0.4]
-    SAFE_RANGE = [100.0, 100.0]
-    safe_range_upper_bound_list = np.arange(80.0, 96.0, 5.0).tolist()
-    PHI = 0.1
+    safe_range_list = [[-0.9, 0.9], [0.5, 10000.0]]
+    phi_list = [0.1, 0.1]
+    w_list = [0.01, 0.99]
+    method_list = ['all', 'last']
+    # TODO: upper bound list:
+
+    # SAFE_RANGE = [100.0, 100.0]
+    # safe_range_upper_bound_list = np.arange(80.0, 96.0, 5.0).tolist()
+    # PHI = 0.1
+
+
+
+
     
 
 

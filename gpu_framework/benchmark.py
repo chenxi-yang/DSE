@@ -85,7 +85,9 @@ def mountain_car(p0):
     return trajectory_list
 
 
-def mountain_car(p, v):
+def mountain_car_algo(p, v):
+    # p: [goal_position, infinity], 0.1
+    # u: [-0.9, 0.9], 0.1
     while p <= goal_position:
         if p <= min_position: p, v = Reset(p, v)
         u = DNN(p, v)
@@ -106,7 +108,7 @@ def mountain_car(p, v):
     return reward
 
 
-def mountain_car(p, v):
+def mountain_car_concept(p, v):
     trajectory = list()
     while p <= goal_position:
         if p <= min_position: p, v = Reset(p, v)
