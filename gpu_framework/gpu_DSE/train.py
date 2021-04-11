@@ -84,8 +84,10 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
             raise NotImplementedError("Error: No trajectory method detected!")
 
         trajectory_loss = var_list([0.0])
+        # print(f"start trajectory: ")
         for state in trajectory:
             X = state[target_idx] # select the variable to measure
+            # print(f"X: {X.left.data.item()}, {X.right.data.item()}")
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
@@ -113,7 +115,7 @@ def safe_distance(abstract_state_list, target):
             target_loss += abstract_state_safe_loss
         target_loss = target_loss / var(len(abstract_state_list)).add(EPSILON)
         # Weighted loss of different state variables
-        target_loss = target_component["w"] * (target_loss - target['phi'])
+        target_loss = target_component["w"] * (target_loss - target_component['phi'])
         loss += target_loss
 
     return loss
