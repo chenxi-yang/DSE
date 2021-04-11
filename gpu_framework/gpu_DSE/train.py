@@ -99,7 +99,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 # print(f"empty")
                 if X.isPoint():
                     # min point to interval
-                    unsafe_value = torch.min(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
+                    unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
                 else:
                     unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(EPSILON))
                 # unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(EPSILON))
@@ -110,8 +110,8 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
             # print(f"unsafe value: {unsafe_value}")
             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
         # exit(0)
-        if trajectory_loss.data.item() > 100.0:
-            # print(f"add part: {trajectory_loss, symbol_table['probability']}")
+        # if trajectory_loss.data.item() > 100.0:
+        #     print(f"add part: {trajectory_loss, symbol_table['probability']}")
             # exit(0)
 
         # print(f"add part: {trajectory_loss, symbol_table['probability']}")
@@ -340,7 +340,7 @@ def learning(
                 real_data_loss += var(data_loss.data.item())
                 grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                 real_safe_loss += var(safe_loss.data.item())
-                print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
+                # print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
 
             # To maintain the real theta
             m = update_model_parameter(m, Theta)
