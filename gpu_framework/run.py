@@ -116,11 +116,12 @@ if __name__ == "__main__":
                     if benchmark_name == "mountain_car":
                         m = MountainCar(l=l, nn_mode=nn_mode, module=module)
                     if test_mode:
+                        # mainly for testing the verification part
                         epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{model_name_prefix}_{safe_range_bound}_{i}")
                         # TODO: for quick result
                         if m is not None and epochs_to_skip is not None:
                             print(f"Load Model.")
-                            # break
+                            break
                     else:
                         epochs_to_skip = None
 

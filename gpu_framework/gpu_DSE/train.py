@@ -74,7 +74,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
     unsafe_probability_condition = target_component["phi"]
     safe_interval = target_component["condition"]
     method = target_component["method"]
-    abstract_loss = abstract_loss = var_list([0.0])
+    abstract_loss = var_list([0.0])
     for symbol_table in abstract_state:
         if method == "last":
             trajectory = [symbol_table['trajectory'][-1]]
@@ -86,15 +86,22 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
         trajectory_loss = var_list([0.0])
         # print(f"start trajectory: ")
         for state in trajectory:
+            # print(f"state: {state}")
             X = state[target_idx] # select the variable to measure
+            # print(f"real state: [0]: {state[0].left.data.item(), state[0].right.data.item()}; \
+            #     [1]: {state[1].left.data.item(), state[1].right.data.item()}")
+            # print(f"target_idx: {target_idx}")
             # print(f"X: {X.left.data.item()}, {X.right.data.item()}")
+            # print(f"safe condition: {safe_interval.left.data.item()}, {safe_interval.right.data.item()}")
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
             else:
                 safe_portion = intersection_interval.getLength().div(X.getLength())
                 unsafe_value = 1 - safe_portion
+            # print(f"unsafe value: {unsafe_value}")
             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+        # exit(0)
         
         abstract_loss += trajectory_loss * symbol_table['probability']
     return abstract_loss
