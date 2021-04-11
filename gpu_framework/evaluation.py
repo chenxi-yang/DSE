@@ -130,6 +130,7 @@ def extract_unsafe(abstract_state, target_component, target_idx):
 
 def verify(abstract_state_list, target):
     for idx, target_component in enumerate(target):
+        target_name = target_component["name"]
         all_unsafe_probability = var_list([0.0])
         print(f"# of abstract state: {len(abstract_state_list)}")
         for abstract_state in abstract_state_list:
@@ -142,13 +143,13 @@ def verify(abstract_state_list, target):
         if not debug:
             log_file_evaluation = open(file_dir_evaluation, 'a')
         if all_unsafe_probability.data.item() <= target_component['phi'].data.item():
-            print(colored(f"#{target_component["name"]}: Verified Safe!", "green"))
+            print(colored(f"#{target_name}: Verified Safe!", "green"))
             if not debug:
-                log_file_evaluation.write(f"Verification of #{target_component["name"]}#: Verified Safe!\n")
+                log_file_evaluation.write(f"Verification of #{target_name}#: Verified Safe!\n")
         else:
-            print(colored(f"#{target_component["name"]}: Not Verified Safe!", "red"))
+            print(colored(f"#{target_name}: Not Verified Safe!", "red"))
             if not debug:
-                log_file_evaluation.write(f"Verification of #{target_component["name"]}#: Not Verified Safe!\n")
+                log_file_evaluation.write(f"Verification of #{target_name}#: Not Verified Safe!\n")
         
         print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target['phi'].data.item()}")
         if not debug:

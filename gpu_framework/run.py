@@ -127,6 +127,13 @@ if __name__ == "__main__":
                         if m is not None and epochs_to_skip is not None:
                             print(f"Load Model.")
                             break
+                        elif m is None:
+                            print(f"No model.")
+                            if not debug:
+                                log_file_evaluation = open(file_dir_evaluation, 'a')
+                                log_file_evaluation.write("No model.\n")
+                                log_file.close()
+                            continue
                     else:
                         epochs_to_skip = None
 
@@ -189,8 +196,8 @@ if __name__ == "__main__":
                 # TODO: add verification and test
                 # verification, going through the program without sampling
                 # test for the quantitative accuracy
-                print(f"skip verification")
-                continue
+                # print(f"skip verification")
+                # continue
                 print(f"------------start verification------------")
                 verification_time = time.time()
                 component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, verification_num_components, w=perturbation_width)

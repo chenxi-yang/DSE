@@ -76,6 +76,10 @@ Program Statement
 def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
     # assign_time = time.time()
     for idx, symbol_table in enumerate(abstract_state):
+        if len(symbol_table) == 0:
+            abstract_state[idx] = symbol_table
+            continue
+        # print(symbol_table)
         x = symbol_table['x']
         input = x.select_from_index(0, arg_idx) # torch.index_select(x, 0, arg_idx)
         # print(f"f: {f}")
@@ -206,7 +210,10 @@ def split_branch_abstract_state(target_idx, test, abstract_state):
     # if symbol_table is empty, keep it for sequence join
     body_abstract_state, orelse_abstract_state = list(), list()
     for symbol_table in abstract_state:
-        body_symbol_table, orelse_symbol_table = split_branch_symbol_table(target_idx, test, symbol_table)
+        if len(symbol_table) == 0:
+            body_symbol_table, orelse_symbol_table = dict(), dict()
+        else:
+            body_symbol_table, orelse_symbol_table = split_branch_symbol_table(target_idx, test, symbol_table)
         body_abstract_state.append(body_symbol_table)
         orelse_abstract_state.append(orelse_symbol_table)
     return body_abstract_state, orelse_abstract_state
@@ -419,7 +426,10 @@ def update_trajectory(symbol_table, target_idx):
 
 def update_abstract_state_trajectory(abstract_state, target_idx):
     for idx, symbol_table in enumerate(abstract_state):
-        symbol_table = update_trajectory(symbol_table, target_idx)
+        if len(symbol_table) == 0:
+            pass
+        else:
+            symbol_table = update_trajectory(symbol_table, target_idx)
         abstract_state[idx] = symbol_table
     return abstract_state
 

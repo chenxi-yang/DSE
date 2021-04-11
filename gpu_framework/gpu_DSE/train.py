@@ -136,6 +136,7 @@ def safe_distance(abstract_state_list, target):
         target_loss = target_loss / var(len(abstract_state_list)).add(EPSILON)
         # Weighted loss of different state variables
         target_loss = target_component["w"] * (target_loss - target_component['phi'])
+        # TODO: min(loss - target, 0)
         loss += target_loss
     # print(f"loss: {loss}")
     # exit(0)
