@@ -81,6 +81,7 @@ if benchmark_name == "mountain_car":
     phi_list = [0.1, 0.1]
     w_list = [0.5, 0.5]
     method_list = ['all', 'last']
+    name_list = ['acceleration', 'position']
     # TODO: upper bound list:
     component_bound_idx = 0
     bound_direction_idx = 1 # left or right

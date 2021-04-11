@@ -95,9 +95,10 @@ def get_intersection(interval_1, interval_2):
     return res_interval
 
 
-def get_symbol_table_trajectory_unsafe_value(symbol_table, target):
+def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx):
     trajectory_loss = var_list([0.0])
-    for X in symbol_table['trajectory']:
+    for state in symbol_table['trajectory']:
+        X = state[target_idx]
         print(f"X:{X.left.data.item(), X.right.data.item()}")
         safe_interval = target["condition"]
         unsafe_probability_condition = target["phi"]
@@ -115,11 +116,11 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target):
     return trajectory_loss
 
 
-def extract_unsafe(abstract_state, target):
+def extract_unsafe(abstract_state, target_component, target_idx):
     aggregation_p = var_list([0.0])
     abstract_state_unsafe_value = var_list([0.0])
     for symbol_table in abstract_state:
-        trajectory_unsafe_value = get_symbol_table_trajectory_unsafe_value(symbol_table, target)
+        trajectory_unsafe_value = get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx=target_idx)
         # print(f"component p: {symbol_table['probability'].data.item()}, trajectory_unsafe_value: {trajectory_unsafe_value}")
         abstract_state_unsafe_value += symbol_table['probability'] * trajectory_unsafe_value
         aggregation_p += symbol_table['probability']
@@ -128,29 +129,30 @@ def extract_unsafe(abstract_state, target):
 
 
 def verify(abstract_state_list, target):
-    all_unsafe_probability = var_list([0.0])
-    print(f"# of abstract state: {len(abstract_state_list)}")
-    for abstract_state in abstract_state_list:
-        aggregation_p, unsafe_probability = extract_unsafe(abstract_state, target)
-        print(f"aggregation_p: {aggregation_p.data.item()}, unsafe_probability: {unsafe_probability.data.item()}")
-        #! make the aggregation_p make more sense
-        aggregation_p = torch.min(var(1.0), aggregation_p)
-        all_unsafe_probability += aggregation_p * unsafe_probability
-    
-    if not debug:
-        log_file = open(file_dir_evaluation, 'a')
-    if all_unsafe_probability.data.item() <= target['phi'].data.item():
-        print(colored(f"Verified Safe!", "green"))
+    for idx, target_component in enumerate(target):
+        all_unsafe_probability = var_list([0.0])
+        print(f"# of abstract state: {len(abstract_state_list)}")
+        for abstract_state in abstract_state_list:
+            aggregation_p, unsafe_probability = extract_unsafe(abstract_state, target_component, target_idx=idx)
+            print(f"aggregation_p: {aggregation_p.data.item()}, unsafe_probability: {unsafe_probability.data.item()}")
+            #! make the aggregation_p make more sense
+            aggregation_p = torch.min(var(1.0), aggregation_p)
+            all_unsafe_probability += aggregation_p * unsafe_probability
+        
         if not debug:
-            log_file.write(f"Verification: Verified Safe!\n")
-    else:
-        print(colored(f"Not Verified Safe!", "red"))
+            log_file_evaluation = open(file_dir_evaluation, 'a')
+        if all_unsafe_probability.data.item() <= target_component['phi'].data.item():
+            print(colored(f"#{target_component["name"]}: Verified Safe!", "green"))
+            if not debug:
+                log_file_evaluation.write(f"Verification of #{target_component["name"]}#: Verified Safe!\n")
+        else:
+            print(colored(f"#{target_component["name"]}: Not Verified Safe!", "red"))
+            if not debug:
+                log_file_evaluation.write(f"Verification of #{target_component["name"]}#: Not Verified Safe!\n")
+        
+        print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target['phi'].data.item()}")
         if not debug:
-            log_file.write(f"Verification: Not Verified Safe!\n")
-    
-    print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target['phi'].data.item()}")
-    if not debug:
-        log_file.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target['phi'].data.item()}\n")
+            log_file_evaluation.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target['phi'].data.item()}\n")
 
 def show_component_p(component_list):
     component_p_list = list()

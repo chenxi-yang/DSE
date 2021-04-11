@@ -87,6 +87,7 @@ if __name__ == "__main__":
                             "phi": var(phi_list[idx]),
                             "w": var(w_list[idx]), 
                             "method": method_list[idx], 
+                            "name": name_list[idx], 
                         }
                     else:
                         target_component = {
@@ -94,6 +95,7 @@ if __name__ == "__main__":
                             "phi": var(phi_list[idx]),
                             "w": var(w_list[idx]), 
                             "method": method_list[idx], 
+                            "name": name_list[idx], 
                         }
                     target.append(target_component)
 
