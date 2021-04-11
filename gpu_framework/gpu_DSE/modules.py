@@ -337,7 +337,7 @@ def update_trajectory(symbol_table, target_idx):
     # states: list of intervals
     input_interval_list = list()
     for idx in target_idx:
-        input = symbol_table['x'].select_from_index(0, target_idx)
+        input = symbol_table['x'].select_from_index(0, idx)
         input_interval = input.getInterval()
         # print(f"input: {input.c, input.delta}")
         # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
