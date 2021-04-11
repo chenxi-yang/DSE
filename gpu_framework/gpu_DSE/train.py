@@ -69,16 +69,23 @@ def distance_f_interval(symbol_table_list, target):
     return res
 
 
-def extract_abstract_state_safe_loss(abstract_state, target):
+def extract_abstract_state_safe_loss(abstract_state, target_component, target_idx):
     # weighted sum of symbol_table loss in one abstract_state
-    abstract_loss = var_list([0.0])
-    unsafe_probability_condition = target["phi"]
-    safe_interval = target["condition"]
+    unsafe_probability_condition = target_component["phi"]
+    safe_interval = target_component["condition"]
+    method = target_component["method"]
+    abstract_loss = abstract_loss = var_list([0.0])
     for symbol_table in abstract_state:
+        if method == "last":
+            trajectory = [symbol_table['trajectory'][-1]]
+        elif method == "all":
+            trajectory = symbol_table['trajectory'][:]
+        else:
+            raise NotImplementedError("Error: No trajectory method detected!")
+
         trajectory_loss = var_list([0.0])
-        # print(f"trajec length: {len(symbol_table['trajectory'])}")
-        for X in symbol_table['trajectory']:
-            # print(f"X: {X.left.data.item()}, {X.right.data.item()}")
+        for state in trajectory:
+            X = state[target_idx] # select the variable to measure
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
@@ -86,7 +93,7 @@ def extract_abstract_state_safe_loss(abstract_state, target):
                 safe_portion = intersection_interval.getLength().div(X.getLength())
                 unsafe_value = 1 - safe_portion
             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
-            # print(f"unsafe value: {unsafe_value}")
+        
         abstract_loss += trajectory_loss * symbol_table['probability']
     return abstract_loss
     
@@ -94,15 +101,20 @@ def extract_abstract_state_safe_loss(abstract_state, target):
 def safe_distance(abstract_state_list, target):
     # measure safe distance in DSE
     # I am using sampling, and many samples the eventual average will be the same as the expectation
+    # limited number of abstract states, so count sequentially based on target is ok
     
     loss = var_list([0.0])
-    for abstract_state in abstract_state_list:
-        abstract_state_safe_loss = extract_abstract_state_safe_loss(
-            abstract_state, target
-        )
-        loss += abstract_state_safe_loss
-    loss = loss / var(len(abstract_state_list)).add(EPSILON)
-    loss = loss - target['phi']
+    for idx, target_component in enumerate(target):
+        target_loss = var_list([0.0])
+        for abstract_state in abstract_state_list:
+            abstract_state_safe_loss = extract_abstract_state_safe_loss(
+                abstract_state, target_component, target_idx=idx, 
+            )
+            target_loss += abstract_state_safe_loss
+        target_loss = target_loss / var(len(abstract_state_list)).add(EPSILON)
+        # Weighted loss of different state variables
+        target_loss = target_component["w"] * (target_loss - target['phi'])
+        loss += target_loss
 
     return loss
 

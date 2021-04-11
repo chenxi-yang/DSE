@@ -74,20 +74,20 @@ if benchmark_name == "thermostat":
 if benchmark_name == "mountain_car":
     x_l = [-0.6]
     x_r =  [-0.4]
-    safe_range_list = [[-0.9, 0.9], [0.5, 10000.0]]
+
+    safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
     phi_list = [0.1, 0.1]
     w_list = [0.01, 0.99]
     method_list = ['all', 'last']
     # TODO: upper bound list:
+    component_bound_idx = 0
+    bound_direction_idx = 1 # left or right
+    safe_range_bound_list = np.arange(0.5, 0.91, 0.1).tolist()
 
     # SAFE_RANGE = [100.0, 100.0]
     # safe_range_upper_bound_list = np.arange(80.0, 96.0, 5.0).tolist()
     # PHI = 0.1
 
-
-
-
-    
 
 
 # args
@@ -121,11 +121,12 @@ eps = 1e-10
 
 if not debug:
     if test_mode:
-        file_dir = f"gpu_{mode}/result_test/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}.txt"
+        file_dir = f"gpu_{mode}/result_test/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}.txt"
     else:
-        file_dir = f"gpu_{mode}/result/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{safe_range_upper_bound_list}_{PHI}.txt"
+        file_dir = f"gpu_{mode}/result/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}.txt"
     log_file = open(file_dir, 'w')
     log_file.write(f"{args}\n")
-    log_file.write(f"safe range: {SAFE_RANGE}\n")
+    log_file.write(f"Target info: {safe_range_list}, {phi_list}, \
+        {w_list}, {method_list}, {safe_range_bound_list}\n")
     log_file.write(f"path_num_list: {path_num_list}")
     log_file.close()

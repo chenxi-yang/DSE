@@ -59,25 +59,40 @@ if __name__ == "__main__":
     # torch.autograd.set_detect_anomaly(True)
 
     for path_sample_size in path_num_list:
-        for safe_range_upper_bound in safe_range_upper_bound_list:
+        for safe_range_bound in safe_range_bound_list:
 
             time_out = False
             constants.SAMPLE_SIZE = path_sample_size # show number of paths to sample
             if not debug:
                 log_file = open(file_dir, 'a')
-                log_file.write(f"path_sample_size: {path_sample_size}, safe_range_upper_bound: {safe_range_upper_bound}\n")
+                log_file.write(f"path_sample_size: {path_sample_size}\n")
                 log_file.close()
             
             if benchmark_name == "thermostat":
+                # TODO: adapt to other algorithms, as this is not a perfect benchmark, leave it alone
                 target = {
                     "condition": domain.Interval(var(SAFE_RANGE[0]), var(safe_range_upper_bound)),
                     "phi": var(PHI),
                 }
             if benchmark_name == "mountain_car":
-                target = {
-                    "condition": domain.Interval(var(safe_range_upper_bound), var(SAFE_RANGE[1])),
-                    "phi": var(PHI),
-                }
+                target = list()
+                for idx, safe_range in enumerate(safe_range_list):
+                    if idx == component_bound_idx:
+                        # TODO: only update the upper bound
+                        target_component = {
+                            "condition": domain.Interval(var(safe_range[0]), var(safe_range_size)),
+                            "phi": var(phi_list[idx]),
+                            "w": var(w_list[idx]), 
+                            "method": var(method_list[idx]), 
+                        }
+                    else:
+                        target_component = {
+                            "condition": domain.Interval(var(safe_range[0]), var(safe_range[1])),
+                            "phi": var(phi_list[idx]),
+                            "w": var(w_list[idx]), 
+                            "method": var(method_list[idx]), 
+                        }
+                    target.append(target_component)
 
             # data points generation
             preprocessing_time = time.time()
@@ -101,7 +116,7 @@ if __name__ == "__main__":
                     if benchmark_name == "mountain_car":
                         m = MountainCar(l=l, nn_mode=nn_mode, module=module)
                     if test_mode:
-                        epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{model_name_prefix}_{safe_range_upper_bound}_{i}")
+                        epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{model_name_prefix}_{safe_range_bound}_{i}")
                         # TODO: for quick result
                         if m is not None and epochs_to_skip is not None:
                             print(f"Load Model.")
@@ -125,7 +140,7 @@ if __name__ == "__main__":
                         use_smooth_kernel=use_smooth_kernel, 
                         save=save,
                         epochs_to_skip=epochs_to_skip,
-                        model_name=f"{model_name_prefix}_{safe_range_upper_bound}_{i}",
+                        model_name=f"{model_name_prefix}_{safe_range_bound}_{i}",
                         )
                     m.eval()
 
@@ -172,7 +187,7 @@ if __name__ == "__main__":
                 print(f"------------start verification------------")
                 verification_time = time.time()
                 component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, verification_num_components, w=perturbation_width)
-                verification(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_upper_bound}_{i}", component_list=component_list, target=target)
+                verification(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", component_list=component_list, target=target)
                 print(f"---verification time: {time.time() - verification_time} sec---")
                 # exit(0)
                 # eval(X_train, y_train, m_t, target, 'train')
