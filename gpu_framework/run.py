@@ -65,8 +65,11 @@ if __name__ == "__main__":
             constants.SAMPLE_SIZE = path_sample_size # show number of paths to sample
             if not debug:
                 log_file = open(file_dir, 'a')
-                log_file.write(f"path_sample_size: {path_sample_size}\n")
+                log_file.write(f"path_sample_size: {path_sample_size}, safa_range_bound: {safe_range_bound}\n")
                 log_file.close()
+                log_file_evaluation = open(file_dir_evaluation, 'a')
+                log_file_evaluation.write(f"path_sample_size: {path_sample_size}, safa_range_bound: {safe_range_bound}\n")
+                log_file_evaluation.close()
             
             if benchmark_name == "thermostat":
                 # TODO: adapt to other algorithms, as this is not a perfect benchmark, leave it alone

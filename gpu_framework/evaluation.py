@@ -138,7 +138,7 @@ def verify(abstract_state_list, target):
         all_unsafe_probability += aggregation_p * unsafe_probability
     
     if not debug:
-        log_file = open(file_dir, 'a')
+        log_file = open(file_dir_evaluation, 'a')
     if all_unsafe_probability.data.item() <= target['phi'].data.item():
         print(colored(f"Verified Safe!", "green"))
         if not debug:

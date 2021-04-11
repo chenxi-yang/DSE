@@ -123,11 +123,20 @@ eps = 1e-10
 if not debug:
     if test_mode:
         file_dir = f"gpu_{mode}/result_test/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}.txt"
+        file_dir_evaluation = f"gpu_{mode}/result_test/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_evaluation.txt"
     else:
         file_dir = f"gpu_{mode}/result/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}.txt"
+        file_dir_evaluation = f"gpu_{mode}/result/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_evaluation.txt"
     log_file = open(file_dir, 'w')
     log_file.write(f"{args}\n")
     log_file.write(f"Target info: {safe_range_list}, {phi_list}, \
         {w_list}, {method_list}, {safe_range_bound_list}\n")
     log_file.write(f"path_num_list: {path_num_list}")
     log_file.close()
+
+    log_file_evaluation =  open(file_dir_evaluation, 'w')
+    log_file_evaluation.write(f"{args}\n")
+    log_file_evaluation.write(f"Target info: {safe_range_list}, {phi_list}, \
+        {w_list}, {method_list}, {safe_range_bound_list}\n")
+    log_file_evaluation.write(f"path_num_list: {path_num_list}")
+    log_file_evaluation.close()
