@@ -79,18 +79,19 @@ if __name__ == "__main__":
                 for idx, safe_range in enumerate(safe_range_list):
                     if idx == component_bound_idx:
                         # TODO: only update the upper bound
+                        print(method_list)
                         target_component = {
-                            "condition": domain.Interval(var(safe_range[0]), var(safe_range_size)),
+                            "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)),
                             "phi": var(phi_list[idx]),
                             "w": var(w_list[idx]), 
-                            "method": var(method_list[idx]), 
+                            "method": method_list[idx], 
                         }
                     else:
                         target_component = {
                             "condition": domain.Interval(var(safe_range[0]), var(safe_range[1])),
                             "phi": var(phi_list[idx]),
                             "w": var(w_list[idx]), 
-                            "method": var(method_list[idx]), 
+                            "method": method_list[idx], 
                         }
                     target.append(target_component)
 
