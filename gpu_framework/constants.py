@@ -75,6 +75,7 @@ if benchmark_name == "mountain_car":
     x_l = [-0.6]
     x_r =  [-0.4]
 
+    # u,  p
     safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
     phi_list = [0.1, 0.1]
     w_list = [0.01, 0.99]

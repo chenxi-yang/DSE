@@ -333,14 +333,18 @@ class While(nn.Module):
 
 
 def update_trajectory(symbol_table, target_idx):
-    input = symbol_table['x'].select_from_index(0, target_idx)
-    input_interval = input.getInterval()
-    # print(f"input: {input.c, input.delta}")
-    # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
-    assert input_interval.left.data.item() <= input_interval.right.data.item()
-
+    # trajectory: list of states
+    # states: list of intervals
+    input_interval_list = list()
+    for idx in target_idx:
+        input = symbol_table['x'].select_from_index(0, target_idx)
+        input_interval = input.getInterval()
+        # print(f"input: {input.c, input.delta}")
+        # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
+        assert input_interval.left.data.item() <= input_interval.right.data.item()
+        input_interval_list.append(input_interval)
     # print(f"In update trajectory")
-    symbol_table['trajectory'].append(input_interval)
+    symbol_table['trajectory'].append(input_interval_list)
     # print(f"Finish update trajectory")
 
     return symbol_table
