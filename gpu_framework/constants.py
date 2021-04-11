@@ -78,7 +78,7 @@ if benchmark_name == "mountain_car":
     # u,  p
     safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
     phi_list = [0.1, 0.1]
-    w_list = [0.01, 0.99]
+    w_list = [0.1, 0.9]
     method_list = ['all', 'last']
     # TODO: upper bound list:
     component_bound_idx = 0

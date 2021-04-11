@@ -95,15 +95,28 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
             # print(f"safe condition: {safe_interval.left.data.item()}, {safe_interval.right.data.item()}")
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
-                unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
+                # print(f"point: {X.isPoint()}")
+                # print(f"empty")
+                if X.isPoint():
+                    # min point to interval
+                    unsafe_value = torch.min(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
+                else:
+                    unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(EPSILON))
+                # unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(EPSILON))
             else:
-                safe_portion = intersection_interval.getLength().div(X.getLength())
+                # print(f"not empty: {intersection_interval.getLength()}, {X.getLength()}")
+                safe_portion = intersection_interval.getLength().div(X.getLength().add(EPSILON))
                 unsafe_value = 1 - safe_portion
             # print(f"unsafe value: {unsafe_value}")
             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
         # exit(0)
-        
+        if trajectory_loss.data.item() > 100.0:
+            # print(f"add part: {trajectory_loss, symbol_table['probability']}")
+            # exit(0)
+
+        # print(f"add part: {trajectory_loss, symbol_table['probability']}")
         abstract_loss += trajectory_loss * symbol_table['probability']
+        # print(f"abstract_loss: {abstract_loss}")
     return abstract_loss
     
 
@@ -124,6 +137,8 @@ def safe_distance(abstract_state_list, target):
         # Weighted loss of different state variables
         target_loss = target_component["w"] * (target_loss - target_component['phi'])
         loss += target_loss
+    # print(f"loss: {loss}")
+    # exit(0)
 
     return loss
 

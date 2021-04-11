@@ -102,13 +102,14 @@ class Interval:
 
     def isEmpty(self):
         # print(self.right, self.left)
+        print(f"judge empty: {self.left.data.item(), self.right.data.item()}")
         if self.right.data.item() < self.left.data.item():
             return True
         else:
             return False
     
     def isPoint(self):
-        if self.right.data.item() == self.left.data.item():
+        if self.right.data.item() == self.left.data.item(): # or abs(self.right.data.item() - self.left.data.item()) < EPSILON.data.item():
             return True
         else:
             return False
