@@ -120,6 +120,9 @@ class Interval:
         res.right = x
         return res
     
+    def soundJoin(self, other):
+        return self.new(torch.min(self.left, other.left), torch.max(self.right, other.right))
+    
     def getZonotope(self):
         res = Zonotope()
         res.center = (self.left.add(self.right)).div(var(2.0))

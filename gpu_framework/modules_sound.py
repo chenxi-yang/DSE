@@ -203,13 +203,12 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
             
 
 def split_branch_abstract_state(target_idx, test, abstract_state):
+    # if symbol_table is empty, keep it for sequence join
     body_abstract_state, orelse_abstract_state = list(), list()
     for symbol_table in abstract_state:
         body_symbol_table, orelse_symbol_table = split_branch_symbol_table(target_idx, test, symbol_table)
-        if len(body_symbol_table) > 0:
-            body_abstract_state.append(body_symbol_table)
-        if len(orelse_symbol_table) > 0:
-            orelse_abstract_state.append(orelse_symbol_table)
+        body_abstract_state.append(body_symbol_table)
+        orelse_abstract_state.append(orelse_symbol_table)
     return body_abstract_state, orelse_abstract_state
 
 
@@ -228,6 +227,87 @@ def split_branch_list(target_idx, test, abstract_state_list):
     
     return body_abstract_state_list, orelse_abstract_state_list 
 
+
+def sound_join_trajectory(trajectory_1, trajectory_2):
+    l1, l2 = len(trajectory_1), len(trajectory_2)
+    trajectory = list()
+    for idx in min(l1 - 1, l2 - 1):
+        states_1, states_2 =  trajectory_1[idx], trajectory_2[idx]
+        state_list = list()
+        for state_idx, v in enumerate(states_1):
+            state_1, state_2 = states_1[state_idx], states_2[state_idx]
+            state_list.append(state_1.soundJoin(state_2))
+        trajectory.append(state_list)
+    if l1 < l2:
+        trajectory.extend(trajectory_2[l1:])
+    elif l1 > l2:
+        trajecory.extend(trajectory_1[l2:])
+    
+    return trajectory
+
+
+def sound_join_symbol_table(symbol_table_1, symbol_table_2):
+    symbol_table = {
+        'x': symbol_table_1['x'].sound_join(symbol_table_2['x']),
+        'probability': torch.max(symbol_table_1['probability'], symbol_table_2['probability']),
+        'trajectory': sound_join_trajectory(symbol_table_1['trajectory'], symbol_table_2['trajectory']), 
+        'branch': '',
+    }
+    return symbol_table
+
+
+def sound_join_symbol_tables(symbol_tables):
+    res_symbol_table = dict()
+    for symbol_table in symbol_tables:
+        if len(symbol_table) == 0: # if the symbol_table is empty, skip
+            continue
+        if len(res_symbol_table) == 0:
+            res_symbol_table = symbol_table
+        else:
+            res_symbol_table = sound_join_symbol_table(res_symbol_table, symbol_table)
+    return res_symbol_table
+
+
+def sound_join_abstract_states(abstract_states):
+    # list of abstract_states, join their symbol_tables sequentially
+    # symbol_table might be empty, then just skip
+    # symbol_table: {
+    #   'x'
+    #   'probability'
+    #   'branch'
+    #   'trajectory'
+    # }
+    new_abstract_state = list()
+    number_symbol_table = len(abstract_states[0]) # all the number of symbol_tables should be the same
+    for symbol_tables in list(zip(*abstract_states)):
+        symbol_table = sound_join_symbol_tables(symbol_tables)
+        new_abstract_state.append(symbol_table)
+    return new_abstract_state
+
+
+def sound_join_k(l1, l2, k):
+    '''
+    l1, l2: list of abstract states
+    k: maximum allowed separate abstract_states
+    '''
+    res_list = list()
+    res_list.extend(l1)
+    res_list.extend(l2)
+
+    if len(res_list) <= k:
+        return res_list
+
+    shuffle(res_list)
+    chunk_size = len(res_list) // k + 1
+    
+    to_join_abstract_states_list = [res_list[i:i+chunk_size] for i in range(0, len(res_list), chunk_size)]
+    res_list = list()
+    for to_join_abstract_states in to_join_abstract_states_list:
+        joined_abstract_state = sound_join_abstract_states(to_join_abstract_states)
+        res_list.append(joined_abstract_state)
+    
+    return res_list
+    
 
 class Skip(nn.Module):
     def __init__(self):
@@ -273,10 +353,11 @@ class IfElse(nn.Module):
         
         if len(body_list) > 0:
             body_list = self.body(body_list)
-            res_list.extend(body_list)
+            # res_list.extend(body_list)
         if len(else_list) > 0:
             else_list = self.orelse(else_list)
-            res_list.extend(else_list)
+            # res_list.extend(else_list)
+        res_list = sound_join_k(body_list, else_list, k=constants.verification_num_abstract_states)
 
         return res_list
 
@@ -303,7 +384,8 @@ class While(nn.Module):
             body_list, else_list = split_branch_list(self.target_idx, self.test, abstract_state_list)
 
             if len(else_list) > 0:
-                res_list.extend(else_list)
+                # res_list.extend(else_list)
+                res_list = sound_join_k(res_list, else_list, k=constants.verification_num_abstract_states)
 
             if len(body_list) > 0:
                 abstract_state_list = self.body(body_list)
