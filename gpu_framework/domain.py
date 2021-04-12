@@ -389,8 +389,8 @@ class Box():
         return self.new(value, var(0.0))
     
     def sound_join(self, other):
-        l1, r1 = self.c - self.delta, other.c + self.delta
-        l2, r2 = self.c - self.delta, other.c + self.delta
+        l1, r1 = self.c - self.delta, self.c + self.delta
+        l2, r2 = other.c - other.delta, other.c + other.delta
         l = torch.min(l1, l2)
         r = torch.max(r1, r2)
         return self.new((r + l) / 2, (r - l) / 2)

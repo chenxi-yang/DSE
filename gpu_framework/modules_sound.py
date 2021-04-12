@@ -238,7 +238,7 @@ def split_branch_list(target_idx, test, abstract_state_list):
 def sound_join_trajectory(trajectory_1, trajectory_2):
     l1, l2 = len(trajectory_1), len(trajectory_2)
     trajectory = list()
-    for idx in min(l1 - 1, l2 - 1):
+    for idx in range(min(l1 - 1, l2 - 1)):
         states_1, states_2 =  trajectory_1[idx], trajectory_2[idx]
         state_list = list()
         for state_idx, v in enumerate(states_1):
@@ -248,7 +248,7 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
     if l1 < l2:
         trajectory.extend(trajectory_2[l1:])
     elif l1 > l2:
-        trajecory.extend(trajectory_1[l2:])
+        trajectory.extend(trajectory_1[l2:])
     
     return trajectory
 
@@ -305,7 +305,7 @@ def sound_join_k(l1, l2, k):
         return res_list
 
     shuffle(res_list)
-    chunk_size = len(res_list) // k + 1
+    chunk_size = len(res_list) // k
     
     to_join_abstract_states_list = [res_list[i:i+chunk_size] for i in range(0, len(res_list), chunk_size)]
     res_list = list()
