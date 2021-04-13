@@ -121,7 +121,16 @@ class Interval:
         return res
     
     def soundJoin(self, other):
-        return self.new(torch.min(self.left, other.left), torch.max(self.right, other.right))
+        # if debug:
+        #     r = torch.cuda.memory_reserved(0) 
+        #     a = torch.cuda.memory_allocated(0)
+        #     print(f"soundJoin, before, cuda memory reserved: {r}, allocated: {a}")
+        res = self.new(torch.min(self.left, other.left), torch.max(self.right, other.right))
+        # if debug:
+        #     r = torch.cuda.memory_reserved(0) 
+        #     a = torch.cuda.memory_allocated(0)
+        #     print(f"soundJoin, after cuda memory reserved: {r}, allocated: {a}")
+        return res
     
     def getZonotope(self):
         res = Zonotope()
@@ -393,7 +402,16 @@ class Box():
         l2, r2 = other.c - other.delta, other.c + other.delta
         l = torch.min(l1, l2)
         r = torch.max(r1, r2)
-        return self.new((r + l) / 2, (r - l) / 2)
+        # if debug:
+        #     r = torch.cuda.memory_reserved(0) 
+        #     a = torch.cuda.memory_allocated(0)
+        #     print(f"box sound_join, before, cuda memory reserved: {r}, allocated: {a}")
+        res = self.new((r + l) / 2, (r - l) / 2)
+        # if debug:
+        #     r = torch.cuda.memory_reserved(0) 
+        #     a = torch.cuda.memory_allocated(0)
+        #     print(f"box sound_join, after, cuda memory reserved: {r}, allocated: {a}")
+        return res
         
     def getRight(self):
         return self.c.add(self.delta)
@@ -409,10 +427,19 @@ class Box():
         return self.new(self.c.matmul(other), self.delta.matmul(other.abs()))
     
     def add(self, other):
+        #TODO:
+        if debug:
+            r1 = torch.cuda.memory_reserved(0) 
+            a1 = torch.cuda.memory_allocated(0)
         if isinstance(other, torch.Tensor):
-            return self.new(self.c.add(other), self.delta)
+            res = self.new(self.c.add(other), self.delta)
         else:
-            return self.new(self.c.add(other.c), self.delta + other.delta)
+            res = self.new(self.c.add(other.c), self.delta + other.delta)
+        if debug:
+            r2 = torch.cuda.memory_reserved(0) 
+            a2 = torch.cuda.memory_allocated(0)
+            print(f"#add# : memory cost {a2 - a1}")
+        return res
             
     def sub_l(self, other): # self - other
         # print(f"sub_l other:{other}")
@@ -431,19 +458,35 @@ class Box():
             return self.new(other.c.sub(self.c), self.delta + other.delta)
     
     def mul(self, other):
+        if debug:
+            r1 = torch.cuda.memory_reserved(0) 
+            a1 = torch.cuda.memory_allocated(0)
         interval = self.getInterval()
         if isinstance(other, torch.Tensor):
             pass
         else:
             other = other.getInterval()
         res_interval = interval.mul(other)
-        return res_interval.getBox()
+        res = res_interval.getBox()
+        if debug:
+            r2 = torch.cuda.memory_reserved(0) 
+            a2 = torch.cuda.memory_allocated(0)
+            print(f"#mul# : memory cost {a2 - a1}")
+        return res
     
     def cos(self):
         #TODO: only for box, not for zonotope
+        if debug:
+            r1 = torch.cuda.memory_reserved(0) 
+            a1 = torch.cuda.memory_allocated(0)
         interval = self.getInterval()
         res_interval = interval.cos()
-        return res_interval.getBox()
+        res = res_interval.getBox()
+        if debug:
+            r2 = torch.cuda.memory_reserved(0) 
+            a2 = torch.cuda.memory_allocated(0)
+            print(f"#cos# : memory cost {a2 - a1}")
+        return res
     
     def exp(self):
         a = self.delta.exp()

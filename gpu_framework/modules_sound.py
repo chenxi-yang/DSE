@@ -75,6 +75,11 @@ Program Statement
 
 def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
     # assign_time = time.time()
+    if debug:
+        r1 = torch.cuda.memory_reserved(0) 
+        a1 = torch.cuda.memory_allocated(0)
+        
+    
     for idx, symbol_table in enumerate(abstract_state):
         if len(symbol_table) == 0:
             abstract_state[idx] = symbol_table
@@ -92,14 +97,31 @@ def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
         # symbol_table['probability'] = symbol_table['probability']
         abstract_state[idx] = symbol_table
     # print(f"-- assign -- calculate_x_list: {time.time() - assign_time}")
+    if debug:
+        r2 = torch.cuda.memory_reserved(0) 
+        a2 = torch.cuda.memory_allocated(0)
+        if a2 > a1: 
+            print(f"len of abstract_states: {len(abstract_state)}, close calculation, before, cuda memory reserved: {r1}, allocated: {a1}")
+            print(f"func name: {f}")
+            print(f"close calculation, after, cuda memory reserved: {r2}, allocated: {a2}")
+    
     return abstract_state
 
 
 def calculate_abstract_states_list(target_idx, arg_idx, f, abstract_state_list):
+    # if debug:
+    #     r = torch.cuda.memory_reserved(0) 
+    #     a = torch.cuda.memory_allocated(0)
+    #     print(f"calculate_abstract_states_list, before, cuda memory reserved: {r}, allocated: {a}")
     res_list = list()
     for abstract_state in abstract_state_list:
         res_abstract_state = calculate_abstract_state(target_idx, arg_idx, f, abstract_state)
         res_list.append(res_abstract_state)
+    
+    # if debug:
+    #     r = torch.cuda.memory_reserved(0) 
+    #     a = torch.cuda.memory_allocated(0)
+    #     print(f"calculate_abstract_states_list, after, cuda memory reserved: {r}, allocated: {a}")
     return res_list
 
 
@@ -297,6 +319,11 @@ def sound_join_k(l1, l2, k):
     l1, l2: list of abstract states
     k: maximum allowed separate abstract_states
     '''
+    # if debug:
+    #     r = torch.cuda.memory_reserved(0) 
+    #     a = torch.cuda.memory_allocated(0)
+    #     print(f"sound_join_k, before, cuda memory reserved: {r}, allocated: {a}") 
+        
     res_list = list()
     res_list.extend(l1)
     res_list.extend(l2)
@@ -312,6 +339,11 @@ def sound_join_k(l1, l2, k):
     for to_join_abstract_states in to_join_abstract_states_list:
         joined_abstract_state = sound_join_abstract_states(to_join_abstract_states)
         res_list.append(joined_abstract_state)
+    
+    # if debug:
+    #     r = torch.cuda.memory_reserved(0) 
+    #     a = torch.cuda.memory_allocated(0)
+    #     print(f"sound_join_k, after, cuda memory reserved: {r}, allocated: {a}")
     
     return res_list
     
@@ -355,9 +387,16 @@ class IfElse(nn.Module):
     def forward(self, abstract_state_list):
         test = self.f_test(self.test)
         res_list = list()
-
+        # if debug:
+        #     r = torch.cuda.memory_reserved(0) 
+        #     a = torch.cuda.memory_allocated(0)
+        #     print(f"split_branch_list, before, cuda memory reserved: {r}, allocated: {a}")
         body_list, else_list = split_branch_list(self.target_idx, self.test, abstract_state_list)
-        
+        # if debug:
+        #     r = torch.cuda.memory_reserved(0) 
+        #     a = torch.cuda.memory_allocated(0)
+        #     print(f"split_branch_list, after, cuda memory reserved: {r}, allocated: {a}")
+
         if len(body_list) > 0:
             body_list = self.body(body_list)
             # res_list.extend(body_list)
@@ -400,6 +439,10 @@ class While(nn.Module):
                 return res_list
             i += 1
             print(len(abstract_state_list))
+            # if debug:
+            #     r = torch.cuda.memory_reserved(0) 
+            #     a = torch.cuda.memory_allocated(0)
+            #     print(f"while, cuda memory reserved: {r}, allocated: {a}")
             if i > 1000:
                 break
 
