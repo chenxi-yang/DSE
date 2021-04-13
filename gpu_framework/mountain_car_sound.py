@@ -10,6 +10,7 @@ import domain
 from modules_sound import *
 
 import os
+import gc
 
 # x_list
 # i, isOn, x, lin  = 0.0, 0.0, input, x
@@ -28,17 +29,20 @@ if torch.cuda.is_available():
     index3 = index3.cuda()
 
 # input order: position, velocity, u, reward
+# an attribute keeping track of the index of each symbol_table
+# only for join cases
 def initialization_abstract_state(component_list):
     abstract_state_list = list()
     # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
     abstract_state = list()
-    for component in component_list:
+    for idx, component in enumerate(component_list):
         center, width, p = component['center'], component['width'], component['p']
         symbol_table = {
             'x': domain.Box(var_list([center[0], 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0])),
             'probability': var(p),
             'trajectory': list(),
             'branch': '',
+            'idx': idx, 
         }
 
         abstract_state.append(symbol_table)
@@ -137,13 +141,14 @@ def f_assign_v(x):
     if debug:
         r1 = torch.cuda.memory_reserved(0) 
         a1 = torch.cuda.memory_allocated(0)
+        print(f"#f_assign_v ini# : memory cost {a1}")
     p = x.select_from_index(0, index0)
     v = x.select_from_index(0, index1)
     u = x.select_from_index(0, index2)
     if debug:
         r2 = torch.cuda.memory_reserved(0) 
         a2 = torch.cuda.memory_allocated(0)
-        print(f"#f_assign_v# : memory cost {a2 - a1}")
+        print(f"#f_assign_v# : memory cost {a2}")
     # TODO: cos
     if debug:
         r3 = torch.cuda.memory_reserved(0) 
@@ -152,7 +157,26 @@ def f_assign_v(x):
     if debug:
         r4 = torch.cuda.memory_reserved(0) 
         a4 = torch.cuda.memory_allocated(0)
-        print(f"#f_assign_v[RES]# : memory cost {a4 - a3}")
+        print(f"#f_assign_v[RES]# : memory cost {a4}")
+        res.c.backward(retain_graph=True)
+        res.delta.backward(retain_graph=True)
+        print(f"res: {res, res.c.grad, res.delta.grad}")
+        del p
+        del v
+        del u
+        a5 = torch.cuda.memory_allocated(0)
+        print(f"after del: memory cost {a5}")
+        res.c.backward(retain_graph=True)
+        res.delta.backward(retain_graph=True)
+        print(f"new res: {res, res.c.grad, res.delta.grad}")
+
+        for obj in gc.get_objects():
+            try:
+                if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                    print(type(obj), obj.size())
+            except:
+                pass
+
     return res
 
 

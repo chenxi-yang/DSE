@@ -31,6 +31,21 @@ def show_op(x):
         return 
     print(x + ':')
 
+
+def handleNegative(interval):
+    # print('interval', interval.left, interval.right)
+    if interval.left.data.item() < 0.0:
+        # print('check')
+        if interval.left.data.item() == N_INFINITY.data.item():
+            interval.left = var(0.0)
+            interval.right = P_INFINITY
+        else:
+            # n = torch.floor_divide(var(-1.0).mul(interval.left), PI_TWICE)
+            n = torch.ceil(var(-1.0).mul(interval.left).div(PI_TWICE))
+            interval.left = interval.left.add(PI_TWICE.mul(n))
+            interval.right = interval.right.add(PI_TWICE.mul(n))
+    return interval
+
 # interval domain
 
 class Interval:
@@ -237,28 +252,14 @@ class Interval:
         return res
 
     def cos(self):
-        show_op('cos')
-        show_value(self)
+        # show_op('cos')
+        # show_value(self)
         
-        res = Interval()
+        # res = Interval()
 
         cache = Interval()
         cache.left = self.left
         cache.right = self.right
-
-        def handleNegative(interval):
-            # print('interval', interval.left, interval.right)
-            if interval.left.data.item() < 0.0:
-                # print('check')
-                if interval.left.data.item() == N_INFINITY.data.item():
-                    interval.left = var(0.0)
-                    interval.right = P_INFINITY
-                else:
-                    # n = torch.floor_divide(var(-1.0).mul(interval.left), PI_TWICE)
-                    n = torch.ceil(var(-1.0).mul(interval.left).div(PI_TWICE))
-                    interval.left = interval.left.add(PI_TWICE.mul(n))
-                    interval.right = interval.right.add(PI_TWICE.mul(n))
-            return interval
 
         cache = handleNegative(cache)
         # print('y_neg', cache.left, cache.right)
@@ -270,34 +271,37 @@ class Interval:
         # print(type(t.getVolumn()), type(PI_TWICE))
         if t.getVolumn().data.item() >= PI_TWICE.data.item():
             # print('volume', t.getVolumn())
-            res = Interval(-1.0, 1.0)
-            show_value(res)
-            return res
-        
+            res = Interval(var(-1.0), var(1.0))
+            # show_value(res)
+            # return res
         # when t.left > PI same as -cos(t-pi)
-        if t.left.data.item() >= PI.data.item():
+        elif t.left.data.item() >= PI.data.item():
             cosv = (t.sub_l(PI)).cos()
             res = cosv.mul(var(-1.0))
-            show_value(res)
-            return res
-        
-        tl = torch.cos(t.right)
-        tr = torch.cos(t.left)
-        if t.right.data.item() <= PI.data.item():
-            res.left = tl
-            res.right = tr
-            show_value(res)
-            return res
-        elif t.right.data.item() <= PI_TWICE.data.item():
-            res.left = var(-1.0)
-            res.right = torch.max(tl, tr)
-            show_value(res)
-            return res
+            # show_value(res)
+            # return res
         else:
-            res.left = var(-1.0)
-            res.right = var(1.0)
-            show_value(res)
-            return res
+            tl = torch.cos(t.right)
+            tr = torch.cos(t.left)
+            if t.right.data.item() <= PI.data.item():
+                # res.left = tl
+                # res.right = tr
+                res = Interval(tl, tr)
+                # show_value(res)
+                # return res
+            elif t.right.data.item() <= PI_TWICE.data.item():
+                # res.left = var(-1.0)
+                # res.right = torch.max(tl, tr)
+                res = Interval(var(-1.0), torch.max(tl, tr))
+                # show_value(res)
+                # return res
+            else:
+                # res.left = var(-1.0)
+                # res.right = var(1.0)
+                res = Interval(var(-1.0), var(1.0))
+                # show_value(res)
+                # return res
+        return res
 
     def sin(self):
         return self.sub_l(PI_HALF).cos()
@@ -362,7 +366,13 @@ class Box():
         self.delta = delta
     
     def new(self, c, delta):
-        return self.__class__(c, delta)
+        # if debug:
+        #     a1 = torch.cuda.memory_allocated(0)
+        res = self.__class__(c, delta)
+        # if debug:
+        #     a2 = torch.cuda.memory_allocated(0)
+        #     print(f"new box: memory cost: {a2 - a1}")
+        return res
     
     def clone(self):
         return self.new(self.c.clone(), self.delta.clone())
@@ -431,14 +441,35 @@ class Box():
         if debug:
             r1 = torch.cuda.memory_reserved(0) 
             a1 = torch.cuda.memory_allocated(0)
+            print(f"#add, ini#, memory: {a1}")
         if isinstance(other, torch.Tensor):
-            res = self.new(self.c.add(other), self.delta)
+            c, d = self.c.add(other), self.delta
+            if debug:
+                r3 = torch.cuda.memory_reserved(0) 
+                a3 = torch.cuda.memory_allocated(0)
+                print(f"#add, c, d# : memory cost {a3}")
+            res = self.new(c, d)
+            if debug:
+                r4 = torch.cuda.memory_reserved(0) 
+                a4 = torch.cuda.memory_allocated(0)
+                print(f"#add, res new# : memory cost {a4}")
+            # res = self.new(self.c.add(other), self.delta)
         else:
-            res = self.new(self.c.add(other.c), self.delta + other.delta)
+            c, d = self.c.add(other.c), self.delta + other.delta
+            if debug:
+                r3 = torch.cuda.memory_reserved(0) 
+                a3 = torch.cuda.memory_allocated(0)
+                print(f"#add, c, d# : memory cost {a3}")
+            res = self.new(c, d)
+            if debug:
+                r4 = torch.cuda.memory_reserved(0) 
+                a4 = torch.cuda.memory_allocated(0)
+                print(f"#add, res new# : memory cost {a4}")
+            # res = self.new(self.c.add(other.c), self.delta + other.delta)
         if debug:
             r2 = torch.cuda.memory_reserved(0) 
             a2 = torch.cuda.memory_allocated(0)
-            print(f"#add# : memory cost {a2 - a1}")
+            print(f"#add# : memory cost {a2}")
         return res
             
     def sub_l(self, other): # self - other
@@ -461,6 +492,7 @@ class Box():
         if debug:
             r1 = torch.cuda.memory_reserved(0) 
             a1 = torch.cuda.memory_allocated(0)
+            print(f"#mul ini# : memory cost {a1}")
         interval = self.getInterval()
         if isinstance(other, torch.Tensor):
             pass
@@ -471,7 +503,10 @@ class Box():
         if debug:
             r2 = torch.cuda.memory_reserved(0) 
             a2 = torch.cuda.memory_allocated(0)
-            print(f"#mul# : memory cost {a2 - a1}")
+            print(f"#mul# : memory cost {a2}")
+            del res_interval
+            del interval
+            print(f"after del in mul: {torch.cuda.memory_allocated(0)}")
         return res
     
     def cos(self):
@@ -479,13 +514,17 @@ class Box():
         if debug:
             r1 = torch.cuda.memory_reserved(0) 
             a1 = torch.cuda.memory_allocated(0)
+            print(f"#cos ini# : memory cost {a1}")
         interval = self.getInterval()
         res_interval = interval.cos()
         res = res_interval.getBox()
         if debug:
             r2 = torch.cuda.memory_reserved(0) 
             a2 = torch.cuda.memory_allocated(0)
-            print(f"#cos# : memory cost {a2 - a1}")
+            print(f"#cos# : memory cost {a2}")
+            del res_interval
+            del interval
+            print(f"after del in cos: {torch.cuda.memory_allocated(0)}")
         return res
     
     def exp(self):

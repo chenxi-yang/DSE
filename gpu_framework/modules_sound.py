@@ -88,7 +88,15 @@ def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
         x = symbol_table['x']
         input = x.select_from_index(0, arg_idx) # torch.index_select(x, 0, arg_idx)
         # print(f"f: {f}")
+        if debug:
+            r3 = torch.cuda.memory_reserved(0) 
+            a3 = torch.cuda.memory_allocated(0)
+            print(f"memory before f: {a3}")
         res  = f(input)
+        if debug:
+            r4 = torch.cuda.memory_reserved(0) 
+            a4 = torch.cuda.memory_allocated(0)
+            print(f"memory after f: {a4}")
         # print(f"calculate_x_list --  target_idx: {target_idx}, res: {res.c}, {res.delta}")
         x.set_from_index(target_idx, res) # x[target_idx[0]] = res
         
