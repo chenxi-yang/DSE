@@ -223,6 +223,7 @@ def safe_distance(symbol_table_list, target):
             target_loss += trajectory_loss
         target_loss = target_loss / (var(len(symbol_table_list)).add(EPSILON))
         target_loss = target_component["w"] * (target_loss - unsafe_probability_condition)
+        target_loss = torch.max(target_loss, var(0.0))
         loss +=  target_loss
 
     return loss
@@ -406,13 +407,13 @@ def learning(
                     real_safe_loss += var_list([safe_loss.data.item()])
 
                     # print(f"sample time: {time.time() - sample_time}")
-                    if time.time() - sample_time > 2000/(n*(len(component_list)/bs)):
-                        TIME_OUT = True
-                        break
+                    # if time.time() - sample_time > 2000/(n*(len(component_list)/bs)):
+                    #     TIME_OUT = True
+                    #     break
 
                 loss = grad_data_loss + lambda_.mul(grad_safe_loss)
-                if TIME_OUT:
-                    break
+                # if TIME_OUT:
+                #     break
 
                 m = update_model_parameter(m, Theta)
 
@@ -431,9 +432,9 @@ def learning(
 
                 real_data_loss = data_loss
                 real_safe_loss = safe_loss
-                if time.time() - batch_time > 2000/(len(component_list)/bs):
-                    TIME_OUT = True
-                    break
+                # if time.time() - batch_time > 2000/(len(component_list)/bs):
+                #     TIME_OUT = True
+                #     break
             
             print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
             loss.backward(retain_graph=True)

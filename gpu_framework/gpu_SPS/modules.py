@@ -204,6 +204,24 @@ def split_branch_list(target_idx, test, abstract_state_list):
     return body_abstract_state_list, else_abstract_state_list
 
 
+def sound_join_trajectory(trajectory_1, trajectory_2):
+    l1, l2 = len(trajectory_1), len(trajectory_2)
+    trajectory = list()
+    for idx in range(min(l1 - 1, l2 - 1)):
+        states_1, states_2 =  trajectory_1[idx], trajectory_2[idx]
+        state_list = list()
+        for state_idx, v in enumerate(states_1):
+            state_1, state_2 = states_1[state_idx], states_2[state_idx]
+            state_list.append(state_1.soundJoin(state_2))
+        trajectory.append(state_list)
+    if l1 < l2:
+        trajectory.extend(trajectory_2[l1:])
+    elif l1 > l2:
+        trajectory.extend(trajectory_1[l2:])
+    
+    return trajectory
+
+
 def smooth_join_symbol_table(symbol_table_list):
     alpha_out = var(0.0)
     alpha_max = var(0.0)
@@ -239,7 +257,7 @@ def smooth_join_symbol_table(symbol_table_list):
         # if len(symbol_table['trajectory']) > joined_symbol_table['trajectory']:
         #     joined_symbol_table['trajectory'] = [state for state in symbol_table['trajectory']]
         #TODO: smooth join of trajectories
-        joined_symbol_table['trajectory'] = smooth_join_trajectory(joined_symbol_table['trajectory'], symbol_table['trajectory'])
+        joined_symbol_table['trajectory'] = sound_join_trajectory(joined_symbol_table['trajectory'], symbol_table['trajectory'])
         joined_symbol_table['probability'] = torch.max(joined_symbol_table['probability'], symbol_table['probability'])
 
     return joined_symbol_table

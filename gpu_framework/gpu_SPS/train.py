@@ -63,22 +63,72 @@ def distance_f_interval(symbol_table_list, target):
     return res
 
 
-def extract_abstract_state_safe_loss(abstract_state, target):
+# def extract_abstract_state_safe_loss(abstract_state, target):
+#     # weighted sum of symbol_table loss in one abstract_state
+#     abstract_loss = var_list([0.0])
+#     unsafe_probability_condition = target["phi"]
+#     safe_interval = target["condition"]
+#     for symbol_table in abstract_state:
+#         trajectory_loss = var_list([0.0])
+#         for X in symbol_table['trajectory']:
+#             intersection_interval = get_intersection(X, safe_interval)
+#             if intersection_interval.isEmpty():
+#                 unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
+#             else:
+#                 safe_portion = intersection_interval.getLength().div(X.getLength())
+#                 unsafe_value = 1 - safe_portion
+#             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+#         abstract_loss += trajectory_loss * symbol_table['probability']
+#     return abstract_loss
+
+def extract_abstract_state_safe_loss(abstract_state, target_component, target_idx):
     # weighted sum of symbol_table loss in one abstract_state
+    unsafe_probability_condition = target_component["phi"]
+    safe_interval = target_component["condition"]
+    method = target_component["method"]
     abstract_loss = var_list([0.0])
-    unsafe_probability_condition = target["phi"]
-    safe_interval = target["condition"]
     for symbol_table in abstract_state:
+        if method == "last":
+            trajectory = [symbol_table['trajectory'][-1]]
+        elif method == "all":
+            trajectory = symbol_table['trajectory'][:]
+        else:
+            raise NotImplementedError("Error: No trajectory method detected!")
+
         trajectory_loss = var_list([0.0])
-        for X in symbol_table['trajectory']:
+        # print(f"start trajectory: ")
+        for state in trajectory:
+            # print(f"state: {state}")
+            X = state[target_idx] # select the variable to measure
+            # print(f"real state: [0]: {state[0].left.data.item(), state[0].right.data.item()}; \
+            #     [1]: {state[1].left.data.item(), state[1].right.data.item()}")
+            # print(f"target_idx: {target_idx}")
+            # print(f"X: {X.left.data.item()}, {X.right.data.item()}")
+            # print(f"safe condition: {safe_interval.left.data.item()}, {safe_interval.right.data.item()}")
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
-                unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
+                # print(f"point: {X.isPoint()}")
+                # print(f"empty")
+                if X.isPoint():
+                    # min point to interval
+                    unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
+                else:
+                    unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(EPSILON))
+                # unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(EPSILON))
             else:
-                safe_portion = intersection_interval.getLength().div(X.getLength())
+                # print(f"not empty: {intersection_interval.getLength()}, {X.getLength()}")
+                safe_portion = intersection_interval.getLength().div(X.getLength().add(EPSILON))
                 unsafe_value = 1 - safe_portion
+            # print(f"unsafe value: {unsafe_value}")
             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+        # exit(0)
+        # if trajectory_loss.data.item() > 100.0:
+        #     print(f"add part: {trajectory_loss, symbol_table['probability']}")
+            # exit(0)
+
+        # print(f"add part: {trajectory_loss, symbol_table['probability']}")
         abstract_loss += trajectory_loss * symbol_table['probability']
+        # print(f"abstract_loss: {abstract_loss}")
     return abstract_loss
     
 
@@ -87,31 +137,45 @@ def safe_distance(abstract_state_list, target):
     # I am using sampling, and many samples the eventual average will be the same as the expectation
     
     loss = var_list([0.0])
-    for abstract_state in abstract_state_list:
-        abstract_state_safe_loss = extract_abstract_state_safe_loss(
-            abstract_state, target
-        )
-        loss += abstract_state_safe_loss
-    loss = loss / var(len(abstract_state_list)).add(EPSILON)
-    loss = loss - target['phi']
+    for idx, target_component in enumerate(target):
+        target_loss = var_list([0.0])
+        for abstract_state in abstract_state_list:
+            abstract_state_safe_loss = extract_abstract_state_safe_loss(
+                abstract_state, target_component, target_idx=idx, 
+            )
+            target_loss += abstract_state_safe_loss
+        target_loss = target_loss / var(len(abstract_state_list)).add(EPSILON)
+        # Weighted loss of different state variables
+        target_loss = target_component["w"] * (target_loss - target_component['phi'])
+        # TODO: min(loss - target, 0)
+        target_loss = torch.max(target_loss, var(0.0))
+        loss += target_loss
 
     return loss
 
 
-def cal_data_loss(m, x, y):
+def cal_data_loss(m, trajectory_list, criterion):
     # for the point in the same batch
     # calculate the data loss of each point
     # add the point data loss together
-    data_loss = var_list([0.0])
-    for idx in range(len(x)):
-        point, label = x[idx], y[idx]
-        point_data = initialization_point_nn(point)
-        y_point_list = m(point_data, 'concrete')
-        # should be only one partition in y['x']
-        # the return value in thermostat is x, index: 2
-        # be the first point symbol_table in the first point_list
-        data_loss += distance_f_point(y_point_list[0][0]['x'].c[2], var(label))
-    data_loss /= var(len(x)).add(EPSILON)
+    # data_loss = var_list([0.0])
+    # for idx in range(len(x)):
+    #     point, label = x[idx], y[idx]
+    #     point_data = initialization_point_nn(point)
+    #     y_point_list = m(point_data, 'concrete')
+    #     # should be only one partition in y['x']
+    #     # the return value in thermostat is x, index: 2
+    #     # be the first point symbol_table in the first point_list
+    #     data_loss += distance_f_point(y_point_list[0][0]['x'].c[2], var(label))
+    # data_loss /= var(len(x)).add(EPSILON)
+
+    X, y = batch_pair(trajectory_list, data_bs=128)
+    # print(f"after batch pair: {X.shape}, {y.shape}")
+    X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
+    # print(X.shape, y.shape)
+    yp = m(X, version="single_nn_learning")
+    data_loss = criterion(yp, y)
+
     return data_loss
 
 
@@ -248,16 +312,11 @@ def learning(
 
     TIME_OUT = False
 
-    x_min = var(10000.0)
-    x_max = var(0.0)
-
-    loop_list = list()
-    loss_list = list()
-
     m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     # print(m)
     m.cuda()
 
+    criterion = torch.nn.MSELoss()
     optimizer = torch.optim.SGD(m.parameters(), lr=lr)
 
     if epochs_to_skip is None:
@@ -269,11 +328,13 @@ def learning(
             continue
         q_loss, c_loss = var_list([0.0]), var_list([0.0])
         count = 0
-        for x, y, abstract_states in divide_chunks(component_list, bs=bs):
+        for trajectory_list, abstract_states  in divide_chunks(component_list, bs=bs):
             # print(f"x length: {len(x)}")
             batch_time = time.time()
 
-            data_loss = cal_data_loss(m, x, y)
+            # data_loss = cal_data_loss(m, x, y)
+            # safe_loss = cal_safe_loss(m, abstract_states, target)
+            data_loss = cal_data_loss(m, trajectory_list, criterion)
             safe_loss = cal_safe_loss(m, abstract_states, target)
 
             print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - batch_time}")

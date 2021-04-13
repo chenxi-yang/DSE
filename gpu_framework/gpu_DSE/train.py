@@ -137,6 +137,7 @@ def safe_distance(abstract_state_list, target):
         # Weighted loss of different state variables
         target_loss = target_component["w"] * (target_loss - target_component['phi'])
         # TODO: min(loss - target, 0)
+        target_loss =  torch.max(target_loss, var(0.0))
         loss += target_loss
     # print(f"loss: {loss}")
     # exit(0)
