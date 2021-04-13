@@ -236,8 +236,10 @@ def smooth_join_symbol_table(symbol_table_list):
             joined_symbol_table['x'] = joined_symbol_table['x'].sound_join(symbol_table['x'])
         
         # longer trajectory is taken
-        if len(symbol_table['trajectory']) > joined_symbol_table['trajectory']:
-            joined_symbol_table['trajectory'] = [state for state in symbol_table['trajectory']]
+        # if len(symbol_table['trajectory']) > joined_symbol_table['trajectory']:
+        #     joined_symbol_table['trajectory'] = [state for state in symbol_table['trajectory']]
+        #TODO: smooth join of trajectories
+        joined_symbol_table['trajectory'] = smooth_join_trajectory(joined_symbol_table['trajectory'], symbol_table['trajectory'])
         joined_symbol_table['probability'] = torch.max(joined_symbol_table['probability'], symbol_table['probability'])
 
     return joined_symbol_table
@@ -321,6 +323,7 @@ class While(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, abstract_state_list):
+        i = 0
         res_list = list()
         while(len(abstract_state_list) > 0):
             body_list, else_list = split_branch_list(self.target_idx, self.test, abstract_state_list)
@@ -331,19 +334,30 @@ class While(nn.Module):
                 abstract_state_list = self.body(body_list)
             else:
                 return res_list
+            
+            i += 1
+            if i > 1000:
+                print(f"Exceed maximum iterations: Have to END.")
+                break
 
         return res_list
 
 
 def update_trajectory(symbol_table, target_idx):
-    input = symbol_table['x'].select_from_index(0, target_idx)
-    input_interval = input.getInterval()
-    # print(f"input: {input.c, input.delta}")
-    # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
-    assert input_interval.left.data.item() <= input_interval.right.data.item()
-
+    # trajectory: list of states
+    # states: list of intervals
+    input_interval_list = list()
+    # print(f"all symbol_table: {symbol_table['x'].c, symbol_table['x'].delta}")
+    for idx in target_idx:
+        input = symbol_table['x'].select_from_index(0, idx)
+        input_interval = input.getInterval()
+        # print(f"idx:{idx}, input: {input.c, input.delta}")
+        # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
+        assert input_interval.left.data.item() <= input_interval.right.data.item()
+        input_interval_list.append(input_interval)
     # print(f"In update trajectory")
-    symbol_table['trajectory'].append(input_interval)
+    symbol_table['trajectory'].append(input_interval_list)
+    # exit(0)
     # print(f"Finish update trajectory")
 
     return symbol_table
