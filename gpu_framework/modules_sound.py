@@ -244,6 +244,13 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
 
     # print(f"branch time: {time.time() - branch_time}")
     return body_symbol_table, orelse_symbol_table
+
+
+def abstract_state_empty(abstract_state):
+    for symbol_table in abstract_state:
+        if len(symbol_table) > 0:
+            return False
+    return True
             
 
 def split_branch_abstract_state(target_idx, test, abstract_state):
@@ -256,6 +263,11 @@ def split_branch_abstract_state(target_idx, test, abstract_state):
             body_symbol_table, orelse_symbol_table = split_branch_symbol_table(target_idx, test, symbol_table)
         body_abstract_state.append(body_symbol_table)
         orelse_abstract_state.append(orelse_symbol_table)
+    if abstract_state_empty(body_abstract_state):
+        body_abstract_state = list()
+    if abstract_state_empty(orelse_abstract_state):
+        orelse_abstract_state = list()
+
     return body_abstract_state, orelse_abstract_state
 
 
@@ -471,7 +483,7 @@ class While(nn.Module):
             else:
                 return res_list
             i += 1
-            print(i, len(abstract_state_list))
+            print(i, len(abstract_state_list),  len(res_list))
             # if debug:
             #     r = torch.cuda.memory_reserved(0) 
             #     a = torch.cuda.memory_allocated(0)
