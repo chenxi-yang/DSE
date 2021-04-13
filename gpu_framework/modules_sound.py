@@ -78,8 +78,12 @@ def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
     if debug:
         r1 = torch.cuda.memory_reserved(0) 
         a1 = torch.cuda.memory_allocated(0)
+        print("begin calculate_abstract_state")
+        for i, symbol_table in enumerate(abstract_state):
+            if len(symbol_table) > 0:
+                print(i, symbol_table['x'].c)
+                break
         
-    
     for idx, symbol_table in enumerate(abstract_state):
         if len(symbol_table) == 0:
             abstract_state[idx] = symbol_table
@@ -92,14 +96,16 @@ def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
             r3 = torch.cuda.memory_reserved(0) 
             a3 = torch.cuda.memory_allocated(0)
             print(f"memory before f: {a3}")
+            print("before", f, input.c, input.delta)
         res  = f(input)
         if debug:
             r4 = torch.cuda.memory_reserved(0) 
             a4 = torch.cuda.memory_allocated(0)
             print(f"memory after f: {a4}")
+            print("after", f, res.c, res.delta)
         # print(f"calculate_x_list --  target_idx: {target_idx}, res: {res.c}, {res.delta}")
         x.set_from_index(target_idx, res) # x[target_idx[0]] = res
-        
+        # print("after set index", f, x.c, x.delta)
         symbol_table['x'] = x
         #! probability of each component does not change
         # symbol_table['probability'] = symbol_table['probability']
@@ -112,7 +118,11 @@ def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
             print(f"len of abstract_states: {len(abstract_state)}, close calculation, before, cuda memory reserved: {r1}, allocated: {a1}")
             print(f"func name: {f}")
             print(f"close calculation, after, cuda memory reserved: {r2}, allocated: {a2}")
-    
+        print("end calculate_abstract_state")
+        for i, symbol_table in enumerate(abstract_state):
+            if len(symbol_table) > 0:
+                print(i, symbol_table['x'].c)
+                break
     return abstract_state
 
 
@@ -376,8 +386,22 @@ class Assign(nn.Module):
     
     def forward(self, abstract_state_list, cur_sample_size=0):
         # print(f"Assign Before: {[(res['x'].c, res['x'].delta) for res in x_list]}")
+        # print("In Assign")
+        # for i, abstract_state in enumerate(abstract_state_list):
+        #     for j, symbol_table in enumerate(abstract_state):
+        #         if len(symbol_table) > 0:
+        #             print(i, j, symbol_table['x'].c)
+        #             break
         res_list = calculate_abstract_states_list(self.target_idx, self.arg_idx, self.f, abstract_state_list)
         # print(f"Assign After: {[(res['x'].c, res['x'].delta) for res in x_list]}")
+        # print("After Assign")
+        # for i, abstract_state in enumerate(abstract_state_list):
+        #     for j, symbol_table in enumerate(abstract_state):
+        #         if len(symbol_table) > 0:
+        #             print(i, j, symbol_table['x'].c)
+        #             if symbol_table['x'].c.requires_grad:
+        #                 exit(0)
+        #             break
         return res_list
 
 
@@ -435,6 +459,7 @@ class While(nn.Module):
         res_list = list()
         while(len(abstract_state_list) > 0):
             # counter += 1
+            # print("In  While", abstract_state_list[0][0]["x"].c)
             body_list, else_list = split_branch_list(self.target_idx, self.test, abstract_state_list)
 
             if len(else_list) > 0:
@@ -446,7 +471,7 @@ class While(nn.Module):
             else:
                 return res_list
             i += 1
-            print(len(abstract_state_list))
+            print(i, len(abstract_state_list))
             # if debug:
             #     r = torch.cuda.memory_reserved(0) 
             #     a = torch.cuda.memory_allocated(0)

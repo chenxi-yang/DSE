@@ -298,12 +298,6 @@ def learning(
 
     TIME_OUT = False
 
-    x_min = var(10000.0)
-    x_max = var(0.0)
-
-    loop_list = list()
-    loss_list = list()
-
     # m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     # print(m)
     m.cuda()

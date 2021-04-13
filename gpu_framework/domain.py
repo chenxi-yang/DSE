@@ -17,6 +17,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import time
 
+import sys
+
 # for check
 def show_value(x):
     if not TEST:
@@ -187,6 +189,9 @@ class Interval:
             res.right = self.right.sub(y.left)
         
         show_value(res)
+        if debug:
+            print(f"#sub_l# size of res:  {sys.getsizeof(res), sys.getsizeof(res.left), sys.getsizeof(res.right)}")
+        
         return res
 
     def sub_r(self, y):
@@ -204,22 +209,52 @@ class Interval:
             res.right = y.right.sub(self.left)
         
         show_value(res)
+        if debug:
+            print(f"#sub_r# size of res:  {sys.getsizeof(res), sys.getsizeof(res.left), sys.getsizeof(res.right)}")
         return res
 
     def mul(self, y):
         # self * y
-        show_op('mul')
-        show_value(y)
-        show_value(self)
+        # show_op('mul')
+        # show_value(y)
+        # show_value(self)
+        if debug:
+            r1 = torch.cuda.memory_reserved(0) 
+            a1 = torch.cuda.memory_allocated(0)
+            print(f"#interval mul, ini#, memory: {a1}")
+            print(f"in interval mul: self:{self.left, self.right}")
+            print(f"in interval mul: y:{y}")
 
         res = Interval()
+        if debug:
+            r2 = torch.cuda.memory_reserved(0) 
+            a2 = torch.cuda.memory_allocated(0)
+            print(f"#interval mul, ini Interval()#, memory: {a2}, {a2-a1}")
         if isinstance(y, torch.Tensor):
+            # print(f"size of l, r of  res.left: {get_size(self.right.mul(y))},  {get_size(self.left.mul(y))}")
             res.left = torch.min(self.right.mul(y), self.left.mul(y))
+            # res.left = torch.min(self.right.mul(y), self.left.mul(y))
+            # tmp = self.right.mul(y)
+            if debug:
+                a3 = torch.cuda.memory_allocated(0)
+                print(f"#interval mul, res.left: {res.left}#, memory: {a3}, {a3-a1}")
             res.right = torch.max(self.right.mul(y), self.left.mul(y))
+            if debug:
+                a4 = torch.cuda.memory_allocated(0)
+                print(f"#interval mul, res.right: {res.right}#, memory: {a4}, {a4-a1}")
         else:
             res.left = torch.min(torch.min(y.left.mul(self.left), y.left.mul(self.right)), torch.min(y.right.mul(self.left), y.right.mul(self.right)))
+            if debug:
+                a3 = torch.cuda.memory_allocated(0)
+                print(f"#interval mul, res.left: {res.left}#, memory: {a3}, {a3-a1}")
             res.right = torch.max(torch.max(y.left.mul(self.left), y.left.mul(self.right)), torch.max(y.right.mul(self.left), y.right.mul(self.right)))
+            if debug:
+                a4 = torch.cuda.memory_allocated(0)
+                print(f"#interval mul, res.right: {res.right}#, memory: {a4}, {a4-a1}")
         show_value(res)
+        if debug:
+            print(f"#mul# size of res:  {get_size(res.left), get_size(res.right)}")
+            exit(0)
         return res
 
     def div(self, y):
@@ -256,18 +291,33 @@ class Interval:
         # show_value(self)
         
         # res = Interval()
+        if debug:
+            r1 = torch.cuda.memory_reserved(0) 
+            a1 = torch.cuda.memory_allocated(0)
+            print(f"#interval cos, ini#, memory: {a1}")
 
         cache = Interval()
         cache.left = self.left
         cache.right = self.right
+        if debug:
+            r5 = torch.cuda.memory_reserved(0) 
+            a5 = torch.cuda.memory_allocated(0)
+            print(f"#interval cos, before handleNeg#, memory: {a5}, {a5-a1}")
 
         cache = handleNegative(cache)
+        if debug:
+            r6 = torch.cuda.memory_reserved(0) 
+            a6 = torch.cuda.memory_allocated(0)
+            print(f"#interval cos, after handleNeg#, memory: {a6}, {a6-a1}")
         # print('y_neg', cache.left, cache.right)
         # n = torch.floor_divide(cache.left, PI_TWICE)
         # t = cache.sub_l(PI_TWICE.mul(n))
         t = cache.fmod(PI_TWICE)
         # print('t', t.left, t.right)
-
+        if debug:
+            r2 = torch.cuda.memory_reserved(0) 
+            a2 = torch.cuda.memory_allocated(0)
+            print(f"#interval cos, middle#, memory: {a2}, {a2 - a1}")
         # print(type(t.getVolumn()), type(PI_TWICE))
         if t.getVolumn().data.item() >= PI_TWICE.data.item():
             # print('volume', t.getVolumn())
@@ -276,7 +326,15 @@ class Interval:
             # return res
         # when t.left > PI same as -cos(t-pi)
         elif t.left.data.item() >= PI.data.item():
+            if debug:
+                r7 = torch.cuda.memory_reserved(0) 
+                a7 = torch.cuda.memory_allocated(0)
+                print(f"#interval cos, before cosv#, memory: {a7}, {a7 - a1}")
             cosv = (t.sub_l(PI)).cos()
+            if debug:
+                r8 = torch.cuda.memory_reserved(0) 
+                a8 = torch.cuda.memory_allocated(0)
+                print(f"#interval cos, after cosv#, memory: {a8}, {a8 - a1}")
             res = cosv.mul(var(-1.0))
             # show_value(res)
             # return res
@@ -301,6 +359,10 @@ class Interval:
                 res = Interval(var(-1.0), var(1.0))
                 # show_value(res)
                 # return res
+        if debug:
+            r3 = torch.cuda.memory_reserved(0) 
+            a3 = torch.cuda.memory_allocated(0)
+            print(f"#interval cos, end#, memory: {a3}, {a3 - a1}")
         return res
 
     def sin(self):
@@ -334,30 +396,80 @@ class Interval:
     
     def fmod(self, y):
         # y is PI2
+        if debug:
+            r1 = torch.cuda.memory_reserved(0) 
+            a1 = torch.cuda.memory_allocated(0)
+            print(f"#interval fmod, ini#, memory: {a1}")
+
         if isinstance(y, torch.Tensor):
             y_interval = Interval()
             y_interval = y_interval.setValue(y)
+            if debug:
+                r2 = torch.cuda.memory_reserved(0) 
+                a2 = torch.cuda.memory_allocated(0)
+                print(f"#interval fmod, setValue(Tensor)#, memory: {a2}, {a2 - a1}")
         else:
             y_interval = y
+            if debug:
+                r2 = torch.cuda.memory_reserved(0) 
+                a2 = torch.cuda.memory_allocated(0)
+                print(f"#interval fmod, setValue(Interval)#, memory: {a2}, {a2 - a1}")
         
         if self.left.data.item() < 0.0:
             yb = y_interval.left
         else:
             yb = y_interval.right
+        
+        if debug:
+            r3 = torch.cuda.memory_reserved(0) 
+            a3 = torch.cuda.memory_allocated(0)
+            print(f"#interval fmod, after self.left#, memory: {a3}, {a3 - a1}")
         # print('self left', self.left)
         # print('yb', yb)
         n = self.left.div(yb)
+        if debug:
+            r4 = torch.cuda.memory_reserved(0) 
+            a4 = torch.cuda.memory_allocated(0)
+            print(f"#interval fmod, div#, memory: {a4}, {a4 - a1}")
         if(n.data.item() <= 0.0): 
             n = torch.ceil(n)
+            if debug:
+                r5 = torch.cuda.memory_reserved(0) 
+                a5 = torch.cuda.memory_allocated(0)
+                print(f"#interval fmod, ceil#, memory: {a5}, {a5 - a1}")
         else:
             n = torch.floor(n)
+            if debug:
+                r6 = torch.cuda.memory_reserved(0) 
+                a6 = torch.cuda.memory_allocated(0)
+                print(f"#interval fmod, floor#, memory: {a6}, {a6 - a1}")
         # print('n', n)
 
-        n_interval = Interval()
-        n_interval = n_interval.setValue(n)
+        # n_interval = Interval()
+        # n_interval = n_interval.setValue(n)
+
+        if debug:
+            r7 = torch.cuda.memory_reserved(0) 
+            a7 = torch.cuda.memory_allocated(0)
+            print(f"#interval fmod, new n interval#, memory: {a7}, {a7 - a1}")
         # print(self.left, self.right)
         # print(y_interval.mul(n_interval).left, y_interval.mul(n_interval).right)
-        return self.sub_l(y_interval.mul(n_interval))
+        tmp_1 = y_interval.mul(n)
+        if debug:
+            r9 = torch.cuda.memory_reserved(0) 
+            a9 = torch.cuda.memory_allocated(0)
+            print(tmp_1.left, tmp_1.right)
+            print(f"#interval fmod, mul#, memory: {a9}, {a9 - a1}")
+        # res = self.sub_l(y_interval.mul(n))
+        res = self.sub_l(tmp_1)
+        if debug:
+            r8 = torch.cuda.memory_reserved(0) 
+            a8 = torch.cuda.memory_allocated(0)
+            print(res.left, res.right)
+            print(f"size of res: {sys.getsizeof(res)}")
+            print(f"#interval fmod, sub #, memory: {a8}, {a8 - a1}")
+        
+        return res
 
 
 class Box():
@@ -447,29 +559,29 @@ class Box():
             if debug:
                 r3 = torch.cuda.memory_reserved(0) 
                 a3 = torch.cuda.memory_allocated(0)
-                print(f"#add, c, d# : memory cost {a3}")
+                print(f"#add, c, d# : memory cost {a3}, {a3 - a1}")
             res = self.new(c, d)
             if debug:
                 r4 = torch.cuda.memory_reserved(0) 
                 a4 = torch.cuda.memory_allocated(0)
-                print(f"#add, res new# : memory cost {a4}")
+                print(f"#add, res new# : memory cost {a4}, {a4 - a1}")
             # res = self.new(self.c.add(other), self.delta)
         else:
             c, d = self.c.add(other.c), self.delta + other.delta
             if debug:
                 r3 = torch.cuda.memory_reserved(0) 
                 a3 = torch.cuda.memory_allocated(0)
-                print(f"#add, c, d# : memory cost {a3}")
+                print(f"#add, c, d# : memory cost {a3}, {a3 - a1}")
             res = self.new(c, d)
             if debug:
                 r4 = torch.cuda.memory_reserved(0) 
                 a4 = torch.cuda.memory_allocated(0)
-                print(f"#add, res new# : memory cost {a4}")
+                print(f"#add, res new# : memory cost {a4}, {a4 - a1}")
             # res = self.new(self.c.add(other.c), self.delta + other.delta)
         if debug:
             r2 = torch.cuda.memory_reserved(0) 
             a2 = torch.cuda.memory_allocated(0)
-            print(f"#add# : memory cost {a2}")
+            print(f"#add# : memory cost {a2}, {a2 - a1}")
         return res
             
     def sub_l(self, other): # self - other
@@ -503,10 +615,11 @@ class Box():
         if debug:
             r2 = torch.cuda.memory_reserved(0) 
             a2 = torch.cuda.memory_allocated(0)
-            print(f"#mul# : memory cost {a2}")
+            print(f"#mul# : memory cost {a2}, {a2 - a1}")
             del res_interval
             del interval
-            print(f"after del in mul: {torch.cuda.memory_allocated(0)}")
+            a3 = torch.cuda.memory_allocated(0)
+            print(f"after del in mul: {a3}, {a3 - a1}")
         return res
     
     def cos(self):
@@ -521,10 +634,11 @@ class Box():
         if debug:
             r2 = torch.cuda.memory_reserved(0) 
             a2 = torch.cuda.memory_allocated(0)
-            print(f"#cos# : memory cost {a2}")
+            print(f"#cos# : memory cost {a2}, {a2 - a1}")
             del res_interval
             del interval
-            print(f"after del in cos: {torch.cuda.memory_allocated(0)}")
+            a3 = torch.cuda.memory_allocated(0)
+            print(f"after del in cos: {a3}, {a3 - a1}")
         return res
     
     def exp(self):

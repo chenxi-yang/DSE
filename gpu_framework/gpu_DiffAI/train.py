@@ -192,30 +192,38 @@ def safe_distance(symbol_table_list, target):
     # all_unsafe_value = max_i(unsafe_value(s_i, target))
     # TODO: or avg?
     # loss violate the safe constraint: 
-
     loss = var_list([0.0])
-    unsafe_probability_condition = target["phi"]
-    safe_interval = target["condition"]
-    for symbol_table in symbol_table_list:
-        trajectory_loss = var_list([0.0])
-        for X in symbol_table['trajectory']:
-            # print(f"X: {X.left}, {X.right}")
-            intersection_interval = get_intersection(X, safe_interval)
-            if intersection_interval.isEmpty():
-                unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
-            else:
-                safe_portion = intersection_interval.getLength().div(X.getLength())
-                # safe_probability = torch.index_select(safe_portion, 0, index0)
-                unsafe_value = 1 - safe_portion
-                # if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
-                #     unsafe_value = var_list([0.0])
-                # else:
-                #     # unsafe_value = ((1 - unsafe_probability_condition) - safe_probability) / safe_probability
-                #     unsafe_value = 1 - safe_probability
-            trajectory_loss = torch.max(trajectory_loss, unsafe_value)
-        loss += trajectory_loss
-    loss = loss / (var(len(symbol_table_list)).add(EPSILON))
-    loss = loss - unsafe_probability_condition
+    for idx, target_component in enumerate(target):
+        target_loss = var_list([0.0])
+        unsafe_probability_condition = target_component["phi"]
+        safe_interval = target_component["condition"]
+        for symbol_table in symbol_table_list:
+            trajectory_loss = var_list([0.0])
+            for state in symbol_table['trajectory']:
+                X = state[idx]
+                # print(f"X: {X.left}, {X.right}")
+                intersection_interval = get_intersection(X, safe_interval)
+                if intersection_interval.isEmpty():
+                    if X.isPoint():
+                        # min point to interval
+                        unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
+                    else:
+                        unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(EPSILON))
+                        # unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
+                else:
+                    safe_portion = intersection_interval.getLength().div(X.getLength())
+                    # safe_probability = torch.index_select(safe_portion, 0, index0)
+                    unsafe_value = 1 - safe_portion
+                    # if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
+                    #     unsafe_value = var_list([0.0])
+                    # else:
+                    #     # unsafe_value = ((1 - unsafe_probability_condition) - safe_probability) / safe_probability
+                    #     unsafe_value = 1 - safe_probability
+                trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+            target_loss += trajectory_loss
+        target_loss = target_loss / (var(len(symbol_table_list)).add(EPSILON))
+        target_loss = target_component["w"] * (target_loss - unsafe_probability_condition)
+        loss +=  target_loss
 
     return loss
 
@@ -385,7 +393,7 @@ def learning(
                 for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
                     # sample_theta_p is actually log(theta_p)
 
-                    # sample_time = time.time()
+                    sample_time = time.time()
                     m = update_model_parameter(m, sample_theta)
                     data_loss = cal_data_loss(m, trajectory_list, criterion)
                     safe_loss = cal_safe_loss(m, trajectory_list, width, target)
@@ -398,6 +406,10 @@ def learning(
                     real_safe_loss += var_list([safe_loss.data.item()])
 
                     # print(f"sample time: {time.time() - sample_time}")
+                    if time.time() - sample_time > 2000/n:
+                        TIME_OUT = True
+                        break
+
                 loss = grad_data_loss + lambda_.mul(grad_safe_loss)
 
                 m = update_model_parameter(m, Theta)
@@ -457,7 +469,7 @@ def learning(
         if c_loss.data.item() < EPSILON.data.item():
             break
         
-        if (time.time() - start_time)/(i+1) > 2000:
+        if (time.time() - start_time)/(i+1) > 2000 or TIME_OUT:
             log_file = open(file_dir, 'a')
             log_file.write('TIMEOUT: avg epoch time > 2000s \n')
             log_file.close()

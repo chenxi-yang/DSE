@@ -6,6 +6,8 @@ import copy
 
 def var(i, requires_grad=False):
     # print(i)
+    if requires_grad:
+        exit(0)
     if torch.cuda.is_available():
         return Variable(torch.tensor(i, dtype=torch.float).cuda(), requires_grad=requires_grad)
     else:
@@ -14,12 +16,14 @@ def var(i, requires_grad=False):
 
 def var_list(i_list, requires_grad=False):
     # print(i)
+    if requires_grad:
+        exit(0)
     if torch.cuda.is_available():
         # res = Variable(torch.tensor(i_list, dtype=torch.double).cuda(), requires_grad=requires_grad)
-        res = torch.tensor(i_list, dtype=torch.float).cuda()
+        res = torch.tensor(i_list, dtype=torch.float, requires_grad=requires_grad).cuda()
     else:
         # res = Variable(torch.tensor(i_list, dtype=torch.double), requires_grad=requires_grad)
-        res = torch.tensor(i_list, dtype=torch.float)
+        res = torch.tensor(i_list, dtype=torch.float, requires_grad=requires_grad)
     # print(f"before squeeze, {res.shape}")
     # print(f"var list --before unsequeeze-- res: {res}")
     # res.unsqueeze_(0)
@@ -107,3 +111,7 @@ def product(it):
         if x >= 0:
             product *= x
     return product
+
+
+def get_size(t):
+    return (t.element_size(), t.nelement())

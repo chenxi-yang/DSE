@@ -169,13 +169,13 @@ def f_assign_v(x):
         res.c.backward(retain_graph=True)
         res.delta.backward(retain_graph=True)
         print(f"new res: {res, res.c.grad, res.delta.grad}")
-
-        for obj in gc.get_objects():
-            try:
-                if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                    print(type(obj), obj.size())
-            except:
-                pass
+        exit(0)
+        # for obj in gc.get_objects():
+        #     try:
+        #         if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+        #             print(type(obj), obj.size())
+        #     except:
+        #         pass
 
     return res
 

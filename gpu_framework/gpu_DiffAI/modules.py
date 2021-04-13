@@ -209,25 +209,57 @@ def calculate_branch_list(target_idx, test, symbol_table_list):
     return res_list
 
 
+# def sound_join_symbol_table(symbol_table_1, symbol_table_2):
+#     # TODO: trajectory join, one by one, every state do sound join one by one
+#     # assert(len(symbol_table_1) == 0 and len(symbol_table_2) == 0)
+#     # print(f"In Sound Join Symbol Table")
+#     if len(symbol_table_1) == 0:
+#         return symbol_table_2
+#     if len(symbol_table_2) == 0:
+#         return symbol_table_1
+#     trajectory_1, trajectory_2 = symbol_table_1['trajectory'], symbol_table_2['trajectory']
+#     res_trajectory = trajectory_2 if len(trajectory_1) < len(trajectory_2) else trajectory_1
+
+#     symbol_table = {
+#         'x': symbol_table_1['x'].sound_join(symbol_table_2['x']),
+#         'probability': torch.max(symbol_table_1['probability'], symbol_table_2['probability']),
+#         'trajectory': [state for state in res_trajectory],
+#         'branch': '',
+#     }
+#     # print(f"Out Sound Join Symbol Table: {symbol_table['trajectory']}")
+
+#     return symbol_table
+
+
+def sound_join_trajectory(trajectory_1, trajectory_2):
+    l1, l2 = len(trajectory_1), len(trajectory_2)
+    trajectory = list()
+    for idx in range(min(l1 - 1, l2 - 1)):
+        states_1, states_2 =  trajectory_1[idx], trajectory_2[idx]
+        state_list = list()
+        for state_idx, v in enumerate(states_1):
+            state_1, state_2 = states_1[state_idx], states_2[state_idx]
+            state_list.append(state_1.soundJoin(state_2))
+        trajectory.append(state_list)
+    if l1 < l2:
+        trajectory.extend(trajectory_2[l1:])
+    elif l1 > l2:
+        trajectory.extend(trajectory_1[l2:])
+    
+    return trajectory
+
+
 def sound_join_symbol_table(symbol_table_1, symbol_table_2):
-    # TODO: trajectory join, one by one, every state do sound join one by one
-    # assert(len(symbol_table_1) == 0 and len(symbol_table_2) == 0)
-    # print(f"In Sound Join Symbol Table")
     if len(symbol_table_1) == 0:
         return symbol_table_2
-    if len(symbol_table_2) == 0:
+    if len(symbol_table_2) ==  0:
         return symbol_table_1
-    trajectory_1, trajectory_2 = symbol_table_1['trajectory'], symbol_table_2['trajectory']
-    res_trajectory = trajectory_2 if len(trajectory_1) < len(trajectory_2) else trajectory_1
-
     symbol_table = {
         'x': symbol_table_1['x'].sound_join(symbol_table_2['x']),
         'probability': torch.max(symbol_table_1['probability'], symbol_table_2['probability']),
-        'trajectory': [state for state in res_trajectory],
+        'trajectory': sound_join_trajectory(symbol_table_1['trajectory'], symbol_table_2['trajectory']), 
         'branch': '',
     }
-    # print(f"Out Sound Join Symbol Table: {symbol_table['trajectory']}")
-
     return symbol_table
 
 
@@ -358,14 +390,18 @@ class While(nn.Module):
 
 
 def update_trajectory(symbol_table, target_idx):
-    input = symbol_table['x'].select_from_index(0, target_idx)
-    input_interval = input.getInterval()
-    print(f"input: {input.c, input.delta}")
-    print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
-    assert input_interval.left.data.item() <= input_interval.right.data.item()
-
+    input_interval_list = list()
+    # print(f"all symbol_table: {symbol_table['x'].c, symbol_table['x'].delta}")
+    for idx in target_idx:
+        input = symbol_table['x'].select_from_index(0, idx)
+        input_interval = input.getInterval()
+        # print(f"idx:{idx}, input: {input.c, input.delta}")
+        # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
+        assert input_interval.left.data.item() <= input_interval.right.data.item()
+        input_interval_list.append(input_interval)
     # print(f"In update trajectory")
-    symbol_table['trajectory'].append(input_interval)
+    symbol_table['trajectory'].append(input_interval_list)
+    # exit(0)
     # print(f"Finish update trajectory")
 
     return symbol_table
