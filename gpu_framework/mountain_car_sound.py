@@ -138,38 +138,38 @@ def f_assign_reward_update(x):
 
 def f_assign_v(x):
     # x: p, v, u
-    if debug:
-        r1 = torch.cuda.memory_reserved(0) 
-        a1 = torch.cuda.memory_allocated(0)
-        print(f"#f_assign_v ini# : memory cost {a1}")
+    # if debug:
+    #     r1 = torch.cuda.memory_reserved(0) 
+    #     a1 = torch.cuda.memory_allocated(0)
+    #     print(f"#f_assign_v ini# : memory cost {a1}")
     p = x.select_from_index(0, index0)
     v = x.select_from_index(0, index1)
     u = x.select_from_index(0, index2)
-    if debug:
-        r2 = torch.cuda.memory_reserved(0) 
-        a2 = torch.cuda.memory_allocated(0)
-        print(f"#f_assign_v# : memory cost {a2}")
+    # if debug:
+    #     r2 = torch.cuda.memory_reserved(0) 
+    #     a2 = torch.cuda.memory_allocated(0)
+    #     print(f"#f_assign_v# : memory cost {a2}")
     # TODO: cos
-    if debug:
-        r3 = torch.cuda.memory_reserved(0) 
-        a3 = torch.cuda.memory_allocated(0)
+    # if debug:
+    #     r3 = torch.cuda.memory_reserved(0) 
+    #     a3 = torch.cuda.memory_allocated(0)
     res = v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
-    if debug:
-        r4 = torch.cuda.memory_reserved(0) 
-        a4 = torch.cuda.memory_allocated(0)
-        print(f"#f_assign_v[RES]# : memory cost {a4}")
-        res.c.backward(retain_graph=True)
-        res.delta.backward(retain_graph=True)
-        print(f"res: {res, res.c.grad, res.delta.grad}")
-        del p
-        del v
-        del u
-        a5 = torch.cuda.memory_allocated(0)
-        print(f"after del: memory cost {a5}")
-        res.c.backward(retain_graph=True)
-        res.delta.backward(retain_graph=True)
-        print(f"new res: {res, res.c.grad, res.delta.grad}")
-        exit(0)
+    # if debug:
+    #     r4 = torch.cuda.memory_reserved(0) 
+    #     a4 = torch.cuda.memory_allocated(0)
+    #     print(f"#f_assign_v[RES]# : memory cost {a4}")
+    #     res.c.backward(retain_graph=True)
+    #     res.delta.backward(retain_graph=True)
+    #     print(f"res: {res, res.c.grad, res.delta.grad}")
+    #     del p
+    #     del v
+    #     del u
+    #     a5 = torch.cuda.memory_allocated(0)
+    #     print(f"after del: memory cost {a5}")
+    #     res.c.backward(retain_graph=True)
+    #     res.delta.backward(retain_graph=True)
+    #     print(f"new res: {res, res.c.grad, res.delta.grad}")
+    #     exit(0)
         # for obj in gc.get_objects():
         #     try:
         #         if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):

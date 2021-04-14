@@ -97,6 +97,7 @@ def get_intersection(interval_1, interval_2):
 
 def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx):
     trajectory_loss = var_list([0.0])
+    print(f"trajectory len: {len(symbol_table['trajectory'])}")
     for state in symbol_table['trajectory']:
         X = state[target_idx]
         # print(f"X:{X.left.data.item(), X.right.data.item()}")
@@ -122,7 +123,7 @@ def extract_unsafe(abstract_state, target_component, target_idx):
     abstract_state_unsafe_value = var_list([0.0])
     for symbol_table in abstract_state:
         trajectory_unsafe_value = get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx=target_idx)
-        # print(f"component p: {symbol_table['probability'].data.item()}, trajectory_unsafe_value: {trajectory_unsafe_value}")
+        print(f"component p: {symbol_table['probability'].data.item()}, trajectory_unsafe_value: {trajectory_unsafe_value}")
         abstract_state_unsafe_value += symbol_table['probability'] * trajectory_unsafe_value
         aggregation_p += symbol_table['probability']
         # print(f"temporary aggragation p: {aggregation_p}")

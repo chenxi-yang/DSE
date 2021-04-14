@@ -75,14 +75,14 @@ Program Statement
 
 def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
     # assign_time = time.time()
-    if debug:
-        r1 = torch.cuda.memory_reserved(0) 
-        a1 = torch.cuda.memory_allocated(0)
-        print("begin calculate_abstract_state")
-        for i, symbol_table in enumerate(abstract_state):
-            if len(symbol_table) > 0:
-                print(i, symbol_table['x'].c)
-                break
+    # if debug:
+    #     r1 = torch.cuda.memory_reserved(0) 
+    #     a1 = torch.cuda.memory_allocated(0)
+    #     print("begin calculate_abstract_state")
+    #     for i, symbol_table in enumerate(abstract_state):
+    #         if len(symbol_table) > 0:
+    #             print(i, symbol_table['x'].c)
+    #             break
         
     for idx, symbol_table in enumerate(abstract_state):
         if len(symbol_table) == 0:
@@ -92,17 +92,17 @@ def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
         x = symbol_table['x']
         input = x.select_from_index(0, arg_idx) # torch.index_select(x, 0, arg_idx)
         # print(f"f: {f}")
-        if debug:
-            r3 = torch.cuda.memory_reserved(0) 
-            a3 = torch.cuda.memory_allocated(0)
-            print(f"memory before f: {a3}")
-            print("before", f, input.c, input.delta)
+        # if debug:
+        #     r3 = torch.cuda.memory_reserved(0) 
+        #     a3 = torch.cuda.memory_allocated(0)
+        #     print(f"memory before f: {a3}")
+        #     print("before", f, input.c, input.delta)
         res  = f(input)
-        if debug:
-            r4 = torch.cuda.memory_reserved(0) 
-            a4 = torch.cuda.memory_allocated(0)
-            print(f"memory after f: {a4}")
-            print("after", f, res.c, res.delta)
+        # if debug:
+        #     r4 = torch.cuda.memory_reserved(0) 
+        #     a4 = torch.cuda.memory_allocated(0)
+        #     print(f"memory after f: {a4}")
+        #     print("after", f, res.c, res.delta)
         # print(f"calculate_x_list --  target_idx: {target_idx}, res: {res.c}, {res.delta}")
         x.set_from_index(target_idx, res) # x[target_idx[0]] = res
         # print("after set index", f, x.c, x.delta)
@@ -111,18 +111,18 @@ def calculate_abstract_state(target_idx, arg_idx, f, abstract_state):
         # symbol_table['probability'] = symbol_table['probability']
         abstract_state[idx] = symbol_table
     # print(f"-- assign -- calculate_x_list: {time.time() - assign_time}")
-    if debug:
-        r2 = torch.cuda.memory_reserved(0) 
-        a2 = torch.cuda.memory_allocated(0)
-        if a2 > a1: 
-            print(f"len of abstract_states: {len(abstract_state)}, close calculation, before, cuda memory reserved: {r1}, allocated: {a1}")
-            print(f"func name: {f}")
-            print(f"close calculation, after, cuda memory reserved: {r2}, allocated: {a2}")
-        print("end calculate_abstract_state")
-        for i, symbol_table in enumerate(abstract_state):
-            if len(symbol_table) > 0:
-                print(i, symbol_table['x'].c)
-                break
+    # if debug:
+    #     r2 = torch.cuda.memory_reserved(0) 
+    #     a2 = torch.cuda.memory_allocated(0)
+    #     if a2 > a1: 
+    #         print(f"len of abstract_states: {len(abstract_state)}, close calculation, before, cuda memory reserved: {r1}, allocated: {a1}")
+    #         print(f"func name: {f}")
+    #         print(f"close calculation, after, cuda memory reserved: {r2}, allocated: {a2}")
+    #     print("end calculate_abstract_state")
+    #     for i, symbol_table in enumerate(abstract_state):
+    #         if len(symbol_table) > 0:
+    #             print(i, symbol_table['x'].c)
+    #             break
     return abstract_state
 
 
@@ -472,6 +472,18 @@ class While(nn.Module):
         while(len(abstract_state_list) > 0):
             # counter += 1
             # print("In  While", abstract_state_list[0][0]["x"].c)
+            if debug:
+                print(f"in while")
+                for abstract_state in abstract_state_list:
+                    print("in one abstract state")
+                    tra_len_l = list()
+                    for symbol_table in abstract_state:
+                        if len(symbol_table) > 1:
+                            tra_len_l.append(len(symbol_table['trajectory']))
+                        else:
+                            tra_len_l.append(0)
+                    print(tra_len_l)
+
             body_list, else_list = split_branch_list(self.target_idx, self.test, abstract_state_list)
 
             if len(else_list) > 0:
