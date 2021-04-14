@@ -432,9 +432,10 @@ def learning(
 
                 real_data_loss = data_loss
                 real_safe_loss = safe_loss
-                # if time.time() - batch_time > 2000/(len(component_list)/bs):
-                #     TIME_OUT = True
-                #     break
+                
+            if time.time() - batch_time > 2000/(len(component_list)/bs):
+                TIME_OUT = True
+                break
             
             print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
             loss.backward(retain_graph=True)

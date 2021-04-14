@@ -136,8 +136,8 @@ def safe_distance(abstract_state_list, target):
         target_loss = target_loss / var(len(abstract_state_list)).add(EPSILON)
         # Weighted loss of different state variables
         target_loss = target_component["w"] * (target_loss - target_component['phi'])
-        # TODO: min(loss - target, 0)
-        target_loss =  torch.max(target_loss, var(0.0))
+        # TODO: max(loss - target, 0)
+        target_loss = torch.max(target_loss, var(0.0))
         loss += target_loss
     # print(f"loss: {loss}")
     # exit(0)
@@ -175,6 +175,7 @@ def cal_safe_loss(m, abstract_state, target):
     for i in range(constants.SAMPLE_SIZE):
         # sample one path each time
         # sample_time = time.time()
+        # print(f"DSE: in M")
         abstract_list = m(ini_abstract_state_list, 'abstract')
         res_abstract_state_list.append(abstract_list[0]) # only one abstract state returned
     # print(f"length: {len(y_abstract_list)}")
@@ -344,6 +345,10 @@ def learning(
             real_data_loss /= n
             real_safe_loss /= n
 
+            if time.time() - batch_time > 2000/(len(component_list)/bs):
+                TIME_OUT = True
+                break
+
             print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
             q_loss += real_data_loss
             c_loss += real_safe_loss
@@ -387,7 +392,7 @@ def learning(
         # if c_loss.data.item() < EPSILON.data.item():
         #     break
         
-        if (time.time() - start_time)/(i+1) > 2000:
+        if (time.time() - start_time)/(i+1) > 2000 or TIME_OUT:
             log_file = open(file_dir, 'a')
             log_file.write('TIMEOUT: avg epoch time > 2000s \n')
             log_file.close()

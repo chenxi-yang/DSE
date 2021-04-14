@@ -354,9 +354,10 @@ class While(nn.Module):
                 return res_list
             
             i += 1
-            if i > 1000:
+            if i > 500:
                 print(f"Exceed maximum iterations: Have to END.")
                 break
+        res_list = smooth_join(res_list, abstract_state_list)
 
         return res_list
 

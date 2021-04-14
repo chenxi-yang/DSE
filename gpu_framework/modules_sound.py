@@ -466,7 +466,7 @@ class While(nn.Module):
         '''
         super set of E_{i-th step} and [\neg condition]
         '''
-        print(f"##############In while sound#########")
+        # print(f"##############In while sound#########")
         i = 0
         res_list = list()
         while(len(abstract_state_list) > 0):
@@ -483,13 +483,14 @@ class While(nn.Module):
             else:
                 return res_list
             i += 1
-            print(i, len(abstract_state_list),  len(res_list))
+            # print(i, len(abstract_state_list),  len(res_list))
             # if debug:
             #     r = torch.cuda.memory_reserved(0) 
             #     a = torch.cuda.memory_allocated(0)
             #     print(f"while, cuda memory reserved: {r}, allocated: {a}")
-            if i > 1000:
+            if i > 500:
                 break
+        res_list.extend(abstract_state_list)
 
         return res_list
 

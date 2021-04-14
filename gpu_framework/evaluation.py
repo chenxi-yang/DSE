@@ -99,7 +99,7 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, tar
     trajectory_loss = var_list([0.0])
     for state in symbol_table['trajectory']:
         X = state[target_idx]
-        print(f"X:{X.left.data.item(), X.right.data.item()}")
+        # print(f"X:{X.left.data.item(), X.right.data.item()}")
         safe_interval = target_component["condition"]
         unsafe_probability_condition = target_component["phi"]
         intersection_interval = get_intersection(X, safe_interval)
@@ -113,7 +113,7 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, tar
             else:
                 unsafe_value = 1 - safe_probability
         trajectory_loss = torch.max(trajectory_loss, unsafe_value)
-        print(f"trajectory_loss: {trajectory_loss.data.item()}")
+        # print(f"trajectory_loss: {trajectory_loss.data.item()}")
     return trajectory_loss
 
 
@@ -125,7 +125,7 @@ def extract_unsafe(abstract_state, target_component, target_idx):
         # print(f"component p: {symbol_table['probability'].data.item()}, trajectory_unsafe_value: {trajectory_unsafe_value}")
         abstract_state_unsafe_value += symbol_table['probability'] * trajectory_unsafe_value
         aggregation_p += symbol_table['probability']
-        print(f"temporary aggragation p: {aggregation_p}")
+        # print(f"temporary aggragation p: {aggregation_p}")
     return aggregation_p, abstract_state_unsafe_value
 
 

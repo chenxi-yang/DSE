@@ -382,10 +382,10 @@ class While(nn.Module):
             symbol_table_list = self.body(body_list)
 
             i += 1
-            if i > 1000:
+            if i > 500:
                 print(f"Exceed maximum iterations: Have to END.")
                 break
-
+        res_list = sound_join(res_list, symbol_table_list)
         return res_list
 
 

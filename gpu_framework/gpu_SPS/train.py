@@ -8,13 +8,21 @@ import matplotlib.pyplot as plt
 import copy
 
 from helper import *
-from constants import *
+from constants import benchmark_name
 import constants
 
-from gpu_DSE.thermostat_nn import * 
-from gpu_DSE.data_generator import *
+if benchmark_name == "thermostat":
+    from gpu_SPS.thermostat_nn import * 
+if benchmark_name == "mountain_car":
+    from gpu_SPS.mountain_car import *
 
-from utils import generate_distribution
+from gpu_SPS.data_generator import *
+
+from utils import (
+    generate_distribution,
+    ini_trajectory,
+    batch_pair, 
+)
 
 random.seed(1)
 
@@ -202,31 +210,28 @@ def divide_chunks(component_list, bs=1):
         'center': 
         'width':
         'p':
-        'x':
-        'y':
+        'trajectory_list':
     }
     return the component={
         'center':
         'width':
         'p':
-    },X, Y
+    }, trajectory
     '''
     for i in range(0, len(component_list), bs):
         components = component_list[i:i + bs]
         abstract_states = list()
-        x_list, y_list = list(), list()
+        trajectory_list, y_list = list(), list()
         for component in components:
             abstract_state = {
                 'center': component['center'],
                 'width': component['width'],
                 'p': component['p'],
             }
-            x_list.extend(component['x'])
-            y_list.extend(component['y'])
+            trajectory_list.extend(component['trajectory_list'])
             abstract_states.append(abstract_state)
             # print(f"component probability: {component['p']}")
-
-        yield x_list, y_list, abstract_states
+        yield trajectory_list, abstract_states
 
 
 def update_model_parameter(m, theta):
@@ -312,7 +317,7 @@ def learning(
 
     TIME_OUT = False
 
-    m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
+    # m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     # print(m)
     m.cuda()
 
@@ -443,18 +448,21 @@ def cal_q(X_train, y_train, m):
 
 ##### create symbolic approximation of perturbation set of input distribution
 
-
-def create_ball_perturbation(X_train, distribution_list, w):
+def create_ball_perturbation(Trajectory_train, distribution_list, w):
     perturbation_x_dict = {
         distribution: list() for distribution in distribution_list
     }
-    for X in X_train:
-        # TODO: for now, only one input variable
-        x = X[0]
+    for trajectory in Trajectory_train:
+        state, _ = ini_trajectory(trajectory)
+        # TODO: for now, only use the first input variable
+        x = state[0]
         l, r = x - w, x + w
+        # print(f"l, r: {l, r}")
         for distribution in distribution_list:
             x_list = generate_distribution(x, l, r, distribution, unit=6)
+            # print(f"x_list of {distribution}: {x_list}")
             perturbation_x_dict[distribution].extend(x_list)
+        # exit(0)
     return perturbation_x_dict
 
 
@@ -526,25 +534,24 @@ def in_component(X, component):
     return True
 
 
-def assign_data_point(X_train, y_train, component_list):
+def assign_data_point(Trajectory_train, component_list):
     for idx, component in enumerate(component_list):
         component.update(
             {
-            'x': list(),
-            'y': list(),
+            'trajectory_list': list(),
             }
         )
-        for i, X in enumerate(X_train):
-            if in_component(X, component):
-                component['x'].append(X)
-                component['y'].append(y_train[i])
+        for i, trajectory in enumerate(Trajectory_train):
+            state, action = ini_trajectory(trajectory) # get the initial <state, action> pair in trajectory
+            # when test, only test the first value in state
+            if in_component([state[0]], component): # if the initial state in component
+                component['trajectory_list'].append(trajectory)
         component_list[idx] = component
     return component_list
         
 
 def extract_abstract_representation(
-    X_train, 
-    y_train, 
+    Trajectory_train, 
     x_l, 
     x_r, 
     num_components, 
@@ -556,19 +563,24 @@ def extract_abstract_representation(
     # 2. measure probability 
     # 3. slice X_train, y_train into component-wise
     '''
+    # TODO: generate small ball based on init(trajectory), others remain
     start_t = time.time()
+    # print(f"w: {w}")
 
-    perturbation_x_dict = create_ball_perturbation(X_train, 
-        distribution_list=["normal", "uniform", "beta", "original"], 
+    perturbation_x_dict = create_ball_perturbation(Trajectory_train, 
+        # distribution_list=["normal", "uniform", "beta", "original"], 
+        distribution_list=["normal", "uniform", "original"],  
+        #TODO:  beta distribution does not account for range
         w=w)
     component_list = split_component(perturbation_x_dict, x_l, x_r, num_components)
+    # print(f"after split components: {component_list}")
 
     # create data for batching, each containing component and cooresponding x, y
     component_list = assign_probability(perturbation_x_dict, component_list)
-    component_list = assign_data_point(X_train, y_train, component_list)
+    component_list = assign_data_point(Trajectory_train, component_list)
     random.shuffle(component_list)
 
-    print(f"component-wise x length: {[len(component['x']) for component in component_list]}")
+    print(f"component-wise x length: {[len(component['trajectory_list']) for component in component_list]}")
 
     # print(component_list)
     print(f"-- Generate Perturbation Set --")

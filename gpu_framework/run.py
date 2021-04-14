@@ -196,9 +196,9 @@ if __name__ == "__main__":
                 # TODO: add verification and test
                 # verification, going through the program without sampling
                 # test for the quantitative accuracy
-                if not test_mode:
-                    print(f"skip verification")
-                    continue
+                # if not test_mode:
+                #     print(f"skip verification")
+                #     continue
                 print(f"------------start verification------------")
                 verification_time = time.time()
                 component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, verification_num_components, w=perturbation_width)

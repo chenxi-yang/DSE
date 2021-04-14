@@ -55,7 +55,7 @@ def mountain_car(p0):
     trajectory_list = list()
 
     while p <= goal_position:
-        if i > 1000:
+        if i > 500:
             break
         if p <= min_position:
             p = min_position
