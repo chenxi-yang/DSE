@@ -100,7 +100,7 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, tar
     print(f"trajectory len: {len(symbol_table['trajectory'])}")
     for state in symbol_table['trajectory']:
         X = state[target_idx]
-        # print(f"X:{X.left.data.item(), X.right.data.item()}")
+        print(f"X:{X.left.data.item(), X.right.data.item()}")
         safe_interval = target_component["condition"]
         unsafe_probability_condition = target_component["phi"]
         intersection_interval = get_intersection(X, safe_interval)
@@ -114,7 +114,7 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, tar
             else:
                 unsafe_value = 1 - safe_probability
         trajectory_loss = torch.max(trajectory_loss, unsafe_value)
-        # print(f"trajectory_loss: {trajectory_loss.data.item()}")
+        print(f"trajectory_loss: {trajectory_loss.data.item()}")
     return trajectory_loss
 
 
@@ -156,6 +156,8 @@ def verify(abstract_state_list, target):
         print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}")
         if not debug:
             log_file_evaluation.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}\n")
+    if debug:
+        exit(0)
 
 def show_component_p(component_list):
     component_p_list = list()

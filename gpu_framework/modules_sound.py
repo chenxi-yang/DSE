@@ -13,6 +13,18 @@ import math
 import time
 
 
+def show_tra_l(l):
+    for abstract_state in l:
+        print("in one abstract state")
+        tra_len_l = list()
+        for symbol_table in abstract_state:
+            if len(symbol_table) > 1:
+                tra_len_l.append(len(symbol_table['trajectory']))
+            else:
+                tra_len_l.append(0)
+        print(tra_len_l)
+
+
 '''
 Module used as functions
 '''
@@ -289,8 +301,10 @@ def split_branch_list(target_idx, test, abstract_state_list):
 
 def sound_join_trajectory(trajectory_1, trajectory_2):
     l1, l2 = len(trajectory_1), len(trajectory_2)
+    # if debug:
+    #     print(f"Sound Join Trajectory: {l1}, {l2}")
     trajectory = list()
-    for idx in range(min(l1 - 1, l2 - 1)):
+    for idx in range(min(l1, l2)):
         states_1, states_2 =  trajectory_1[idx], trajectory_2[idx]
         state_list = list()
         for state_idx, v in enumerate(states_1):
@@ -302,6 +316,10 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
     elif l1 > l2:
         trajectory.extend(trajectory_1[l2:])
     
+    # if debug:
+    #     print(f"Sound Join Trajectory End: {len(trajectory)}")
+    assert(len(trajectory) >= max(l1, l2))
+
     return trajectory
 
 
@@ -435,11 +453,19 @@ class IfElse(nn.Module):
         #     r = torch.cuda.memory_reserved(0) 
         #     a = torch.cuda.memory_allocated(0)
         #     print(f"split_branch_list, before, cuda memory reserved: {r}, allocated: {a}")
+        # if debug:
+        #     print(f"IfElse: ini")
+        #     show_tra_l(abstract_state_list)
         body_list, else_list = split_branch_list(self.target_idx, self.test, abstract_state_list)
         # if debug:
         #     r = torch.cuda.memory_reserved(0) 
         #     a = torch.cuda.memory_allocated(0)
         #     print(f"split_branch_list, after, cuda memory reserved: {r}, allocated: {a}")
+        # if debug:
+            # print(f"IfElse: after split_branch_list, body_list:")
+            # show_tra_l(body_list)
+            # print(f"else_list:")
+            # show_tra_l(else_list)
 
         if len(body_list) > 0:
             body_list = self.body(body_list)
@@ -447,7 +473,15 @@ class IfElse(nn.Module):
         if len(else_list) > 0:
             else_list = self.orelse(else_list)
             # res_list.extend(else_list)
+        # if debug:
+        #     print(f"IfElse: before sound join k, body_list:")
+        #     show_tra_l(body_list)
+        #     print(f"else_list:")
+        #     show_tra_l(else_list)
         res_list = sound_join_k(body_list, else_list, k=constants.verification_num_abstract_states)
+        # if debug:
+        #     print(f"IfElse: after sound join k")
+        #     show_tra_l(res_list)
 
         return res_list
 
@@ -472,23 +506,26 @@ class While(nn.Module):
         while(len(abstract_state_list) > 0):
             # counter += 1
             # print("In  While", abstract_state_list[0][0]["x"].c)
-            if debug:
-                print(f"in while")
-                for abstract_state in abstract_state_list:
-                    print("in one abstract state")
-                    tra_len_l = list()
-                    for symbol_table in abstract_state:
-                        if len(symbol_table) > 1:
-                            tra_len_l.append(len(symbol_table['trajectory']))
-                        else:
-                            tra_len_l.append(0)
-                    print(tra_len_l)
+            # if debug:
+            #     print(f"in while")
+            #     show_tra_l(abstract_state_list)
 
             body_list, else_list = split_branch_list(self.target_idx, self.test, abstract_state_list)
-
+            # if debug:
+            #     print(f"in while, body_list")
+            #     show_tra_l(body_list)
+            #     print(f"in while, else_list")
+            #     show_tra_l(else_list)
+            
             if len(else_list) > 0:
                 # res_list.extend(else_list)
+                # if debug:
+                #     print(f"in while, before sound_join, res_list")
+                #     show_tra_l(res_list)
                 res_list = sound_join_k(res_list, else_list, k=constants.verification_num_abstract_states)
+                # if debug:
+                #     print(f"in while, after sound_join, res_list")
+                #     show_tra_l(res_list)
 
             if len(body_list) > 0:
                 abstract_state_list = self.body(body_list)

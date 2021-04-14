@@ -27,6 +27,7 @@ verification_num_abstract_states = args.verification_num_abstract_states
 use_smooth_kernel = args.use_smooth_kernel
 save = args.save
 test_mode = args.test_mode
+adaptive_weight = args.adaptive_weight
 # safe_start_idx = args.safe_start_idx
 # safe_end_idx = args.safe_end_idx
 # path_sample_size = args.path_sample_size
@@ -40,8 +41,6 @@ perturbation_width = args.perturbation_width
 # thermostat: 0.3
 # mountain_car: 0.01
 
-
-model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}"
 
 STATUS = 'Training' # a global status, if Training: use normal module, if Verifying: use sound module
 
@@ -79,7 +78,10 @@ if benchmark_name == "mountain_car":
     # u,  p
     safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
     phi_list = [0.1, 0.1]
-    w_list = [0.4, 0.6]
+    if adaptive_weight:
+        w_list = [0.01, 0.99]
+    else:
+        w_list = [0.4, 0.6]
     method_list = ['all', 'last']
     name_list = ['acceleration', 'position']
     # TODO: upper bound list:
@@ -91,6 +93,10 @@ if benchmark_name == "mountain_car":
     # safe_range_upper_bound_list = np.arange(80.0, 96.0, 5.0).tolist()
     # PHI = 0.1
 
+if adaptive_weight:
+    model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}_{w_list}"
+else:
+    model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}"
 
 # args
 dataset_size = 50

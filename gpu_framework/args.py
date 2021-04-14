@@ -53,6 +53,7 @@ def get_parser():
     p.add_argument("--use_smooth_kernel", default=False, type=str2bool, help="decide whether to use smooth kernel")
     p.add_argument("--save", default=True, help="decide whether to save the model or not")
     p.add_argument("--mode", help="which method used for training")
+    p.add_argument("--adaptive_weight", default=False, type=str2bool, help="whether use another weight")
 
     # evaluation
     p.add_argument("--test_mode", default=False, type=str2bool, help="decide whether check load model and then test")
