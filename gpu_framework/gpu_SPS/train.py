@@ -95,6 +95,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
     safe_interval = target_component["condition"]
     method = target_component["method"]
     abstract_loss = var_list([0.0])
+    symbol_table_wise_loss_list = list()
     for symbol_table in abstract_state:
         if method == "last":
             trajectory = [symbol_table['trajectory'][-1]]
@@ -102,6 +103,8 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
             trajectory = symbol_table['trajectory'][:]
         else:
             raise NotImplementedError("Error: No trajectory method detected!")
+        symbol_table['trajectory_loss'] = list()
+        tmp_symbol_table_tra_loss = list()
 
         trajectory_loss = var_list([0.0])
         # print(f"start trajectory: ")
@@ -128,15 +131,29 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 safe_portion = intersection_interval.getLength().div(X.getLength().add(EPSILON))
                 unsafe_value = 1 - safe_portion
             # print(f"unsafe value: {unsafe_value}")
-            trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+            if outside_trajectory_loss:
+                tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table['probability'])
+            else:
+                trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+            # symbol_table['']
         # exit(0)
         # if trajectory_loss.data.item() > 100.0:
         #     print(f"add part: {trajectory_loss, symbol_table['probability']}")
             # exit(0)
+        if outside_trajectory_loss:
+            symbol_table_wise_loss_list.append(tmp_symbol_table_tra_loss)
 
         # print(f"add part: {trajectory_loss, symbol_table['probability']}")
-        abstract_loss += trajectory_loss * symbol_table['probability']
+        if not outside_trajectory_loss:
+            abstract_loss += trajectory_loss * symbol_table['probability']
         # print(f"abstract_loss: {abstract_loss}")
+    if outside_trajectory_loss:
+        abstract_state_wise_trajectory_loss = zip(*symbol_table_wise_loss_list)
+        abstract_loss = var_list([0.0])
+        for l in abstract_state_wise_trajectory_loss:
+            # print(l)
+            abstract_loss = torch.max(abstract_loss, torch.sum(torch.stack(l)))
+
     return abstract_loss
     
 
