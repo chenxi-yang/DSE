@@ -156,7 +156,7 @@ if not debug:
     log_file.write(f"path_num_list: {path_num_list}")
     log_file.close()
 
-    log_file_evaluation =  open(file_dir_evaluation, 'w')
+    log_file_evaluation =  open(file_dir_evaluation, 'a')
     log_file_evaluation.write(f"{args}\n")
     log_file_evaluation.write(f"Target info: {safe_range_list}, {phi_list}, \
         {w_list}, {method_list}, {safe_range_bound_list}\n")

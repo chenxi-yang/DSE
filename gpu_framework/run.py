@@ -207,7 +207,10 @@ if __name__ == "__main__":
                 if not test_mode:
                     print(f"skip verification")
                     continue
+                if safe_range_bound <= 0.7:
+                    continue
                 print(f"------------start verification------------")
+                print(f"to verify safe bound: {safe_range_bound}")
                 verification_time = time.time()
                 component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, verification_num_components, w=perturbation_width)
                 verification(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", component_list=component_list, target=target)

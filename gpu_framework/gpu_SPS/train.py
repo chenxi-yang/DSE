@@ -108,6 +108,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
 
         trajectory_loss = var_list([0.0])
         # print(f"start trajectory: ")
+        # print(len(trajectory))
         for state in trajectory:
             # print(f"state: {state}")
             X = state[target_idx] # select the variable to measure
@@ -167,7 +168,7 @@ def safe_distance(abstract_state_list, target):
         for abstract_state in abstract_state_list:
             abstract_state_safe_loss = extract_abstract_state_safe_loss(
                 abstract_state, target_component, target_idx=idx, 
-            )
+            )s
             target_loss += abstract_state_safe_loss
         target_loss = target_loss / var(len(abstract_state_list)).add(EPSILON)
         # Weighted loss of different state variables
