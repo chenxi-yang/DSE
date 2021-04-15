@@ -97,35 +97,69 @@ def get_intersection(interval_1, interval_2):
 
 def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx):
     trajectory_loss = var_list([0.0])
-    print(f"trajectory len: {len(symbol_table['trajectory'])}")
-    for state in symbol_table['trajectory']:
+    # print(f"trajectory len: {len(symbol_table['trajectory'])}")
+    tmp_symbol_table_tra_loss = list()
+    safe_interval = target_component["condition"]
+    unsafe_probability_condition = target_component["phi"]
+    method = target_component["method"]
+    if method == "last":
+        trajectory = [symbol_table['trajectory'][-1]]
+    elif method == "all":
+        trajectory = symbol_table['trajectory'][:]
+
+    for state in trajectory:
         X = state[target_idx]
-        print(f"X:{X.left.data.item(), X.right.data.item()}")
-        safe_interval = target_component["condition"]
-        unsafe_probability_condition = target_component["phi"]
+        # print(f"X:{X.left.data.item(), X.right.data.item()}")
         intersection_interval = get_intersection(X, safe_interval)
         if intersection_interval.isEmpty():
             unsafe_value = var_list([1.0])
         else:
             safe_probability = intersection_interval.getLength().div(X.getLength())
             # TODO: remove this part
-            if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
-                unsafe_value = var_list([0.0])
-            else:
+            # if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
+            #     unsafe_value = var_list([0.0])
+            # else:
+            #     unsafe_value = 1 - safe_probability
+            if real_unsafe_value:
                 unsafe_value = 1 - safe_probability
-        trajectory_loss = torch.max(trajectory_loss, unsafe_value)
-        print(f"trajectory_loss: {trajectory_loss.data.item()}")
-    return trajectory_loss
+            else:
+                if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
+                    unsafe_value = var_list([0.0])
+                else:
+                    unsafe_value = 1 - safe_probability
+        if verify_outside_trajectory_loss:
+            # print("loss of one symbol table", unsafe_value, symbol_table["probability"])
+            tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table["probability"])
+        else:
+            trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+            # print(f"trajectory_loss: {trajectory_loss.data.item()}")
+    if verify_outside_trajectory_loss:
+        return tmp_symbol_table_tra_loss
+    else:
+        return trajectory_loss
 
 
 def extract_unsafe(abstract_state, target_component, target_idx):
     aggregation_p = var_list([0.0])
     abstract_state_unsafe_value = var_list([0.0])
-    for symbol_table in abstract_state:
-        trajectory_unsafe_value = get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx=target_idx)
-        print(f"component p: {symbol_table['probability'].data.item()}, trajectory_unsafe_value: {trajectory_unsafe_value}")
-        abstract_state_unsafe_value += symbol_table['probability'] * trajectory_unsafe_value
-        aggregation_p += symbol_table['probability']
+    if verify_outside_trajectory_loss:
+        symbol_table_wise_loss_list = list()
+        # print(f"Abstract_state")
+        for symbol_table in abstract_state:
+            # print('Symbol_Table')
+            tmp_symbol_table_tra_loss = get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx=target_idx)
+            symbol_table_wise_loss_list.append(tmp_symbol_table_tra_loss)
+            aggregation_p += symbol_table['probability']
+        abstract_state_wise_trajectory_loss = zip(*symbol_table_wise_loss_list)
+        for l in abstract_state_wise_trajectory_loss:
+            # print(l) 
+            abstract_state_unsafe_value = torch.max(abstract_state_unsafe_value, torch.sum(torch.stack(l)))
+    else:
+        for symbol_table in abstract_state:
+            trajectory_unsafe_value = get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx=target_idx)
+            # print(f"component p: {symbol_table['probability'].data.item()}, trajectory_unsafe_value: {trajectory_unsafe_value}")
+            abstract_state_unsafe_value += symbol_table['probability'] * trajectory_unsafe_value
+            aggregation_p += symbol_table['probability']
         # print(f"temporary aggragation p: {aggregation_p}")
     return aggregation_p, abstract_state_unsafe_value
 
@@ -178,16 +212,18 @@ def verification(model_path, model_name, component_list, target):
     if m is None:
         print(f"No model to Verify!!")
         exit(0)
-    m.cuda()
+    # m.cuda()
+    if torch.cuda.is_available():
+        m.cuda()
     m.eval()
 
     for param in m.parameters():
         param.requires_grad = False
     # print(m.nn.linear1.weight)
-
+    
     abstract_state_list = initialization_abstract_state(component_list)
     print(f"Ini # of abstract state: {len(abstract_state_list)}")
-    # show_component_p(component_list)
-    print(abstract_state_list[0][0]["x"].c)
+    show_component_p(component_list)
+    # print(abstract_state_list[0][0]["x"].c)
     abstract_state_list = m(abstract_state_list)
     verify(abstract_state_list, target)

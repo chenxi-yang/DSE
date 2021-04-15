@@ -22,6 +22,10 @@ import domain
 import random
 import time
 
+from utils import (
+    extract_abstract_representation,
+)
+
 
 #TODO:  change arguments
 def best_lambda(X_train, y_train, m, target):
@@ -122,6 +126,10 @@ if __name__ == "__main__":
                         m = MountainCar(l=l, nn_mode=nn_mode, module=module)
                     if test_mode:
                         # mainly for testing the verification part
+                        if torch.cuda.is_available():
+                            pass
+                        else:
+                            break
                         epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{model_name_prefix}_{safe_range_bound}_{i}")
                         # TODO: for quick result
                         if m is not None and epochs_to_skip is not None:

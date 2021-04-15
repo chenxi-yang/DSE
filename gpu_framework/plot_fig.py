@@ -6,6 +6,7 @@ import numpy as np
 import seaborn as sns
 
 from args import *
+from constants import *
 
 def read_loss(loss_path):
     q_list = list()
@@ -339,14 +340,73 @@ def vary_safe_bound():
     plot_verification_result(result_dict, figure_name=f"thermostat_{lr}_{bs}_{num_epoch}_{train_size}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{SAFE_RANGE[0]}_{PHI}_{safe_range_upper_bound_list}")
 
 
+def plot_component(x_list, y_list_list, label_name_list, fig_name):
+    for idx, y_list in enumerate(y_list_list):
+        sns.lineplot(x=x_list, y=y_list, label=label_name_list[idx])
+
+    plt.xlabel('Number of Components')
+    plt.ylabel('Probability Upper Bound')
+    plt.legend()
+    plt.grid()
+    plt.savefig(f"all_figures/{fig_name}.png")
+    plt.close()
+
+
+def abstract_component():
+    import constants
+
+    if mode == 'DSE':
+        from gpu_DSE.data_generator import load_data
+    if mode == 'DiffAI':
+        from gpu_DiffAI.data_generator import load_data
+    if mode == 'SPS':
+        # from gpu_SPS.train import extract_abstract_representation
+        from gpu_SPS.data_generator import load_data
+    if mode == 'SPS-sound':
+        # from gpu_SPS_sound.train import extract_abstract_representation
+        from gpu_SPS_sound.data_generator import load_data
+
+    from evaluation import verification
+    import domain
+
+    import random
+    import time
+
+    from utils import (
+        extract_abstract_representation,
+    )
+
+
+    Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=DATASET_PATH)
+    num_component_list = np.arange(1, 501, 10).tolist()
+    sum_list = list()
+    avg_list = list()
+    min_list = list()
+    max_list = list()
+    for num_components in num_component_list:
+        component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components, w=perturbation_width)
+        component_p_list = list()
+        for component in component_list:
+            component_p_list.append(component['p'])
+        sum_list.append(sum(component_p_list))
+        avg_list.append(sum(component_p_list) / len(component_p_list))
+        min_list.append(min(component_p_list))
+        max_list.append(max(component_p_list))
+    
+    plot_component(num_component_list, [sum_list], ['sum'], fig_name=f"{benchmark_name}_component_probability_upper_bound_sum")
+    plot_component(num_component_list, [min_list, avg_list, max_list], ['min', 'avg', 'max'], fig_name=f"{benchmark_name}_component_probability_upper_bound_distribution")
+    
+
+
 if __name__ == "__main__":
     # plot_loss('loss/') # the q and c loss
     # plot_loss_2('loss/')
     # plot_sample('data/sample_time.txt')
     # lr_bs_epoch_samplesize
-    plot_training_loss('gpu_DSE/result/mountain_car_DSE_0.001_2_10_400_True_10_100_1000_all_linearrelu_5_True_100.0_[80.0, 85.0, 90.0, 95.0]_0.1.txt', benchmark='mountain_car_DSE_0.001_2_10_400_True_10_100_1000_all_linearrelu_5_True_100.0_[80.0, 85.0, 90.0, 95.0]_0.1', method_name='DSE', log=False)
+    # plot_training_loss('gpu_DSE/result/mountain_car_DSE_0.001_2_10_400_True_10_100_1000_all_linearrelu_5_True_100.0_[80.0, 85.0, 90.0, 95.0]_0.1.txt', benchmark='mountain_car_DSE_0.001_2_10_400_True_10_100_1000_all_linearrelu_5_True_100.0_[80.0, 85.0, 90.0, 95.0]_0.1', method_name='DSE', log=False)
     # plot_vary_constraint('result/vary_constraint_volume_vs_point_sampling.txt')
     # vary_safe_bound()
+    abstract_component()
 
 
 

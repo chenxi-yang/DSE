@@ -234,7 +234,7 @@ def calculate_branch_list(target_idx, test, symbol_table_list):
 def sound_join_trajectory(trajectory_1, trajectory_2):
     l1, l2 = len(trajectory_1), len(trajectory_2)
     trajectory = list()
-    for idx in range(min(l1 - 1, l2 - 1)):
+    for idx in range(min(l1, l2)):
         states_1, states_2 =  trajectory_1[idx], trajectory_2[idx]
         state_list = list()
         for state_idx, v in enumerate(states_1):

@@ -75,6 +75,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
     safe_interval = target_component["condition"]
     method = target_component["method"]
     abstract_loss = var_list([0.0])
+    symbol_table_wise_loss_list = list()
     for symbol_table in abstract_state:
         if method == "last":
             trajectory = [symbol_table['trajectory'][-1]]
@@ -82,6 +83,8 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
             trajectory = symbol_table['trajectory'][:]
         else:
             raise NotImplementedError("Error: No trajectory method detected!")
+        symbol_table['trajectory_loss'] = list()
+        tmp_symbol_table_tra_loss = list()
 
         trajectory_loss = var_list([0.0])
         # print(f"start trajectory: ")
@@ -108,15 +111,29 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 safe_portion = intersection_interval.getLength().div(X.getLength().add(EPSILON))
                 unsafe_value = 1 - safe_portion
             # print(f"unsafe value: {unsafe_value}")
-            trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+            if outside_trajectory_loss:
+                tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table['probability'])
+            else:
+                trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+            # symbol_table['']
         # exit(0)
         # if trajectory_loss.data.item() > 100.0:
         #     print(f"add part: {trajectory_loss, symbol_table['probability']}")
             # exit(0)
+        if outside_trajectory_loss:
+            symbol_table_wise_loss_list.append(tmp_symbol_table_tra_loss)
 
         # print(f"add part: {trajectory_loss, symbol_table['probability']}")
-        abstract_loss += trajectory_loss * symbol_table['probability']
+        if not outside_trajectory_loss:
+            abstract_loss += trajectory_loss * symbol_table['probability']
         # print(f"abstract_loss: {abstract_loss}")
+    if outside_trajectory_loss:
+        abstract_state_wise_trajectory_loss = zip(*symbol_table_wise_loss_list)
+        abstract_loss = var_list([0.0])
+        for l in abstract_state_wise_trajectory_loss:
+            # print(l)
+            abstract_loss = torch.max(abstract_loss, torch.sum(torch.stack(l)))
+
     return abstract_loss
     
 
@@ -444,146 +461,3 @@ def cal_q(X_train, y_train, m):
     print(f"cal_q, {data_loss}")
     
     return q
-
-
-##### create symbolic approximation of perturbation set of input distribution
-
-def create_ball_perturbation(Trajectory_train, distribution_list, w):
-    perturbation_x_dict = {
-        distribution: list() for distribution in distribution_list
-    }
-    for trajectory in Trajectory_train:
-        state, _ = ini_trajectory(trajectory)
-        # TODO: for now, only use the first input variable
-        x = state[0]
-        l, r = x - w, x + w
-        # print(f"l, r: {l, r}")
-        for distribution in distribution_list:
-            x_list = generate_distribution(x, l, r, distribution, unit=6)
-            # print(f"x_list of {distribution}: {x_list}")
-            perturbation_x_dict[distribution].extend(x_list)
-        # exit(0)
-    return perturbation_x_dict
-
-
-def split_component(perturbation_x_dict, x_l, x_r, num_components):
-    # TODO: add vector-wise component split
-    x_min, x_max = x_l[0], x_r[0]
-    for distribution in perturbation_x_dict:
-        x_min, x_max = min(min(perturbation_x_dict[distribution]), x_min), max(max(perturbation_x_dict[distribution]), x_max)
-    component_length = (x_max - x_min) / num_components
-    component_list = list()
-    for i in range(num_components):
-        l = x_min + i * component_length
-        r = x_min + (i + 1) * component_length
-        center = [(l + r) /  2.0]
-        width = [(r - l) / 2.0]
-        component_group = {
-            'center': center,
-            'width': width,
-        }
-        component_list.append(component_group)
-    return component_list
-
-
-def extract_upper_probability_per_component(component, perturbation_x_dict):
-
-    p_list = list()
-    for distribution in perturbation_x_dict:
-        x_list = perturbation_x_dict[distribution]
-        cnt = 0
-        for X in x_list:
-            x = [X] #TODO: X is a value
-            if in_component(x, component):
-                cnt += 1
-        p = cnt * 1.0 / len(x_list) + eps + random.uniform(0, 0.1)
-        p_list.append(p)
-    return max(p_list)
-
-
-def assign_probability(perturbation_x_dict, component_list):
-    '''
-    perturbation_x_dict = {
-        distribution: x_list, # x in x_list are in the form of value
-    }
-    component_list:
-    component: {
-        'center': center # center is vector
-        'width': width # width is vector
-    }
-    keep track of under each distribution, what portiton of x_list fall 
-    in to this component
-    '''
-    for idx, component in enumerate(component_list):
-        p = extract_upper_probability_per_component(component, perturbation_x_dict)
-        component['p'] = p
-        component_list[idx] = component
-    # print(f"sum of upper bound: {sum([component['p'] for component in component_list])}")
-    return component_list
-
-
-def in_component(X, component):
-    # TODO: 
-    center = component['center']
-    width = component['width']
-    for i, x in enumerate(X):
-        if x >= center[i] - width[i] and x < center[i] + width[i]:
-            pass
-        else:
-            return False
-    return True
-
-
-def assign_data_point(Trajectory_train, component_list):
-    for idx, component in enumerate(component_list):
-        component.update(
-            {
-            'trajectory_list': list(),
-            }
-        )
-        for i, trajectory in enumerate(Trajectory_train):
-            state, action = ini_trajectory(trajectory) # get the initial <state, action> pair in trajectory
-            # when test, only test the first value in state
-            if in_component([state[0]], component): # if the initial state in component
-                component['trajectory_list'].append(trajectory)
-        component_list[idx] = component
-    return component_list
-        
-
-def extract_abstract_representation(
-    Trajectory_train, 
-    x_l, 
-    x_r, 
-    num_components, 
-    w=0.3):
-    # bs < num_components, w is half of the ball width
-    '''
-    Steps:
-    # 1. generate perturbation, small ball covering following normal, uniform, poission
-    # 2. measure probability 
-    # 3. slice X_train, y_train into component-wise
-    '''
-    # TODO: generate small ball based on init(trajectory), others remain
-    start_t = time.time()
-    # print(f"w: {w}")
-
-    perturbation_x_dict = create_ball_perturbation(Trajectory_train, 
-        # distribution_list=["normal", "uniform", "beta", "original"], 
-        distribution_list=["normal", "uniform", "original"],  
-        #TODO:  beta distribution does not account for range
-        w=w)
-    component_list = split_component(perturbation_x_dict, x_l, x_r, num_components)
-    # print(f"after split components: {component_list}")
-
-    # create data for batching, each containing component and cooresponding x, y
-    component_list = assign_probability(perturbation_x_dict, component_list)
-    component_list = assign_data_point(Trajectory_train, component_list)
-    random.shuffle(component_list)
-
-    print(f"component-wise x length: {[len(component['trajectory_list']) for component in component_list]}")
-
-    # print(component_list)
-    print(f"-- Generate Perturbation Set --")
-    print(f"--- {time.time() - start_t} sec ---")
-
-    return component_list

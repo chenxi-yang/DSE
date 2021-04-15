@@ -268,19 +268,36 @@ class MountainCar(nn.Module):
 
 
 def load_model(m, folder, name, epoch=None):
-    if os.path.isfile(folder):
-        m.load_state_dict(torch.load(folder))
-        return None, m
-    model_dir = os.path.join(folder, f"model_{name}")
-    if not os.path.exists(model_dir):
-        return None, None
-    if epoch is None and os.listdir(model_dir):
-        epoch = max(os.listdir(model_dir), key=int)
-    path = os.path.join(model_dir, str(epoch))
-    if not os.path.exists(path):
-        return None, None
-    m.load_state_dict(torch.load(path))
-    return int(epoch), m
+    if torch.cuda.is_available():
+        if os.path.isfile(folder):
+            m.load_state_dict(torch.load(folder))
+            return None, m
+        model_dir = os.path.join(folder, f"model_{name}")
+        if not os.path.exists(model_dir):
+            return None, None
+        if epoch is None and os.listdir(model_dir):
+            epoch = max(os.listdir(model_dir), key=int)
+        path = os.path.join(model_dir, str(epoch))
+        if not os.path.exists(path):
+            return None, None
+        m.load_state_dict(torch.load(path))
+        return int(epoch), m
+    else:
+        if os.path.isfile(folder):
+            m.load_state_dict(torch.load(folder, map_location=torch.device('cpu')))
+            return None, m
+        model_dir = os.path.join(folder, f"model_{name}")
+        if not os.path.exists(model_dir):
+            return None, None
+        if epoch is None and os.listdir(model_dir):
+            epoch = max(os.listdir(model_dir), key=int)
+        path = os.path.join(model_dir, str(epoch))
+        if not os.path.exists(path):
+            return None, None
+        m.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+        return int(epoch), m
+
+
 
 
 def save_model(model, folder, name, epoch):

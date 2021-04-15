@@ -54,12 +54,14 @@ def get_parser():
     p.add_argument("--save", default=True, help="decide whether to save the model or not")
     p.add_argument("--mode", help="which method used for training")
     p.add_argument("--adaptive_weight", default=False, type=str2bool, help="whether use another weight")
-
+    p.add_argument("--outside_trajectory_loss", default=False, type=str2bool, help="whether use the new loss function")
+    p.add_argument("--verify_outside_trajectory_loss", default=False, type=str2bool,  help="define the verification method")
+    
     # evaluation
     p.add_argument("--test_mode", default=False, type=str2bool, help="decide whether check load model and then test")
     p.add_argument("--verification_num_components", default=1000, type=int, help="componentts in  verification")
     p.add_argument("--verification_num_abstract_states", default=500, type=int, help="allowed number of abstract states in module sound")
-
+    p.add_argument("--real_unsafe_value", default=True, help="get the real unsafe value")
     # debug
     p.add_argument("--debug", default=False, type=str2bool, help="decide whether debug")
     

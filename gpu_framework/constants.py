@@ -28,6 +28,8 @@ use_smooth_kernel = args.use_smooth_kernel
 save = args.save
 test_mode = args.test_mode
 adaptive_weight = args.adaptive_weight
+outside_trajectory_loss = args.outside_trajectory_loss
+verify_outside_trajectory_loss = args.verify_outside_trajectory_loss
 # safe_start_idx = args.safe_start_idx
 # safe_end_idx = args.safe_end_idx
 # path_sample_size = args.path_sample_size
@@ -38,6 +40,7 @@ data_attr = args.data_attr
 mode = args.mode
 debug = args.debug
 perturbation_width = args.perturbation_width
+real_unsafe_value =  args.real_unsafe_value
 # thermostat: 0.3
 # mountain_car: 0.01
 
@@ -98,6 +101,9 @@ if adaptive_weight:
 else:
     model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}"
 
+if outside_trajectory_loss:
+    model_name_prefix = f"{model_name_prefix}_{outside_trajectory_loss}"
+
 # args
 dataset_size = 50
 lambda_ = 100.0
@@ -129,11 +135,20 @@ eps = 1e-10
 
 if not debug:
     if test_mode:
-        file_dir = f"gpu_{mode}/result_test/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}.txt"
-        file_dir_evaluation = f"gpu_{mode}/result_test/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_evaluation.txt"
+        if outside_trajectory_loss:
+            file_dir = f"gpu_{mode}/result_test/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}.txt"
+            file_dir_evaluation = f"gpu_{mode}/result_test/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}_evaluation.txt"
+        else:
+            file_dir = f"gpu_{mode}/result_test/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}.txt"
+            file_dir_evaluation = f"gpu_{mode}/result_test/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_evaluation.txt"
     else:
-        file_dir = f"gpu_{mode}/result/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}.txt"
-        file_dir_evaluation = f"gpu_{mode}/result/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_evaluation.txt"
+        if outside_trajectory_loss:
+            file_dir = f"gpu_{mode}/result/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}.txt"
+            file_dir_evaluation = f"gpu_{mode}/result/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}_evaluation.txt"
+        else:
+            file_dir = f"gpu_{mode}/result/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}.txt"
+            file_dir_evaluation = f"gpu_{mode}/result/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_evaluation.txt"
+    
     log_file = open(file_dir, 'w')
     log_file.write(f"{args}\n")
     log_file.write(f"Target info: {safe_range_list}, {phi_list}, \
