@@ -42,7 +42,7 @@ def ini_trajectory(trajectory):
     return state, action
 
 
-def batch_pair(trajectory_list, data_bs=256):
+def batch_pair(trajectory_list, data_bs=None):
     states, actions = list(), list()
     for trajectory in trajectory_list:
         for (state, action) in trajectory:

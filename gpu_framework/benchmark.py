@@ -1,4 +1,5 @@
 import math
+import random
 
 def thermostat(lin):
     x = lin
@@ -41,7 +42,17 @@ def acceleration(p, v):
         u = 1.0
     return u
 
-def mountain_car(p0):
+
+def safe_acceleration(p, v, safe_bound):
+    u = 0.0
+    if v <= 0.0:
+        u = - 0.8
+    else:
+        u = safe_bound + random.uniform(-0.00001, 0)
+    return u
+
+
+def mountain_car(p0, safe_bound):
     # pos in [-1.2, 0.6]
     # initial range: [-0.6, -0.4]
     v = 0
@@ -55,12 +66,12 @@ def mountain_car(p0):
     trajectory_list = list()
 
     while p <= goal_position:
-        if i > 500:
-            break
+        # if i > 500:
+        #     break
         if p <= min_position:
             p = min_position
             v = 0
-        u = acceleration(p, v)
+        u = safe_acceleration(p, v, safe_bound)
         trajectory_list.append((p, v, u))
 
         # reward = reward + (-0.1) * u  * u
@@ -81,6 +92,7 @@ def mountain_car(p0):
     # else:
     #     reward += 100
     # exit(0)
+    # print(i)
         
     return trajectory_list
 

@@ -5,6 +5,8 @@ import numpy as np
 # import domain
 
 args = get_args()
+generate_all_dataset = args.generate_all_dataset
+dataset_distribution = args.dataset_distribution
 lr = args.lr
 stop_val = args.stop_val
 t_epoch = args.t_epoch
@@ -76,7 +78,7 @@ if benchmark_name == "thermostat":
 
 if benchmark_name == "mountain_car":
     x_l = [-0.6]
-    x_r =  [-0.4]
+    x_r = [-0.4]
 
     # u,  p
     safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
@@ -84,7 +86,8 @@ if benchmark_name == "mountain_car":
     if adaptive_weight:
         w_list = [0.01, 0.99]
     else:
-        w_list = [0.4, 0.6]
+        # w_list = [0.4, 0.6]
+        w_list = [1.0, 0]
     method_list = ['all', 'last']
     name_list = ['acceleration', 'position']
     # TODO: upper bound list:
@@ -103,6 +106,8 @@ else:
 
 if outside_trajectory_loss:
     model_name_prefix = f"{model_name_prefix}_{outside_trajectory_loss}"
+
+dataset_path_prefix = f"dataset/{benchmark_name}_{dataset_distribution}_{x_l[0]}_{x_r[0]}"
 
 # args
 dataset_size = 50
@@ -133,7 +138,7 @@ alpha_coeff = 0.9
 alpha_smooth_max = 0.8
 eps = 1e-10
 
-if not debug:
+if not debug and not generate_all_dataset:
     if test_mode:
         if outside_trajectory_loss:
             file_dir = f"gpu_{mode}/result_test/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}.txt"
@@ -156,7 +161,7 @@ if not debug:
     log_file.write(f"path_num_list: {path_num_list}")
     log_file.close()
 
-    log_file_evaluation =  open(file_dir_evaluation, 'a')
+    log_file_evaluation =  open(file_dir_evaluation, 'w')
     log_file_evaluation.write(f"{args}\n")
     log_file_evaluation.write(f"Target info: {safe_range_list}, {phi_list}, \
         {w_list}, {method_list}, {safe_range_bound_list}\n")

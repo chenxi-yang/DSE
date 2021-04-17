@@ -4,6 +4,7 @@ import numpy as np
 from scipy.stats import truncnorm
 
 import benchmark
+from constants import *
 
 
 def dataset_arg(dataset):
@@ -21,7 +22,7 @@ def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
     )
 
 
-def generate_dataset(func, distribution, input_range, data_size=50000):
+def generate_dataset(func, distribution, input_range, safe_bound, data_size=50000):
     res_list = list()
     min_tra, max_tra = 100000, -100000
 
@@ -30,11 +31,14 @@ def generate_dataset(func, distribution, input_range, data_size=50000):
         X = get_truncated_normal((l+r)/2.0, sd=1, low=l, upp=r)
         x_list = X.rvs(data_size).tolist()
     
+    max_tra_l = 0.0
     for x in x_list:
-        trajectory_list = func(x)
+        trajectory_list = func(x, safe_bound)
         res_list.append(trajectory_list)
+        max_tra_l = max(len(trajectory_list), max_tra_l)
         # min_tra, max_tra = min(trajectory_l, min_tra), max(trajectory_r, max_tra)
     
+    print(f"max trajectory length: {max_tra_l}")
     # print(f"min-tra, max_tra: {min_tra}, {max_tra}")
     # thermostat: min-tra, max_tra: 52.01157295666703, 82.79782533533135
     
@@ -52,7 +56,7 @@ def write_dataset(res_list, path):
     return 
 
 
-def run():
+def run(safe_bound):
     args = get_args()
     dataset = args.dataset
     distribution = args.dataset_distribution
@@ -64,12 +68,14 @@ def run():
     
     input_range = dataset_arg(dataset)
 
-    res_list = generate_dataset(func=func, distribution=distribution, input_range=input_range)
+    res_list = generate_dataset(func=func, distribution=distribution, input_range=input_range, safe_bound=safe_bound)
     write_dataset(
         res_list,
-        path=f"dataset/{dataset}_{distribution}_{input_range[0]}_{input_range[1]}.txt",
+        # path=f"dataset/{dataset}_{distribution}_{input_range[0]}_{input_range[1]}_{safe_bound}.txt",
+        path=f"{dataset_path_prefix}_{safe_bound}.txt"
         )
 
 
 if __name__ == "__main__":
-    run()
+    for safe_bound in safe_range_bound_list:
+        run(safe_bound)

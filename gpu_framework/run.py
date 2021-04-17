@@ -84,6 +84,9 @@ if __name__ == "__main__":
             if benchmark_name == "mountain_car":
                 target = list()
                 for idx, safe_range in enumerate(safe_range_list):
+                    # only use the acceleration condition
+                    if idx > 0:
+                        continue
                     if idx == component_bound_idx:
                         # TODO: only update the upper bound
                         target_component = {
@@ -106,7 +109,7 @@ if __name__ == "__main__":
             # data points generation
             preprocessing_time = time.time()
             # TODO: the data is one-dimension (x = a value)
-            Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=DATASET_PATH)
+            Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
             component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components, w=perturbation_width)
             print(f"prepare data: {time.time() - preprocessing_time} sec.")
             # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
@@ -207,8 +210,8 @@ if __name__ == "__main__":
                 if not test_mode:
                     print(f"skip verification")
                     continue
-                if safe_range_bound <= 0.7:
-                    continue
+                # if safe_range_bound <= 0.7:
+                #     continue
                 print(f"------------start verification------------")
                 print(f"to verify safe bound: {safe_range_bound}")
                 verification_time = time.time()

@@ -43,6 +43,7 @@ def get_parser():
     p.add_argument("--data_attr", default="normal_52.0_59.0", help="dataset_attr")
     p.add_argument("--train_size", default=200, type=int, help="training size")
     p.add_argument("--test_size", default=20000, type=int, help="test size")
+    p.add_argument("--generate_all_dataset", default=False, type=str2bool, help="generate the data set")
 
     # perturbation
     p.add_argument("--num_components", default=10, type=int, help="number of components to split")
@@ -56,7 +57,8 @@ def get_parser():
     p.add_argument("--adaptive_weight", default=False, type=str2bool, help="whether use another weight")
     p.add_argument("--outside_trajectory_loss", default=False, type=str2bool, help="whether use the new loss function")
     p.add_argument("--verify_outside_trajectory_loss", default=False, type=str2bool,  help="define the verification method")
-    
+    p.add_argument("--only_data_loss", default=False, type=str2bool, help="only use data loss")
+
     # evaluation
     p.add_argument("--test_mode", default=False, type=str2bool, help="decide whether check load model and then test")
     p.add_argument("--verification_num_components", default=1000, type=int, help="componentts in  verification")
