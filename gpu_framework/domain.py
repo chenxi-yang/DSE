@@ -660,6 +660,11 @@ class Box():
         # print(f"in sigmoid, tp: {tp}, bt: {bt}")
         return self.new((tp + bt)/2, (tp - bt)/2)
     
+    def tanh(self): # monotonic function
+        tp = torch.tanh(self.c + self.delta)
+        bt = torch.tanh(self.c - self.delta)
+        return self.new((tp + bt)/2, (tp - bt)/2)
+    
     def relu(self): # monotonic function
         # relu_time = time.time()
         tp = F.relu(self.c + self.delta)

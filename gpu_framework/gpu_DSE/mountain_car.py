@@ -98,7 +98,8 @@ class LinearReLU(nn.Module):
         self.linear1 = Linear(in_channels=2, out_channels=l)
         self.linear2 = Linear(in_channels=l, out_channels=1)
         self.relu = ReLU()
-        self.sigmoid = Sigmoid()
+        # self.sigmoid = Sigmoid()
+        self.tanh = Tanh()
         # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
 
     def forward(self, x):
@@ -106,7 +107,10 @@ class LinearReLU(nn.Module):
         res = self.linear1(x)
         res = self.relu(res)
         res = self.linear2(res)
-        res = self.sigmoid(res)
+        # res = self.sigmoid(res)
+        # !!!!!!! between [-1.0, 1.0]
+        res = self.tanh(res)
+        
         # print(f"time in LinearReLU: {time.time() - start_time}")
         return res
 

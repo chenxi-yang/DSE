@@ -48,6 +48,14 @@ class Sigmoid(nn.Module):
 
     def forward(self, x):
         return x.sigmoid()
+
+
+class Tanh(nn.Module):
+    def __init__(self):
+        super().__init__()
+    
+    def forward(self, x):
+        return x.tanh()
     
 
 class ReLU(nn.Module):

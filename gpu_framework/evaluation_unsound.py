@@ -201,6 +201,10 @@ def test_objective(m, trajectory_test, criterion, test_bs):
     for x, y in trajectory2points(trajectory_test, test_bs):
         yp = m(x, version="single_nn_learning")
         batch_data_loss = criterion(yp, y)
+        if debug:
+            print(f"yp: {yp}, y: {y}")
+            print(f"batch data loss: {batch_data_loss}")
+
         count += 1
         data_loss += batch_data_loss
         # update data_loss
@@ -211,6 +215,8 @@ def test_objective(m, trajectory_test, criterion, test_bs):
         log_file_evaluation = open(file_dir_evaluation, 'a')
         log_file_evaluation.write(f"test data loss: {test_data_loss.data.item()}\n")
     print(f"test data loss: {test_data_loss.data.item()}")
+    if debug:
+        exit(0)
 
 
 def ini_state_batch(trajectory_test, test_abstract_bs):
@@ -246,7 +252,12 @@ def point_test_tmp(res_list, target):
             safe = torch.tensor([True], dtype=torch.bool)
         for state in trajectory:
             X = state[idx]
+            if debug:
+                print(f"X: {X.left.data.item(), X.right.data.item()}; safe interval: {safe_interval.left.data.item(), safe_interval.right.data.item()}")
+                print(f"In: {X.in_other(safe_interval)}")
             safe = torch.cat((safe, X.in_other(safe_interval)), 0)
+        if debug:
+            print(f"safe: {safe}")
         
         # print(safe)
         if torch.all(safe):
@@ -258,6 +269,8 @@ def point_test_tmp(res_list, target):
 
 
 def measure_test_safety(all_safe_res, target):
+    if not debug:
+        log_file_evaluation = open(file_dir_evaluation, 'a')
     for target_idx, target_component in enumerate(target):
         target_name = target_component["name"]
         unsafe_probability = target_component['phi']
@@ -269,6 +282,7 @@ def measure_test_safety(all_safe_res, target):
                 unsafe_count += 1
                 all_count += 1
         test_unsafe_probability = unsafe_count * 1.0 / all_count
+        
         if test_unsafe_probability <= unsafe_probability:
             print(colored(f"#{target_name}: Unsound Verified Safe!", "green"))
             if not debug:
@@ -276,7 +290,7 @@ def measure_test_safety(all_safe_res, target):
         else:
             print(colored(f"#{target_name}: Unsound Verified Unafe!", "red"))
             if not debug:
-                log_file_evaluation.write(f"Unsound Verification of #{target_name}#: Verified Unafe!\n")
+                log_file_evaluation.write(f"Unsound Verification of #{target_name}#: Verified Unsafe!\n")
         
         print(f"test_unsafe_probability: {test_unsafe_probability}")
         if not debug:

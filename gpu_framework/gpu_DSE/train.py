@@ -368,7 +368,10 @@ def learning(
 
             if time.time() - batch_time > 2000/(len(component_list)/bs):
                 TIME_OUT = True
-                break
+                if i == 0: # a chance for the first epoch
+                    pass
+                else:
+                    break
 
             print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
             q_loss += real_data_loss
@@ -414,11 +417,14 @@ def learning(
         #     break
         
         if (time.time() - start_time)/(i+1) > 2000 or TIME_OUT:
-            log_file = open(file_dir, 'a')
-            log_file.write('TIMEOUT: avg epoch time > 2000s \n')
-            log_file.close()
-            TIME_OUT = True
-            break
+            if i == 0: # give a chance for the first epoch
+                pass
+            else:
+                log_file = open(file_dir, 'a')
+                log_file.write('TIMEOUT: avg epoch time > 2000s \n')
+                log_file.close()
+                TIME_OUT = True
+                break
     
     res = real_data_loss + lambda_ * real_safe_loss# loss # f_loss.div(len(X_train))
 
