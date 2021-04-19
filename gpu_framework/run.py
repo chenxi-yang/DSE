@@ -16,7 +16,7 @@ if mode == 'SPS-sound':
     from gpu_SPS_sound.data_generator import load_data
 
 from args import *
-from evaluation import verification
+from evaluation_sound import verification
 import domain
 
 import random
@@ -165,6 +165,7 @@ if __name__ == "__main__":
                         save=save,
                         epochs_to_skip=epochs_to_skip,
                         model_name=f"{model_name_prefix}_{safe_range_bound}_{i}",
+                        only_data_loss=only_data_loss, 
                         )
                     m.eval()
 
@@ -212,15 +213,22 @@ if __name__ == "__main__":
                     continue
                 # if safe_range_bound <= 0.7:
                 #     continue
-                print(f"------------start verification------------")
-                print(f"to verify safe bound: {safe_range_bound}")
-                verification_time = time.time()
-                component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, verification_num_components, w=perturbation_width)
-                verification(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", component_list=component_list, target=target)
-                print(f"---verification time: {time.time() - verification_time} sec---")
+                if sound_verify:
+                    print(f"------------start sound verification------------")
+                    print(f"to verify safe bound: {safe_range_bound}")
+                    verification_time = time.time()
+                    component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, verification_num_components, w=perturbation_width)
+                    verification(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", component_list=component_list, target=target)
+                    print(f"---verification time: {time.time() - verification_time} sec---")
                 # exit(0)
                 # eval(X_train, y_train, m_t, target, 'train')
                 # eval(X_test, y_test, m_t, target, 'test')
+                if unsound_verify:
+                    print(f"------------start unsound verification------------")
+                    print(f"to verify safe bound: {safe_range_bound}")
+                    verification_time = time.time()
+                    verification_unsound(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", trajectory_test=Trajectory_test, target=target)
+                    print(f"---unsound verification time: {time.time() - verification_time} sec---")
 
 
 

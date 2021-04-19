@@ -172,7 +172,7 @@ def cal_data_loss(m, trajectory_list, criterion):
     # print(X.shape, y.shape)
     yp = m(X, version="single_nn_learning")
     data_loss = criterion(yp, y)
-    # print(f"data_loss: {data_loss}")s
+    # print(f"data_loss: {data_loss}")
     return data_loss
 
 
@@ -310,7 +310,8 @@ def learning(
         use_smooth_kernel=use_smooth_kernel,
         save=save,
         epochs_to_skip=None,
-        model_name=None
+        model_name=None, 
+        only_data_loss=only_data_loss, 
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
@@ -346,14 +347,17 @@ def learning(
                 sample_time = time.time()
 
                 data_loss = cal_data_loss(m, trajectory_list, criterion)
-                safe_loss = cal_safe_loss(m, abstract_states, target)
+                grad_data_loss += var(data_loss.data.item()) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
+                real_data_loss += var(data_loss.data.item())
+                safe_loss = var(0.0)
+                
+                if not only_data_loss:
+                    safe_loss = cal_safe_loss(m, abstract_states, target)
+                    grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
+                    real_safe_loss += var(safe_loss.data.item())
 
                 print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
                 # print(f"{'#' * 15}")
-                grad_data_loss += var(data_loss.data.item()) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
-                real_data_loss += var(data_loss.data.item())
-                grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
-                real_safe_loss += var(safe_loss.data.item())
                 # print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
 
             # To maintain the real theta
@@ -370,7 +374,7 @@ def learning(
             q_loss += real_data_loss
             c_loss += real_safe_loss
 
-            loss = grad_data_loss + lambda_.mul(grad_safe_loss)
+            loss = grad_data_loss/n+ lambda_.mul(grad_safe_loss/n)
             loss.backward()
             for partial_theta in Theta:
                 torch.nn.utils.clip_grad_norm_(partial_theta, 1)

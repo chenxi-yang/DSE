@@ -183,7 +183,7 @@ def extract_abstract_representation(
     perturbation_x_dict = create_ball_perturbation(Trajectory_train, 
         # distribution_list=["normal", "uniform", "beta", "original"], 
         distribution_list=["normal", "uniform", "original"],  
-        #TODO:  beta distribution does not account for range
+        #TODO: beta distribution does not account for range
         w=w)
     component_list = split_component(perturbation_x_dict, x_l, x_r, num_components)
     # print(f"after split components: {component_list}")

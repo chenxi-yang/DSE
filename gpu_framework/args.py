@@ -64,6 +64,9 @@ def get_parser():
     p.add_argument("--verification_num_components", default=1000, type=int, help="componentts in  verification")
     p.add_argument("--verification_num_abstract_states", default=500, type=int, help="allowed number of abstract states in module sound")
     p.add_argument("--real_unsafe_value", default=True, help="get the real unsafe value")
+    p.add_argument("--sound_verify", default=False, type=str2bool, help="use sound verify when test_mode is True")
+    p.add_argument("--unsound_verify", default=False, type=str2bool, help="use unsound verify when test_mode is False")
+    
     # debug
     p.add_argument("--debug", default=False, type=str2bool, help="decide whether debug")
     
