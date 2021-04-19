@@ -61,7 +61,7 @@ def initialization_point_nn(x):
         'probability': var(1.0),
         'trajectory': list(),
         'branch': '',
-        'idx': idx, 
+        'idx': 0, 
     }
     point_symbol_table_list.append(symbol_table)
 

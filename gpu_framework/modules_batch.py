@@ -269,6 +269,7 @@ def split_branch_abstract_state(target_idx, test, abstract_state):
     # if symbol_table is empty, keep it for sequence join
     body_abstract_state, orelse_abstract_state = list(), list()
     for symbol_table in abstract_state:
+        # print(symbol_table)
         if len(symbol_table) == 0:
             body_symbol_table, orelse_symbol_table = dict(), dict()
         else:

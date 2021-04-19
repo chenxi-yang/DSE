@@ -17,6 +17,7 @@ if benchmark_name == "mountain_car":
         load_model,
         save_model,
         initialization_abstract_state,
+        initialization_point_nn,
     )
 
 import domain
@@ -187,7 +188,7 @@ def trajectory2points(trajectory_list, bs):
     states, actions = zip(*c)
     states, actions = np.array(states), np.array(actions)
 
-    for i in xrange(0, len(states), bs):
+    for i in range(0, len(states), bs):
         if torch.cuda.is_available():
             yield torch.from_numpy(states[i:i+bs]).float().cuda(), torch.from_numpy(actions[i:i+bs]).float().cuda()
         else:
@@ -198,7 +199,7 @@ def test_objective(m, trajectory_test, criterion, test_bs):
     data_loss = 0.0
     count = 0
     for x, y in trajectory2points(trajectory_test, test_bs):
-        yp = m(x, "single_nn_learning")
+        yp = m(x, version="single_nn_learning")
         batch_data_loss = criterion(yp, y)
         count += 1
         data_loss += batch_data_loss
@@ -207,7 +208,7 @@ def test_objective(m, trajectory_test, criterion, test_bs):
     test_data_loss = data_loss / count
 
     if not debug:
-        log_file_evaluation = open(file_dir_unsound_evaluation, 'a')
+        log_file_evaluation = open(file_dir_evaluation, 'a')
         log_file_evaluation.write(f"test data loss: {test_data_loss.data.item()}\n")
     print(f"test data loss: {test_data_loss.data.item()}")
 
@@ -240,14 +241,15 @@ def point_test_tmp(res_list, target):
             trajectory = symbol_table['trajectory'][:]
         
         if torch.cuda.is_available():
-            safe = torch.Tensor([True]).cuda()
+            safe = torch.tensor([True], dtype=torch.bool).cuda()
         else:
-            safe = torch.Tensor([True])
+            safe = torch.tensor([True], dtype=torch.bool)
         for state in trajectory:
             X = state[idx]
             safe = torch.cat((safe, X.in_other(safe_interval)), 0)
-
-        if torch.all(unsafe):
+        
+        # print(safe)
+        if torch.all(safe):
             target_safety.append(True)
         else:
             target_safety.append(False)
@@ -257,7 +259,7 @@ def point_test_tmp(res_list, target):
 
 def measure_test_safety(all_safe_res, target):
     for target_idx, target_component in enumerate(target):
-        target_name = target["name"]
+        target_name = target_component["name"]
         unsafe_probability = target_component['phi']
         unsafe_count, all_count = 0.0, 0.0
         for safe_res in all_safe_res:
@@ -275,6 +277,10 @@ def measure_test_safety(all_safe_res, target):
             print(colored(f"#{target_name}: Unsound Verified Unafe!", "red"))
             if not debug:
                 log_file_evaluation.write(f"Unsound Verification of #{target_name}#: Verified Unafe!\n")
+        
+        print(f"test_unsafe_probability: {test_unsafe_probability}")
+        if not debug:
+            log_file_evaluation.write(f"test_unsafe_probability: {test_unsafe_probability}\n")
 
         
 def verify_unsound(m, trajectory_test, target, test_abstract_bs):
@@ -286,6 +292,7 @@ def verify_unsound(m, trajectory_test, target, test_abstract_bs):
     all_safe_res = list()
     for x in ini_state_batch_tmp(trajectory_test):
         input_point = initialization_point_nn(x)
+        # print(input_point)
         res_list = m(input_point)
         batch_safe_res = point_test_tmp(res_list, target)
         all_safe_res.append(batch_safe_res)
