@@ -71,6 +71,9 @@ class Interval:
     def new(self, left, right):
         return self.__class__(left, right)
     
+    def in_other(self, other):
+        return torch.logical_and(self.left >= other.left, self.right <= other.right)
+    
     def clone(self):
         return self.new(self.left.clone(), self.right.clone())
 

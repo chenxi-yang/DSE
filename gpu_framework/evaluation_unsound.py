@@ -139,6 +139,7 @@ def verify(abstract_state_list, target):
     if debug:
         exit(0)
 
+
 def show_component_p(component_list):
     component_p_list = list()
     for component in component_list:
@@ -212,21 +213,94 @@ def test_objective(m, trajectory_test, criterion, test_bs):
         log_file_evaluation.write(f"test data loss: {test_data_loss.data.item()}\n")
     print(f"test data loss: {test_data_loss.data.item()}")
 
+
+def ini_state_batch(trajectory_test, test_abstract_bs):
+    # extract the initial state from trajectory_test
+    # batch initial state
+    # initial domain of each batch
+    # return domain
+    return True
+
+
+def ini_state_batch_tmp(trajectory_test):
+    for trajectory in trajectory_test:
+        x = trajectory[0][0] # state, (p, v)
+        yield x
+
+
+def point_test_tmp(res_list, target):
+    #! no batch
+    symbol_table = res_list[0][0]
+    target_safety = list()
+    for idx, target_component in enumerate(target):
+        safe_interval = target_component["condition"]
+        unsafe_probability_condition = target_component["phi"]
+        method = target_component["method"]
+        if method == "last":
+            trajectory = [symbol_table['trajectory'][-1]]
+        elif method == "all":
+            trajectory = symbol_table['trajectory'][:]
+        
+        if torch.cuda.is_available():
+            safe = torch.Tensor([True]).cuda()
+        else:
+            safe = torch.Tensor([True])
+        for state in trajectory:
+            X = state[idx]
+            safe = torch.cat((safe, X.in_other(safe_interval)), 0)
+
+        if torch.all(unsafe):
+            target_safety.append(True)
+        else:
+            target_safety.append(False)
     
-def verify_unsound(m, trajectory_test, target):
+    return target_safety
+
+
+def measure_test_safety(all_safe_res, target):
+    for target_idx, target_component in enumerate(target):
+        target_name = target["name"]
+        unsafe_probability = target_component['phi']
+        unsafe_count, all_count = 0.0, 0.0
+        for safe_res in all_safe_res:
+            if safe_res[target_idx]:
+                all_count += 1
+            else:
+                unsafe_count += 1
+                all_count += 1
+        test_unsafe_probability = unsafe_count * 1.0 / all_count
+        if test_unsafe_probability <= unsafe_probability:
+            print(colored(f"#{target_name}: Unsound Verified Safe!", "green"))
+            if not debug:
+                log_file_evaluation.write(f"Unsound Verification of #{target_name}#: Verified Safe!\n")
+        else:
+            print(colored(f"#{target_name}: Unsound Verified Unafe!", "red"))
+            if not debug:
+                log_file_evaluation.write(f"Unsound Verification of #{target_name}#: Verified Unafe!\n")
+
+        
+def verify_unsound(m, trajectory_test, target, test_abstract_bs):
     # extract the initial state in trajectory
     # batch initial state, points
     # m(points)
     # test trajectory out of m
     # TODO: batch
-    
+    all_safe_res = list()
+    for x in ini_state_batch_tmp(trajectory_test):
+        input_point = initialization_point_nn(x)
+        res_list = m(input_point)
+        batch_safe_res = point_test_tmp(res_list, target)
+        all_safe_res.append(batch_safe_res)
+    measure_test_safety(all_safe_res, target)
 
 
-
-
-
-
-def verification_unsound(model_path, model_name, trajectory_test, target, test_bs=512):
+def verification_unsound(
+    model_path, 
+    model_name, 
+    trajectory_test, 
+    target, 
+    test_bs=512,
+    test_abstract_bs=32):
     if benchmark_name == "thermostat":
         m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     if benchmark_name == "mountain_car":
@@ -247,7 +321,7 @@ def verification_unsound(model_path, model_name, trajectory_test, target, test_b
 
     # split batch
     test_objective(m, trajectory_test, criterion, test_bs)
-    verify_unsound(m, trajectory_test, target)
+    verify_unsound(m, trajectory_test, target, test_abstract_bs)
 
     
 

@@ -61,8 +61,8 @@ def initialization_point_nn(x):
         'probability': var(1.0),
         'trajectory': list(),
         'branch': '',
+        'idx': idx, 
     }
-
     point_symbol_table_list.append(symbol_table)
 
     # to map to the execution of distribution, add one dimension

@@ -394,6 +394,11 @@ def sound_join_k(l1, l2, k):
     #     print(f"sound_join_k, after, cuda memory reserved: {r}, allocated: {a}")
     
     return res_list
+
+
+def batch_list(l1, l2):
+    # batch the list together
+    return l2
     
 
 class Skip(nn.Module):
@@ -475,16 +480,18 @@ class IfElse(nn.Module):
 
         if len(body_list) > 0:
             body_list = self.body(body_list)
+            res_list = body_list
             # res_list.extend(body_list)
         if len(else_list) > 0:
             else_list = self.orelse(else_list)
+            res_list = else_list
             # res_list.extend(else_list)
         # if debug:
         #     print(f"IfElse: before sound join k, body_list:")
         #     show_tra_l(body_list)
         #     print(f"else_list:")
         #     show_tra_l(else_list)
-        res_list = sound_join_k(body_list, else_list, k=constants.verification_num_abstract_states)
+        # res_list = sound_join_k(body_list, else_list, k=constants.verification_num_abstract_states)
         # if debug:
         #     print(f"IfElse: after sound join k")
         #     show_tra_l(res_list)
@@ -528,7 +535,8 @@ class While(nn.Module):
                 if debug:
                     print(f"in while, before sound_join, res_list")
                     show_tra_l(res_list)
-                res_list = sound_join_k(res_list, else_list, k=constants.verification_num_abstract_states)
+                # res_list = sound_join_k(res_list, else_list, k=constants.verification_num_abstract_states)
+                res_list = batch_list(res_list, else_lise)
                 if debug:
                     print(f"in while, after sound_join, res_list")
                     show_tra_l(res_list)
