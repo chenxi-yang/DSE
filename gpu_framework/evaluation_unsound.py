@@ -189,11 +189,9 @@ def trajectory2points(trajectory_list, bs):
 
     for i in xrange(0, len(states), bs):
         if torch.cuda.is_available():
-            yield torch.from_numpy(states[i:i+bs]).float().cuda(), 
-                torch.from_numpy(actions[i:i+bs]).float().cuda()
+            yield torch.from_numpy(states[i:i+bs]).float().cuda(), torch.from_numpy(actions[i:i+bs]).float().cuda()
         else:
-            yield torch.from_numpy(states[i:i+bs]).float(),
-                torch.from_numpy(actions[i:i+bs]).float()
+            yield torch.from_numpy(states[i:i+bs]).float(), torch.from_numpy(actions[i:i+bs]).float()
 
 
 def test_objective(m, trajectory_test, criterion, test_bs):
