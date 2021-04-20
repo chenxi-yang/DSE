@@ -136,7 +136,7 @@ class LinearReLUNoAct(nn.Module):
         res = self.linear_output(res)
         # res = self.sigmoid(res)
         # !!!!!!! between [-1.0, 1.0]
-        print(f"in Linear")
+        # print(f"in Linear")
         # print(f"time in LinearReLU: {time.time() - start_time}")
         return res
 

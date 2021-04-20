@@ -143,7 +143,6 @@ class LinearReLUNoAct(nn.Module):
         return res
 
 
-
 def reward_reach(x):
     return x.add(var(100.0)) 
 

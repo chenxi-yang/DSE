@@ -58,7 +58,8 @@ def get_parser():
     p.add_argument("--outside_trajectory_loss", default=False, type=str2bool, help="whether use the new loss function")
     p.add_argument("--verify_outside_trajectory_loss", default=False, type=str2bool,  help="define the verification method")
     p.add_argument("--only_data_loss", default=False, type=str2bool, help="only use data loss")
-
+    p.add_argument("--data_bs", default=2, type=int, help="number of trajectories to use for data loss")
+    
     # evaluation
     p.add_argument("--test_mode", default=False, type=str2bool, help="decide whether check load model and then test")
     p.add_argument("--verification_num_components", default=1000, type=int, help="componentts in  verification")

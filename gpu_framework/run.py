@@ -167,7 +167,8 @@ if __name__ == "__main__":
                         save=save,
                         epochs_to_skip=epochs_to_skip,
                         model_name=f"{model_name_prefix}_{safe_range_bound}_{i}",
-                        only_data_loss=only_data_loss, 
+                        only_data_loss=only_data_loss,
+                        data_bs=data_bs,
                         )
                     m.eval()
 
