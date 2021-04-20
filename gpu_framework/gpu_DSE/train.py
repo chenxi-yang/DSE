@@ -173,9 +173,9 @@ def cal_data_loss(m, trajectory_list, criterion):
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     print(X.shape, y.shape)
     yp = m(X, version="single_nn_learning")
-    if debug:
-        print(f"yp: {yp.squeeze()}")
-        print(f"y: {y.squeeze()}")
+    # if debug:
+    #     print(f"yp: {yp.squeeze()}")
+    #     print(f"y: {y.squeeze()}")
     data_loss = criterion(yp, y)
     # print(f"data_loss: {data_loss}")
     return data_loss
@@ -237,6 +237,8 @@ def divide_chunks(component_list, bs=1):
             abstract_states.append(abstract_state)
             # print(f"component probability: {component['p']}")
         yield trajectory_list, abstract_states
+    # TODO: return refineed trajectory_list, return abstract states
+    # 
 
 
 def update_model_parameter(m, theta):
@@ -339,6 +341,8 @@ def learning(
             continue
         q_loss, c_loss = var_list([0.0]), var_list([0.0])
         count = 0
+        if not use_smooth_kernel:
+            tmp_q_idx = 0
         for trajectory_list, abstract_states in divide_chunks(component_list, bs=bs):
             # print(f"x length: {len(x)}")
             # if len(trajectory_list) == 0:
@@ -374,6 +378,9 @@ def learning(
                 real_data_loss /= n
                 real_safe_loss /= n
             else:
+                if len(trajectory_list) == 0:
+                    continue
+                tmp_q_idx += 1
                 data_loss = cal_data_loss(m, trajectory_list, criterion)
                 safe_loss = var_list([0.0])
                 if not only_data_loss:
@@ -417,7 +424,10 @@ def learning(
         # f_loss = q_loss + lambda_ * c_loss
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
         print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}")
-        print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
+        if use_smooth_kernel:
+            print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
+        else:
+            print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()/tmp_q_idx}, c: {c_loss.data.item()}")
         if not debug:
             log_file = open(file_dir, 'a')
             log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")

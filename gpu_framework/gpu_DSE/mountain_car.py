@@ -119,19 +119,24 @@ class LinearReLUNoAct(nn.Module):
     def __init__(self, l):
         super().__init__()
         self.linear1 = Linear(in_channels=2, out_channels=l)
-        self.linear2 = Linear(in_channels=l, out_channels=1)
+        self.linear2 = Linear(in_channels=l, out_channels=l)
+        self.linear_output = Linear(in_channels=l, out_channels=1)
         self.relu = ReLU()
-        # self.sigmoid = Sigmoid()
+        self.sigmoid = Sigmoid()
         # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
 
     def forward(self, x):
         # start_time = time.time()
         res = self.linear1(x)
         res = self.relu(res)
+        # res = self.Sigmoid()
         res = self.linear2(res)
+        
+        res = self.relu(res)
+        res = self.linear_output(res)
         # res = self.sigmoid(res)
         # !!!!!!! between [-1.0, 1.0]
-        
+        print(f"in Linear")
         # print(f"time in LinearReLU: {time.time() - start_time}")
         return res
 

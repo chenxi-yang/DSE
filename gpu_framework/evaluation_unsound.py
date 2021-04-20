@@ -216,7 +216,8 @@ def test_objective(m, trajectory_test, criterion, test_bs):
         log_file_evaluation.write(f"test data loss: {test_data_loss.data.item()}\n")
     print(f"test data loss: {test_data_loss.data.item()}")
     if debug:
-        exit(0)
+        # exit(0)
+        pass
 
 
 def ini_state_batch(trajectory_test, test_abstract_bs):

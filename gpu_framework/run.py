@@ -227,10 +227,10 @@ if __name__ == "__main__":
                 # eval(X_test, y_test, m_t, target, 'test')
                 if unsound_verify:
                     print(f"------------start unsound verification------------")
-                    print(f"to verify safe bound(train dataset): {safe_range_bound}")
-                    verification_time = time.time()
-                    verification_unsound(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", trajectory_test=Trajectory_train, target=target)
-                    print(f"---unsound verification(train dataset)time: {time.time() - verification_time} sec---")
+                    # print(f"to verify safe bound(train dataset): {safe_range_bound}")
+                    # verification_time = time.time()
+                    # verification_unsound(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", trajectory_test=Trajectory_train, target=target)
+                    # print(f"---unsound verification(train dataset)time: {time.time() - verification_time} sec---")
 
                     print(f"to verify safe bound(test dataset): {safe_range_bound}")
                     verification_time = time.time()

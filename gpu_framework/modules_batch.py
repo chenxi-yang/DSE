@@ -545,7 +545,7 @@ class While(nn.Module):
                 #     print(f"in while, before sound_join, res_list")
                 #     show_tra_l(res_list)
                 # res_list = sound_join_k(res_list, else_list, k=constants.verification_num_abstract_states)
-                res_list = batch_list(res_list, else_lise)
+                res_list = batch_list(res_list, else_list)
                 # if debug:
                 #     print(f"in while, after sound_join, res_list")
                 #     show_tra_l(res_list)
