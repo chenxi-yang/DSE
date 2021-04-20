@@ -116,7 +116,7 @@ class LinearReLU(nn.Module):
 
 
 class LinearReLUNoAct(nn.Module):
-    def __init__(self, l, sig_range):
+    def __init__(self, l):
         super().__init__()
         self.linear1 = Linear(in_channels=2, out_channels=l)
         self.linear2 = Linear(in_channels=l, out_channels=1)

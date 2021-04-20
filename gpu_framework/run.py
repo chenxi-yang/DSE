@@ -91,7 +91,7 @@ if __name__ == "__main__":
                     if idx == component_bound_idx:
                         # TODO: only update the upper bound
                         target_component = {
-                            "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)),
+                            "condition": domain.Interval(var(-safe_range_bound), var(safe_range_bound)),
                             "phi": var(phi_list[idx]),
                             "w": var(w_list[idx]), 
                             "method": method_list[idx], 
@@ -128,6 +128,7 @@ if __name__ == "__main__":
                         m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
                     if benchmark_name == "mountain_car":
                         m = MountainCar(l=l, nn_mode=nn_mode, module=module)
+                    # print(m)
                     if test_mode:
                         # mainly for testing the verification part
                         if torch.cuda.is_available():
@@ -226,10 +227,10 @@ if __name__ == "__main__":
                 # eval(X_test, y_test, m_t, target, 'test')
                 if unsound_verify:
                     print(f"------------start unsound verification------------")
-                    # print(f"to verify safe bound(train dataset): {safe_range_bound}")
-                    # verification_time = time.time()
-                    # verification_unsound(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", trajectory_test=Trajectory_train, target=target)
-                    # print(f"---unsound verification(train dataset)time: {time.time() - verification_time} sec---")
+                    print(f"to verify safe bound(train dataset): {safe_range_bound}")
+                    verification_time = time.time()
+                    verification_unsound(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", trajectory_test=Trajectory_train, target=target)
+                    print(f"---unsound verification(train dataset)time: {time.time() - verification_time} sec---")
 
                     print(f"to verify safe bound(test dataset): {safe_range_bound}")
                     verification_time = time.time()

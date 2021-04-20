@@ -46,7 +46,8 @@ def acceleration(p, v):
 def safe_acceleration(p, v, safe_bound):
     u = 0.0
     if v <= 0.0:
-        u = - 0.8
+        # u = - 0.8
+        u = - safe_bound + random.uniform(0.00001, 0)
     else:
         u = safe_bound + random.uniform(-0.00001, 0)
     return u

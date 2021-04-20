@@ -171,7 +171,7 @@ def cal_data_loss(m, trajectory_list, criterion):
     X, y = batch_pair(trajectory_list, data_bs=None)
     # print(f"after batch pair: {X.shape}, {y.shape}")
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
-    # print(X.shape, y.shape)
+    print(X.shape, y.shape)
     yp = m(X, version="single_nn_learning")
     if debug:
         print(f"yp: {yp.squeeze()}")
@@ -349,29 +349,36 @@ def learning(
             
             Theta = extract_parameters(m) # extract the parameters now, and then sample around it
             # print(f"Theta before: {Theta}")
-            for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
-                m = update_model_parameter(m, sample_theta)
-                sample_time = time.time()
+            if use_smooth_kernel:
+                for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
+                    m = update_model_parameter(m, sample_theta)
+                    sample_time = time.time()
 
+                    data_loss = cal_data_loss(m, trajectory_list, criterion)
+                    grad_data_loss += var(data_loss.data.item()) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
+                    real_data_loss += var(data_loss.data.item())
+                    safe_loss = var(0.0)
+                    
+                    if not only_data_loss:
+                        safe_loss = cal_safe_loss(m, abstract_states, target)
+                        grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
+                        real_safe_loss += var(safe_loss.data.item())
+
+                        print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
+                    # print(f"{'#' * 15}")
+                    # print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
+
+                # To maintain the real theta
+                m = update_model_parameter(m, Theta)
+
+                real_data_loss /= n
+                real_safe_loss /= n
+            else:
                 data_loss = cal_data_loss(m, trajectory_list, criterion)
-                grad_data_loss += var(data_loss.data.item()) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
-                real_data_loss += var(data_loss.data.item())
-                safe_loss = var(0.0)
-                
+                safe_loss = var_list([0.0])
                 if not only_data_loss:
                     safe_loss = cal_safe_loss(m, abstract_states, target)
-                    grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
-                    real_safe_loss += var(safe_loss.data.item())
-
-                print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
-                # print(f"{'#' * 15}")
-                # print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
-
-            # To maintain the real theta
-            m = update_model_parameter(m, Theta)
-
-            real_data_loss /= n
-            real_safe_loss /= n
+                real_data_loss, real_safe_loss = data_loss, safe_loss
 
             print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
             q_loss += real_data_loss
@@ -384,7 +391,7 @@ def learning(
                 else:
                     break
 
-            loss = grad_data_loss/n+ lambda_.mul(grad_safe_loss/n)
+            loss = real_data_loss + lambda_.mul(real_safe_loss)
             loss.backward()
             for partial_theta in Theta:
                 torch.nn.utils.clip_grad_norm_(partial_theta, 1)

@@ -99,7 +99,7 @@ if benchmark_name == "mountain_car":
     # TODO: upper bound list:
     component_bound_idx = 0
     bound_direction_idx = 1 # left or right
-    safe_range_bound_list = np.arange(0.5, 1.1, 0.1).tolist()[3:]
+    safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
 
     # SAFE_RANGE = [100.0, 100.0]
     # safe_range_upper_bound_list = np.arange(80.0, 96.0, 5.0).tolist()

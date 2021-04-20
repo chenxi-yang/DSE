@@ -44,6 +44,7 @@ def ini_trajectory(trajectory):
 
 def batch_pair(trajectory_list, data_bs=None):
     states, actions = list(), list()
+    random.shuffle(trajectory_list)
     for trajectory in trajectory_list:
         for (state, action) in trajectory:
             states.append(state)

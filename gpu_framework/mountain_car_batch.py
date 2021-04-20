@@ -117,6 +117,27 @@ class LinearReLU(nn.Module):
         return res
 
 
+class LinearReLUNoAct(nn.Module):
+    def __init__(self, l):
+        super().__init__()
+        self.linear1 = Linear(in_channels=2, out_channels=l)
+        self.linear2 = Linear(in_channels=l, out_channels=1)
+        self.relu = ReLU()
+        # self.sigmoid = Sigmoid()
+        # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
+
+    def forward(self, x):
+        # start_time = time.time()
+        res = self.linear1(x)
+        res = self.relu(res)
+        res = self.linear2(res)
+        # res = self.sigmoid(res)
+        # !!!!!!! between [-1.0, 1.0]
+        
+        # print(f"time in LinearReLU: {time.time() - start_time}")
+        return res
+
+
 def reward_reach(x):
     return x.add(var(100.0)) 
 
@@ -194,6 +215,8 @@ class MountainCar(nn.Module):
             self.nn = LinearSig(l=l)
         if module == 'linearrelu':
             self.nn = LinearReLU(l=l, sig_range=sig_range)
+        if module == 'linearrelu_no_act':
+            self.nn = LinearReLUNoAct(l=l)
 
         ####
         self.assign_min_p = Assign(target_idx=[0], arg_idx=[0], f=f_assign_min_p)
