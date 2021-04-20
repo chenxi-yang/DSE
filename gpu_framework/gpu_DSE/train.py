@@ -166,11 +166,16 @@ def cal_data_loss(m, trajectory_list, criterion):
     # for the point in the same batch
     # calculate the data loss of each point
     # add the point data loss together
+    if len(trajectory_list) == 0:
+        return var_list([0.0])
     X, y = batch_pair(trajectory_list, data_bs=None)
     # print(f"after batch pair: {X.shape}, {y.shape}")
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     # print(X.shape, y.shape)
     yp = m(X, version="single_nn_learning")
+    if debug:
+        print(f"yp: {yp.squeeze()}")
+        print(f"y: {y.squeeze()}")
     data_loss = criterion(yp, y)
     # print(f"data_loss: {data_loss}")
     return data_loss
@@ -336,6 +341,8 @@ def learning(
         count = 0
         for trajectory_list, abstract_states in divide_chunks(component_list, bs=bs):
             # print(f"x length: {len(x)}")
+            # if len(trajectory_list) == 0:
+            #     continue
             batch_time = time.time()
             grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
             real_data_loss, real_safe_loss = var_list([0.0]), var_list([0.0])
@@ -366,16 +373,16 @@ def learning(
             real_data_loss /= n
             real_safe_loss /= n
 
-            if time.time() - batch_time > 2000/(len(component_list)/bs):
+            print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
+            q_loss += real_data_loss
+            c_loss += real_safe_loss
+
+            if time.time() - batch_time > 3600/(len(component_list)/bs):
                 TIME_OUT = True
                 if i == 0: # a chance for the first epoch
                     pass
                 else:
                     break
-
-            print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
-            q_loss += real_data_loss
-            c_loss += real_safe_loss
 
             loss = grad_data_loss/n+ lambda_.mul(grad_safe_loss/n)
             loss.backward()
@@ -416,7 +423,7 @@ def learning(
         # if c_loss.data.item() < EPSILON.data.item():
         #     break
         
-        if (time.time() - start_time)/(i+1) > 2000 or TIME_OUT:
+        if (time.time() - start_time)/(i+1) > 3500 or TIME_OUT:
             if i == 0: # give a chance for the first epoch
                 pass
             else:
@@ -428,10 +435,13 @@ def learning(
     
     res = real_data_loss + lambda_ * real_safe_loss# loss # f_loss.div(len(X_train))
 
-    log_file = open(file_dir, 'a')
-    spend_time = time.time() - start_time
-    log_file.write('One train: Optimization--' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
-    log_file.close()
+    if not debug:
+        log_file = open(file_dir, 'a')
+        spend_time = time.time() - start_time
+        log_file.write('One train: Optimization--' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
+        log_file.close()
+    if debug:
+        exit(0)
     
     return m, res, [], data_loss, safe_loss, TIME_OUT
 

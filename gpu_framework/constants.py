@@ -99,7 +99,7 @@ if benchmark_name == "mountain_car":
     # TODO: upper bound list:
     component_bound_idx = 0
     bound_direction_idx = 1 # left or right
-    safe_range_bound_list = np.arange(0.5, 1.1, 0.1).tolist()
+    safe_range_bound_list = np.arange(0.5, 1.1, 0.1).tolist()[3:]
 
     # SAFE_RANGE = [100.0, 100.0]
     # safe_range_upper_bound_list = np.arange(80.0, 96.0, 5.0).tolist()
@@ -108,7 +108,7 @@ if benchmark_name == "mountain_car":
 # if adaptive_weight:
 #     model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}_{w_list}"
 # else:
-model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}_{w_list}"
+model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}_{w_list}"
 model_name_prefix = f"{model_name_prefix}_{outside_trajectory_loss}_{only_data_loss}"
 
 dataset_path_prefix = f"dataset/{benchmark_name}_{dataset_distribution}_{x_l[0]}_{x_r[0]}"

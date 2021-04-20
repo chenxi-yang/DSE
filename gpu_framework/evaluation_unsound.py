@@ -202,7 +202,7 @@ def test_objective(m, trajectory_test, criterion, test_bs):
         yp = m(x, version="single_nn_learning")
         batch_data_loss = criterion(yp, y)
         if debug:
-            print(f"yp: {yp}, y: {y}")
+            print(f"yp: {yp.squeeze()}, y: {y.squeeze()}")
             print(f"batch data loss: {batch_data_loss}")
 
         count += 1
