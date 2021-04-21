@@ -476,7 +476,7 @@ def learning(
         if c_loss.data.item() < EPSILON.data.item():
             break
         
-        if (time.time() - start_time)/(i+1) > 2000 or TIME_OUT:
+        if (time.time() - start_time)/(i+1) > 3000 or TIME_OUT:
             log_file = open(file_dir, 'a')
             log_file.write('TIMEOUT: avg epoch time > 2000s \n')
             log_file.close()

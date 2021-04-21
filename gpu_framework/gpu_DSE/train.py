@@ -418,13 +418,19 @@ def learning(
                     pass
                 else:
                     break
+            
+            # print(m.parameters())
 
             loss = grad_data_loss + lambda_.mul(grad_safe_loss)
             loss.backward()
-            for partial_theta in Theta:
-                torch.nn.utils.clip_grad_norm_(partial_theta, 1)
-            # print(m.nn.linear1.weight.grad)
-            # print(m.nn.linear2.weight.grad)
+            print(m.nn.linear1.weight.grad)
+            print(m.nn.linear2.weight.grad)
+            # Theta = extract_parameters(m) 
+            # for partial_theta in Theta:
+            #     torch.nn.utils.clip_grad_norm_(partial_theta, 1)
+            torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
+            print(m.nn.linear1.weight.grad)
+            print(m.nn.linear2.weight.grad)
             optimizer.step()
             optimizer.zero_grad()
             # new_theta = extract_parameters(m)
