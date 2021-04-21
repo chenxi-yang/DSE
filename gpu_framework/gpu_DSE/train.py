@@ -168,10 +168,10 @@ def cal_data_loss(m, trajectory_list, criterion):
     # add the point data loss together
     if len(trajectory_list) == 0:
         return var_list([0.0])
-    X, y = batch_pair(trajectory_list, data_bs=None)
+    X, y = batch_pair(trajectory_list)
     # print(f"after batch pair: {X.shape}, {y.shape}")
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
-    print(X.shape, y.shape)
+    # print(X.shape, y.shape)s
     yp = m(X, version="single_nn_learning")
     # if debug:
     #     print(f"yp: {yp.squeeze()}")
@@ -237,14 +237,18 @@ def divide_chunks(component_list, bs=1, data_bs=2):
             }
             abstract_states.append(abstract_state)
             for trajectory_idx, trajectory in enumerate(component['trajectory_list']):
-                trajectory_list.extend(trajectory)
-                if trajectory_idx + data_bs > len(component['trajectory_list']) - 1:
+                # print(f"before: {len(trajectory)}")
+                trajectory_list.append(trajectory)
+                # print(f"after: {len(trajectory_list)}")
+                if (trajectory_idx + data_bs > len(component['trajectory_list']) - 1) and component_idx == len(components) - 1:
                     pass
-                else:
+                elif len(trajectory_list) == data_bs:
+                    # print(trajectory_list)
                     yield trajectory_list, [], False
                     trajectory_list = list()
             # print(f"component probability: {component['p']}")
 
+        # print(f"out: {trajectory_list}")
         yield trajectory_list, abstract_states, True # use safe loss
 
 
@@ -349,8 +353,7 @@ def learning(
             continue
         q_loss, c_loss = var_list([0.0]), var_list([0.0])
         count = 0
-        if not use_smooth_kernel:
-            tmp_q_idx = 0
+        tmp_q_idx = 0
         for trajectory_list, abstract_states, use_safe_loss in divide_chunks(component_list, bs=bs, data_bs=data_bs):
             # print(f"x length: {len(x)}")
             # if len(trajectory_list) == 0:
@@ -387,9 +390,13 @@ def learning(
                     real_data_loss /= n
                     real_safe_loss /= n
                 else:
+                    if len(trajectory_list) == 0:
+                        continue
+                    tmp_q_idx += 1
                     data_loss = cal_data_loss(m, trajectory_list, criterion)
                     safe_loss = var_list([0.0])
                     real_data_loss, real_safe_loss = data_loss, safe_loss
+                    grad_data_loss, grad_safe_loss = data_loss, safe_loss
             else:
                 if len(trajectory_list) == 0:
                     continue
@@ -399,6 +406,7 @@ def learning(
                 if not only_data_loss:
                     safe_loss = cal_safe_loss(m, abstract_states, target)
                 real_data_loss, real_safe_loss = data_loss, safe_loss
+                grad_data_loss, grad_safe_loss = data_loss, safe_loss
 
             print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
             q_loss += real_data_loss
@@ -411,7 +419,7 @@ def learning(
                 else:
                     break
 
-            loss = real_data_loss + lambda_.mul(real_safe_loss)
+            loss = grad_data_loss + lambda_.mul(grad_safe_loss)
             loss.backward()
             for partial_theta in Theta:
                 torch.nn.utils.clip_grad_norm_(partial_theta, 1)
