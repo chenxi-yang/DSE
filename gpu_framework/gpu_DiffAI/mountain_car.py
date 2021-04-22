@@ -19,26 +19,26 @@ if torch.cuda.is_available():
 
 
 # DiffAI version
-def initialization_nn(center_list, width_list, p_list=None):
-    # TODO: center is a batch, so is the width
-    # TODO: trajectory_list is a separate list storing the trajectory mapping to each batch
-    # TODO: index_list
-    # print(f"in initialization_nn")
-    symbol_table_list = list()
-    for idx, center in enumerate(center_list):
-        width = width_list[idx]
-        p = var(1.0) if p_list is None else p_list[i]
-        symbol_table = {
-            'x': domain.Box(var_list([center[0], 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0])),
-            # 'safe_range': domain.Interval(P_INFINITY, N_INFINITY),
-            'probability': var(p),
-            'trajectory': list(),
-            'branch': '',
-        }
+# def initialization_nn(center_list, width_list, p_list=None):
+#     #center is a batch, so is the width
+#     # trajectory_list is a separate list storing the trajectory mapping to each batch
+#     # index_list
+#     # print(f"in initialization_nn")
+#     symbol_table_list = list()
+#     for idx, center in enumerate(center_list):
+#         width = width_list[idx]
+#         p = var(1.0) if p_list is None else p_list[i]
+#         symbol_table = {
+#             'x': domain.Box(var_list([center[0], 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0])),
+#             # 'safe_range': domain.Interval(P_INFINITY, N_INFINITY),
+#             'probability': var(p),
+#             'trajectory': list(),
+#             'branch': '',
+#         }
 
-        symbol_table_list.append(symbol_table)
+#         symbol_table_list.append(symbol_table)
 
-    return symbol_table_list
+#     return symbol_table_list
 
 
 def initialization_nn(batched_center, batched_width):
@@ -51,7 +51,7 @@ def initialization_nn(batched_center, batched_width):
     symbol_tables = {
         'x': domain.Box(torch.cat((input_center, padding, padding, padding), 1), torch.cat((input_width, padding, padding, padding), 1)),
         'trajectory_list': [[] for i in range(B)],
-        'idx_list': [i for i in range(B)],
+        'idx_list': [i for i in range(B)], # marks which idx the tensor comes from in the input
     }
 
     return symbol_tables
@@ -159,19 +159,19 @@ def f_assign_max_speed(x):
     return x.set_value(var(0.07))
 
 def f_assign_update_p(x):
-    return x.select_from_index(0, index0).add(x.select_from_index(0, index1))
+    return x.select_from_index(1, index0).add(x.select_from_index(1, index1))
 
 def f_assign_reward_update(x):
-    return x.select_from_index(0, index1).add(x.select_from_index(0, index0).mul(x.select_from_index(0, index0)).mul(var(-0.1)))
+    return x.select_from_index(1, index1).add(x.select_from_index(1, index0).mul(x.select_from_index(1, index0)).mul(var(-0.1)))
 
 def f_assign_v(x):
     # x: p, v, u
     # if debug:
     #     r1 = torch.cuda.memory_reserved(0) 
     #     a1 = torch.cuda.memory_allocated(0)
-    p = x.select_from_index(0, index0)
-    v = x.select_from_index(0, index1)
-    u = x.select_from_index(0, index2)
+    p = x.select_from_index(1, index0)
+    v = x.select_from_index(1, index1)
+    u = x.select_from_index(1, index2)
     # if debug:
     #     r2 = torch.cuda.memory_reserved(0) 
     #     a2 = torch.cuda.memory_allocated(0)

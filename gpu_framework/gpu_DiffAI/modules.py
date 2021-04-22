@@ -81,162 +81,74 @@ class SigmoidLinear(nn.Module):
 Program Statement
 '''
 
-def calculate_x_list(target_idx, arg_idx, f, symbol_table_list):
-    # assign_time = time.time()
-    for idx, symbol_table in enumerate(symbol_table_list):
-        x = symbol_table['x']
-        input = x.select_from_index(0, arg_idx) # torch.index_select(x, 0, arg_idx)
-        # print(f"f: {f}")
-        res = f(input)
-        # print(f"calculate_x_list --  target_idx: {target_idx}, res: {res.c}, {res.delta}")
-        x.set_from_index(target_idx, res) # x[target_idx[0]] = res
+# def calculate_x_list(target_idx, arg_idx, f, symbol_tables):
+#     # assign_time = time.time()
+#     for idx, symbol_table in enumerate(symbol_table_list):
+#         x = symbol_table['x']
+#         input = x.select_from_index(1, arg_idx) # torch.index_select(x, 0, arg_idx)
+#         # print(f"f: {f}")
+#         res = f(input)
+#         # print(f"calculate_x_list --  target_idx: {target_idx}, res: {res.c}, {res.delta}")
+#         x.set_from_index(target_idx, res) # x[target_idx[0]] = res
         
-        symbol_table['x'] = x
-        # symbol_table['probability'] = symbol_table['probability'].mul(p)
-        symbol_table_list[idx] = symbol_table
-    # print(f"-- assign -- calculate_x_list: {time.time() - assign_time}")
-    return symbol_table_list
+#         symbol_table['x'] = x
+#         # symbol_table['probability'] = symbol_table['probability'].mul(p)
+#         symbol_table_list[idx] = symbol_table
+#     # print(f"-- assign -- calculate_x_list: {time.time() - assign_time}")
+#     return symbol_table_list
 
+def calculate_x_list(target_idx, arg_idx, f, symbol_tables):
+    x = symbol_tables['x']
+    input = x.select_from_index(1, arg_idx)
+    res = f(input)
+    x.c[:, target_idx] = res.c 
+    x.delta[:, target_idx] = res.delta
+    symbol_tables['x'] = x
 
-def pre_build_symbol_table(symbol_table):
-    # clone safe_range and x_memo_list
-    res_symbol_table = dict()
-    res_symbol_table['trajectory'] = list()
-    for state in symbol_table['trajectory']:
-        res_symbol_table['trajectory'].append(state)
+    return symbol_tables
+        
 
-    return res_symbol_table
+def calculate_branch(target_idx, test, symbol_tables):
+    body_symbol_tables, orelse_symbol_tables = dict(), dict()
+    x = symbol_tables['x']
+    target = x.select_from_index(1, target_idx) # select the batch target from x
 
+    # select the idx of left = target.right < test,  right = target.right >= test
+    # select the trajectory accordingly
+    # select the idx accordingly
+    # split the other
 
-def pre_allocate(symbol_table):
-    return symbol_table['probability']
+    left = target.getLeft() < test
+    if True in left: # split to left
+        left_idx = left.nonzero(as_tuple=True)[0].tolist()
+        # x_left.c, x_left.delta = x.c[left.squeeze()], x.delta[left.squeeze()]
+        x_left = domain.Box(x.c[left.squeeze()], x.delta[left.squeeze()])
+        left_target_c, left_target_delta = target.c[left].unsqueeze(1), target.delta[left].unsqueeze(1)
 
-
-def split_point_cloud(symbol_table, res, target_idx):
-    # split the point cloud, count and calculate the probability
-    counter = 0.0
-    old_point_cloud = symbol_table['point_cloud']
-    point_cloud = list()
-    for point in old_point_cloud:
-        # TODO: brute-forcely check the point, a smarter way is to check based on the target_idx
-        if res.check_in(point):
-            counter += 1
-            point_cloud.append(point)
+        # get the new c, delta
+        left_target_c = ((left_target_c - left_target_delta) + torch.min((left_target_c + left_target_delta), test)) / 2.0
+        left_target_delta = (torch.min((left_target_c + left_target_delta), test) - (left_target_c - left_target_delta)) / 2.0
+        x_left.c[:, target_idx:target_idx+1] = left_target_c
+        x_left.delta[:, target_idx:target_idx+1] = left_target_delta
+        body_symbol_tables['x'] = x_left
+        body_symbol_tables['trajectory_list'] = [symbol_tables['trajectory_list'][i] for i in left_idx]
+        body_symbol_tables['idx_list'] = [symbol_tables['idx_list'][i] for i in left_idx]
     
-    if counter > 0:
-        probability = symbol_table['probability'].mul(var(counter).div(symbol_table['counter']))
-    else:
-        probability = SMALL_PROBABILITY
-    counter = var(counter)
+    right = target.getRight() >= test
+    if True in right: # split to right
+        right_idx = right.nonzero(as_tuple=True)[0].tolist()
+        x_right = domain.Box(x.c[right.squeeze()], x.delta[right.squeeze()])
+        right_target_c, right_target_delta = target.c[right].unsqueeze(1), target.delta[right].unsqueeze(1)
 
-    return probability, counter, point_cloud
+        right_target_c = (torch.max((right_target_c - right_target_delta), test) + (right_target_c + right_target_delta)) / 2.0
+        right_target_delta = ((right_target_c + right_target_delta) - torch.max((right_target_c - right_target_delta), test)) / 2.0
+        x_right.c[:, target_idx:target_idx+1] = right_target_c
+        x_right.delta[:, target_idx:target_idx+1] = right_target_delta
+        orelse_symbol_tables['x'] = x_right
+        orelse_symbol_tables['trajectory_list'] = [symbol_tables['trajectory_list'][i] for i in right_idx]
+        orelse_symbol_tables['idx_list'] = [symbol_tables['idx_list'][i] for i in right_idx]
 
-
-def split_volume(symbol_table, target, delta):
-    # 
-    target_volume = target.getRight() - target.getLeft()
-    new_volume = delta.mul(var(2.0))
-    probability = symbol_table['probability'].mul(new_volume.div(target_volume))
-
-    return probability
-
-
-def update_res_in_branch(res_symbol_table, res, probability, branch):
-    res_symbol_table['x'] = res
-    res_symbol_table['probability'] = probability
-    res_symbol_table['branch'] = branch
-
-    return res_symbol_table
-
-
-def calculate_branch(target_idx, test, symbol_table):
-    res_symbol_table_list = list()
-    branch_time = time.time()
-    # print(f"calculate branch -- target_idx: {target_idx}")
-    # print(f"x: {x.c, x.delta}")
-
-    x = symbol_table['x']
-    target = x.select_from_index(0, target_idx)
-    # res_symbol_table = pre_build_symbol_table(symbol_table)
-
-    # target = x[target_idx]
-    # print(f"target right: {target.getRight()}")
-    # print(f"test: {test}")
-    # pre allocate
-    # probability = pre_allocate(symbol_table)
-
-    if target.getRight().data.item() <= test.data.item():
-        res = x.clone()
-        branch = 'body'
-        res_symbol_table = pre_build_symbol_table(symbol_table)
-        probability = pre_allocate(symbol_table)
-        res_symbol_table = update_res_in_branch(res_symbol_table, res, probability, branch)
-        res_symbol_table_list.append(res_symbol_table)
-    elif target.getLeft().data.item() > test.data.item():
-        res = x.clone()
-        branch = 'orelse'
-        res_symbol_table = pre_build_symbol_table(symbol_table)
-        probability = pre_allocate(symbol_table)
-        res_symbol_table = update_res_in_branch(res_symbol_table, res, probability, branch)
-        res_symbol_table_list.append(res_symbol_table)
-    else:
-        res = x.clone()
-        branch = 'body'
-        c = (target.getLeft() + test) / 2.0
-        delta = (test - target.getLeft()) / 2.0
-        res.set_from_index(target_idx, domain.Box(c, delta)) # res[target_idx] = Box(c, delta)
-        res_symbol_table_body = pre_build_symbol_table(symbol_table)
-        # This is DiffAI, so probability is not needed any more (for place holder)
-        probability = pre_allocate(symbol_table)
-        res_symbol_table_body = update_res_in_branch(res_symbol_table_body, res, probability, branch)
-        res_symbol_table_list.append(res_symbol_table_body)
-
-        res = x.clone()
-        branch = 'orelse'
-        c = (target.getRight() + test) / 2.0
-        delta = (target.getRight() - test) / 2.0
-        res.set_from_index(target_idx, domain.Box(c, delta))
-        res_symbol_table_orelse = pre_build_symbol_table(symbol_table)
-
-        probability = pre_allocate(symbol_table)
-        res_symbol_table_orelse = update_res_in_branch(res_symbol_table_orelse, res, probability, branch)
-        res_symbol_table_list.append(res_symbol_table_orelse)
-
-    # print(f"branch time: {time.time() - branch_time}")
-    return res_symbol_table_list
-            
-
-def calculate_branch_list(target_idx, test, symbol_table_list):
-    res_list = list()
-    for symbol_table in symbol_table_list: # for each element, split it. # c, delta
-        # print(symbol_table)
-        res_symbol_table = calculate_branch(target_idx, test, symbol_table)
-        # if res_symbol_table['x'] is None:
-        #     continue
-        res_list.extend(res_symbol_table)
-    return res_list
-
-
-# def sound_join_symbol_table(symbol_table_1, symbol_table_2):
-#     # TODO: trajectory join, one by one, every state do sound join one by one
-#     # assert(len(symbol_table_1) == 0 and len(symbol_table_2) == 0)
-#     # print(f"In Sound Join Symbol Table")
-#     if len(symbol_table_1) == 0:
-#         return symbol_table_2
-#     if len(symbol_table_2) == 0:
-#         return symbol_table_1
-#     trajectory_1, trajectory_2 = symbol_table_1['trajectory'], symbol_table_2['trajectory']
-#     res_trajectory = trajectory_2 if len(trajectory_1) < len(trajectory_2) else trajectory_1
-
-#     symbol_table = {
-#         'x': symbol_table_1['x'].sound_join(symbol_table_2['x']),
-#         'probability': torch.max(symbol_table_1['probability'], symbol_table_2['probability']),
-#         'trajectory': [state for state in res_trajectory],
-#         'branch': '',
-#     }
-#     # print(f"Out Sound Join Symbol Table: {symbol_table['trajectory']}")
-
-#     return symbol_table
+    return body_symbol_tables, orelse_symbol_tables
 
 
 def sound_join_trajectory(trajectory_1, trajectory_2):
@@ -257,47 +169,67 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
     return trajectory
 
 
-def sound_join_symbol_table(symbol_table_1, symbol_table_2):
-    if len(symbol_table_1) == 0:
-        return symbol_table_2
-    if len(symbol_table_2) ==  0:
-        return symbol_table_1
-    symbol_table = {
-        'x': symbol_table_1['x'].sound_join(symbol_table_2['x']),
-        'probability': torch.max(symbol_table_1['probability'], symbol_table_2['probability']),
-        'trajectory': sound_join_trajectory(symbol_table_1['trajectory'], symbol_table_2['trajectory']), 
-        'branch': '',
-    }
-    return symbol_table
+def update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx):
+    if 'x' in res_symbol_tables:
+        res_symbol_tables['x'].c = torch.cat((res_symbol_tables['x'].c, new_c), 0)
+        res_symbol_tables['x'].delta = torch.cat((res_symbol_tables['x'].delta, new_delta), 0)
+        res_symbol_tables['trajectory_list'].append(new_trajectory)
+        res_symbol_tables['idx_list'].append(new_idx)
+    else:
+        res_symbol_tables['x'] = domain.Box(new_c, new_delta)
+        res_symbol_tables['trajectory_list'] = [new_trajectory]
+        res_symbol_tables['idx_list'] = [new_idx]
+
+    return res_symbol_tables
 
 
-def sound_join(l1, l2):
-    # join all symbol_table, only one symbol_table left
-    # when joining trajectory, select the trajectory with longer length, TODO in the future
-    # print(f"In Sound Join")
-    res_list = list()
-    res_symbol_table = dict()
-    # print(f"{len(l1)}, {len(l2)}")
-    for symbol_table in l1:
-        res_symbol_table = sound_join_symbol_table(res_symbol_table, symbol_table)
-    for symbol_table in l2:
-        res_symbol_table = sound_join_symbol_table(res_symbol_table, symbol_table)
-    
-    if len(res_symbol_table) > 1: # res_symbol_table not None
-        # print(res_symbol_table['trajectory'])
-        res_list.append(res_symbol_table)
-        
-    # print(f"Out Sound Join")
+def sound_join(symbol_tables_1, symbol_tables_2):
+    # symbol_tables
+    # 'x': B*D, 'trajectory_list': trajectory of each B, 'idx_list': idx of B in order
+    if len(symbol_tables_1) == 0:
+        return symbol_tables_2
+    if len(symbol_tables_2) == 0:
+        return symbol_tables_1
 
-    return res_list
+    res_symbol_tables = dict()
+    idx1, idx2 = 0, 0
+    idx_list_1, idx_list_2 = symbol_tables_1['idx_list'], symbol_tables_2['idx_list']
+    while idx1 <= len(idx_list_1) - 1 or idx2 <= len(idx_list_2) - 1:
+        if idx1 > len(idx_list_1) - 1 or idx_list_1[idx1] > idx_list_2[idx2]:
+            new_c = symbol_tables_2['x'].c[idx2:idx2+1]
+            new_delta = symbol_tables_2['x'].delta[idx2:idx2+1]
+            new_trajectory = symbol_tables_2['trajectory_list'][idx2]
+            new_idx =  symbol_tables_2['idx_list'][idx2]
+            res_symbol_tables = update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx)
+            idx2 += 1
+        elif idx2 > len(idx_list_2) - 1 or idx_list_1[idx1] < idx_list_2[idx2]:
+            new_c = symbol_tables_1['x'].c[idx1:idx1+1]
+            new_delta = symbol_tables_1['x'].delta[idx1:idx1+1]
+            new_trajectory = symbol_tables_1['trajectory_list'][idx1]
+            new_idx =  symbol_tables_1['idx_list'][idx1]
+            res_symbol_tables = update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx)
+            idx1 += 1
+        else: # idx_list_1[idx_1] == idx_list_2[idx_2], need to join
+            assert(idx_list_1[idx_1] == idx_list_2[idx_2])
+            new_left = torch.min(symbol_tables_1['x'].c[idx1:idx1+1] - symbol_tables_1['x'].delta[idx1:idx1+1], symbol_tables_2['x'].c[idx2:idx2+1] - symbol_tables_2['x'].delta[idx2:idx2+1])
+            new_right = torch.max(symbol_tables_1['x'].c[idx1:idx1+1] + symbol_tables_1['x'].delta[idx1:idx1+1], symbol_tables_2['x'].c[idx2:idx2+1] + symbol_tables_2['x'].delta[idx2:idx2+1])
+            new_c = (new_left + new_right) / 2.0
+            new_delta = (new_right - new_left) / 2.0
+            new_trajectory = sound_join_trajectory(symbol_tables_1['trajectory_list'][idx1], symbol_tables_2['trajectory_list'][idx2])
+            new_idx = idx_list_1[idx_1]
+            res_symbol_tables = update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx)
+            idx2 += 1
+            idx1 += 1
+
+    return res_symbol_tables
 
 
 class Skip(nn.Module):
     def __init__(self):
         super().__init__()
     
-    def forward(self, x_list, cur_sample_size=0):
-        return x_list
+    def forward(self, symbol_tables, cur_sample_size=0):
+        return symbol_tables
 
 
 class Assign(nn.Module):
@@ -310,11 +242,11 @@ class Assign(nn.Module):
             self.target_idx = self.target_idx.cuda()
             self.arg_idx = self.arg_idx.cuda()
     
-    def forward(self, x_list, cur_sample_size=0):
+    def forward(self, symbol_tables, cur_sample_size=0):
         # print(f"Assign Before: {[(res['x'].c, res['x'].delta) for res in x_list]}")
-        res_list = calculate_x_list(self.target_idx, self.arg_idx, self.f, x_list)
+        res_symbol_tables = calculate_x_list(self.target_idx, self.arg_idx, self.f, symbol_tables)
         # print(f"Assign After: {[(res['x'].c, res['x'].delta) for res in x_list]}")
-        return res_list
+        return res_symbol_tables
 
 
 class IfElse(nn.Module):
@@ -328,30 +260,22 @@ class IfElse(nn.Module):
         if torch.cuda.is_available():
             self.target_idx = self.target_idx.cuda()
     
-    def forward(self, x_list):
+    def forward(self, symbol_tables):
         test = self.f_test(self.test)
 
-        branch_list = calculate_branch_list(self.target_idx, test, x_list)
+        body_symbol_tables, orelse_symbol_tables = calculate_branch(self.target_idx, self.test, symbol_tables)
         # print(f"{len(branch_list)}")
-        # print(f"{[symbol_table['branch'] for symbol_table in branch_list]}")
-
-        body_list, else_list = list(), list()
-        for symbol_table in branch_list:
-            if symbol_table['branch'] == 'body':
-                body_list.append(symbol_table)
-            else:
-                else_list.append(symbol_table)
         
         # print(f"In IfElse, {len(body_list)}, {len(else_list)}")
         
-        if len(body_list) > 0:
-            body_list = self.body(body_list)
-        if len(else_list) > 0:
-            else_list = self.orelse(else_list)
+        if len(body_symbol_tables) > 0:
+            body_symbol_tables = self.body(body_symbol_tables)
+        if len(orelse_symbol_tables) > 0:
+            orelse_symbol_tables = self.orelse(orelse_symbol_tables)
         
-        res_list = sound_join(body_list, else_list)
+        res_symbol_tables = sound_join(body_symbol_tables, orelse_symbol_tables)
 
-        return res_list
+        return res_symbol_tables
 
 
 class While(nn.Module):
@@ -364,70 +288,76 @@ class While(nn.Module):
             # print(f"CHECK: cuda")
             self.target_idx = self.target_idx.cuda()
     
-    def forward(self, symbol_table_list):
+    def forward(self, symbol_tables):
         '''
         super set of E_{i-th step} and [\neg condition]
         '''
+        # symbol_tables are
         # print(f"##############In while DiffAI#########")
         i = 0
-        res_list = list()
-        while(len(symbol_table_list) > 0):
+        res_symbol_tables = dict()
+        while(len(symbol_tables) > 0):
             # counter += 1
-            branch_list = calculate_branch_list(self.target_idx, self.test, symbol_table_list)
-            body_list, else_list = list(), list()
-            for symbol_table in branch_list:
-                if symbol_table['branch'] == 'body':
-                    body_list.append(symbol_table)
-                else:
-                    else_list.append(symbol_table)
+            body_symbol_tables, orelse_symbol_tables = calculate_branch(self.target_idx, self.test, symbol_tables)
 
-            res_list = sound_join(res_list, else_list)
+            res_symbol_tables = sound_join(res_symbol_tables, orelse_symbol_tables)
 
-            if len(body_list) == 0:
-                # print(f"---In While Out, {len(res_list)}, {res_list[0]['trajectory']}")
-                return res_list
+            if len(body_symbol_tables) == 0:
+                return res_symbol_tables
             
-            symbol_table_list = self.body(body_list)
+            symbol_tables = self.body(body_symbol_tables)
 
             i += 1
             if i > 500:
                 print(f"Exceed maximum iterations: Have to END.")
                 break
-        res_list = sound_join(res_list, symbol_table_list)
-        return res_list
+        res_symbol_tables = sound_join(res_symbol_tables, orelse_symbol_tables)
+        return res_symbol_tables
 
 
-def update_trajectory(symbol_table, target_idx):
-    input_interval_list = list()
-    # print(f"all symbol_table: {symbol_table['x'].c, symbol_table['x'].delta}")
-    for idx in target_idx:
-        input = symbol_table['x'].select_from_index(0, idx)
-        input_interval = input.getInterval()
-        # print(f"idx:{idx}, input: {input.c, input.delta}")
-        # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
-        assert input_interval.left.data.item() <= input_interval.right.data.item()
-        input_interval_list.append(input_interval)
-    # print(f"In update trajectory")
-    symbol_table['trajectory'].append(input_interval_list)
-    # exit(0)
-    # print(f"Finish update trajectory")
+# def update_trajectory(symbol_table, target_idx):
+#     input_interval_list = list()
+#     # print(f"all symbol_table: {symbol_table['x'].c, symbol_table['x'].delta}")
+#     for idx in target_idx:
+#         input = symbol_table['x'].select_from_index(0, idx)
+#         input_interval = input.getInterval()
+#         # print(f"idx:{idx}, input: {input.c, input.delta}")
+#         # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
+#         assert input_interval.left.data.item() <= input_interval.right.data.item()
+#         input_interval_list.append(input_interval)
+#     # print(f"In update trajectory")
+#     symbol_table['trajectory'].append(input_interval_list)
+#     # exit(0)
+#     # print(f"Finish update trajectory")
 
-    return symbol_table
+#     return symbol_table
 
 
 class Trajectory(nn.Module):
-    # TODO: update, add state in trajectory list
     def __init__(self, target_idx):
         super().__init__()
         self.target_idx = torch.tensor(target_idx)
         if torch.cuda.is_available():
             self.target_idx = self.target_idx.cuda()
     
-    def forward(self, symbol_table_list, cur_sample_size=0):
-        for idx, symbol_table in enumerate(symbol_table_list):
-            symbol_table = update_trajectory(symbol_table, self.target_idx)
-            symbol_table_list[idx] = symbol_table
-        return symbol_table_list
+    def forward(self, symbol_tables, cur_sample_size=0):
+        x = symbol_tables['x']
+        trajectory_list = symbol_tables['trajectory_list']
+        
+        B, D = x.c.shape
+        for x_idx in range(B):
+            cur_x_c, cur_x_delta = x.c[x_idx], x.delta[x_idx]
+            input_interval_list = list()
+            for idx in target_idx:
+                input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
+                input_interval = input.getInterval()
+                assert input_interval.left.data.item() <= input_interval.right.data.item()
+                input_interval_list.append(input_interval)
+            trajectory_list[x_idx].append(input_interval_list)
+        
+        symbol_tables['trajectory_list'] = trajectory_list
+
+        return symbol_tables
 
 
 
