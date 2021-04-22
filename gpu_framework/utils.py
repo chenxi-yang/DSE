@@ -58,6 +58,17 @@ def batch_pair(trajectory_list, data_bs=None):
     return states[:data_bs], actions[:data_bs]
 
 
+def batch_points(l):
+    # list of elements
+    # each element is a list
+    L = np.array(l)
+    if torch.cuda.is_available():
+        res = torch.from_numpy(L).float().cuda()
+    else:
+        res = torch.from_numpy(L).float()
+    return res
+
+
 ##### create symbolic approximation of perturbation set of input distribution
 
 def create_ball_perturbation(Trajectory_train, distribution_list, w):

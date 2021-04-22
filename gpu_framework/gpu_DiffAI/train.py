@@ -18,6 +18,7 @@ from utils import (
     generate_distribution,
     ini_trajectory,
     batch_pair,
+    batch_points
 )
 
 random.seed(1)
@@ -235,18 +236,31 @@ def cal_safe_loss(m, trajectory_list, width, target):
     each x is surrounded by a small ball: (x-width, x+width)
     calculate the loss in a batch-wise view
     '''
-    #  TODO: for now, we  only  keep 
+    # TODO: for now, we only keep 
+    # TODO: use batch version, batch the initial states together
     x = [[ini_trajectory(trajectory)[0][0]] for trajectory in trajectory_list]
     center_list, width_list = create_small_ball(x, width)
-    safe_loss = var_list([0.0])
-    for idx, center in enumerate(center_list):
-        width = width_list[idx]
-        abstract_data = initialization_nn([center], [width])
-        # TODO: change the split way
-        abstract_list = m(abstract_data, 'abstract')
-        safe_loss += safe_distance(abstract_list, target)
-    safe_loss /= var(len(x)).add(EPSILON)
+    batched_center, batched_width = batch_points(center_list), batch_points(width_list)
+
+    # TODO: update the following three functions
+    abstract_data = initialization_nn(batched_center, batched_width)
+    # if debug:
+    #     exit(0)
+    output = m(abstract_data)
+    safe_loss = safe_distance(output, target)
+    
     return safe_loss
+
+    # safe_loss = var_list([0.0])
+    # # batch center_list together
+    # for idx, center in enumerate(center_list):
+    #     width = width_list[idx]
+    #     abstract_data = initialization_nn([center], [width])
+    #     # TODO: change the split way
+    #     abstract_list = m(abstract_data, 'abstract')
+    #     safe_loss += safe_distance(abstract_list, target)
+    # safe_loss /= var(len(x)).add(EPSILON)
+    # return safe_loss
 
 
 def divide_chunks(component_list, bs=1):
@@ -300,8 +314,8 @@ def normal_pdf(x, mean, std):
 
 
 def sampled(x):
-    res = torch.normal(mean=x, std=var(1.0))
-    log_p = normal_pdf(res, mean=x, std=var(1.0))
+    res = torch.normal(mean=x, std=var(0.01))
+    log_p = normal_pdf(res, mean=x, std=var(0.01))
     # print(f"res: {res} \n p: {p}")
     # exit(0)
     return res, log_p
@@ -359,6 +373,7 @@ def learning(
         save=save,
         epochs_to_skip=None,
         model_name=None,
+        data_bs=None,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')

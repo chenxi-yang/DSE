@@ -153,7 +153,7 @@ def safe_distance(abstract_state_list, target):
         target_loss = target_loss / var(len(abstract_state_list)).add(EPSILON)
         # Weighted loss of different state variables
         target_loss = target_component["w"] * (target_loss - target_component['phi'])
-        # TODO: max(loss - target, 0)
+        # TODO: max(loss - target, 0) change or not
         target_loss = torch.max(target_loss, var(0.0))
         loss += target_loss
     # print(f"loss: {loss}")
@@ -173,9 +173,9 @@ def cal_data_loss(m, trajectory_list, criterion):
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     # print(X.shape, y.shape)s
     yp = m(X, version="single_nn_learning")
-    # if debug:
-    #     print(f"yp: {yp.squeeze()}")
-    #     print(f"y: {y.squeeze()}")
+    if debug:
+        print(f"yp: {yp.squeeze()}")
+        print(f"y: {y.squeeze()}")
     data_loss = criterion(yp, y)
     # print(f"data_loss: {data_loss}")
     return data_loss
@@ -273,9 +273,9 @@ def normal_pdf(x, mean, std):
     return res
 
 
-def sampled(x):
-    res = torch.normal(mean=x, std=var(1.0))
-    log_p = normal_pdf(res, mean=x, std=var(1.0))
+def sampled(x): # sample from a CLOSE neighboorhood
+    res = torch.normal(mean=x, std=var(0.01))
+    log_p = normal_pdf(res, mean=x, std=var(0.01))
     # print(f"res: {res} \n p: {p}")
     # exit(0)
     return res, log_p
@@ -414,7 +414,7 @@ def learning(
 
             if time.time() - batch_time > 3600/(len(component_list)/bs):
                 TIME_OUT = True
-                if i == 0: # a chance for the first epoch
+                if i <= 2: # a chance for the first three epoches
                     pass
                 else:
                     break
@@ -423,14 +423,14 @@ def learning(
 
             loss = grad_data_loss + lambda_.mul(grad_safe_loss)
             loss.backward()
-            print(m.nn.linear1.weight.grad)
-            print(m.nn.linear2.weight.grad)
+            # print(m.nn.linear1.weight.grad)
+            # print(m.nn.linear2.weight.grad)
             # Theta = extract_parameters(m) 
             # for partial_theta in Theta:
             #     torch.nn.utils.clip_grad_norm_(partial_theta, 1)
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
-            print(m.nn.linear1.weight.grad)
-            print(m.nn.linear2.weight.grad)
+            # print(m.nn.linear1.weight.grad)
+            # print(m.nn.linear2.weight.grad)
             optimizer.step()
             optimizer.zero_grad()
             # new_theta = extract_parameters(m)
@@ -468,7 +468,7 @@ def learning(
         #     break
         
         if (time.time() - start_time)/(i+1) > 3500 or TIME_OUT:
-            if i == 0: # give a chance for the first epoch
+            if i <= 2 : # give a chance for the first epoch
                 pass
             else:
                 log_file = open(file_dir, 'a')

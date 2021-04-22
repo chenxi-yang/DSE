@@ -17,8 +17,12 @@ if torch.cuda.is_available():
     index2 = index2.cuda()
     index3 = index3.cuda()
 
+
 # DiffAI version
 def initialization_nn(center_list, width_list, p_list=None):
+    # TODO: center is a batch, so is the width
+    # TODO: trajectory_list is a separate list storing the trajectory mapping to each batch
+    # TODO: index_list
     # print(f"in initialization_nn")
     symbol_table_list = list()
     for idx, center in enumerate(center_list):
@@ -35,6 +39,22 @@ def initialization_nn(center_list, width_list, p_list=None):
         symbol_table_list.append(symbol_table)
 
     return symbol_table_list
+
+
+def initialization_nn(batched_center, batched_width):
+    B, D = batched_center.shape
+    padding = torch.zeros(B, 1)
+    if torch.cuda.is_available():
+        padding = padding.cuda()
+    
+    input_center, input_width = batched_center[:, :1], batched_width[:, :1]
+    symbol_tables = {
+        'x': domain.Box(torch.cat((input_center, padding, padding, padding), 1), torch.cat((input_width, padding, padding, padding), 1)),
+        'trajectory_list': [[] for i in range(B)],
+        'idx_list': [i for i in range(B)],
+    }
+
+    return symbol_tables
 
 
 # input order: position, velocity, u, reward

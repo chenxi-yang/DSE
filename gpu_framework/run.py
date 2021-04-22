@@ -148,7 +148,12 @@ if __name__ == "__main__":
                                 log_file.close()
                             continue
                     else:
-                        epochs_to_skip = None
+                        epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{model_name_prefix}_{safe_range_bound}_{i}")
+                        if m is None:
+                            if benchmark_name == "thermostat":
+                                m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
+                            if benchmark_name == "mountain_car":
+                                m = MountainCar(l=l, nn_mode=nn_mode, module=module)
 
                     m, loss, loss_list, q, c, time_out = learning(
                         m, 
@@ -228,10 +233,10 @@ if __name__ == "__main__":
                 # eval(X_test, y_test, m_t, target, 'test')
                 if unsound_verify:
                     print(f"------------start unsound verification------------")
-                    # print(f"to verify safe bound(train dataset): {safe_range_bound}")
-                    # verification_time = time.time()
-                    # verification_unsound(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", trajectory_test=Trajectory_train, target=target)
-                    # print(f"---unsound verification(train dataset)time: {time.time() - verification_time} sec---")
+                    print(f"to verify safe bound(train dataset): {safe_range_bound}")
+                    verification_time = time.time()
+                    verification_unsound(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", trajectory_test=Trajectory_train, target=target)
+                    print(f"---unsound verification(train dataset)time: {time.time() - verification_time} sec---")
 
                     print(f"to verify safe bound(test dataset): {safe_range_bound}")
                     verification_time = time.time()
