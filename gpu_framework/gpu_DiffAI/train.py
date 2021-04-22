@@ -187,7 +187,7 @@ def create_small_ball(x_list, width):
     return center_list, width_list
 
 
-def safe_distance(symbol_table_list, target):
+def safe_distance(symbol_tables, target):
     # measure DiffAI safe distance
     # for one trajectory <s1, s2, ..., sn>
     # all_unsafe_value = max_i(unsafe_value(s_i, target))
@@ -198,9 +198,9 @@ def safe_distance(symbol_table_list, target):
         target_loss = var_list([0.0])
         unsafe_probability_condition = target_component["phi"]
         safe_interval = target_component["condition"]
-        for symbol_table in symbol_table_list:
+        for trajectory in symbol_tables['trajectory_list']:
             trajectory_loss = var_list([0.0])
-            for state in symbol_table['trajectory']:
+            for state in trajectory:
                 X = state[idx]
                 # print(f"X: {X.left}, {X.right}")
                 intersection_interval = get_intersection(X, safe_interval)
@@ -242,7 +242,6 @@ def cal_safe_loss(m, trajectory_list, width, target):
     center_list, width_list = create_small_ball(x, width)
     batched_center, batched_width = batch_points(center_list), batch_points(width_list)
 
-    # TODO: update the following three functions
     abstract_data = initialization_nn(batched_center, batched_width)
     # if debug:
     #     exit(0)
@@ -263,7 +262,36 @@ def cal_safe_loss(m, trajectory_list, width, target):
     # return safe_loss
 
 
-def divide_chunks(component_list, bs=1):
+# def divide_chunks(component_list, bs=1):
+#     '''
+#     component: {
+#         'center': 
+#         'width':
+#         'p':
+#         'trajectory_list':
+#     }
+#     return the component={
+#         'center':
+#         'width':
+#         'p':
+#     }, trajectory
+#     '''
+#     for i in range(0, len(component_list), bs):
+#         components = component_list[i:i + bs]
+#         abstract_states = list()
+#         trajectory_list, y_list = list(), list()
+#         for component in components:
+#             abstract_state = {
+#                 'center': component['center'],
+#                 'width': component['width'],
+#                 'p': component['p'],
+#             }
+#             trajectory_list.extend(component['trajectory_list'])
+#             abstract_states.append(abstract_state)
+#             # print(f"component probability: {component['p']}")
+#         yield trajectory_list, abstract_states
+
+def divide_chunks(component_list, bs=1, data_bs=2):
     '''
     component: {
         'center': 
@@ -271,26 +299,41 @@ def divide_chunks(component_list, bs=1):
         'p':
         'trajectory_list':
     }
-    return the component={
-        'center':
-        'width':
-        'p':
-    }, trajectory
+    bs: number of components in a batch
+    data_bs: number of trajectories to aggregate the training points
+
+    # components, bs, data_bs
+    # whenever a components end, return the components, otherwise 
+
+    return: refineed trajectory_list, return abstract states
     '''
     for i in range(0, len(component_list), bs):
         components = component_list[i:i + bs]
         abstract_states = list()
         trajectory_list, y_list = list(), list()
-        for component in components:
+        real_trajectory_list = list()
+        for component_idx, component in enumerate(components):
             abstract_state = {
                 'center': component['center'],
                 'width': component['width'],
                 'p': component['p'],
             }
-            trajectory_list.extend(component['trajectory_list'])
             abstract_states.append(abstract_state)
+            for trajectory_idx, trajectory in enumerate(component['trajectory_list']):
+                # print(f"before: {len(trajectory)}")
+                trajectory_list.append(trajectory)
+                real_trajectory_list.append(trajectory)
+                # print(f"after: {len(trajectory_list)}")
+                if (trajectory_idx + data_bs > len(component['trajectory_list']) - 1) and component_idx == len(components) - 1:
+                    pass
+                elif len(trajectory_list) == data_bs:
+                    # print(trajectory_list)
+                    yield trajectory_list, [], False
+                    trajectory_list = list()
             # print(f"component probability: {component['p']}")
-        yield trajectory_list, abstract_states
+
+        # print(f"out: {trajectory_list}")
+        yield trajectory_list, real_trajectory_list, True # use safe loss
 
 
 def update_model_parameter(m, theta):
@@ -373,7 +416,7 @@ def learning(
         save=save,
         epochs_to_skip=None,
         model_name=None,
-        data_bs=None,
+        data_bs=data_bs,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
@@ -396,63 +439,75 @@ def learning(
             continue
         q_loss, c_loss = var_list([0.0]), var_list([0.0])
         count = 0
-        for trajectory_list, abstract_states in divide_chunks(component_list, bs=bs):
+        tmp_q_idx = 0
+        for trajectory_list, real_trajectory_list, use_safe_loss in divide_chunks(component_list, bs=bs, data_bs=data_bs):
             # print(f"x length: {len(x)}")
             # print(f"batch size, x: {len(x)}, y: {len(y)}, abstract_states: {len(abstract_states)}")
             # if len(x) == 0: continue  # because DiffAI only makes use of x, y
             batch_time = time.time()
 
             if use_smooth_kernel:
-                Theta = extract_parameters(m)
-                grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
-                real_data_loss, real_safe_loss = var_list([0.0]), var_list([0.0])
-                for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
-                    # sample_theta_p is actually log(theta_p)
+                if use_safe_loss:
+                    Theta = extract_parameters(m)
+                    grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
+                    real_data_loss, real_safe_loss = var_list([0.0]), var_list([0.0])
+                    for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
+                        # sample_theta_p is actually log(theta_p)
 
-                    sample_time = time.time()
-                    m = update_model_parameter(m, sample_theta)
-                    data_loss = cal_data_loss(m, trajectory_list, criterion)
-                    safe_loss = cal_safe_loss(m, trajectory_list, width, target)
-                    print(f"in sample, data loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}")
+                        sample_time = time.time()
+                        m = update_model_parameter(m, sample_theta)
+                        data_loss = cal_data_loss(m, trajectory_list, criterion)
+                        safe_loss = cal_safe_loss(m, real_trajectory_list, width, target)
+                        print(f"data loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}")
 
-                    # gradient = \exp_{\theta' \sim N(\theta)}[loss * \grad_{\theta}(log(p(\theta', \theta)))]
-                    grad_data_loss += var_list([data_loss.data.item()]) * sample_theta_p
-                    real_data_loss += var_list([data_loss.data.item()])
-                    grad_safe_loss += var_list([safe_loss.data.item()]) * sample_theta_p
-                    real_safe_loss += var_list([safe_loss.data.item()])
+                        # gradient = \exp_{\theta' \sim N(\theta)}[loss * \grad_{\theta}(log(p(\theta', \theta)))]
+                        grad_data_loss += var_list([data_loss.data.item()]) * sample_theta_p
+                        real_data_loss += var_list([data_loss.data.item()])
+                        grad_safe_loss += var_list([safe_loss.data.item()]) * sample_theta_p
+                        real_safe_loss += var_list([safe_loss.data.item()])
 
-                    # print(f"sample time: {time.time() - sample_time}")
-                    # if time.time() - sample_time > 2000/(n*(len(component_list)/bs)):
-                    #     TIME_OUT = True
+                        # print(f"sample time: {time.time() - sample_time}")
+                        # if time.time() - sample_time > 2000/(n*(len(component_list)/bs)):
+                        #     TIME_OUT = True
+                        #     break
+                    # if TIME_OUT:
                     #     break
 
-                loss = grad_data_loss + lambda_.mul(grad_safe_loss)
-                # if TIME_OUT:
-                #     break
+                    m = update_model_parameter(m, Theta)
 
-                m = update_model_parameter(m, Theta)
-
-                for partial_theta in Theta:
-                    torch.nn.utils.clip_grad_norm_(partial_theta, 1)
-
-                real_data_loss /= n
-                real_safe_loss /= n
+                    real_data_loss /= n
+                    real_safe_loss /= n
+                else:
+                    if len(trajectory_list) == 0:
+                        continue
+                    tmp_q_idx += 1
+                    data_loss = cal_data_loss(m, trajectory_list, criterion)
+                    safe_loss = var_list([0.0])
+                    real_data_loss, real_safe_loss = data_loss, safe_loss
+                    grad_data_loss, grad_safe_loss = data_loss, safe_loss
 
                 # print(f"grad data_loss: {grad_data_loss.data.item()}, grad safe_loss: {grad_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
 
             else:
                 data_loss = cal_data_loss(m, trajectory_list, criterion)
                 safe_loss = cal_safe_loss(m, trajectory_list, width, target)
-                loss = data_loss + lambda_.mul(safe_loss)
 
-                real_data_loss = data_loss
-                real_safe_loss = safe_loss
+                real_data_loss, real_safe_loss = data_loss, safe_loss
+                grad_data_loss, grad_safe_loss = data_loss, safe_loss
                 
-            if time.time() - batch_time > 2000/(len(component_list)/bs):
-                TIME_OUT = True
-                break
             
-            print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
+            print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
+            q_loss += real_data_loss
+            c_loss += real_safe_loss
+
+            if time.time() - batch_time > 3600/(len(component_list)/bs):
+                TIME_OUT = True
+                if i <= 2:
+                    pass
+                else:
+                    break
+
+            loss = grad_data_loss + lambda_.mul(grad_safe_loss)
             loss.backward(retain_graph=True)
 
             # print(f"Linear1 grad: [{torch.min(m.nn.linear1.weight.grad)}, {torch.max(m.nn.linear1.weight.grad)}]")
@@ -461,13 +516,6 @@ def learning(
             optimizer.step()
             optimizer.zero_grad()
 
-            #  calculate the epoch loss: sum up the loss of each  batch
-            q_loss += real_data_loss
-            c_loss += real_safe_loss
-
-            # count += 1
-            # if count >= 10:
-            #     exit(0)
         if save:
             save_model(m, MODEL_PATH, name=model_name, epoch=i)
         
@@ -478,7 +526,7 @@ def learning(
         # f_loss = q_loss + lambda_ * c_loss
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
         print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}")
-        print(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss.data.item()}, c: {c_loss.data.item()}")
+        print(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss.data.item()/tmp_q_idx}, c: {c_loss.data.item()}")
         log_file = open(file_dir, 'a')
         log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
         log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}\n")
