@@ -101,6 +101,7 @@ def calculate_x_list(target_idx, arg_idx, f, symbol_tables):
     x = symbol_tables['x']
     input = x.select_from_index(1, arg_idx)
     res = f(input)
+    # print(f, res.c.shape, x.c.shape, target_idx)
     x.c[:, target_idx] = res.c 
     x.delta[:, target_idx] = res.delta
     symbol_tables['x'] = x
@@ -195,14 +196,14 @@ def sound_join(symbol_tables_1, symbol_tables_2):
     idx1, idx2 = 0, 0
     idx_list_1, idx_list_2 = symbol_tables_1['idx_list'], symbol_tables_2['idx_list']
     while idx1 <= len(idx_list_1) - 1 or idx2 <= len(idx_list_2) - 1:
-        if idx1 > len(idx_list_1) - 1 or idx_list_1[idx1] > idx_list_2[idx2]:
+        if idx1 > len(idx_list_1) - 1 or (idx2 <= len(idx_list_2) - 1 and idx_list_1[idx1] > idx_list_2[idx2]):
             new_c = symbol_tables_2['x'].c[idx2:idx2+1]
             new_delta = symbol_tables_2['x'].delta[idx2:idx2+1]
             new_trajectory = symbol_tables_2['trajectory_list'][idx2]
             new_idx =  symbol_tables_2['idx_list'][idx2]
             res_symbol_tables = update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx)
             idx2 += 1
-        elif idx2 > len(idx_list_2) - 1 or idx_list_1[idx1] < idx_list_2[idx2]:
+        elif idx2 > len(idx_list_2) - 1 or (idx1 <= len(idx_list_1) - 1 and idx_list_1[idx1] < idx_list_2[idx2]):
             new_c = symbol_tables_1['x'].c[idx1:idx1+1]
             new_delta = symbol_tables_1['x'].delta[idx1:idx1+1]
             new_trajectory = symbol_tables_1['trajectory_list'][idx1]
@@ -210,13 +211,13 @@ def sound_join(symbol_tables_1, symbol_tables_2):
             res_symbol_tables = update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx)
             idx1 += 1
         else: # idx_list_1[idx_1] == idx_list_2[idx_2], need to join
-            assert(idx_list_1[idx_1] == idx_list_2[idx_2])
+            assert(idx_list_1[idx1] == idx_list_2[idx2])
             new_left = torch.min(symbol_tables_1['x'].c[idx1:idx1+1] - symbol_tables_1['x'].delta[idx1:idx1+1], symbol_tables_2['x'].c[idx2:idx2+1] - symbol_tables_2['x'].delta[idx2:idx2+1])
             new_right = torch.max(symbol_tables_1['x'].c[idx1:idx1+1] + symbol_tables_1['x'].delta[idx1:idx1+1], symbol_tables_2['x'].c[idx2:idx2+1] + symbol_tables_2['x'].delta[idx2:idx2+1])
             new_c = (new_left + new_right) / 2.0
             new_delta = (new_right - new_left) / 2.0
             new_trajectory = sound_join_trajectory(symbol_tables_1['trajectory_list'][idx1], symbol_tables_2['trajectory_list'][idx2])
-            new_idx = idx_list_1[idx_1]
+            new_idx = idx_list_1[idx1]
             res_symbol_tables = update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx)
             idx2 += 1
             idx1 += 1
@@ -348,7 +349,7 @@ class Trajectory(nn.Module):
         for x_idx in range(B):
             cur_x_c, cur_x_delta = x.c[x_idx], x.delta[x_idx]
             input_interval_list = list()
-            for idx in target_idx:
+            for idx in self.target_idx:
                 input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
                 input_interval = input.getInterval()
                 assert input_interval.left.data.item() <= input_interval.right.data.item()

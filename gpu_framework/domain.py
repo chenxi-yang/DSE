@@ -324,7 +324,7 @@ class Interval:
         # print(type(t.getVolumn()), type(PI_TWICE))
         if t.getVolumn().data.item() >= PI_TWICE.data.item():
             # print('volume', t.getVolumn())
-            res = Interval(var(-1.0), var(1.0))
+            res = Interval(var_list([-1.0]), var_list([1.0]))
             # show_value(res)
             # return res
         # when t.left > PI same as -cos(t-pi)
@@ -338,7 +338,7 @@ class Interval:
             #     r8 = torch.cuda.memory_reserved(0) 
             #     a8 = torch.cuda.memory_allocated(0)
             #     print(f"#interval cos, after cosv#, memory: {a8}, {a8 - a1}")
-            res = cosv.mul(var(-1.0))
+            res = cosv.mul(var_list([-1.0]))
             # show_value(res)
             # return res
         else:
@@ -353,13 +353,13 @@ class Interval:
             elif t.right.data.item() <= PI_TWICE.data.item():
                 # res.left = var(-1.0)
                 # res.right = torch.max(tl, tr)
-                res = Interval(var(-1.0), torch.max(tl, tr))
+                res = Interval(var_list([-1.0]), torch.max(tl, tr))
                 # show_value(res)
                 # return res
             else:
                 # res.left = var(-1.0)
                 # res.right = var(1.0)
-                res = Interval(var(-1.0), var(1.0))
+                res = Interval(var_list([-1.0]), var_list([1.0]))
                 # show_value(res)
                 # return res
         # if debug:
@@ -608,6 +608,7 @@ class Box():
         #     r1 = torch.cuda.memory_reserved(0) 
         #     a1 = torch.cuda.memory_allocated(0)
         #     print(f"#mul ini# : memory cost {a1}")
+        # print(f"mul, {self.c.shape}")
         interval = self.getInterval()
         if isinstance(other, torch.Tensor):
             pass
@@ -615,6 +616,7 @@ class Box():
             other = other.getInterval()
         res_interval = interval.mul(other)
         res = res_interval.getBox()
+        # print(f"mul, {res.c.shape}")
         # if debug:
         #     r2 = torch.cuda.memory_reserved(0) 
         #     a2 = torch.cuda.memory_allocated(0)
@@ -631,9 +633,40 @@ class Box():
         #     r1 = torch.cuda.memory_reserved(0) 
         #     a1 = torch.cuda.memory_allocated(0)
         #     print(f"#cos ini# : memory cost {a1}")
-        interval = self.getInterval()
-        res_interval = interval.cos()
-        res = res_interval.getBox()
+        # For batch:
+        B = self.c.shape[0]
+        # print(self.c.shape)
+        # print(self.c)
+        if B > 1:
+            c, delta = torch.tensor([]), torch.tensor([])
+            for i in range(B):
+                new_c, new_delta = self.c[i], self.delta[i]
+                new_box = self.new(new_c, new_delta)
+                interval = new_box.getInterval()
+                res_interval = interval.cos()
+                get_box = res_interval.getBox()
+                # print(c)
+                if c.shape[0] == 0:
+                    c, delta = get_box.c, get_box.delta
+                else:
+                    # print(c.shape, get_box.c.shape, delta.shape, get_box.delta.shape)
+                    #TODO
+                    # print('be', get_box.c.shape, c.shape)
+                    if len(get_box.c.shape) != len(c.shape) and len(c.shape) >= 1:
+                        get_box.c, get_box.delta = get_box.c.unsqueeze(0), get_box.delta.unsqueeze(0)
+                    # print('mid', get_box.c.shape, c.shape)
+                    c, delta = torch.cat((c, get_box.c), 0), torch.cat((delta, get_box.delta), 0)
+                    # print('after', get_box.c.shape, c.shape)
+            # print(f"cos, {c.shape}")
+            if len(c.shape) == 1:
+                c, delta = c.unsqueeze(1), delta.unsqueeze(1)
+            return self.new(c, delta)
+        else:
+            # TODO: support batch and double check
+            interval = self.getInterval()
+            res_interval = interval.cos()
+            res = res_interval.getBox()
+            return res
         # if debug:
         #     r2 = torch.cuda.memory_reserved(0) 
         #     a2 = torch.cuda.memory_allocated(0)
@@ -642,7 +675,7 @@ class Box():
         #     del interval
         #     a3 = torch.cuda.memory_allocated(0)
         #     print(f"after del in cos: {a3}, {a3 - a1}")
-        return res
+        # return res
     
     def exp(self):
         a = self.delta.exp()

@@ -203,6 +203,13 @@ def f_assign_v(x):
     #     a2 = torch.cuda.memory_allocated(0)
     #     print(f"#f_assign_v: memory cost {a2 - a1}#")
     # TODO: cos
+    # a1 = v.add(u.mul(var(0.0015)))
+    # a2 = p.mul(var(3.0)).cos().mul(var(-0.0025))
+    # print(a1.c.shape)
+    # print(a2.c.shape)
+    # res = a1.add(a2)
+    # print(res.c.shape)
+    # return res
     return v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
 
 

@@ -5,6 +5,7 @@ import numpy as np
 import random
 
 import time
+import torch
 
 np.random.seed(seed=1)
 random.seed(1)

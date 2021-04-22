@@ -35,39 +35,6 @@ def get_intersection(interval_1, interval_2):
     return res_interval
 
 
-def distance_f_interval(symbol_table_list, target):
-    if len(symbol_table_list) == 0:
-        return var(1.0)
-    res = var(0.0)
-
-    for symbol_table in symbol_table_list:
-        X = symbol_table['safe_range']
-        p = symbol_table['probability']
-
-        # print(f"X: {X.left.data.item(), X.right.data.item()}, p: {p}")
-        # print(f"target: {target.left, target.right}")
-        intersection_interval = get_intersection(X, target)
-        
-        #  calculate the reward of each partition
-        if intersection_interval.isEmpty():
-            # print(f"in empty")
-            reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
-        else:
-            # print(f"not empty")
-            # print(f"intersection interval get length: {intersection_interval.getLength()}")
-            # print(f"X get length: {X.getLength()}")
-            reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
-        # print(f"reward for one partition: {reward}")
-    
-        tmp_res = reward.mul(p)
-        res = res.add(tmp_res)
-    res = res.div(var(len(symbol_table_list)).add(EPSILON))
-
-    # print(f"safe loss, res: {res}")
-    # res = res_up.div(res_basse)
-    return res
-
-
 def generate_theta_sample_set(Theta):
     # sample_theta_list = list()
     # sample_theta_probability_list = list()
@@ -212,7 +179,7 @@ def safe_distance(symbol_tables, target):
                         unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(EPSILON))
                         # unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
                 else:
-                    safe_portion = intersection_interval.getLength().div(X.getLength())
+                    safe_portion = intersection_interval.getLength() / (X.getLength())
                     # safe_probability = torch.index_select(safe_portion, 0, index0)
                     unsafe_value = 1 - safe_portion
                     # if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
@@ -540,12 +507,15 @@ def learning(
         if c_loss.data.item() < EPSILON.data.item():
             break
         
-        if (time.time() - start_time)/(i+1) > 3000 or TIME_OUT:
+        if (time.time() - start_time)/(i+1) > 3600 or TIME_OUT:
             log_file = open(file_dir, 'a')
-            log_file.write('TIMEOUT: avg epoch time > 2000s \n')
+            log_file.write('TIMEOUT: avg epoch time > 3000s \n')
             log_file.close()
             TIME_OUT = True
-            break
+            if i <= 2:
+                pass
+            else:
+                break
     
     res = loss # loss # f_loss.div(len(X_train))
 
