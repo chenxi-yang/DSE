@@ -416,6 +416,7 @@ def learning(
         save=save,
         epochs_to_skip=None,
         model_name=None,
+        only_data_loss=only_data_loss,
         data_bs=data_bs,
         ):
     print("--------------------------------------------------------------")
