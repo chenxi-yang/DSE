@@ -133,6 +133,8 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
         for l in abstract_state_wise_trajectory_loss:
             # print(l)
             abstract_loss = torch.max(abstract_loss, torch.sum(torch.stack(l)))
+        if debug:
+            print(f"abstract_loss: {abstract_loss}")
 
     return abstract_loss
     
