@@ -109,7 +109,8 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, tar
 
     for state in trajectory:
         X = state[target_idx]
-        # print(f"X:{X.left.data.item(), X.right.data.item()}")
+        if debug:
+            print(f"X:{X.left.data.item(), X.right.data.item()}")
         intersection_interval = get_intersection(X, safe_interval)
         if intersection_interval.isEmpty():
             unsafe_value = var_list([1.0])
@@ -128,7 +129,8 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, tar
                 else:
                     unsafe_value = 1 - safe_probability
         if verify_outside_trajectory_loss:
-            # print("loss of one symbol table", unsafe_value, symbol_table["probability"])
+            if debug:
+                print("loss of one symbol table", unsafe_value, symbol_table["probability"])
             tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table["probability"])
         else:
             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
@@ -148,6 +150,8 @@ def extract_unsafe(abstract_state, target_component, target_idx):
         for symbol_table in abstract_state:
             # print('Symbol_Table')
             tmp_symbol_table_tra_loss = get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx=target_idx)
+            if debug:
+                print(f"symbol_table: {tmp_symbol_table_tra_loss}, p: {symbol_table['probability'].data.item()}")
             symbol_table_wise_loss_list.append(tmp_symbol_table_tra_loss)
             aggregation_p += symbol_table['probability']
         abstract_state_wise_trajectory_loss = zip(*symbol_table_wise_loss_list)
@@ -211,7 +215,8 @@ def verification(model_path, model_name, component_list, target):
     _, m = load_model(m, MODEL_PATH, name=model_name)
     if m is None:
         print(f"No model to Verify!!")
-        exit(0)
+        # exit(0)
+        return
     # m.cuda()
     if torch.cuda.is_available():
         m.cuda()

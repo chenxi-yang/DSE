@@ -110,7 +110,10 @@ if __name__ == "__main__":
             # data points generation
             preprocessing_time = time.time()
             # TODO: the data is one-dimension (x = a value)
-            Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
+            if fixed_dataset:
+                Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
+            else:
+                Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
             component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components, w=perturbation_width)
             print(f"prepare data: {time.time() - preprocessing_time} sec.")
             # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
@@ -154,27 +157,35 @@ if __name__ == "__main__":
                                 m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
                             if benchmark_name == "mountain_car":
                                 m = MountainCar(l=l, nn_mode=nn_mode, module=module)
+                    try: 
+                        m, loss, loss_list, q, c, time_out = learning(
+                            m, 
+                            component_list,
+                            lambda_=new_lambda, 
+                            stop_val=stop_val, 
+                            epoch=num_epoch, 
+                            target=target,
+                            lr=lr, 
+                            bs=bs,
+                            n=n,
+                            nn_mode=nn_mode,
+                            l=l,
+                            module=module,
+                            use_smooth_kernel=use_smooth_kernel, 
+                            save=save,
+                            epochs_to_skip=epochs_to_skip,
+                            model_name=f"{model_name_prefix}_{safe_range_bound}_{i}",
+                            only_data_loss=only_data_loss,
+                            data_bs=data_bs,
+                            )
+                    except RuntimeError:
+                        log_file = open(file_dir, 'a')
+                        log_file.write(f"RuntimeError: CUDA out of memory.\n")
+                        log_file.close()
+                        log_file_evaluation = open(file_dir_evaluation, 'a')
+                        log_file_evaluation.write(f"RuntimeError: CUDA out of memory.\n")
+                        log_file_evaluation.close()
 
-                    m, loss, loss_list, q, c, time_out = learning(
-                        m, 
-                        component_list,
-                        lambda_=new_lambda, 
-                        stop_val=stop_val, 
-                        epoch=num_epoch, 
-                        target=target,
-                        lr=lr, 
-                        bs=bs,
-                        n=n,
-                        nn_mode=nn_mode,
-                        l=l,
-                        module=module,
-                        use_smooth_kernel=use_smooth_kernel, 
-                        save=save,
-                        epochs_to_skip=epochs_to_skip,
-                        model_name=f"{model_name_prefix}_{safe_range_bound}_{i}",
-                        only_data_loss=only_data_loss,
-                        data_bs=data_bs,
-                        )
                     m.eval()
 
                     #TODO: reduce time, because there are some issues with the gap between cal_c and cal_q
@@ -232,11 +243,11 @@ if __name__ == "__main__":
                 # eval(X_train, y_train, m_t, target, 'train')
                 # eval(X_test, y_test, m_t, target, 'test')
                 if unsound_verify:
-                    print(f"------------start unsound verification------------")
-                    print(f"to verify safe bound(train dataset): {safe_range_bound}")
-                    verification_time = time.time()
-                    verification_unsound(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", trajectory_test=Trajectory_train, target=target)
-                    print(f"---unsound verification(train dataset)time: {time.time() - verification_time} sec---")
+                    # print(f"------------start unsound verification------------")
+                    # print(f"to verify safe bound(train dataset): {safe_range_bound}")
+                    # verification_time = time.time()
+                    # verification_unsound(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", trajectory_test=Trajectory_train, target=target)
+                    # print(f"---unsound verification(train dataset)time: {time.time() - verification_time} sec---")
 
                     print(f"to verify safe bound(test dataset): {safe_range_bound}")
                     verification_time = time.time()

@@ -24,6 +24,8 @@ def show_tra_l(l):
             else:
                 tra_len_l.append(0)
         # print(tra_len_l)
+        print(f"end abstract state")
+        break
 
 
 '''

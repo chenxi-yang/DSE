@@ -44,6 +44,7 @@ def get_parser():
     p.add_argument("--train_size", default=200, type=int, help="training size")
     p.add_argument("--test_size", default=20000, type=int, help="test size")
     p.add_argument("--generate_all_dataset", default=False, type=str2bool, help="generate the data set")
+    p.add_argument("--fixed_dataset", default=False, type=str2bool, help="whether to use the same dataset")
 
     # perturbation
     p.add_argument("--num_components", default=10, type=int, help="number of components to split")
