@@ -1,0 +1,37 @@
+Namespace(b=1000, benchmark_name='mountain_car', bs=2, data_attr='normal_-0.6_-0.4', data_size=10000, dataset='thermostat', dataset_distribution='normal', debug=False, l=100, lr=0.001, mode='DiffAI', module='linearrelu', n=5, nn_mode='all', num_components=10, num_epoch=10, optimizer='direct', perturbation_width=0.01, save='True', stop_val=0.05, t_epoch=10, test_mode=False, test_portion=0.99, test_size=200, train_size=400, use_smooth_kernel=True, verification_num_abstract_states=5, verification_num_components=50, w=0.5, width=0.01)
+Target info: [[-0.8, 0.8], [0.5, 10000.0]], [0.1, 0.1],         [0.4, 0.6], ['all', 'last'], [0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999, 0.9999999999999999, 1.0999999999999999]
+path_num_list: [50]path_sample_size: 50, safa_range_bound: 0.5
+0-th Epochs Time: 1374.3724191188812
+-----finish 0-th epoch-----, the batch loss: q: 1.5025720596313477, c: 0.6771833300590515
+-----finish 0-th epoch-----, the epoch loss: q: 0.0, c: 0.0
+One train: Optimization--1374.3784365653992,1,1374.3784365653992
+path_sample_size: 50, safa_range_bound: 0.6
+0-th Epochs Time: 1277.7383270263672
+-----finish 0-th epoch-----, the batch loss: q: 1.2504528760910034, c: 0.6371734738349915
+-----finish 0-th epoch-----, the epoch loss: q: 0.0, c: 0.0
+One train: Optimization--1277.7531387805939,1,1277.7531387805939
+path_sample_size: 50, safa_range_bound: 0.7
+0-th Epochs Time: 1671.034900188446
+-----finish 0-th epoch-----, the batch loss: q: 1.736474633216858, c: 0.5971742868423462
+-----finish 0-th epoch-----, the epoch loss: q: 0.0, c: 0.0
+One train: Optimization--1671.0661187171936,1,1671.0661187171936
+path_sample_size: 50, safa_range_bound: 0.7999999999999999
+0-th Epochs Time: 1505.0090453624725
+-----finish 0-th epoch-----, the batch loss: q: 1.9751300811767578, c: 0.5571811199188232
+-----finish 0-th epoch-----, the epoch loss: q: 0.0, c: 0.0
+One train: Optimization--1505.016740322113,1,1505.016740322113
+path_sample_size: 50, safa_range_bound: 0.8999999999999999
+0-th Epochs Time: 772.7115297317505
+-----finish 0-th epoch-----, the batch loss: q: 1.5684823989868164, c: 0.5171738266944885
+-----finish 0-th epoch-----, the epoch loss: q: 0.0, c: 0.0
+One train: Optimization--772.7181034088135,1,772.7181034088135
+path_sample_size: 50, safa_range_bound: 0.9999999999999999
+0-th Epochs Time: 1157.9785406589508
+-----finish 0-th epoch-----, the batch loss: q: 1.7907367944717407, c: 0.5171738266944885
+-----finish 0-th epoch-----, the epoch loss: q: 0.0, c: 0.0
+One train: Optimization--1157.9821405410767,1,1157.9821405410767
+path_sample_size: 50, safa_range_bound: 1.0999999999999999
+0-th Epochs Time: 1130.8454508781433
+-----finish 0-th epoch-----, the batch loss: q: 2.1114392280578613, c: 0.5171738266944885
+-----finish 0-th epoch-----, the epoch loss: q: 0.0, c: 0.0
+One train: Optimization--1130.851194858551,1,1130.851194858551

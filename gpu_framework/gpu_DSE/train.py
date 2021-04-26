@@ -360,6 +360,10 @@ def learning(
             # print(f"x length: {len(x)}")
             # if len(trajectory_list) == 0:
             #     continue
+            r_start = torch.cuda.memory_reserved(0)
+            a_start = torch.cuda.memory_reserved(0)
+            f_start = r_start - a_start
+            print(f"ini batch free mem inside: {f_start}")
 
             batch_time = time.time()
             grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
@@ -413,6 +417,11 @@ def learning(
             print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
             q_loss += real_data_loss
             c_loss += real_safe_loss
+
+            r_end = torch.cuda.memory_reserved(0)
+            a_end = torch.cuda.memory_reserved(0)
+            f_end = r_end - a_end
+            print(f"end batch free mem inside: {f_end}")
 
             if time.time() - batch_time > 3600/(len(component_list)/bs):
                 TIME_OUT = True

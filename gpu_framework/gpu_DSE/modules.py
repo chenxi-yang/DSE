@@ -325,7 +325,7 @@ class While(nn.Module):
                 return res_abstract_state_list
             
             i += 1
-            if i > 500:
+            if i > 400:
                 # res_abstract_state = res_abstract_state_list[0]
                 # for symbol_table in res_abstract_state:
                 #     print(symbol_table['x'].c, symbol_table['x'].delta)

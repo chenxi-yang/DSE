@@ -1,0 +1,62 @@
+Namespace(adaptive_weight=False, b=1000, benchmark_name='mountain_car', bs=2, data_attr='normal_52.0_59.0', data_bs=40, data_size=10000, dataset='thermostat', dataset_distribution='normal', debug=False, fixed_dataset=True, generate_all_dataset=False, l=128, lr=0.1, mode='DSE', module='linearrelu_no_act', n=5, nn_mode='all', num_components=10, num_epoch=10, only_data_loss=False, optimizer='direct', outside_trajectory_loss=True, perturbation_width=0.01, real_unsafe_value=True, save='True', sound_verify=False, stop_val=0.05, t_epoch=10, test_mode=False, test_portion=0.99, test_size=800, train_size=400, unsound_verify=False, use_smooth_kernel=True, verification_num_abstract_states=2, verification_num_components=500, verify_outside_trajectory_loss=True, w=0.5, width=0.01)
+Target info: [[-0.8, 0.8], [0.5, 10000.0]], [0.1, 0.1],         [1.0, 0], ['all', 'last'], [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1]
+path_num_list: [50]path_sample_size: 50, safa_range_bound: 0.5
+0-th Epochs Time: 3614.996286869049
+-----finish 0-th epoch-----, the batch loss: q: 0.23295965790748596, c: 0.05906545743346214
+-----finish 0-th epoch-----, q: 2.159214496612549, c: 0.11471030116081238
+1-th Epochs Time: 3616.4087059497833
+-----finish 1-th epoch-----, the batch loss: q: 0.22779510915279388, c: 0.05719135329127312
+-----finish 1-th epoch-----, q: 2.062955617904663, c: 0.12661902606487274
+2-th Epochs Time: 3737.394900560379
+-----finish 2-th epoch-----, the batch loss: q: 0.22495578229427338, c: 0.06394681334495544
+-----finish 2-th epoch-----, q: 2.0271644592285156, c: 0.13106079399585724
+3-th Epochs Time: 2991.627109825611
+-----finish 3-th epoch-----, the batch loss: q: 0.22558605670928955, c: 0.020982785150408745
+-----finish 3-th epoch-----, q: 0.446164071559906, c: 0.020982785150408745
+TIMEOUT: avg epoch time > 2000s 
+One train: Optimization--11966.511637926102,4,2991.6279094815254
+0-th Epochs Time: 3395.7244539260864
+-----finish 0-th epoch-----, the batch loss: q: 0.24478565156459808, c: 0.042136888951063156
+-----finish 0-th epoch-----, q: 2.2552032470703125, c: 0.10345396399497986
+1-th Epochs Time: 3177.2491793632507
+-----finish 1-th epoch-----, the batch loss: q: 0.23805569112300873, c: 0.058132369071245193
+-----finish 1-th epoch-----, q: 2.1612470149993896, c: 0.1182880625128746
+2-th Epochs Time: 2866.4249455928802
+-----finish 2-th epoch-----, the batch loss: q: 0.23780515789985657, c: 0.04599687084555626
+-----finish 2-th epoch-----, q: 2.1241774559020996, c: 0.11385872960090637
+3-th Epochs Time: 2757.5380521416664
+-----finish 3-th epoch-----, the batch loss: q: 0.2319829761981964, c: 0.05230485275387764
+-----finish 3-th epoch-----, q: 2.088258981704712, c: 0.12405182421207428
+TIMEOUT: avg epoch time > 2000s 
+One train: Optimization--11030.15387749672,4,2757.53846937418
+0-th Epochs Time: 2870.645677804947
+-----finish 0-th epoch-----, the batch loss: q: 0.23774610459804535, c: 0.02899271249771118
+-----finish 0-th epoch-----, q: 2.1846563816070557, c: 0.08340582996606827
+RuntimeError: CUDA out of memory.
+1-th Epochs Time: 2883.3903863430023
+-----finish 1-th epoch-----, the batch loss: q: 0.2340305894613266, c: 0.037757840007543564
+-----finish 1-th epoch-----, q: 2.1070916652679443, c: 0.08682079613208771
+path_sample_size: 50, safa_range_bound: 0.6
+RuntimeError: CUDA out of memory.
+RuntimeError: CUDA out of memory.
+RuntimeError: CUDA out of memory.
+path_sample_size: 50, safa_range_bound: 0.7
+RuntimeError: CUDA out of memory.
+RuntimeError: CUDA out of memory.
+RuntimeError: CUDA out of memory.
+path_sample_size: 50, safa_range_bound: 0.8
+RuntimeError: CUDA out of memory.
+RuntimeError: CUDA out of memory.
+RuntimeError: CUDA out of memory.
+path_sample_size: 50, safa_range_bound: 0.9
+RuntimeError: CUDA out of memory.
+RuntimeError: CUDA out of memory.
+RuntimeError: CUDA out of memory.
+path_sample_size: 50, safa_range_bound: 1.0
+RuntimeError: CUDA out of memory.
+RuntimeError: CUDA out of memory.
+RuntimeError: CUDA out of memory.
+path_sample_size: 50, safa_range_bound: 1.1
+RuntimeError: CUDA out of memory.
+RuntimeError: CUDA out of memory.
+RuntimeError: CUDA out of memory.
