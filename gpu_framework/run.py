@@ -65,6 +65,10 @@ if __name__ == "__main__":
 
     for path_sample_size in path_num_list:
         for safe_range_bound in safe_range_bound_list:
+            r_start = torch.cuda.memory_reserved(0)
+            a_start = torch.cuda.memory_allocated(0)
+            f_start = r_start - a_start
+            print(f"ini safe bound free mem inside: {f_start}, allocated: {a_start}")
 
             time_out = False
             constants.SAMPLE_SIZE = path_sample_size # show number of paths to sample
@@ -119,6 +123,11 @@ if __name__ == "__main__":
             # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 
             for i in range(3):
+                r_start_i = torch.cuda.memory_reserved(0)
+                a_start_i = torch.cuda.memory_allocated(0)
+                f_start_i = r_start_i - a_start_i
+                print(f"ini safe bound {i} free mem inside: {f_start_i}, allocated: {a_start_i}")
+
                 lambda_list = list()
                 model_list = list()
                 q = var(0.0)
@@ -190,6 +199,11 @@ if __name__ == "__main__":
 
                     #TODO: reduce time, because there are some issues with the gap between cal_c and cal_q
                     m_t = m
+
+                    r_end_i = torch.cuda.memory_reserved(0)
+                    a_end_i = torch.cuda.memory_allocated(0)
+                    f_end_i = r_end_i - a_end_i
+                    print(f"ini end {i} free mem inside: {f_end_i}, allocated: {a_end_i}")
                     break
                     
                     lambda_list.append(new_lambda)
@@ -220,6 +234,11 @@ if __name__ == "__main__":
                             break
                     
                     q = q.add(var(lr).mul(cal_c(X_train, y_train, m_t, theta)))
+                
+                r_end = torch.cuda.memory_reserved(0)
+                a_end = torch.cuda.memory_allocated(0)
+                f_end = r_end - a_end
+                print(f"end safe bound free mem inside: {f_end}, allocated: {a_end}")
                 
                 if time_out == True:
                     continue

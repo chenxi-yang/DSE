@@ -288,6 +288,11 @@ def sample_parameters(Theta, n=5):
     # sample n theta based on the normal distribution with mean=Theta std=1.0
     # return a list of <theta, theta_p>
     # each theta, Theta is a list of Tensor
+
+    r_start = torch.cuda.memory_reserved(0)
+    a_start = torch.cuda.memory_allocated(0)
+    f_start = r_start - a_start
+    print(f"ini sample para free mem inside: {f_start}, allocated: {a_start}")
     theta_list = list()
     for i in range(n):
         sampled_theta = list()
@@ -301,6 +306,11 @@ def sample_parameters(Theta, n=5):
         # print(f"each sampled theta: {sampled_theta}")
         # print(f"each probability: {theta_p}")
         theta_list.append((sampled_theta, theta_p))
+    
+    r_end = torch.cuda.memory_reserved(0)
+    a_end = torch.cuda.memory_allocated(0)
+    f_end = r_end - a_end
+    print(f"ini sample para free mem inside: {f_end}, allocated: {a_end}")
 
     return theta_list
 
@@ -353,7 +363,7 @@ def learning(
     for i in range(epoch):
         if i <= epochs_to_skip:
             continue
-        q_loss, c_loss = var_list([0.0]), var_list([0.0])
+        q_loss, c_loss = 0.0, 0.0
         count = 0
         tmp_q_idx = 0
         for trajectory_list, abstract_states, use_safe_loss in divide_chunks(component_list, bs=bs, data_bs=data_bs):
@@ -361,37 +371,56 @@ def learning(
             # if len(trajectory_list) == 0:
             #     continue
             r_start = torch.cuda.memory_reserved(0)
-            a_start = torch.cuda.memory_reserved(0)
+            a_start = torch.cuda.memory_allocated(0)
             f_start = r_start - a_start
-            print(f"ini batch free mem inside: {f_start}")
+            print(f"ini batch free mem inside: {f_start}, allocated: {a_start}")
 
             batch_time = time.time()
             grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
-            real_data_loss, real_safe_loss = var_list([0.0]), var_list([0.0])
+            real_data_loss, real_safe_loss = 0.0, 0.0
             
             Theta = extract_parameters(m) # extract the parameters now, and then sample around it
             # print(f"Theta before: {Theta}")
             if use_smooth_kernel:
                 if use_safe_loss:
                     for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
+                        r_start_sample = torch.cuda.memory_reserved(0)
+                        a_start_sample = torch.cuda.memory_allocated(0)
+                        f_start_sample = r_start_sample - a_start_sample
+                        print(f"ini update model(sampled theta) free mem inside: {f_start_sample}, allocated: {a_start_sample}")
+                        
                         m = update_model_parameter(m, sample_theta)
+
+                        r_end_sample = torch.cuda.memory_reserved(0)
+                        a_end_sample = torch.cuda.memory_allocated(0)
+                        f_end_sample = r_end_sample - a_end_sample
+                        print(f"end update model(sampled theta) free mem inside: {f_end_sample}, allocated: {a_end_sample}")
+                        
                         sample_time = time.time()
 
                         data_loss = cal_data_loss(m, trajectory_list, criterion)
-                        grad_data_loss += var(data_loss.data.item()) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
-                        real_data_loss += var(data_loss.data.item())
+                        grad_data_loss += float(data_loss) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
+                        real_data_loss += float(data_loss)
                         
                         # if not only_data_loss:
                         safe_loss = cal_safe_loss(m, abstract_states, target)
-                        grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
-                        real_safe_loss += var(safe_loss.data.item())
+                        grad_safe_loss += float(safe_loss) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
+                        real_safe_loss += float(safe_loss)
 
-                        print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
+                        print(f"data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}")
                         # print(f"{'#' * 15}")
                         # print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
 
                     # To maintain the real theta
+                    r_start_theta = torch.cuda.memory_reserved(0)
+                    a_start_theta = torch.cuda.memory_allocated(0)
+                    f_start_theta = r_start_theta - a_start_theta
+                    print(f"ini update model(Theta) free mem inside: {f_start_theta}, allocated: {a_start_theta}")
                     m = update_model_parameter(m, Theta)
+                    r_end_theta = torch.cuda.memory_reserved(0)
+                    a_end_theta = torch.cuda.memory_allocated(0)
+                    f_end_theta = r_end_theta - a_end_theta
+                    print(f"ini update model(Theta) free mem inside: {f_end_theta}, allocated: {a_end_theta}")
 
                     real_data_loss /= n
                     real_safe_loss /= n
@@ -401,7 +430,7 @@ def learning(
                     tmp_q_idx += 1
                     data_loss = cal_data_loss(m, trajectory_list, criterion)
                     safe_loss = var_list([0.0])
-                    real_data_loss, real_safe_loss = data_loss, safe_loss
+                    real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
                     grad_data_loss, grad_safe_loss = data_loss, safe_loss
             else:
                 if len(trajectory_list) == 0:
@@ -411,17 +440,17 @@ def learning(
                 safe_loss = var_list([0.0])
                 if not only_data_loss:
                     safe_loss = cal_safe_loss(m, abstract_states, target)
-                real_data_loss, real_safe_loss = data_loss, safe_loss
+                real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
                 grad_data_loss, grad_safe_loss = data_loss, safe_loss
 
-            print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
+            print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss}, real safe_loss: {real_safe_loss}, data and safe TIME: {time.time() - batch_time}")
             q_loss += real_data_loss
             c_loss += real_safe_loss
 
             r_end = torch.cuda.memory_reserved(0)
-            a_end = torch.cuda.memory_reserved(0)
+            a_end = torch.cuda.memory_allocated(0)
             f_end = r_end - a_end
-            print(f"end batch free mem inside: {f_end}")
+            print(f"end batch free mem inside: {f_end}, allocated: {a_end}")
 
             if time.time() - batch_time > 3600/(len(component_list)/bs):
                 TIME_OUT = True
@@ -432,7 +461,7 @@ def learning(
             
             # print(m.parameters())
 
-            loss = grad_data_loss + lambda_.mul(grad_safe_loss)
+            loss = grad_data_loss + lambda_ * grad_safe_loss
             loss.backward()
             # print(m.nn.linear1.weight.grad)
             # print(m.nn.linear2.weight.grad)
@@ -461,16 +490,16 @@ def learning(
         
         # f_loss = q_loss + lambda_ * c_loss
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
-        print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}")
+        print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}")
         if use_smooth_kernel:
-            print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
+            print(f"-----finish {i}-th epoch-----, q: {q_loss}, c: {c_loss}")
         else:
-            print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()/tmp_q_idx}, c: {c_loss.data.item()}")
+            print(f"-----finish {i}-th epoch-----, q: {q_loss/tmp_q_idx}, c: {c_loss}")
         if not debug:
             log_file = open(file_dir, 'a')
             log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
-            log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}\n")
-            log_file.write(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}\n")
+            log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}\n")
+            log_file.write(f"-----finish {i}-th epoch-----, q: {q_loss}, c: {c_loss}\n")
 
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
@@ -478,7 +507,7 @@ def learning(
         # if c_loss.data.item() < EPSILON.data.item():
         #     break
         
-        if (time.time() - start_time)/(i+1) > 3500 or TIME_OUT:
+        if (time.time() - start_time)/(i+1) > 3600 or TIME_OUT:
             if i <= 2 : # give a chance for the first epoch
                 pass
             else:
