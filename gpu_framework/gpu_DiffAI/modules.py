@@ -12,6 +12,10 @@ import constants
 import math
 import time
 
+from utils import (
+    show_cuda_memory,
+)
+
 
 '''
 Module used as functions
@@ -297,20 +301,26 @@ class While(nn.Module):
         # print(f"##############In while DiffAI#########")
         i = 0
         res_symbol_tables = dict()
+        show_cuda_memory(f"ini whilee")
         while(len(symbol_tables) > 0):
             # counter += 1
+            show_cuda_memory(f"[while]before calculate branch")
             body_symbol_tables, orelse_symbol_tables = calculate_branch(self.target_idx, self.test, symbol_tables)
+            show_cuda_memory(f"[while]after calculate branch")
 
             res_symbol_tables = sound_join(res_symbol_tables, orelse_symbol_tables)
+            show_cuda_memory(f"[while]after sound join")
 
             if len(body_symbol_tables) == 0:
                 return res_symbol_tables
             
             symbol_tables = self.body(body_symbol_tables)
 
+            show_cuda_memory(f"[while]after body")
+
             i += 1
             if i > 400:
-                print(f"Exceed maximum iterations: Have to END.")
+                # print(f"Exceed maximum iterations: Have to END.")
                 break
         res_symbol_tables = sound_join(res_symbol_tables, orelse_symbol_tables)
         return res_symbol_tables

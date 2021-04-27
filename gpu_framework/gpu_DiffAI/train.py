@@ -18,7 +18,8 @@ from utils import (
     generate_distribution,
     ini_trajectory,
     batch_pair,
-    batch_points
+    batch_points,
+    show_cuda_memory,
 )
 
 random.seed(1)
@@ -424,8 +425,15 @@ def learning(
 
                         sample_time = time.time()
                         m = update_model_parameter(m, sample_theta)
+
+                        show_cuda_memory(f"ini sample")
+
                         data_loss = cal_data_loss(m, trajectory_list, criterion)
+
+                        show_cuda_memory(f"after data loss")
                         safe_loss = cal_safe_loss(m, real_trajectory_list, width, target)
+
+                        show_cuda_memory(f"after safe loss")
                         print(f"data loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}")
 
                         # gradient = \exp_{\theta' \sim N(\theta)}[loss * \grad_{\theta}(log(p(\theta', \theta)))]
@@ -524,7 +532,7 @@ def learning(
     log_file.write('One train: Optimization--' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
     log_file.close()
     
-    return m, res, [], data_loss, safe_loss, TIME_OUT
+    return [], float(res), [], float(data_loss), float(safe_loss), TIME_OUT
 
 
 def cal_c(X_train, y_train, m, target):

@@ -215,7 +215,11 @@ def extract_abstract_representation(
     return component_list
     
 
-
+def show_cuda_memory(name):
+    r = torch.cuda.memory_reserved(0)
+    a = torch.cuda.memory_allocated(0)
+    f = r - a
+    print(f"{name}, free mem: {f}, reserved mem: {r}, allocated mem: {a}")
 
 
 

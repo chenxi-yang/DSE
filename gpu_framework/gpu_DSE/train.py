@@ -20,6 +20,7 @@ from utils import (
     generate_distribution,
     ini_trajectory,
     batch_pair, 
+    show_cuda_memory,
 )
 
 random.seed(1)
@@ -289,10 +290,7 @@ def sample_parameters(Theta, n=5):
     # return a list of <theta, theta_p>
     # each theta, Theta is a list of Tensor
 
-    r_start = torch.cuda.memory_reserved(0)
-    a_start = torch.cuda.memory_allocated(0)
-    f_start = r_start - a_start
-    print(f"ini sample para free mem inside: {f_start}, allocated: {a_start}")
+    show_cuda_memory(f"ini sample para")
     theta_list = list()
     for i in range(n):
         sampled_theta = list()
@@ -306,11 +304,8 @@ def sample_parameters(Theta, n=5):
         # print(f"each sampled theta: {sampled_theta}")
         # print(f"each probability: {theta_p}")
         theta_list.append((sampled_theta, theta_p))
-    
-    r_end = torch.cuda.memory_reserved(0)
-    a_end = torch.cuda.memory_allocated(0)
-    f_end = r_end - a_end
-    print(f"ini sample para free mem inside: {f_end}, allocated: {a_end}")
+
+    show_cuda_memory(f"end sample para")
 
     return theta_list
 
@@ -370,10 +365,7 @@ def learning(
             # print(f"x length: {len(x)}")
             # if len(trajectory_list) == 0:
             #     continue
-            r_start = torch.cuda.memory_reserved(0)
-            a_start = torch.cuda.memory_allocated(0)
-            f_start = r_start - a_start
-            print(f"ini batch free mem inside: {f_start}, allocated: {a_start}")
+            show_cuda_memory(f"ini batch free")
 
             batch_time = time.time()
             grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
@@ -384,23 +376,19 @@ def learning(
             if use_smooth_kernel:
                 if use_safe_loss:
                     for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
-                        r_start_sample = torch.cuda.memory_reserved(0)
-                        a_start_sample = torch.cuda.memory_allocated(0)
-                        f_start_sample = r_start_sample - a_start_sample
-                        print(f"ini update model(sampled theta) free mem inside: {f_start_sample}, allocated: {a_start_sample}")
+                        show_cuda_memory(f"ini update model(sampled theta) ")
                         
                         m = update_model_parameter(m, sample_theta)
 
-                        r_end_sample = torch.cuda.memory_reserved(0)
-                        a_end_sample = torch.cuda.memory_allocated(0)
-                        f_end_sample = r_end_sample - a_end_sample
-                        print(f"end update model(sampled theta) free mem inside: {f_end_sample}, allocated: {a_end_sample}")
+                        show_cuda_memory(f"end update model(sampled theta) ")
                         
                         sample_time = time.time()
 
                         data_loss = cal_data_loss(m, trajectory_list, criterion)
                         grad_data_loss += float(data_loss) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                         real_data_loss += float(data_loss)
+
+                        show_cuda_memory(f"end sampled data loss")
                         
                         # if not only_data_loss:
                         safe_loss = cal_safe_loss(m, abstract_states, target)
@@ -412,15 +400,9 @@ def learning(
                         # print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
 
                     # To maintain the real theta
-                    r_start_theta = torch.cuda.memory_reserved(0)
-                    a_start_theta = torch.cuda.memory_allocated(0)
-                    f_start_theta = r_start_theta - a_start_theta
-                    print(f"ini update model(Theta) free mem inside: {f_start_theta}, allocated: {a_start_theta}")
+                    show_cuda_memory(f"ini update model(Theta)")
                     m = update_model_parameter(m, Theta)
-                    r_end_theta = torch.cuda.memory_reserved(0)
-                    a_end_theta = torch.cuda.memory_allocated(0)
-                    f_end_theta = r_end_theta - a_end_theta
-                    print(f"ini update model(Theta) free mem inside: {f_end_theta}, allocated: {a_end_theta}")
+                    show_cuda_memory(f"end update model(Theta)")
 
                     real_data_loss /= n
                     real_safe_loss /= n
@@ -447,17 +429,14 @@ def learning(
             q_loss += real_data_loss
             c_loss += real_safe_loss
 
-            r_end = torch.cuda.memory_reserved(0)
-            a_end = torch.cuda.memory_allocated(0)
-            f_end = r_end - a_end
-            print(f"end batch free mem inside: {f_end}, allocated: {a_end}")
+            show_cuda_memory(f"end batch")
 
-            if time.time() - batch_time > 3600/(len(component_list)/bs):
-                TIME_OUT = True
-                if i <= 2: # a chance for the first three epoches
-                    pass
-                else:
-                    break
+            # if time.time() - batch_time > 3600/(len(component_list)/bs):
+            #     TIME_OUT = True
+            #     if i <= 2: # a chance for the first three epoches
+            #         pass
+            #     else:
+            #         break
             
             # print(m.parameters())
 
@@ -512,7 +491,7 @@ def learning(
                 pass
             else:
                 log_file = open(file_dir, 'a')
-                log_file.write('TIMEOUT: avg epoch time > 2000s \n')
+                log_file.write('TIMEOUT: avg epoch time > 3600sec \n')
                 log_file.close()
                 TIME_OUT = True
                 break
@@ -527,7 +506,7 @@ def learning(
     if debug:
         exit(0)
     
-    return m, res, [], data_loss, safe_loss, TIME_OUT
+    return [], res, [], float(data_loss), float(safe_loss), TIME_OUT
 
 
 def cal_c(X_train, y_train, m, target):
