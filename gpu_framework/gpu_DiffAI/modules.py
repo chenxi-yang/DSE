@@ -162,7 +162,7 @@ def calculate_branch(target_idx, test, symbol_tables):
     return body_symbol_tables, orelse_symbol_tables
 
 
-def sound_join_trajectory(trajectory_1, trajectory_2):
+def sound_join_trajectory_cost_mem(trajectory_1, trajectory_2):
     l1, l2 = len(trajectory_1), len(trajectory_2)
     # show_cuda_memory(f"ini join T")
     trajectory = list()
@@ -173,15 +173,20 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
             # show_cuda_memory(f"before sound join state")
             state_1, state_2 = states_1[state_idx], states_2[state_idx]
             # add 1024???? why
-            # show_cuda_memory(f"before sound join")
+            show_cuda_memory(f"before sound join")
             a = state_1.soundJoin(state_2)
-            # show_cuda_memory(f"after sound join")
+            show_cuda_memory(f"after sound join")
             state_list.append(a)
-            # del state_1
-            # del state_2
-            # show_cuda_memory(f"after sound join before empty cache")
+            del state_1
+            del state_2
+            
+            show_cuda_memory(f"after sound join before del idx")
             # torch.cuda.empty_cache()
-            # show_cuda_memory(f"after sound join after empty cache")
+            del states_1[state_idx]
+            del states_2[state_idx]
+            torch.cuda.empty_cache()
+            show_cuda_memory(f"after sound join after del idx")
+            exit(0)
 
             # show_cuda_memory(f"after sound join state")
         trajectory.append(state_list)
@@ -203,6 +208,45 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
     # gc.collect()
     # show_cuda_memory(f"after join T")
     
+    return trajectory
+
+
+def sound_join_trajectory(trajectory_1, trajectory_2):
+    l1, l2 = len(trajectory_1), len(trajectory_2)
+    trajectory = list()
+    K = min(l1, l2)
+    for idx in range(K):
+        states_1, states_2 = trajectory_1[0], trajectory_2[0]
+        l_s = len(states_1)
+        state_list = list()
+        print(l_s)
+        print(states_1)
+        for state_idx in range(l_s):
+            state_1, state_2 = states_1[0], states_2[0]
+            print(state_1)
+            del state_1
+            print(states_1)
+            del states_1[0]
+            print(states_1)
+            a = state_1.soundJoin(state_2)
+            state_list.append(a)
+            print(len(states_1), len(states_2))
+            del states_1[1]
+            del states_2[0]
+            print(len(states_1), len(states_2))
+            exit(0)
+        trajectory.append(state_list)
+        del trajectory_1[0]
+        del trajectory_2[0]
+    
+    if l1 < l2:
+        trajectory.extend(trajectory_2)
+    elif l1 > l2:
+        trajectory.extend(trajectory_1)
+    
+    del trajectory_2
+    del trajectory_1
+
     return trajectory
 
 
@@ -289,7 +333,7 @@ def sound_join(symbol_tables_1, symbol_tables_2):
             # del new_c
             # del new_delta
             same = True
-            print(sys.getsizeof(symbol_tables_1))
+            # print(sys.getsizeof(symbol_tables_1))
             # for key in symbol_tables_1:
             #     del symbol_tables_1[key]
             # exit(0)
@@ -299,9 +343,9 @@ def sound_join(symbol_tables_1, symbol_tables_2):
         print(f"TETEST11111????")
         show_cuda_memory(f"[sound join] end in same before del")
     
-    for key in symbol_tables_1.keys():
+    for key in list(symbol_tables_1.keys()):
         del symbol_tables_1[key]
-    for key in symbol_tables_2.keys():
+    for key in list(symbol_tables_2.keys()):
         del symbol_tables_2[key]
     print(f"TEST")
 
