@@ -209,7 +209,7 @@ def cal_safe_loss(m, trajectory_list, width, target):
     x = [[ini_trajectory(trajectory)[0][0]] for trajectory in trajectory_list]
     center_list, width_list = create_small_ball(x, width)
     batched_center, batched_width = batch_points(center_list), batch_points(width_list)
-
+    print(f"[safe loss] center, width: {batched_center.shape}, {batched_width.shape}")
     abstract_data = initialization_nn(batched_center, batched_width)
     # if debug:
     #     exit(0)
@@ -437,10 +437,10 @@ def learning(
                         print(f"data loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}")
 
                         # gradient = \exp_{\theta' \sim N(\theta)}[loss * \grad_{\theta}(log(p(\theta', \theta)))]
-                        grad_data_loss += var_list([data_loss.data.item()]) * sample_theta_p
-                        real_data_loss += var_list([data_loss.data.item()])
-                        grad_safe_loss += var_list([safe_loss.data.item()]) * sample_theta_p
-                        real_safe_loss += var_list([safe_loss.data.item()])
+                        grad_data_loss += float(data_loss) * sample_theta_p
+                        real_data_loss += float(data_loss)
+                        grad_safe_loss += float(safe_loss) * sample_theta_p
+                        real_safe_loss += float(safe_loss)
 
                         # print(f"sample time: {time.time() - sample_time}")
                         # if time.time() - sample_time > 2000/(n*(len(component_list)/bs)):
@@ -459,7 +459,7 @@ def learning(
                     tmp_q_idx += 1
                     data_loss = cal_data_loss(m, trajectory_list, criterion)
                     safe_loss = var_list([0.0])
-                    real_data_loss, real_safe_loss = data_loss, safe_loss
+                    real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
                     grad_data_loss, grad_safe_loss = data_loss, safe_loss
 
                 # print(f"grad data_loss: {grad_data_loss.data.item()}, grad safe_loss: {grad_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
@@ -468,11 +468,11 @@ def learning(
                 data_loss = cal_data_loss(m, trajectory_list, criterion)
                 safe_loss = cal_safe_loss(m, trajectory_list, width, target)
 
-                real_data_loss, real_safe_loss = data_loss, safe_loss
+                real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
                 grad_data_loss, grad_safe_loss = data_loss, safe_loss
                 
             
-            print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
+            print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss}, real safe_loss: {real_safe_loss}, data and safe TIME: {time.time() - batch_time}")
             q_loss += real_data_loss
             c_loss += real_safe_loss
 
@@ -483,8 +483,9 @@ def learning(
                 else:
                     break
 
-            loss = grad_data_loss + lambda_.mul(grad_safe_loss)
-            loss.backward(retain_graph=True)
+            loss = grad_data_loss + lambda_ * grad_safe_loss
+            # loss.backward(retain_graph=True)
+            loss.backward()
 
             # print(f"Linear1 grad: [{torch.min(m.nn.linear1.weight.grad)}, {torch.max(m.nn.linear1.weight.grad)}]")
             # print(f"Linear2 grad: [{torch.min(m.nn.linear2.weight.grad)}, {torch.max(m.nn.linear2.weight.grad)}]")

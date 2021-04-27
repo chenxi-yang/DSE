@@ -189,6 +189,7 @@ if __name__ == "__main__":
                         log_file_evaluation = open(file_dir_evaluation, 'a')
                         log_file_evaluation.write(f"RuntimeError: CUDA out of memory.\n")
                         log_file_evaluation.close()
+                        exit(0)
 
                     # m.eval()
 

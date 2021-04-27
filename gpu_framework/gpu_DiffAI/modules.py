@@ -249,7 +249,9 @@ class Assign(nn.Module):
     
     def forward(self, symbol_tables, cur_sample_size=0):
         # print(f"Assign Before: {[(res['x'].c, res['x'].delta) for res in x_list]}")
+        show_cuda_memory(f"[assign: {self.f}]before cal x")
         res_symbol_tables = calculate_x_list(self.target_idx, self.arg_idx, self.f, symbol_tables)
+        show_cuda_memory(f"[ifelse]after cal x")
         # print(f"Assign After: {[(res['x'].c, res['x'].delta) for res in x_list]}")
         return res_symbol_tables
 
@@ -267,18 +269,25 @@ class IfElse(nn.Module):
     
     def forward(self, symbol_tables):
         test = self.f_test(self.test)
-
+        show_cuda_memory(f"[ifelse]before calculate branch")
         body_symbol_tables, orelse_symbol_tables = calculate_branch(self.target_idx, self.test, symbol_tables)
+        show_cuda_memory(f"[ifelse]after calculate branch")
         # print(f"{len(branch_list)}")
         
         # print(f"In IfElse, {len(body_list)}, {len(else_list)}")
         
         if len(body_symbol_tables) > 0:
+            show_cuda_memory(f"[ifelse]before body")
             body_symbol_tables = self.body(body_symbol_tables)
+            show_cuda_memory(f"[ifelse]after body")
         if len(orelse_symbol_tables) > 0:
+            show_cuda_memory(f"[ifelse]before orelse")
             orelse_symbol_tables = self.orelse(orelse_symbol_tables)
+            show_cuda_memory(f"[ifelse]end orelse")
         
+        show_cuda_memory(f"[ifelse]before sound join")
         res_symbol_tables = sound_join(body_symbol_tables, orelse_symbol_tables)
+        show_cuda_memory(f"[ifelse]after sound join")
 
         return res_symbol_tables
 
