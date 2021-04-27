@@ -322,13 +322,13 @@ class Interval:
         #     a2 = torch.cuda.memory_allocated(0)
         #     print(f"#interval cos, middle#, memory: {a2}, {a2 - a1}")
         # print(type(t.getVolumn()), type(PI_TWICE))
-        if t.getVolumn().data.item() >= PI_TWICE.data.item():
+        if float(t.getVolumn()) >= float(PI_TWICE):
             # print('volume', t.getVolumn())
             res = Interval(var_list([-1.0]), var_list([1.0]))
             # show_value(res)
             # return res
         # when t.left > PI same as -cos(t-pi)
-        elif t.left.data.item() >= PI.data.item():
+        elif float(t.left) >= float(PI):
             # if debug:
             #     r7 = torch.cuda.memory_reserved(0) 
             #     a7 = torch.cuda.memory_allocated(0)
@@ -344,13 +344,13 @@ class Interval:
         else:
             tl = torch.cos(t.right)
             tr = torch.cos(t.left)
-            if t.right.data.item() <= PI.data.item():
+            if float(t.right) <= float(PI.data.item()):
                 # res.left = tl
                 # res.right = tr
                 res = Interval(tl, tr)
                 # show_value(res)
                 # return res
-            elif t.right.data.item() <= PI_TWICE.data.item():
+            elif float(t.right) <= float(PI_TWICE):
                 # res.left = var(-1.0)
                 # res.right = torch.max(tl, tr)
                 res = Interval(var_list([-1.0]), torch.max(tl, tr))
@@ -366,6 +366,9 @@ class Interval:
         #     r3 = torch.cuda.memory_reserved(0) 
         #     a3 = torch.cuda.memory_allocated(0)
         #     print(f"#interval cos, end#, memory: {a3}, {a3 - a1}")
+        del cache
+        del t
+        
         return res
 
     def sin(self):

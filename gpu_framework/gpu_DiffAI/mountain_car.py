@@ -195,22 +195,31 @@ def f_assign_v(x):
     # if debug:
     #     r1 = torch.cuda.memory_reserved(0) 
     #     a1 = torch.cuda.memory_allocated(0)
+    # show_cuda_memory(f"(f_assign_v)ini")
     p = x.select_from_index(1, index0)
     v = x.select_from_index(1, index1)
     u = x.select_from_index(1, index2)
+    # show_cuda_memory(f"(f_assign_v) select index")
     # if debug:
     #     r2 = torch.cuda.memory_reserved(0) 
     #     a2 = torch.cuda.memory_allocated(0)
     #     print(f"#f_assign_v: memory cost {a2 - a1}#")
     # TODO: cos
-    # a1 = v.add(u.mul(var(0.0015)))
-    # a2 = p.mul(var(3.0)).cos().mul(var(-0.0025))
+    a1 = v.add(u.mul(var(0.0015)))
+    # show_cuda_memory(f"(f_assign_v)add, mul")
+    a2 = p.mul(var(3.0))
+    # show_cuda_memory(f"(f_assign_v)first mul")
+    a3 = a2.cos()
+    # show_cuda_memory(f"(f_assign_v)cos")
+    a4 = a3.mul(var(-0.0025))
+    # show_cuda_memory(f"(f_assign_v)second mul")
     # print(a1.c.shape)
     # print(a2.c.shape)
-    # res = a1.add(a2)
+    res = a1.add(a4)
+    # show_cuda_memory(f"(f_assign_v)final add")
     # print(res.c.shape)
-    # return res
-    return v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
+    return res
+    # return v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
 
 
 class MountainCar(nn.Module):
@@ -269,7 +278,7 @@ class MountainCar(nn.Module):
         self.check_reach = Assign(target_idx=[3], arg_idx=[3], f=reward_reach)
         self.check_position = IfElse(target_idx=[0], test=self.goal_position-var(1e-5), f_test=f_test, body=self.check_non, orelse=self.check_reach)
         
-        self.trajectory_update_2 = Trajectory(target_idx=[2, 0])
+        self.trajectory_update_2 = Trajectory(target_idx=[2])
         self.program = nn.Sequential(
             self.while1,
             self.check_position,

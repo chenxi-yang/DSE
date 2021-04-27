@@ -46,6 +46,7 @@ real_unsafe_value =  args.real_unsafe_value
 only_data_loss = args.only_data_loss
 data_bs = args.data_bs
 fixed_dataset = args.fixed_dataset
+cuda_debug = args.cuda_debug
 
 sound_verify = args.sound_verify
 unsound_verify = args.unsound_verify

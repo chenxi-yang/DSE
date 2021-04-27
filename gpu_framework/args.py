@@ -71,7 +71,7 @@ def get_parser():
     
     # debug
     p.add_argument("--debug", default=False, type=str2bool, help="decide whether debug")
-    
+    p.add_argument("--cuda_debug", default=False, type=str2bool,  help="decide whether de cuda memory bug")
     return p
 
 

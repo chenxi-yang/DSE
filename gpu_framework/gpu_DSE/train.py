@@ -290,7 +290,7 @@ def sample_parameters(Theta, n=5):
     # return a list of <theta, theta_p>
     # each theta, Theta is a list of Tensor
 
-    show_cuda_memory(f"ini sample para")
+    # show_cuda_memory(f"ini sample para")
     theta_list = list()
     for i in range(n):
         sampled_theta = list()
@@ -304,8 +304,8 @@ def sample_parameters(Theta, n=5):
         # print(f"each sampled theta: {sampled_theta}")
         # print(f"each probability: {theta_p}")
         theta_list.append((sampled_theta, theta_p))
-
-    show_cuda_memory(f"end sample para")
+    
+    # show_cuda_memory(f"end sample para")
 
     return theta_list
 

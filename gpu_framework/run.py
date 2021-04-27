@@ -120,7 +120,7 @@ if __name__ == "__main__":
             print(f"prepare data: {time.time() - preprocessing_time} sec.")
             # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 
-            for i in range(3):
+            for i in range(1):
                 show_cuda_memory(f"ini safe bound {i} ")
 
                 lambda_list = list()
@@ -161,35 +161,35 @@ if __name__ == "__main__":
                                 m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
                             if benchmark_name == "mountain_car":
                                 m = MountainCar(l=l, nn_mode=nn_mode, module=module)
-                    try: 
-                        _, loss, loss_list, q, c, time_out = learning(
-                            m, 
-                            component_list,
-                            lambda_=new_lambda, 
-                            stop_val=stop_val, 
-                            epoch=num_epoch, 
-                            target=target,
-                            lr=lr, 
-                            bs=bs,
-                            n=n,
-                            nn_mode=nn_mode,
-                            l=l,
-                            module=module,
-                            use_smooth_kernel=use_smooth_kernel, 
-                            save=save,
-                            epochs_to_skip=epochs_to_skip,
-                            model_name=f"{model_name_prefix}_{safe_range_bound}_{i}",
-                            only_data_loss=only_data_loss,
-                            data_bs=data_bs,
-                            )
-                    except RuntimeError:
-                        log_file = open(file_dir, 'a')
-                        log_file.write(f"RuntimeError: CUDA out of memory.\n")
-                        log_file.close()
-                        log_file_evaluation = open(file_dir_evaluation, 'a')
-                        log_file_evaluation.write(f"RuntimeError: CUDA out of memory.\n")
-                        log_file_evaluation.close()
-                        exit(0)
+                    # try: 
+                    _, loss, loss_list, q, c, time_out = learning(
+                        m, 
+                        component_list,
+                        lambda_=new_lambda, 
+                        stop_val=stop_val, 
+                        epoch=num_epoch, 
+                        target=target,
+                        lr=lr, 
+                        bs=bs,
+                        n=n,
+                        nn_mode=nn_mode,
+                        l=l,
+                        module=module,
+                        use_smooth_kernel=use_smooth_kernel, 
+                        save=save,
+                        epochs_to_skip=epochs_to_skip,
+                        model_name=f"{model_name_prefix}_{safe_range_bound}_{i}",
+                        only_data_loss=only_data_loss,
+                        data_bs=data_bs,
+                        )
+                    # except RuntimeError:
+                    #     log_file = open(file_dir, 'a')
+                    #     log_file.write(f"RuntimeError: CUDA out of memory.\n")
+                    #     log_file.close()
+                    #     log_file_evaluation = open(file_dir_evaluation, 'a')
+                    #     log_file_evaluation.write(f"RuntimeError: CUDA out of memory.\n")
+                    #     log_file_evaluation.close()
+                    #     exit(0)
 
                     # m.eval()
 

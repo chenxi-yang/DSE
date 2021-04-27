@@ -11,10 +11,16 @@ import constants
 
 import math
 import time
+import copy
 
 from utils import (
     show_cuda_memory,
+    show_memory_snapshot,
 )
+
+import sys
+
+import gc
 
 
 '''
@@ -158,18 +164,44 @@ def calculate_branch(target_idx, test, symbol_tables):
 
 def sound_join_trajectory(trajectory_1, trajectory_2):
     l1, l2 = len(trajectory_1), len(trajectory_2)
+    # show_cuda_memory(f"ini join T")
     trajectory = list()
     for idx in range(min(l1, l2)):
-        states_1, states_2 =  trajectory_1[idx], trajectory_2[idx]
+        states_1, states_2 = trajectory_1[idx], trajectory_2[idx]
         state_list = list()
         for state_idx, v in enumerate(states_1):
+            # show_cuda_memory(f"before sound join state")
             state_1, state_2 = states_1[state_idx], states_2[state_idx]
-            state_list.append(state_1.soundJoin(state_2))
+            # add 1024???? why
+            # show_cuda_memory(f"before sound join")
+            a = state_1.soundJoin(state_2)
+            # show_cuda_memory(f"after sound join")
+            state_list.append(a)
+            # del state_1
+            # del state_2
+            # show_cuda_memory(f"after sound join before empty cache")
+            # torch.cuda.empty_cache()
+            # show_cuda_memory(f"after sound join after empty cache")
+
+            # show_cuda_memory(f"after sound join state")
         trajectory.append(state_list)
+        # show_cuda_memory(f"mid join T (step {idx})")
+        # del states_1
+        # del states_2
+        # del state_list
+        # torch.cuda.empty_cache()
+    # del trajectory
+    # show_cuda_memory(f"mid join T")
+    # exit(0)
     if l1 < l2:
         trajectory.extend(trajectory_2[l1:])
     elif l1 > l2:
         trajectory.extend(trajectory_1[l2:])
+    
+    # del trajectory_1
+    # del trajectory_2
+    # gc.collect()
+    # show_cuda_memory(f"after join T")
     
     return trajectory
 
@@ -195,24 +227,43 @@ def sound_join(symbol_tables_1, symbol_tables_2):
         return symbol_tables_2
     if len(symbol_tables_2) == 0:
         return symbol_tables_1
+    show_cuda_memory(f"[sound join] ini")
+    # show_memory_snapshot()
 
     res_symbol_tables = dict()
     idx1, idx2 = 0, 0
     idx_list_1, idx_list_2 = symbol_tables_1['idx_list'], symbol_tables_2['idx_list']
+    same = False
     while idx1 <= len(idx_list_1) - 1 or idx2 <= len(idx_list_2) - 1:
         if idx1 > len(idx_list_1) - 1 or (idx2 <= len(idx_list_2) - 1 and idx_list_1[idx1] > idx_list_2[idx2]):
-            new_c = symbol_tables_2['x'].c[idx2:idx2+1]
-            new_delta = symbol_tables_2['x'].delta[idx2:idx2+1]
+            # print(f"ini sound join tra [table2]")
+            # for key in symbol_tables_2:
+            #     del symbol_tables_2[key]
+            # exit(0)
+            new_c = symbol_tables_2['x'].c[idx2:idx2+1].clone()
+            new_delta = symbol_tables_2['x'].delta[idx2:idx2+1].clone()
             new_trajectory = symbol_tables_2['trajectory_list'][idx2]
-            new_idx =  symbol_tables_2['idx_list'][idx2]
+            new_idx = symbol_tables_2['idx_list'][idx2]
+            # show_cuda_memory(f"single idx1")
+            # print(f"before sound join tra [table2]")
+            # for key in symbol_tables_2:
+            #     del symbol_tables_2[key]
+            # exit(0)
             res_symbol_tables = update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx)
+            # show_cuda_memory(f"single idx1 after join")
             idx2 += 1
         elif idx2 > len(idx_list_2) - 1 or (idx1 <= len(idx_list_1) - 1 and idx_list_1[idx1] < idx_list_2[idx2]):
-            new_c = symbol_tables_1['x'].c[idx1:idx1+1]
-            new_delta = symbol_tables_1['x'].delta[idx1:idx1+1]
+            new_c = symbol_tables_1['x'].c[idx1:idx1+1].clone()
+            new_delta = symbol_tables_1['x'].delta[idx1:idx1+1].clone()
             new_trajectory = symbol_tables_1['trajectory_list'][idx1]
-            new_idx =  symbol_tables_1['idx_list'][idx1]
+            new_idx = symbol_tables_1['idx_list'][idx1]
+            # show_cuda_memory(f"single idx2")
+            # print(f"before sound join tra [table1]")
+            # for key in symbol_tables_1:
+            #     del symbol_tables_1[key]
+            # exit(0)
             res_symbol_tables = update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx)
+            # show_cuda_memory(f"single idx2 after join")
             idx1 += 1
         else: # idx_list_1[idx_1] == idx_list_2[idx_2], need to join
             assert(idx_list_1[idx1] == idx_list_2[idx2])
@@ -220,11 +271,47 @@ def sound_join(symbol_tables_1, symbol_tables_2):
             new_right = torch.max(symbol_tables_1['x'].c[idx1:idx1+1] + symbol_tables_1['x'].delta[idx1:idx1+1], symbol_tables_2['x'].c[idx2:idx2+1] + symbol_tables_2['x'].delta[idx2:idx2+1])
             new_c = (new_left + new_right) / 2.0
             new_delta = (new_right - new_left) / 2.0
+            # show_cuda_memory(f"idx1 and idx2 before trajectory")
+            # print(len(symbol_tables_1['trajectory_list'][idx1]), len(symbol_tables_2['trajectory_list'][idx2]))
+            # print(f"before sound join tra")
+            # for key in symbol_tables_1:
+            #     del symbol_tables_1[key]
+            # exit(0)
             new_trajectory = sound_join_trajectory(symbol_tables_1['trajectory_list'][idx1], symbol_tables_2['trajectory_list'][idx2])
             new_idx = idx_list_1[idx1]
+            # show_cuda_memory(f"idx1 and idx2 after trajectory")
             res_symbol_tables = update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx)
+            # show_cuda_memory(f"idx1 and idx2 after join tables")
             idx2 += 1
             idx1 += 1
+            # del new_leftp
+            # del new_right
+            # del new_c
+            # del new_delta
+            same = True
+            print(sys.getsizeof(symbol_tables_1))
+            # for key in symbol_tables_1:
+            #     del symbol_tables_1[key]
+            # exit(0)
+    
+    if same:
+        # show_memory_snapshot()
+        print(f"TETEST11111????")
+        show_cuda_memory(f"[sound join] end in same before del")
+    
+    for key in symbol_tables_1.keys():
+        del symbol_tables_1[key]
+    for key in symbol_tables_2.keys():
+        del symbol_tables_2[key]
+    print(f"TEST")
+
+    gc.collect()
+    torch.cuda.empty_cache()
+    if same:
+        # show_memory_snapshot()
+        show_cuda_memory(f"[sound join] end in same")
+        print(f"INIIN")
+        exit(0)
 
     return res_symbol_tables
 
@@ -249,9 +336,9 @@ class Assign(nn.Module):
     
     def forward(self, symbol_tables, cur_sample_size=0):
         # print(f"Assign Before: {[(res['x'].c, res['x'].delta) for res in x_list]}")
-        show_cuda_memory(f"[assign: {self.f}]before cal x")
+        # show_cuda_memory(f"[assign: {self.f}]before cal x")
         res_symbol_tables = calculate_x_list(self.target_idx, self.arg_idx, self.f, symbol_tables)
-        show_cuda_memory(f"[ifelse]after cal x")
+        # show_cuda_memory(f"[assign]after cal x")
         # print(f"Assign After: {[(res['x'].c, res['x'].delta) for res in x_list]}")
         return res_symbol_tables
 
@@ -269,21 +356,21 @@ class IfElse(nn.Module):
     
     def forward(self, symbol_tables):
         test = self.f_test(self.test)
-        show_cuda_memory(f"[ifelse]before calculate branch")
+        # show_cuda_memory(f"[ifelse]before calculate branch")
         body_symbol_tables, orelse_symbol_tables = calculate_branch(self.target_idx, self.test, symbol_tables)
-        show_cuda_memory(f"[ifelse]after calculate branch")
+        # show_cuda_memory(f"[ifelse]after calculate branch")
         # print(f"{len(branch_list)}")
         
         # print(f"In IfElse, {len(body_list)}, {len(else_list)}")
         
         if len(body_symbol_tables) > 0:
-            show_cuda_memory(f"[ifelse]before body")
+            # show_cuda_memory(f"[ifelse]before body")
             body_symbol_tables = self.body(body_symbol_tables)
-            show_cuda_memory(f"[ifelse]after body")
+            # show_cuda_memory(f"[ifelse]after body")
         if len(orelse_symbol_tables) > 0:
-            show_cuda_memory(f"[ifelse]before orelse")
+            # show_cuda_memory(f"[ifelse]before orelse")
             orelse_symbol_tables = self.orelse(orelse_symbol_tables)
-            show_cuda_memory(f"[ifelse]end orelse")
+            # show_cuda_memory(f"[ifelse]end orelse")
         
         show_cuda_memory(f"[ifelse]before sound join")
         res_symbol_tables = sound_join(body_symbol_tables, orelse_symbol_tables)
@@ -310,13 +397,13 @@ class While(nn.Module):
         # print(f"##############In while DiffAI#########")
         i = 0
         res_symbol_tables = dict()
-        show_cuda_memory(f"ini whilee")
+        # show_cuda_memory(f"ini while")
         while(len(symbol_tables) > 0):
             # counter += 1
-            show_cuda_memory(f"[while]before calculate branch")
+            # show_cuda_memory(f"[while]before calculate branch")
             body_symbol_tables, orelse_symbol_tables = calculate_branch(self.target_idx, self.test, symbol_tables)
-            show_cuda_memory(f"[while]after calculate branch")
-
+            # show_cuda_memory(f"[while]after calculate branch")
+            show_cuda_memory(f"[while]before sound join")
             res_symbol_tables = sound_join(res_symbol_tables, orelse_symbol_tables)
             show_cuda_memory(f"[while]after sound join")
 
@@ -325,7 +412,7 @@ class While(nn.Module):
             
             symbol_tables = self.body(body_symbol_tables)
 
-            show_cuda_memory(f"[while]after body")
+            # show_cuda_memory(f"[while]after body")
 
             i += 1
             if i > 400:

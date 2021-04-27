@@ -7,6 +7,8 @@ import random
 import time
 import torch
 
+
+
 np.random.seed(seed=1)
 random.seed(1)
 
@@ -220,6 +222,12 @@ def show_cuda_memory(name):
     a = torch.cuda.memory_allocated(0)
     f = r - a
     print(f"{name}, free mem: {f}, reserved mem: {r}, allocated mem: {a}")
+
+
+def show_memory_snapshot():
+    snapshot = torch.cuda.memory_snapshot()
+    for d in snapshot:
+        print(d["segment_type"], d["active_size"], d["allocated_size"], d["total_size"])
 
 
 
