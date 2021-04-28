@@ -365,7 +365,7 @@ def learning(
             # print(f"x length: {len(x)}")
             # if len(trajectory_list) == 0:
             #     continue
-            show_cuda_memory(f"ini batch free")
+            # show_cuda_memory(f"ini batch free")
 
             batch_time = time.time()
             grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
@@ -376,11 +376,11 @@ def learning(
             if use_smooth_kernel:
                 if use_safe_loss:
                     for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
-                        show_cuda_memory(f"ini update model(sampled theta) ")
+                        # show_cuda_memory(f"ini update model(sampled theta) ")
                         
                         m = update_model_parameter(m, sample_theta)
 
-                        show_cuda_memory(f"end update model(sampled theta) ")
+                        # show_cuda_memory(f"end update model(sampled theta) ")
                         
                         sample_time = time.time()
 
@@ -388,21 +388,21 @@ def learning(
                         grad_data_loss += float(data_loss) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                         real_data_loss += float(data_loss)
 
-                        show_cuda_memory(f"end sampled data loss")
+                        # show_cuda_memory(f"end sampled data loss")
                         
                         # if not only_data_loss:
                         safe_loss = cal_safe_loss(m, abstract_states, target)
                         grad_safe_loss += float(safe_loss) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                         real_safe_loss += float(safe_loss)
 
-                        print(f"data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}")
+                        # print(f"data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}")
                         # print(f"{'#' * 15}")
                         # print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
 
                     # To maintain the real theta
-                    show_cuda_memory(f"ini update model(Theta)")
+                    # show_cuda_memory(f"ini update model(Theta)")
                     m = update_model_parameter(m, Theta)
-                    show_cuda_memory(f"end update model(Theta)")
+                    # show_cuda_memory(f"end update model(Theta)")
 
                     real_data_loss /= n
                     real_safe_loss /= n
@@ -429,7 +429,7 @@ def learning(
             q_loss += real_data_loss
             c_loss += real_safe_loss
 
-            show_cuda_memory(f"end batch")
+            # show_cuda_memory(f"end batch")
 
             # if time.time() - batch_time > 3600/(len(component_list)/bs):
             #     TIME_OUT = True

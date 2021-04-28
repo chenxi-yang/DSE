@@ -159,8 +159,8 @@ def calculate_branch(target_idx, test, symbol_tables):
         orelse_symbol_tables['trajectory_list'] = [symbol_tables['trajectory_list'][i] for i in right_idx]
         orelse_symbol_tables['idx_list'] = [symbol_tables['idx_list'][i] for i in right_idx]
     
-    if len(body_symbol_tables) != 0 and len(orelse_symbol_tables) != 0:
-        print(left_idx, right_idx)
+    # if len(body_symbol_tables) != 0 and len(orelse_symbol_tables) != 0:
+    #     print(left_idx, right_idx)
     #     print(f"body: {body_symbol_tables['trajectory_list'][0][:3]}")
     #     print(f"orelse: {orelse_symbol_tables['trajectory_list'][0][40:43]}")
     #     exit(0)
@@ -242,9 +242,9 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
 
             # del state_1
             # del state_2
-            del states_1[0]
-            if len(states_2) > len(states_1): #! in case two states share the same
-                del states_2[0]
+            # del states_1[0]
+            # if len(states_2) > len(states_1): #! in case two states share the same
+            #     del states_2[0]
             # torch.cuda.empty_cache()
             # show_cuda_memory(f"after sound join del")
             # print(len(states_1), len(states_2))
@@ -261,8 +261,8 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
     elif l1 > l2:
         trajectory.extend(trajectory_1)
     
-    del trajectory_2
-    del trajectory_1
+    # del trajectory_2
+    # del trajectory_1
     # exit(0)
 
     return trajectory

@@ -66,6 +66,9 @@ if __name__ == "__main__":
 
     for path_sample_size in path_num_list:
         for safe_range_bound in safe_range_bound_list:
+            # for temporary test only
+            if safe_range_bound < 0.8:
+                continue
             if not test_mode:
                 show_cuda_memory(f"ini safe bound ")
 
@@ -191,7 +194,7 @@ if __name__ == "__main__":
                         log_file_evaluation = open(file_dir_evaluation, 'a')
                         log_file_evaluation.write(f"RuntimeError: CUDA out of memory.\n")
                         log_file_evaluation.close()
-                        exit(0)
+                        # exit(0)
 
                     # m.eval()
 
