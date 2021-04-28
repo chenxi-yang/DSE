@@ -113,6 +113,10 @@ def pre_build_symbol_table(symbol_table):
     res_symbol_table = dict()
     res_symbol_table['trajectory'] = list()
     for state in symbol_table['trajectory']:
+        # state_list = list()
+        # for state_idx in len(state):
+        #     state_list.append(state[state_idx].clone())
+        # res_symbol_table['trajectory'].append(state_list)
         res_symbol_table['trajectory'].append(state)
 
     return res_symbol_table

@@ -158,6 +158,12 @@ def calculate_branch(target_idx, test, symbol_tables):
         orelse_symbol_tables['x'] = x_right
         orelse_symbol_tables['trajectory_list'] = [symbol_tables['trajectory_list'][i] for i in right_idx]
         orelse_symbol_tables['idx_list'] = [symbol_tables['idx_list'][i] for i in right_idx]
+    
+    if len(body_symbol_tables) != 0 and len(orelse_symbol_tables) != 0:
+        print(left_idx, right_idx)
+    #     print(f"body: {body_symbol_tables['trajectory_list'][0][:3]}")
+    #     print(f"orelse: {orelse_symbol_tables['trajectory_list'][0][40:43]}")
+    #     exit(0)
 
     return body_symbol_tables, orelse_symbol_tables
 
@@ -173,20 +179,20 @@ def sound_join_trajectory_cost_mem(trajectory_1, trajectory_2):
             # show_cuda_memory(f"before sound join state")
             state_1, state_2 = states_1[state_idx], states_2[state_idx]
             # add 1024???? why
-            show_cuda_memory(f"before sound join")
+            # show_cuda_memory(f"before sound join")
             a = state_1.soundJoin(state_2)
-            show_cuda_memory(f"after sound join")
+            # show_cuda_memory(f"after sound join")
             state_list.append(a)
             del state_1
             del state_2
             
-            show_cuda_memory(f"after sound join before del idx")
+            # show_cuda_memory(f"after sound join before del idx")
             # torch.cuda.empty_cache()
             del states_1[state_idx]
             del states_2[state_idx]
             torch.cuda.empty_cache()
-            show_cuda_memory(f"after sound join after del idx")
-            exit(0)
+            # show_cuda_memory(f"after sound join after del idx")
+            # exit(0)
 
             # show_cuda_memory(f"after sound join state")
         trajectory.append(state_list)
@@ -219,25 +225,36 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
         states_1, states_2 = trajectory_1[0], trajectory_2[0]
         l_s = len(states_1)
         state_list = list()
-        print(l_s)
-        print(states_1)
+        # print(l_s)
+        # print(states_1)
         for state_idx in range(l_s):
             state_1, state_2 = states_1[0], states_2[0]
-            print(state_1)
-            del state_1
-            print(states_1)
-            del states_1[0]
-            print(states_1)
+            # print(f"state: {state_1.left, state_1.right}, {state_2.left, state_2.right}")
+            # print(f"state update: {state_1.left, state_1.right}, {state_2.left, state_2.right}")
+            # del state_1
+            # print(states_1, states_2)
+            # print(states_1, states_2)
+            # del states_1[0]
+            # show_cuda_memory(f"before sound join")
             a = state_1.soundJoin(state_2)
             state_list.append(a)
-            print(len(states_1), len(states_2))
-            del states_1[1]
-            del states_2[0]
-            print(len(states_1), len(states_2))
-            exit(0)
+            # show_cuda_memory(f"after sound join")
+
+            # del state_1
+            # del state_2
+            del states_1[0]
+            if len(states_2) > len(states_1): #! in case two states share the same
+                del states_2[0]
+            # torch.cuda.empty_cache()
+            # show_cuda_memory(f"after sound join del")
+            # print(len(states_1), len(states_2))
+            # del states_1[1]
+            # del states_2[0]
+            # print(len(states_1), len(states_2))
+            # exit(0)
         trajectory.append(state_list)
-        del trajectory_1[0]
-        del trajectory_2[0]
+        # del trajectory_1[0]
+        # del trajectory_2[0]
     
     if l1 < l2:
         trajectory.extend(trajectory_2)
@@ -246,6 +263,7 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
     
     del trajectory_2
     del trajectory_1
+    # exit(0)
 
     return trajectory
 
@@ -271,12 +289,20 @@ def sound_join(symbol_tables_1, symbol_tables_2):
         return symbol_tables_2
     if len(symbol_tables_2) == 0:
         return symbol_tables_1
-    show_cuda_memory(f"[sound join] ini")
+    # show_cuda_memory(f"[sound join] ini")
     # show_memory_snapshot()
 
     res_symbol_tables = dict()
     idx1, idx2 = 0, 0
     idx_list_1, idx_list_2 = symbol_tables_1['idx_list'], symbol_tables_2['idx_list']
+    # print(f"in sound join: {idx_list_1}, {idx_list_2}")
+    # print(f"test address: [1], [2]")
+    # for state in symbol_tables_1["trajectory_list"][0]:
+    #     print(state)
+    # print(f"2")
+    # for state in symbol_tables_2["trajectory_list"][0]:
+    #     print(state)
+
     same = False
     while idx1 <= len(idx_list_1) - 1 or idx2 <= len(idx_list_2) - 1:
         if idx1 > len(idx_list_1) - 1 or (idx2 <= len(idx_list_2) - 1 and idx_list_1[idx1] > idx_list_2[idx2]):
@@ -321,6 +347,12 @@ def sound_join(symbol_tables_1, symbol_tables_2):
             # for key in symbol_tables_1:
             #     del symbol_tables_1[key]
             # exit(0)
+            # print(f"extract trajectory: {idx1}, {idx2}")
+            # for state in symbol_tables_1["trajectory_list"][idx1]:
+            #     print(state)
+            # print(f"symbol_table2")
+            # for state in symbol_tables_2["trajectory_list"][idx2]:
+            #     print(state)
             new_trajectory = sound_join_trajectory(symbol_tables_1['trajectory_list'][idx1], symbol_tables_2['trajectory_list'][idx2])
             new_idx = idx_list_1[idx1]
             # show_cuda_memory(f"idx1 and idx2 after trajectory")
@@ -338,24 +370,24 @@ def sound_join(symbol_tables_1, symbol_tables_2):
             #     del symbol_tables_1[key]
             # exit(0)
     
-    if same:
-        # show_memory_snapshot()
-        print(f"TETEST11111????")
-        show_cuda_memory(f"[sound join] end in same before del")
+    # if same:
+    #     # show_memory_snapshot()
+    #     print(f"TETEST11111????")
+    #     show_cuda_memory(f"[sound join] end in same before del")
     
     for key in list(symbol_tables_1.keys()):
         del symbol_tables_1[key]
     for key in list(symbol_tables_2.keys()):
         del symbol_tables_2[key]
-    print(f"TEST")
+    # print(f"TEST")
 
-    gc.collect()
-    torch.cuda.empty_cache()
-    if same:
-        # show_memory_snapshot()
-        show_cuda_memory(f"[sound join] end in same")
-        print(f"INIIN")
-        exit(0)
+    # gc.collect()
+    # torch.cuda.empty_cache()
+    # if same:
+    #     # show_memory_snapshot()
+    #     show_cuda_memory(f"[sound join] end in same")
+    #     print(f"INIIN")
+        # exit(0)
 
     return res_symbol_tables
 
@@ -416,9 +448,9 @@ class IfElse(nn.Module):
             orelse_symbol_tables = self.orelse(orelse_symbol_tables)
             # show_cuda_memory(f"[ifelse]end orelse")
         
-        show_cuda_memory(f"[ifelse]before sound join")
+        # show_cuda_memory(f"[ifelse]before sound join")
         res_symbol_tables = sound_join(body_symbol_tables, orelse_symbol_tables)
-        show_cuda_memory(f"[ifelse]after sound join")
+        # show_cuda_memory(f"[ifelse]after sound join")
 
         return res_symbol_tables
 
@@ -447,9 +479,9 @@ class While(nn.Module):
             # show_cuda_memory(f"[while]before calculate branch")
             body_symbol_tables, orelse_symbol_tables = calculate_branch(self.target_idx, self.test, symbol_tables)
             # show_cuda_memory(f"[while]after calculate branch")
-            show_cuda_memory(f"[while]before sound join")
+            # show_cuda_memory(f"[while]before sound join")
             res_symbol_tables = sound_join(res_symbol_tables, orelse_symbol_tables)
-            show_cuda_memory(f"[while]after sound join")
+            # show_cuda_memory(f"[while]after sound join")
 
             if len(body_symbol_tables) == 0:
                 return res_symbol_tables
@@ -500,8 +532,17 @@ class Trajectory(nn.Module):
             cur_x_c, cur_x_delta = x.c[x_idx], x.delta[x_idx]
             input_interval_list = list()
             for idx in self.target_idx:
-                input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
+                #! force everything in trajectory to cpu
+                input = domain.Box(cur_x_c[idx].cpu(), cur_x_delta[idx].cpu())
+                # print(cur_x_c[idx], cur_x_delta[idx])
                 input_interval = input.getInterval()
+                # changing c does not influence interval
+                # print(input_interval.left, input_interval.right)
+                # cur_x_c[idx] = 0.0
+                # print(cur_x_c[idx], cur_x_delta[idx])
+                # print(input_interval.left, input_interval.right)
+                # exit(0)
+                # print(f"[trajectory], {input_interval}")
                 assert input_interval.left.data.item() <= input_interval.right.data.item()
                 input_interval_list.append(input_interval)
             trajectory_list[x_idx].append(input_interval_list)

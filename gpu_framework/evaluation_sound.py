@@ -150,7 +150,7 @@ def extract_unsafe(abstract_state, target_component, target_idx):
         for symbol_table in abstract_state:
             # print('Symbol_Table')
             tmp_symbol_table_tra_loss = get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx=target_idx)
-            print(f"tmp_symbol_table_tra_loss: {[i.cpu().detach() for i in tmp_symbol_table_tra_loss]}, p: {symbol_table['probability'].data.item()}")
+            # print(f"tmp_symbol_table_tra_loss: {[i.cpu().detach() for i in tmp_symbol_table_tra_loss]}, p: {symbol_table['probability'].data.item()}")
             symbol_table_wise_loss_list.append(tmp_symbol_table_tra_loss)
             aggregation_p += symbol_table['probability']
         abstract_state_wise_trajectory_loss = zip(*symbol_table_wise_loss_list)
@@ -171,7 +171,7 @@ def verify(abstract_state_list, target):
     for idx, target_component in enumerate(target):
         target_name = target_component["name"]
         all_unsafe_probability = var_list([0.0])
-        print(f"# of abstract state: {len(abstract_state_list)}")
+        # print(f"# of abstract state: {len(abstract_state_list)}")
         for abstract_state in abstract_state_list:
             aggregation_p, unsafe_probability = extract_unsafe(abstract_state, target_component, target_idx=idx)
             print(f"aggregation_p: {aggregation_p.data.item()}, unsafe_probability: {unsafe_probability.data.item()}")

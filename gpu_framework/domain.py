@@ -19,6 +19,10 @@ import time
 
 import sys
 
+from utils import (
+    show_cuda_memory, 
+)
+
 # for check
 def show_value(x):
     if not TEST:
@@ -36,16 +40,27 @@ def show_op(x):
 
 def handleNegative(interval):
     # print('interval', interval.left, interval.right)
-    if interval.left.data.item() < 0.0:
-        # print('check')
-        if interval.left.data.item() == N_INFINITY.data.item():
-            interval.left = var(0.0)
-            interval.right = P_INFINITY
-        else:
-            # n = torch.floor_divide(var(-1.0).mul(interval.left), PI_TWICE)
-            n = torch.ceil(var(-1.0).mul(interval.left).div(PI_TWICE))
-            interval.left = interval.left.add(PI_TWICE.mul(n))
-            interval.right = interval.right.add(PI_TWICE.mul(n))
+    # if interval.left.data.item() < 0.0:
+    #     # print('check')
+    #     if interval.left.data.item() == N_INFINITY.data.item():
+    #         interval.left = var(0.0)
+    #         interval.right = P_INFINITY
+    #     else:
+    #         # n = torch.floor_divide(var(-1.0).mul(interval.left), PI_TWICE)
+    #         n = torch.ceil(var(-1.0).mul(interval.left).div(PI_TWICE))
+    #         interval.left = interval.left.add(PI_TWICE.mul(n))
+    #         interval.right = interval.right.add(PI_TWICE.mul(n))
+    
+    left_neg = interval.left < 0.0
+    left_neg_inf = interval.left[left_neg] <= float(N_INFINITY)
+    left_neg_finite = interval.left[left_neg] > float(N_INFINITY)
+    interval.left[left_neg][left_neg_inf] = 0
+    interval.right[left_neg][left_neg_inf] = float(P_INFINITY)
+
+    n = torch.ceil(-interval.left[left_neg][left_neg_finite] / float(PI_TWICE))
+    interval.left[left_neg][left_neg_finite] = interval.left[left_neg][left_neg_finite] + float(PI_TWICE) * n
+    interval.right[left_neg][left_neg_finite] = interval.right[left_neg][left_neg_finite] + float(PI_TWICE) * n
+
     return interval
 
 # interval domain
@@ -290,85 +305,41 @@ class Interval:
         return res
 
     def cos(self):
-        # show_op('cos')
-        # show_value(self)
-        
-        # res = Interval()
-        # if debug:
-        #     r1 = torch.cuda.memory_reserved(0) 
-        #     a1 = torch.cuda.memory_allocated(0)
-        #     print(f"#interval cos, ini#, memory: {a1}")
-
-        cache = Interval()
-        cache.left = self.left
-        cache.right = self.right
-        # if debug:
-        #     r5 = torch.cuda.memory_reserved(0) 
-        #     a5 = torch.cuda.memory_allocated(0)
-        #     print(f"#interval cos, before handleNeg#, memory: {a5}, {a5-a1}")
+        # show_cuda_memory(f"[cos] ini")
+        cache = Interval(self.left, self.right)
 
         cache = handleNegative(cache)
-        # if debug:
-        #     r6 = torch.cuda.memory_reserved(0) 
-        #     a6 = torch.cuda.memory_allocated(0)
-        #     print(f"#interval cos, after handleNeg#, memory: {a6}, {a6-a1}")
-        # print('y_neg', cache.left, cache.right)
-        # n = torch.floor_divide(cache.left, PI_TWICE)
-        # t = cache.sub_l(PI_TWICE.mul(n))
+        
         t = cache.fmod(PI_TWICE)
-        # print('t', t.left, t.right)
-        # if debug:
-        #     r2 = torch.cuda.memory_reserved(0) 
-        #     a2 = torch.cuda.memory_allocated(0)
-        #     print(f"#interval cos, middle#, memory: {a2}, {a2 - a1}")
-        # print(type(t.getVolumn()), type(PI_TWICE))
+        del cache
+        torch.cuda.empty_cache()
+        # show_cuda_memory(f"[cos] before volume")
         if float(t.getVolumn()) >= float(PI_TWICE):
             # print('volume', t.getVolumn())
             res = Interval(var_list([-1.0]), var_list([1.0]))
+            # show_cuda_memory(f"[cos] after 1 ")
             # show_value(res)
             # return res
         # when t.left > PI same as -cos(t-pi)
         elif float(t.left) >= float(PI):
-            # if debug:
-            #     r7 = torch.cuda.memory_reserved(0) 
-            #     a7 = torch.cuda.memory_allocated(0)
-            #     print(f"#interval cos, before cosv#, memory: {a7}, {a7 - a1}")
             cosv = (t.sub_l(PI)).cos()
-            # if debug:
-            #     r8 = torch.cuda.memory_reserved(0) 
-            #     a8 = torch.cuda.memory_allocated(0)
-            #     print(f"#interval cos, after cosv#, memory: {a8}, {a8 - a1}")
             res = cosv.mul(var_list([-1.0]))
-            # show_value(res)
-            # return res
+            # show_cuda_memory(f"[cos] after left PI")
         else:
             tl = torch.cos(t.right)
             tr = torch.cos(t.left)
             if float(t.right) <= float(PI.data.item()):
-                # res.left = tl
-                # res.right = tr
                 res = Interval(tl, tr)
-                # show_value(res)
-                # return res
             elif float(t.right) <= float(PI_TWICE):
-                # res.left = var(-1.0)
-                # res.right = torch.max(tl, tr)
                 res = Interval(var_list([-1.0]), torch.max(tl, tr))
-                # show_value(res)
-                # return res
             else:
-                # res.left = var(-1.0)
-                # res.right = var(1.0)
                 res = Interval(var_list([-1.0]), var_list([1.0]))
-                # show_value(res)
-                # return res
-        # if debug:
-        #     r3 = torch.cuda.memory_reserved(0) 
-        #     a3 = torch.cuda.memory_allocated(0)
-        #     print(f"#interval cos, end#, memory: {a3}, {a3 - a1}")
-        del cache
+            # show_cuda_memory(f"[cos] after else")
+                
+        # del cache
         del t
-        
+        torch.cuda.empty_cache()
+
         return res
 
     def sin(self):
@@ -402,78 +373,26 @@ class Interval:
     
     def fmod(self, y):
         # y is PI2
-        # if debug:
-        #     r1 = torch.cuda.memory_reserved(0) 
-        #     a1 = torch.cuda.memory_allocated(0)
-        #     print(f"#interval fmod, ini#, memory: {a1}")
 
+        #! not reasonable for batch TODO
         if isinstance(y, torch.Tensor):
             y_interval = Interval()
             y_interval = y_interval.setValue(y)
-            # if debug:
-            #     r2 = torch.cuda.memory_reserved(0) 
-            #     a2 = torch.cuda.memory_allocated(0)
-            #     print(f"#interval fmod, setValue(Tensor)#, memory: {a2}, {a2 - a1}")
         else:
             y_interval = y
-            # if debug:
-            #     r2 = torch.cuda.memory_reserved(0) 
-            #     a2 = torch.cuda.memory_allocated(0)
-            #     print(f"#interval fmod, setValue(Interval)#, memory: {a2}, {a2 - a1}")
         
         if self.left.data.item() < 0.0:
             yb = y_interval.left
         else:
             yb = y_interval.right
-        
-        # if debug:
-        #     r3 = torch.cuda.memory_reserved(0) 
-        #     a3 = torch.cuda.memory_allocated(0)
-        #     print(f"#interval fmod, after self.left#, memory: {a3}, {a3 - a1}")
-        # # print('self left', self.left)
-        # print('yb', yb)
         n = self.left.div(yb)
-        # if debug:
-        #     r4 = torch.cuda.memory_reserved(0) 
-        #     a4 = torch.cuda.memory_allocated(0)
-        #     print(f"#interval fmod, div#, memory: {a4}, {a4 - a1}")
         if(n.data.item() <= 0.0): 
             n = torch.ceil(n)
-            # if debug:
-            #     r5 = torch.cuda.memory_reserved(0) 
-            #     a5 = torch.cuda.memory_allocated(0)
-            #     print(f"#interval fmod, ceil#, memory: {a5}, {a5 - a1}")
         else:
             n = torch.floor(n)
-            # if debug:
-            #     r6 = torch.cuda.memory_reserved(0) 
-            #     a6 = torch.cuda.memory_allocated(0)
-            #     print(f"#interval fmod, floor#, memory: {a6}, {a6 - a1}")
-        # print('n', n)
-
-        # n_interval = Interval()
-        # n_interval = n_interval.setValue(n)
-
-        # if debug:
-        #     r7 = torch.cuda.memory_reserved(0) 
-        #     a7 = torch.cuda.memory_allocated(0)
-        #     print(f"#interval fmod, new n interval#, memory: {a7}, {a7 - a1}")
-        # print(self.left, self.right)
-        # print(y_interval.mul(n_interval).left, y_interval.mul(n_interval).right)
         tmp_1 = y_interval.mul(n)
-        # if debug:
-        #     r9 = torch.cuda.memory_reserved(0) 
-        #     a9 = torch.cuda.memory_allocated(0)
-        #     print(tmp_1.left, tmp_1.right)
-        #     print(f"#interval fmod, mul#, memory: {a9}, {a9 - a1}")
-        # res = self.sub_l(y_interval.mul(n))
+
         res = self.sub_l(tmp_1)
-        # if debug:
-        #     r8 = torch.cuda.memory_reserved(0) 
-        #     a8 = torch.cuda.memory_allocated(0)
-        #     print(res.left, res.right)
-        #     print(f"size of res: {sys.getsizeof(res)}")
-        #     print(f"#interval fmod, sub #, memory: {a8}, {a8 - a1}")
         
         return res
 
@@ -642,11 +561,15 @@ class Box():
         # print(self.c)
         if B > 1:
             c, delta = torch.tensor([]), torch.tensor([])
+            # show_cuda_memory(f"before B")
             for i in range(B):
+                # show_cuda_memory(f"-------ini B")
                 new_c, new_delta = self.c[i], self.delta[i]
                 new_box = self.new(new_c, new_delta)
                 interval = new_box.getInterval()
+                # show_cuda_memory(f"before cos")
                 res_interval = interval.cos()
+                # show_cuda_memory(f"after cos")
                 get_box = res_interval.getBox()
                 # print(c)
                 if c.shape[0] == 0:
@@ -660,9 +583,13 @@ class Box():
                     # print('mid', get_box.c.shape, c.shape)
                     c, delta = torch.cat((c, get_box.c), 0), torch.cat((delta, get_box.delta), 0)
                     # print('after', get_box.c.shape, c.shape)
+                # show_cuda_memory(f"----update B")
+
             # print(f"cos, {c.shape}")
             if len(c.shape) == 1:
                 c, delta = c.unsqueeze(1), delta.unsqueeze(1)
+            del self.c
+            del self.delta
             return self.new(c, delta)
         else:
             # TODO: support batch and double check

@@ -153,6 +153,7 @@ if not debug and not generate_all_dataset:
         result_prefix = f"{result_prefix}_{fixed_dataset}"
     if test_mode:
         # if outside_trajectory_loss:
+        result_prefix = f"{result_prefix}_{verification_num_components}_{verification_num_abstract_states}_{verify_outside_trajectory_loss}"
         file_dir = f"gpu_{mode}/result_test/{result_prefix}.txt"
         file_dir_evaluation = f"gpu_{mode}/result_test/{result_prefix}_evaluation.txt"
         # else:
