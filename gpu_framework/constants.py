@@ -42,12 +42,14 @@ data_attr = args.data_attr
 mode = args.mode
 debug = args.debug
 perturbation_width = args.perturbation_width
-real_unsafe_value =  args.real_unsafe_value
+real_unsafe_value = args.real_unsafe_value
 only_data_loss = args.only_data_loss
 data_bs = args.data_bs
 fixed_dataset = args.fixed_dataset
 cuda_debug = args.cuda_debug
 use_data_loss = args.use_data_loss
+
+verify_use_probability = args.verify_use_probability
 
 sound_verify = args.sound_verify
 unsound_verify = args.unsound_verify
