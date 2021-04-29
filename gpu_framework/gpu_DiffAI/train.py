@@ -296,12 +296,12 @@ def divide_chunks(component_list, bs=1, data_bs=2):
                     pass
                 elif len(trajectory_list) == data_bs:
                     # print(trajectory_list)
-                    yield trajectory_list, [], False
+                    yield trajectory_list, trajectory_list, True
                     trajectory_list = list()
             # print(f"component probability: {component['p']}")
 
         # print(f"out: {trajectory_list}")
-        yield trajectory_list, real_trajectory_list, True # use safe loss
+        yield trajectory_list, trajectory_list, True # use safe loss
 
 
 def update_model_parameter(m, theta):
@@ -386,6 +386,7 @@ def learning(
         model_name=None,
         only_data_loss=only_data_loss,
         data_bs=data_bs,
+        use_data_loss=use_data_loss,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
@@ -414,31 +415,33 @@ def learning(
             # print(f"batch size, x: {len(x)}, y: {len(y)}, abstract_states: {len(abstract_states)}")
             # if len(x) == 0: continue  # because DiffAI only makes use of x, y
             batch_time = time.time()
+            if not use_safe_loss and not use_data_loss:
+                continue
 
             if use_smooth_kernel:
                 if use_safe_loss:
                     Theta = extract_parameters(m)
                     grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
-                    real_data_loss, real_safe_loss = var_list([0.0]), var_list([0.0])
+                    real_data_loss, real_safe_loss = 0.0, 0.0
                     for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
                         # sample_theta_p is actually log(theta_p)
 
                         sample_time = time.time()
                         m = update_model_parameter(m, sample_theta)
 
-                        show_cuda_memory(f"ini sample")
+                        # show_cuda_memory(f"ini sample")
+                        if use_data_loss:
+                            data_loss = cal_data_loss(m, trajectory_list, criterion)
+                            grad_data_loss += float(data_loss) * sample_theta_p
+                            real_data_loss += float(data_loss)
 
-                        data_loss = cal_data_loss(m, trajectory_list, criterion)
-
-                        show_cuda_memory(f"after data loss")
+                        # show_cuda_memory(f"after data loss")
                         safe_loss = cal_safe_loss(m, real_trajectory_list, width, target)
 
-                        show_cuda_memory(f"after safe loss")
+                        # show_cuda_memory(f"after safe loss")
                         print(f"data loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}")
 
                         # gradient = \exp_{\theta' \sim N(\theta)}[loss * \grad_{\theta}(log(p(\theta', \theta)))]
-                        grad_data_loss += float(data_loss) * sample_theta_p
-                        real_data_loss += float(data_loss)
                         grad_safe_loss += float(safe_loss) * sample_theta_p
                         real_safe_loss += float(safe_loss)
 
@@ -453,7 +456,7 @@ def learning(
 
                     real_data_loss /= n
                     real_safe_loss /= n
-                else:
+                elif use_data_loss:
                     if len(trajectory_list) == 0:
                         continue
                     tmp_q_idx += 1
@@ -465,13 +468,15 @@ def learning(
                 # print(f"grad data_loss: {grad_data_loss.data.item()}, grad safe_loss: {grad_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
 
             else:
-                data_loss = cal_data_loss(m, trajectory_list, criterion)
+                if use_data_loss:
+                    data_loss = cal_data_loss(m, trajectory_list, criterion)
+                else:
+                    data_loss = var(0.0)
                 safe_loss = cal_safe_loss(m, trajectory_list, width, target)
 
                 real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
                 grad_data_loss, grad_safe_loss = data_loss, safe_loss
                 
-            
             print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss}, real safe_loss: {real_safe_loss}, data and safe TIME: {time.time() - batch_time}")
             q_loss += real_data_loss
             c_loss += real_safe_loss

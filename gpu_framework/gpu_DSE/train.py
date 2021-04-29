@@ -157,7 +157,7 @@ def safe_distance(abstract_state_list, target):
         # Weighted loss of different state variables
         target_loss = target_component["w"] * (target_loss - target_component['phi'])
         # TODO: max(loss - target, 0) change or not
-        target_loss = torch.max(target_loss, var(0.0))
+        # target_loss = torch.max(target_loss, var(0.0))
         loss += target_loss
     # print(f"loss: {loss}")
     # exit(0)
@@ -338,6 +338,7 @@ def learning(
         model_name=None, 
         only_data_loss=only_data_loss,
         data_bs=data_bs,
+        use_data_loss=use_data_loss,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
@@ -366,6 +367,8 @@ def learning(
             # if len(trajectory_list) == 0:
             #     continue
             # show_cuda_memory(f"ini batch free")
+            if not use_safe_loss and not use_data_loss:
+                continue
 
             batch_time = time.time()
             grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
@@ -384,9 +387,10 @@ def learning(
                         
                         sample_time = time.time()
 
-                        data_loss = cal_data_loss(m, trajectory_list, criterion)
-                        grad_data_loss += float(data_loss) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
-                        real_data_loss += float(data_loss)
+                        if use_data_loss:
+                            data_loss = cal_data_loss(m, trajectory_list, criterion)
+                            grad_data_loss += float(data_loss) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
+                            real_data_loss += float(data_loss)
 
                         # show_cuda_memory(f"end sampled data loss")
                         
@@ -425,7 +429,9 @@ def learning(
                 real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
                 grad_data_loss, grad_safe_loss = data_loss, safe_loss
 
-            print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss}, real safe_loss: {real_safe_loss}, data and safe TIME: {time.time() - batch_time}")
+            print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss}, real safe_loss: {real_safe_loss}, TIME: {time.time() - batch_time}")
+            print(f"grad data loss: {float(grad_data_loss)}, grad safe loss: {float(grad_safe_loss)}")
+            
             q_loss += real_data_loss
             c_loss += real_safe_loss
 

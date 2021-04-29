@@ -60,6 +60,7 @@ def get_parser():
     p.add_argument("--verify_outside_trajectory_loss", default=False, type=str2bool,  help="define the verification method")
     p.add_argument("--only_data_loss", default=False, type=str2bool, help="only use data loss")
     p.add_argument("--data_bs", default=2, type=int, help="number of trajectories to use for data loss")
+    p.add_argument("--use_data_loss", default=True, type=str2bool, help="use data loss")
     
     # evaluation
     p.add_argument("--test_mode", default=False, type=str2bool, help="decide whether check load model and then test")
@@ -68,6 +69,7 @@ def get_parser():
     p.add_argument("--real_unsafe_value", default=True, help="get the real unsafe value")
     p.add_argument("--sound_verify", default=False, type=str2bool, help="use sound verify when test_mode is True")
     p.add_argument("--unsound_verify", default=False, type=str2bool, help="use unsound verify when test_mode is False")
+    p.add_argument("--use_probability", default=True, type=str2bool, help="use probability, ow, worst case training")
     
     # debug
     p.add_argument("--debug", default=False, type=str2bool, help="decide whether debug")

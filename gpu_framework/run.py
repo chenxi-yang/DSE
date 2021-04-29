@@ -63,14 +63,15 @@ def best_theta(component_list, lambda_, target):
 
 if __name__ == "__main__":
     # torch.autograd.set_detect_anomaly(True)
-
     for path_sample_size in path_num_list:
         for safe_range_bound in safe_range_bound_list:
             # for temporary test only
-            if safe_range_bound < 0.8:
-                continue
-            if not test_mode:
-                show_cuda_memory(f"ini safe bound ")
+            # if safe_range_bound < 0.8:
+            #     continue
+            # if safe_range_bound < 1.1:
+            #     continue
+            # if not test_mode:
+            #     show_cuda_memory(f"ini safe bound ")
 
             time_out = False
             constants.SAMPLE_SIZE = path_sample_size # show number of paths to sample
@@ -125,8 +126,8 @@ if __name__ == "__main__":
             # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 
             for i in range(1):
-                if not test_mode:
-                    show_cuda_memory(f"ini safe bound {i} ")
+                # if not test_mode:
+                #     show_cuda_memory(f"ini safe bound {i} ")
 
                 lambda_list = list()
                 model_list = list()
@@ -186,6 +187,7 @@ if __name__ == "__main__":
                             model_name=f"{model_name_prefix}_{safe_range_bound}_{i}",
                             only_data_loss=only_data_loss,
                             data_bs=data_bs,
+                            use_data_loss=use_data_loss,
                             )
                     except RuntimeError:
                         log_file = open(file_dir, 'a')
@@ -202,8 +204,8 @@ if __name__ == "__main__":
                     # m_t = m
                     #TODO, keep or not?
 
-                    if not test_mode:
-                        show_cuda_memory(f"end safe bound {i} ")
+                    # if not test_mode:
+                    #     show_cuda_memory(f"end safe bound {i} ")
                     break
                     
                     lambda_list.append(new_lambda)
@@ -234,8 +236,8 @@ if __name__ == "__main__":
                             break
                     
                     q = q.add(var(lr).mul(cal_c(X_train, y_train, m_t, theta)))
-                if not test_mode:
-                    show_cuda_memory(f"end safe bound ")
+                # if not test_mode:
+                #     show_cuda_memory(f"end safe bound ")
                 
                 if time_out == True:
                     continue

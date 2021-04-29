@@ -433,13 +433,13 @@ class Assign(nn.Module):
         #         if len(symbol_table) > 0:
         #             print(i, j, symbol_table['x'].c)
         #             break
-        if debug:
-            print(f"before assign: {self.f}")
-            show_tra_l(abstract_state_list)
+        # if debug:
+        #     print(f"before assign: {self.f}")
+        #     show_tra_l(abstract_state_list)
         res_list = calculate_abstract_states_list(self.target_idx, self.arg_idx, self.f, abstract_state_list)
-        if debug:
-            print(f"after assign: {self.f}")
-            show_tra_l(res_list)
+        # if debug:
+        #     print(f"after assign: {self.f}")
+        #     show_tra_l(res_list)
         # print(f"Assign After: {[(res['x'].c, res['x'].delta) for res in x_list]}")
         # print("After Assign")
         # for i, abstract_state in enumerate(abstract_state_list):
@@ -523,26 +523,26 @@ class While(nn.Module):
         while(len(abstract_state_list) > 0):
             # counter += 1
             # print("In  While", abstract_state_list[0][0]["x"].c)
-            if debug:
-                print(f"in while: {i}")
-                show_tra_l(abstract_state_list)
+            # if debug:
+            #     print(f"in while: {i}")
+            #     show_tra_l(abstract_state_list)
 
             body_list, else_list = split_branch_list(self.target_idx, self.test, abstract_state_list)
-            if debug:
-                print(f"in while, body_list")
-                show_tra_l(body_list)
-                print(f"in while, else_list")
-                show_tra_l(else_list)
+            # if debug:
+            #     print(f"in while, body_list")
+            #     show_tra_l(body_list)
+            #     print(f"in while, else_list")
+            #     show_tra_l(else_list)
             
             if len(else_list) > 0:
                 # res_list.extend(else_list)
-                if debug:
-                    print(f"in while, before sound_join, res_list")
-                    show_tra_l(res_list)
+                # if debug:
+                #     print(f"in while, before sound_join, res_list")
+                #     show_tra_l(res_list)
                 res_list = sound_join_k(res_list, else_list, k=constants.verification_num_abstract_states)
-                if debug:
-                    print(f"in while, after sound_join, res_list")
-                    show_tra_l(res_list)
+                # if debug:
+                #     print(f"in while, after sound_join, res_list")
+                #     show_tra_l(res_list)
 
             if len(body_list) > 0:
                 abstract_state_list = self.body(body_list)
@@ -557,10 +557,10 @@ class While(nn.Module):
             if i > 400:
                 break
         res_list.extend(abstract_state_list)
-        if debug:
-            print(f"end of while, break")
-            show_tra_l(res_list)
-            exit(0)
+        # if debug:
+        #     print(f"end of while, break")
+        #     show_tra_l(res_list)
+        #     exit(0)
 
         return res_list
 

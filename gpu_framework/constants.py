@@ -47,6 +47,7 @@ only_data_loss = args.only_data_loss
 data_bs = args.data_bs
 fixed_dataset = args.fixed_dataset
 cuda_debug = args.cuda_debug
+use_data_loss = args.use_data_loss
 
 sound_verify = args.sound_verify
 unsound_verify = args.unsound_verify
@@ -55,10 +56,9 @@ assert(test_mode == (sound_verify or unsound_verify))
 # thermostat: 0.3
 # mountain_car: 0.01
 
-
 STATUS = 'Training' # a global status, if Training: use normal module, if Verifying: use sound module
 
-path_num_list = [50]
+path_num_list = [30]
 
 K_DISJUNCTS = 10000000
 SAMPLE_SIZE = 500
@@ -91,7 +91,7 @@ if benchmark_name == "mountain_car":
 
     # u,  p
     safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
-    phi_list = [0.1, 0.1]
+    phi_list = [0.0, 0.1]
     if adaptive_weight:
         w_list = [0.01, 0.99]
     else:
@@ -111,10 +111,12 @@ if benchmark_name == "mountain_car":
 # if adaptive_weight:
 #     model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}_{w_list}"
 # else:
-model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}_{w_list}"
+model_name_prefix = f"{benchmark_name}_{data_attr}_{path_num_list}_{phi_list}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}_{w_list}"
 model_name_prefix = f"{model_name_prefix}_{outside_trajectory_loss}_{only_data_loss}_{data_bs}"
 if fixed_dataset:
     model_name_prefix = f"{model_name_prefix}_{fixed_dataset}"
+if not use_data_loss:
+    model_name_prefix = f"{model_name_prefix}_{use_data_loss}"
 
 dataset_path_prefix = f"dataset/{benchmark_name}_{dataset_distribution}_{x_l[0]}_{x_r[0]}"
 
@@ -148,9 +150,11 @@ alpha_smooth_max = 0.8
 eps = 1e-10
 
 if not debug and not generate_all_dataset:
-    result_prefix = f"{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
+    result_prefix = f"{benchmark_name}_{path_num_list}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
     if fixed_dataset:
         result_prefix = f"{result_prefix}_{fixed_dataset}"
+    if not use_data_loss:
+        result_prefix = f"{result_prefix}_{use_data_loss}"
     if test_mode:
         # if outside_trajectory_loss:
         result_prefix = f"{result_prefix}_{verification_num_components}_{verification_num_abstract_states}_{verify_outside_trajectory_loss}"

@@ -1,0 +1,6 @@
+Namespace(adaptive_weight=False, b=1000, benchmark_name='mountain_car', bs=2, cuda_debug=False, data_attr='normal_52.0_59.0', data_bs=41, data_size=10000, dataset='thermostat', dataset_distribution='normal', debug=False, fixed_dataset=True, generate_all_dataset=False, l=128, lr=0.1, mode='DSE', module='linearrelu_no_act', n=5, nn_mode='all', num_components=10, num_epoch=10, only_data_loss=False, optimizer='direct', outside_trajectory_loss=True, perturbation_width=0.01, real_unsafe_value=True, save='True', sound_verify=False, stop_val=0.05, t_epoch=10, test_mode=True, test_portion=0.99, test_size=800, train_size=400, unsound_verify=True, use_smooth_kernel=True, verification_num_abstract_states=1, verification_num_components=10, verify_outside_trajectory_loss=True, w=0.5, width=0.01)
+Target info: [[-0.8, 0.8], [0.5, 10000.0]], [0.1, 0.1],         [1.0, 0], ['all', 'last'], [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1]
+path_num_list: [50]path_sample_size: 50, safa_range_bound: 0.8
+path_sample_size: 50, safa_range_bound: 0.9
+path_sample_size: 50, safa_range_bound: 1.0
+path_sample_size: 50, safa_range_bound: 1.1
