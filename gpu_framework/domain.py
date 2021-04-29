@@ -101,7 +101,7 @@ class Interval:
         else:
             # print(f"in getLength: {self.right}, {self.left}")
             # print(f"in getLength: {self.right.sub(self.left)}")
-            return torch.max(EPSILON, self.right.sub(self.left))
+            return self.right.sub(self.left)
         
     def getVolumn(self):
         if self.right.data.item() < self.left.data.item():

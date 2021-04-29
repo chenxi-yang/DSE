@@ -257,9 +257,9 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
         # del trajectory_2[0]
     
     if l1 < l2:
-        trajectory.extend(trajectory_2)
+        trajectory.extend(trajectory_2[l2:])
     elif l1 > l2:
-        trajectory.extend(trajectory_1)
+        trajectory.extend(trajectory_1[l1:])
     
     # del trajectory_2
     # del trajectory_1

@@ -30,9 +30,7 @@ def distance_f_point(pred_y, y):
 
 
 def get_intersection(interval_1, interval_2):
-    res_interval = domain.Interval()
-    res_interval.left = torch.max(interval_1.left, interval_2.left)
-    res_interval.right = torch.min(interval_1.right, interval_2.right)
+    res_interval = domain.Interval(interval_1.left, interval_2.right)
     return res_interval
 
 
@@ -171,8 +169,9 @@ def safe_distance(symbol_tables, target):
             show_cuda_memory(f"[update trajectory, {len(trajectory)}]")
             trajectory_loss = var_list([0.0])
             i = 0
+            # print(len(trajectory))
             for state in trajectory:
-                show_cuda_memory(f"[update state, state {i}]")
+                # show_cuda_memory(f"[update state, state {i}]")
                 X = state[idx]
                 # print(f"X: {X.left}, {X.right}")
                 intersection_interval = get_intersection(X, safe_interval)
@@ -181,7 +180,7 @@ def safe_distance(symbol_tables, target):
                         # min point to interval
                         unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
                     else:
-                        unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(EPSILON))
+                        unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(float(EPSILON)))
                         # unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
                 else:
                     safe_portion = intersection_interval.getLength() / (X.getLength())
@@ -195,7 +194,7 @@ def safe_distance(symbol_tables, target):
                 trajectory_loss = torch.max(trajectory_loss, unsafe_value)
                 i += 1
             target_loss += trajectory_loss
-        target_loss = target_loss / (var(len(symbol_table_list)).add(EPSILON))
+        target_loss = target_loss / (var(len(symbol_tables)).add(float(EPSILON)))
         target_loss = target_component["w"] * (target_loss - unsafe_probability_condition)
         target_loss = torch.max(target_loss, var(0.0))
         loss +=  target_loss
@@ -279,7 +278,8 @@ def divide_chunks(component_list, bs=1, data_bs=2):
             # print(f"component probability: {component['p']}")
 
         # print(f"out: {trajectory_list}")
-        yield trajectory_list, trajectory_list, True # use safe loss
+        if len(trajectory_list) > 0:
+            yield trajectory_list, trajectory_list, True # use safe loss
 
 
 def update_model_parameter(m, theta):
@@ -450,6 +450,7 @@ def learning(
                     data_loss = cal_data_loss(m, trajectory_list, criterion)
                 else:
                     data_loss = var(0.0)
+                print(f"in safe loss: {len(trajectory_list)}")
                 safe_loss = cal_safe_loss(m, trajectory_list, width, target)
 
                 real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
