@@ -476,25 +476,28 @@ class While(nn.Module):
         # show_cuda_memory(f"ini while")
         while(len(symbol_tables) > 0):
             # counter += 1
-            # show_cuda_memory(f"[while]before calculate branch")
+            show_cuda_memory(f"[while {i}]before calculate branch")
             body_symbol_tables, orelse_symbol_tables = calculate_branch(self.target_idx, self.test, symbol_tables)
-            # show_cuda_memory(f"[while]after calculate branch")
+            show_cuda_memory(f"[while {i}]after calculate branch")
+
             # show_cuda_memory(f"[while]before sound join")
             res_symbol_tables = sound_join(res_symbol_tables, orelse_symbol_tables)
-            # show_cuda_memory(f"[while]after sound join")
+            show_cuda_memory(f"[while {i}]after sound join")
 
             if len(body_symbol_tables) == 0:
                 return res_symbol_tables
             
             symbol_tables = self.body(body_symbol_tables)
 
-            # show_cuda_memory(f"[while]after body")
+            show_cuda_memory(f"[while {i}]after body")
 
             i += 1
             if i > 400:
                 # print(f"Exceed maximum iterations: Have to END.")
                 break
+        show_cuda_memory(f"[while {i}] before last sound join")
         res_symbol_tables = sound_join(res_symbol_tables, orelse_symbol_tables)
+        show_cuda_memory(f"[while {i}] after last sound join")
         return res_symbol_tables
 
 

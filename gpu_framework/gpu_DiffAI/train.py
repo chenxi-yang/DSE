@@ -161,14 +161,18 @@ def safe_distance(symbol_tables, target):
     # all_unsafe_value = max_i(unsafe_value(s_i, target))
     # TODO: or avg?
     # loss violate the safe constraint: 
+    print(f"[safe_distance] {symbol_tables['x'].c.shape}")
     loss = var_list([0.0])
     for idx, target_component in enumerate(target):
         target_loss = var_list([0.0])
         unsafe_probability_condition = target_component["phi"]
         safe_interval = target_component["condition"]
         for trajectory in symbol_tables['trajectory_list']:
+            show_cuda_memory(f"[update trajectory, {len(trajectory)}]")
             trajectory_loss = var_list([0.0])
+            i = 0
             for state in trajectory:
+                show_cuda_memory(f"[update state, state {i}]")
                 X = state[idx]
                 # print(f"X: {X.left}, {X.right}")
                 intersection_interval = get_intersection(X, safe_interval)
@@ -189,6 +193,7 @@ def safe_distance(symbol_tables, target):
                     #     # unsafe_value = ((1 - unsafe_probability_condition) - safe_probability) / safe_probability
                     #     unsafe_value = 1 - safe_probability
                 trajectory_loss = torch.max(trajectory_loss, unsafe_value)
+                i += 1
             target_loss += trajectory_loss
         target_loss = target_loss / (var(len(symbol_table_list)).add(EPSILON))
         target_loss = target_component["w"] * (target_loss - unsafe_probability_condition)
@@ -214,7 +219,9 @@ def cal_safe_loss(m, trajectory_list, width, target):
     # if debug:
     #     exit(0)
     output = m(abstract_data)
+    show_cuda_memory(f"[cal_safe_loss] before safe distance")
     safe_loss = safe_distance(output, target)
+    show_cuda_memory(f"[cal_safe_loss] after safe distance")
     
     return safe_loss
 
@@ -229,35 +236,6 @@ def cal_safe_loss(m, trajectory_list, width, target):
     # safe_loss /= var(len(x)).add(EPSILON)
     # return safe_loss
 
-
-# def divide_chunks(component_list, bs=1):
-#     '''
-#     component: {
-#         'center': 
-#         'width':
-#         'p':
-#         'trajectory_list':
-#     }
-#     return the component={
-#         'center':
-#         'width':
-#         'p':
-#     }, trajectory
-#     '''
-#     for i in range(0, len(component_list), bs):
-#         components = component_list[i:i + bs]
-#         abstract_states = list()
-#         trajectory_list, y_list = list(), list()
-#         for component in components:
-#             abstract_state = {
-#                 'center': component['center'],
-#                 'width': component['width'],
-#                 'p': component['p'],
-#             }
-#             trajectory_list.extend(component['trajectory_list'])
-#             abstract_states.append(abstract_state)
-#             # print(f"component probability: {component['p']}")
-#         yield trajectory_list, abstract_states
 
 def divide_chunks(component_list, bs=1, data_bs=2):
     '''
