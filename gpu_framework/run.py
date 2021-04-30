@@ -208,7 +208,8 @@ if __name__ == "__main__":
 
                     # if not test_mode:
                     #     show_cuda_memory(f"end safe bound {i} ")
-                    break
+                    if not use_hoang:
+                        break
                     
                     lambda_list.append(new_lambda)
                     model_list.append(model)

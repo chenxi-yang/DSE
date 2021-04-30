@@ -49,6 +49,7 @@ fixed_dataset = args.fixed_dataset
 cuda_debug = args.cuda_debug
 use_data_loss = args.use_data_loss
 data_safe_consistent = args.data_safe_consistent
+use_hoang = args.use_hoang
 
 verify_use_probability = args.verify_use_probability
 
@@ -116,6 +117,7 @@ if benchmark_name == "mountain_car":
 # else:
 model_name_prefix = f"{benchmark_name}_{data_attr}_{path_num_list}_{phi_list}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}_{w_list}"
 model_name_prefix = f"{model_name_prefix}_{outside_trajectory_loss}_{only_data_loss}_{data_bs}"
+model_name_prefix = f"{model_name_prefix}_{data_safe_consistent}"
 if fixed_dataset:
     model_name_prefix = f"{model_name_prefix}_{fixed_dataset}"
 if not use_data_loss:
@@ -154,6 +156,7 @@ eps = 1e-10
 
 if not debug and not generate_all_dataset:
     result_prefix = f"{benchmark_name}_{path_num_list}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
+    result_prefix = f"{result_prefix}_{data_safe_consistent}"
     if fixed_dataset:
         result_prefix = f"{result_prefix}_{fixed_dataset}"
     if not use_data_loss:

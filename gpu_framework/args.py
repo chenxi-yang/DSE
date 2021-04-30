@@ -62,6 +62,7 @@ def get_parser():
     p.add_argument("--data_bs", default=2, type=int, help="number of trajectories to use for data loss")
     p.add_argument("--use_data_loss", default=True, type=str2bool, help="use data loss")
     p.add_argument("--data_safe_consistent", default=True, type=str2bool, help="use data loss and safe loss simultanuously")
+    p.add_argument("--use_hoang", default=False, type=str2bool, help="whether use the outest optimization")
 
     # evaluation
     p.add_argument("--test_mode", default=False, type=str2bool, help="decide whether check load model and then test")
