@@ -598,7 +598,7 @@ if __name__ == "__main__":
     # plot_vary_constraint('result/vary_constraint_volume_vs_point_sampling.txt')
     # vary_safe_bound()
     # abstract_component()
-    extract_verify_result()
+    # extract_verify_result()
 
 
 

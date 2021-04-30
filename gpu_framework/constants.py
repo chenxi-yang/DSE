@@ -119,7 +119,7 @@ if benchmark_name == "mountain_car":
 # else:
 model_name_prefix = f"{benchmark_name}_{data_attr}_{path_num_list}_{phi_list}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}_{w_list}"
 model_name_prefix = f"{model_name_prefix}_{outside_trajectory_loss}_{only_data_loss}_{data_bs}"
-model_name_prefix = f"{model_name_prefix}_{data_safe_consistent}"
+model_name_prefix = f"{model_name_prefix}_{data_safe_consistent}_{bs}_{num_components}"
 if fixed_dataset:
     model_name_prefix = f"{model_name_prefix}_{fixed_dataset}"
 if not use_data_loss:

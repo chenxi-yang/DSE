@@ -354,7 +354,7 @@ def learning(
 
     criterion = torch.nn.MSELoss()
     # optimizer = torch.optim.SGD(m.parameters(), lr=lr)
-    optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-5)
+    optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-2)
     
     if epochs_to_skip is None:
         epochs_to_skip = -1

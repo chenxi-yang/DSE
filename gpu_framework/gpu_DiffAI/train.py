@@ -210,6 +210,9 @@ def cal_safe_loss(m, trajectory_list, width, target):
     '''
     # TODO: for now, we only keep 
     # TODO: use batch version, batch the initial states together
+    # to reduce cost
+    shuffle(trajectory_list)
+    trajectory_list = trajectory_list[:int(len(trajectory_list)/2)]
     x = [[ini_trajectory(trajectory)[0][0]] for trajectory in trajectory_list]
     center_list, width_list = create_small_ball(x, width)
     batched_center, batched_width = batch_points(center_list), batch_points(width_list)
