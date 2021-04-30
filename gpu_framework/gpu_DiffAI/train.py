@@ -381,7 +381,8 @@ def learning(
         epochs_to_skip = -1
     
     criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.SGD(m.parameters(), lr=lr)
+    # optimizer = torch.optim.SGD(m.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
     
     start_time = time.time()
     for i in range(epoch):
@@ -488,12 +489,12 @@ def learning(
         
         # f_loss = q_loss + lambda_ * c_loss
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
-        print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}")
-        print(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss.data.item()/tmp_q_idx}, c: {c_loss.data.item()}")
+        print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}")
+        print(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss/tmp_q_idx}, c: {c_loss}")
         log_file = open(file_dir, 'a')
         log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
-        log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}\n")
-        log_file.write(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss.data.item()}, c: {c_loss.data.item()}\n")
+        log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}\n")
+        log_file.write(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss}, c: {c_loss}\n")
 
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
