@@ -236,7 +236,7 @@ def cal_safe_loss(m, trajectory_list, width, target):
     # return safe_loss
 
 
-def divide_chunks(component_list, bs=1, data_bs=2):
+def divide_chunks(component_list, data_safe_consistent, bs=1, data_bs=2):
     '''
     component: {
         'center': 
@@ -269,6 +269,8 @@ def divide_chunks(component_list, bs=1, data_bs=2):
                 trajectory_list.append(trajectory)
                 real_trajectory_list.append(trajectory)
                 # print(f"after: {len(trajectory_list)}")
+                if data_safe_consistent:
+                    continue
                 if (trajectory_idx + data_bs > len(component['trajectory_list']) - 1) and component_idx == len(components) - 1:
                     pass
                 elif len(trajectory_list) == data_bs:
@@ -364,6 +366,7 @@ def learning(
         only_data_loss=only_data_loss,
         data_bs=data_bs,
         use_data_loss=use_data_loss,
+        data_safe_consistent=None
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
@@ -387,7 +390,7 @@ def learning(
         q_loss, c_loss = var_list([0.0]), var_list([0.0])
         count = 0
         tmp_q_idx = 0
-        for trajectory_list, real_trajectory_list, use_safe_loss in divide_chunks(component_list, bs=bs, data_bs=data_bs):
+        for trajectory_list, real_trajectory_list, use_safe_loss in divide_chunks(component_list, data_safe_consistent, bs=bs, data_bs=data_bs):
             # print(f"x length: {len(x)}")
             # print(f"batch size, x: {len(x)}, y: {len(y)}, abstract_states: {len(abstract_states)}")
             # if len(x) == 0: continue  # because DiffAI only makes use of x, y
@@ -450,7 +453,7 @@ def learning(
                 else:
                     data_loss = var(0.0)
                 # print(f"in safe loss: {len(trajectory_list)}")
-                safe_loss = cal_safe_loss(m, trajectory_list, width, target)
+                safe_loss = cal_safe_loss(m, real_trajectory_list, width, target)
 
                 real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
                 grad_data_loss, grad_safe_loss = data_loss, safe_loss

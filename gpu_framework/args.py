@@ -63,6 +63,8 @@ def get_parser():
     p.add_argument("--use_data_loss", default=True, type=str2bool, help="use data loss")
     p.add_argument("--data_safe_consistent", default=True, type=str2bool, help="use data loss and safe loss simultanuously")
     p.add_argument("--use_hoang", default=False, type=str2bool, help="whether use the outest optimization")
+    p.add_argument("--bound_start", default=0, type=int, help=f"the index to start with in safe bound list")
+    p.add_argument("--bound_end", default=3, type=int, help=f"the index to end within safe bound list")
 
     # evaluation
     p.add_argument("--test_mode", default=False, type=str2bool, help="decide whether check load model and then test")

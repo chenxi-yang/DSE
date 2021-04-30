@@ -64,7 +64,11 @@ def best_theta(component_list, lambda_, target):
 if __name__ == "__main__":
     # torch.autograd.set_detect_anomaly(True)
     for path_sample_size in path_num_list:
-        for safe_range_bound in safe_range_bound_list:
+        for safe_range_bound_idx, safe_range_bound in enumerate(safe_range_bound_list):
+            if safe_range_bound_idx < bound_end and safe_range_bound_idx >= bound_start:
+                pass
+            else:
+                continue
             # for temporary test only
             # if safe_range_bound < 0.8:
             #     continue
@@ -82,6 +86,8 @@ if __name__ == "__main__":
                 log_file_evaluation = open(file_dir_evaluation, 'a')
                 log_file_evaluation.write(f"path_sample_size: {path_sample_size}, safa_range_bound: {safe_range_bound}\n")
                 log_file_evaluation.close()
+                
+            print(f"path_sample_size: {path_sample_size}, safa_range_bound: {safe_range_bound}")
             
             if benchmark_name == "thermostat":
                 # TODO: adapt to other algorithms, as this is not a perfect benchmark, leave it alone

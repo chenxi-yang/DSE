@@ -488,6 +488,7 @@ class While(nn.Module):
             # show_cuda_memory(f"[while {i}]after sound join")
 
             if len(body_symbol_tables) == 0:
+                print(f"[before return] len res: {len(res_symbol_tables)}, len body: {len(body_symbol_tables)}, len orelse: {len(orelse_symbol_tables)}")
                 return res_symbol_tables
             
             symbol_tables = self.body(body_symbol_tables)
