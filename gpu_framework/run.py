@@ -188,6 +188,7 @@ if __name__ == "__main__":
                         only_data_loss=only_data_loss,
                         data_bs=data_bs,
                         use_data_loss=use_data_loss,
+                        data_safe_consistent=data_safe_consistent, 
                         )
                     # except RuntimeError:
                     #     log_file = open(file_dir, 'a')

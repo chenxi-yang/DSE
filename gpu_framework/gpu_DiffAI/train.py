@@ -166,7 +166,7 @@ def safe_distance(symbol_tables, target):
         unsafe_probability_condition = target_component["phi"]
         safe_interval = target_component["condition"]
         for trajectory in symbol_tables['trajectory_list']:
-            show_cuda_memory(f"[update trajectory, {len(trajectory)}]")
+            # show_cuda_memory(f"[update trajectory, {len(trajectory)}]")
             trajectory_loss = var_list([0.0])
             i = 0
             # print(len(trajectory))
@@ -273,13 +273,12 @@ def divide_chunks(component_list, bs=1, data_bs=2):
                     pass
                 elif len(trajectory_list) == data_bs:
                     # print(trajectory_list)
-                    yield trajectory_list, trajectory_list, True
+                    yield trajectory_list, real_trajectory_list, False
                     trajectory_list = list()
             # print(f"component probability: {component['p']}")
 
         # print(f"out: {trajectory_list}")
-        if len(trajectory_list) > 0:
-            yield trajectory_list, trajectory_list, True # use safe loss
+        yield trajectory_list, real_trajectory_list, True # use safe loss
 
 
 def update_model_parameter(m, theta):
@@ -393,8 +392,8 @@ def learning(
             # print(f"batch size, x: {len(x)}, y: {len(y)}, abstract_states: {len(abstract_states)}")
             # if len(x) == 0: continue  # because DiffAI only makes use of x, y
             batch_time = time.time()
-            if not use_safe_loss and not use_data_loss:
-                continue
+            # if not use_safe_loss and not use_data_loss:
+            #     continue
 
             if use_smooth_kernel:
                 if use_safe_loss:
@@ -450,7 +449,7 @@ def learning(
                     data_loss = cal_data_loss(m, trajectory_list, criterion)
                 else:
                     data_loss = var(0.0)
-                print(f"in safe loss: {len(trajectory_list)}")
+                # print(f"in safe loss: {len(trajectory_list)}")
                 safe_loss = cal_safe_loss(m, trajectory_list, width, target)
 
                 real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)

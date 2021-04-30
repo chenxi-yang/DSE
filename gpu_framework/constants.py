@@ -48,6 +48,7 @@ data_bs = args.data_bs
 fixed_dataset = args.fixed_dataset
 cuda_debug = args.cuda_debug
 use_data_loss = args.use_data_loss
+data_safe_consistent = args.data_safe_consistent
 
 verify_use_probability = args.verify_use_probability
 

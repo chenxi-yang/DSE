@@ -212,7 +212,7 @@ def cal_safe_loss(m, abstract_state, target):
     return safe_loss
 
 
-def divide_chunks(component_list, bs=1, data_bs=2):
+def divide_chunks(component_list, data_safe_consistent, bs=1, data_bs=2):
     '''
     component: {
         'center': 
@@ -243,6 +243,8 @@ def divide_chunks(component_list, bs=1, data_bs=2):
                 # print(f"before: {len(trajectory)}")
                 trajectory_list.append(trajectory)
                 # print(f"after: {len(trajectory_list)}")
+                if data_safe_consistent:
+                    continue
                 if (trajectory_idx + data_bs > len(component['trajectory_list']) - 1) and component_idx == len(components) - 1:
                     pass
                 elif len(trajectory_list) == data_bs:
@@ -339,6 +341,7 @@ def learning(
         only_data_loss=only_data_loss,
         data_bs=data_bs,
         use_data_loss=use_data_loss,
+        data_safe_consistent=None,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
@@ -350,7 +353,8 @@ def learning(
     m.cuda()
 
     criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.SGD(m.parameters(), lr=lr)
+    # optimizer = torch.optim.SGD(m.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-5)
     
     if epochs_to_skip is None:
         epochs_to_skip = -1
@@ -362,7 +366,7 @@ def learning(
         q_loss, c_loss = 0.0, 0.0
         count = 0
         tmp_q_idx = 0
-        for trajectory_list, abstract_states, use_safe_loss in divide_chunks(component_list, bs=bs, data_bs=data_bs):
+        for trajectory_list, abstract_states, use_safe_loss in divide_chunks(component_list, data_safe_consistent=data_safe_consistent, bs=bs, data_bs=data_bs):
             # print(f"x length: {len(x)}")
             # if len(trajectory_list) == 0:
             #     continue
@@ -448,16 +452,16 @@ def learning(
 
             loss = grad_data_loss + lambda_ * grad_safe_loss
             loss.backward()
-            print(f"value before clip", m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:5])
+            print(f"value before clip", m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3])
             # print(m.nn.linear1.weight.grad)
             # print(m.nn.linear2.weight.grad)
             # Theta = extract_parameters(m) 
             # for partial_theta in Theta:
             #     torch.nn.utils.clip_grad_norm_(partial_theta, 1)
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
-            print(f"grad before step", m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:5])
+            print(f"grad before step", m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3])
             optimizer.step()
-            print(f"value after step", m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:5])
+            print(f"value after step", m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3])
             optimizer.zero_grad()
             # new_theta = extract_parameters(m)
             # print(f"Theta after step: {new_theta}")
@@ -470,9 +474,9 @@ def learning(
             if not debug:
                 save_model(m, MODEL_PATH, name=model_name, epoch=i)
             
-        if i >= 5 and i%2 == 0:
-            for param_group in optimizer.param_groups:
-                param_group["lr"] *= 0.5
+        # if i >= 5 and i%2 == 0:
+        #     for param_group in optimizer.param_groups:
+        #         param_group["lr"] *= 0.5
         
         # f_loss = q_loss + lambda_ * c_loss
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
@@ -493,7 +497,7 @@ def learning(
         # if c_loss.data.item() < EPSILON.data.item():
         #     break
         
-        if (time.time() - start_time)/(i+1) > 3600 or TIME_OUT:
+        if (time.time() - start_time)/(i+1) > 6000 or TIME_OUT:
             if i <= 2 : # give a chance for the first epoch
                 pass
             else:
@@ -503,7 +507,7 @@ def learning(
                 TIME_OUT = True
                 break
     
-    res = real_data_loss + lambda_ * real_safe_loss# loss # f_loss.div(len(X_train))
+    res = real_data_loss + float(lambda_) * real_safe_loss# loss # f_loss.div(len(X_train))
 
     if not debug:
         log_file = open(file_dir, 'a')
@@ -513,7 +517,7 @@ def learning(
     if debug:
         exit(0)
     
-    return [], res, [], float(data_loss), float(safe_loss), TIME_OUT
+    return [], res, [], 0.0, 0.0, TIME_OUT
 
 
 def cal_c(X_train, y_train, m, target):
