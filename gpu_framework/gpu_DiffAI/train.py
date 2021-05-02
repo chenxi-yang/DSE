@@ -440,9 +440,9 @@ def learning(
         if save:
             save_model(m, MODEL_PATH, name=model_name, epoch=i)
         
-        if i >= 5 and i%2 == 0:
-            for param_group in optimizer.param_groups:
-                param_group["lr"] *= 0.5
+        # if i >= 5 and i%2 == 0:
+        #     for param_group in optimizer.param_groups:
+        #         param_group["lr"] *= 0.5
         
         # f_loss = q_loss + lambda_ * c_loss
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
@@ -457,13 +457,18 @@ def learning(
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
 
-        if c_loss.data.item() < EPSILON.data.item():
+        if float(c_loss) < float(EPSILON):
+            if not debug:
+                log_file = open(file_dir, 'a')
+                log_file.write('c_loss is small enough. End. \n')
+                log_file.close()
             break
         
         if (time.time() - start_time)/(i+1) > 3600 or TIME_OUT:
-            log_file = open(file_dir, 'a')
-            log_file.write('TIMEOUT: avg epoch time > 3000s \n')
-            log_file.close()
+            if not debug:
+                log_file = open(file_dir, 'a')
+                log_file.write('TIMEOUT: avg epoch time > 3000s \n')
+                log_file.close()
             TIME_OUT = True
             if i <= 2:
                 pass

@@ -463,16 +463,21 @@ def learning(
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
-        # if c_loss.data.item() < EPSILON.data.item():
-        #     break
+        if float(c_loss) < float(EPSILON):
+            if not debug:
+                log_file = open(file_dir, 'a')
+                log_file.write('c_loss is small enough. End. \n')
+                log_file.close()
+            break
         
         if (time.time() - start_time)/(i+1) > 6000 or TIME_OUT:
             if i <= 2 : # give a chance for the first epoch
                 pass
             else:
-                log_file = open(file_dir, 'a')
-                log_file.write('TIMEOUT: avg epoch time > 3600sec \n')
-                log_file.close()
+                if not debug:
+                    log_file = open(file_dir, 'a')
+                    log_file.write('TIMEOUT: avg epoch time > 3600sec \n')
+                    log_file.close()
                 TIME_OUT = True
                 break
     
