@@ -177,6 +177,7 @@ class MountainCar(nn.Module):
         self.goal_position = var(0.5)
         self.min_position = var(-1.2)
         self.min_speed = var(-0.07)
+        self.initial_speed = var(0.0)
         self.max_speed = var(0.07)
         
         if module == 'linearsig':

@@ -3,13 +3,41 @@ from scipy.stats import poisson
 
 import numpy as np
 import random
+import math
 
 import time
 import torch
-
+from torch.autograd import Variable
 
 np.random.seed(seed=1)
 random.seed(1)
+
+def var(i, requires_grad=False):
+    # print(i)
+    if requires_grad:
+        exit(0)
+    if torch.cuda.is_available():
+        return Variable(torch.tensor(i, dtype=torch.float).cuda(), requires_grad=requires_grad)
+    else:
+        return Variable(torch.tensor(i, dtype=torch.float), requires_grad=requires_grad)
+
+
+def var_list(i_list, requires_grad=False):
+    # print(i)
+    if requires_grad:
+        exit(0)
+    if torch.cuda.is_available():
+        # res = Variable(torch.tensor(i_list, dtype=torch.double).cuda(), requires_grad=requires_grad)
+        res = torch.tensor(i_list, dtype=torch.float, requires_grad=requires_grad).cuda()
+    else:
+        # res = Variable(torch.tensor(i_list, dtype=torch.double), requires_grad=requires_grad)
+        res = torch.tensor(i_list, dtype=torch.float, requires_grad=requires_grad)
+    # print(f"before squeeze, {res.shape}")
+    # print(f"var list --before unsequeeze-- res: {res}")
+    # res.unsqueeze_(0)
+    # print(f"var list --after unsequeeze-- res: {res}")
+    # print(f"after squeeze, {res.shape}")
+    return res
 
 
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
@@ -227,7 +255,92 @@ def show_memory_snapshot():
     snapshot = torch.cuda.memory_snapshot()
     for d in snapshot:
         print(d["segment_type"], d["active_size"], d["allocated_size"], d["total_size"])
+    
 
+def show_component(component_list):
+    log_component_list = list()
+    for component in component_list:
+        log_component_list.append((component['center'], component['width']))
+    print(f"show component: {log_component_list}")
+
+
+def show_trajectory(abstract_states):
+    for abstract_state in abstract_states:
+        for symbol_table in abstract_state:
+            X = symbol_table['trajectory'][0][0]
+            print(f"first in symbol_table[0]: {float(X.left)}, {float(X.right)}")
+
+
+def normal_pdf(x, mean, std):
+    # print(f"----normal_pdf-----\n x: {x} \n mean: {mean} \n std: {std} \n -------")
+    # var = std ** 2
+    # denom = (2*math.pi*var)**.5
+    # p1 = torch.exp(-((x-mean)**2)/(var*2))
+
+    p = torch.exp((-((x-mean)**2)/(2*std*std)))/ (std* torch.sqrt(2*var(math.pi)))
+    # print(f"p: {p.detach().cpu().numpy().tolist()[:10]}")
+    # res = torch.prod(y)
+    log_p = torch.log(p)
+    # print(log_p)
+    # print(f"log(p): {log_p.detach().cpu().numpy.tolist()[:10]}")
+    res = torch.sum(log_p)
+    # res *= var(1e)
+
+    return res
+
+
+def get_truncated_normal_width(mean, std, width):
+    truncated_normal = truncnorm((mean-width-mean)/std, (mean+width-mean)/std, loc=mean, scale=std)
+    return truncated_normal.rvs()
+
+
+def sampled(x, sample_std, sample_width): # sample from a CLOSER neighboorhood
+    # std=1.0
+    # print(x.shape)
+    if sample_width is None:
+        res = torch.normal(mean=x, std=var(sample_std))
+    else:
+        # as we only care about the \nabla \theta_0 p(\theta, mean=\theta_0)
+        # computation of \theta does not require the gradient
+        np_x = x.detach().cpu().numpy()
+        res = get_truncated_normal_width(np_x, float(sample_std), float(sample_width))
+        res = var_list(res)
+        
+    # print(res.shape)
+
+    # print(f"std: {sample_std}")
+    # print(f"x: {x.detach().cpu().numpy().tolist()[:10]}")
+    # print(f"res: {res.detach().cpu().numpy().tolist()[:10]}")
+    log_p = normal_pdf(res, mean=x, std=var(sample_std))
+    # print(f"log_p: {log_p}")
+    # exit(0)
+    return res, log_p
+
+
+def sample_parameters(Theta, n=5, sample_std=1.0, sample_width=1e-6):
+    # theta_0 is a parameter method
+    # sample n theta based on the normal distribution with mean=Theta std=1.0
+    # return a list of <theta, theta_p>
+    # each theta, Theta is a list of Tensor
+
+    # show_cuda_memory(f"ini sample para")
+    theta_list = list()
+    for i in range(n):
+        sampled_theta = list()
+        theta_p = var(0.0)
+        for array in Theta:
+            sampled_array, sampled_p = sampled(array, sample_std, sample_width)
+            sampled_theta.append(sampled_array)
+            # sum the log(p)
+            theta_p += sampled_p
+            # theta_p *= sampled_p # !incorrect
+        # print(f"each sampled theta: {sampled_theta}")
+        # print(f"each probability: {theta_p}")
+        theta_list.append((sampled_theta, theta_p))
+    
+    # show_cuda_memory(f"end sample para")
+    # exit(0)
+    return theta_list
 
 
 

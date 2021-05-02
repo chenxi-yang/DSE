@@ -183,7 +183,7 @@ def safe_distance(symbol_tables, target):
                         unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(float(EPSILON)))
                         # unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
                 else:
-                    safe_portion = intersection_interval.getLength() / (X.getLength())
+                    safe_portion = (intersection_interval.getLength() + eps) / (X.getLength() + eps)
                     # safe_probability = torch.index_select(safe_portion, 0, index0)
                     unsafe_value = 1 - safe_portion
                     # if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
@@ -216,14 +216,14 @@ def cal_safe_loss(m, trajectory_list, width, target):
     x = [[ini_trajectory(trajectory)[0][0]] for trajectory in trajectory_list]
     center_list, width_list = create_small_ball(x, width)
     batched_center, batched_width = batch_points(center_list), batch_points(width_list)
-    print(f"[safe loss] center, width: {batched_center.shape}, {batched_width.shape}")
+    # print(f"[safe loss] center, width: {batched_center.shape}, {batched_width.shape}")
     abstract_data = initialization_nn(batched_center, batched_width)
     # if debug:
     #     exit(0)
     output = m(abstract_data)
-    show_cuda_memory(f"[cal_safe_loss] before safe distance")
+    # show_cuda_memory(f"[cal_safe_loss] before safe distance")
     safe_loss = safe_distance(output, target)
-    show_cuda_memory(f"[cal_safe_loss] after safe distance")
+    # show_cuda_memory(f"[cal_safe_loss] after safe distance")
     
     return safe_loss
 
@@ -306,15 +306,15 @@ def normal_pdf(x, mean, std):
     return res
 
 
-def sampled(x):
-    res = torch.normal(mean=x, std=var(0.01))
-    log_p = normal_pdf(res, mean=x, std=var(0.01))
+def sampled(x, sample_std):
+    res = torch.normal(mean=x, std=var(sample_std))
+    log_p = normal_pdf(res, mean=x, std=var(sample_std))
     # print(f"res: {res} \n p: {p}")
     # exit(0)
     return res, log_p
 
 
-def sample_parameters(Theta, n=5):
+def sample_parameters(Theta, n=5, sample_std=1.0):
     '''
     This is Gaussian Smooth, TODO: accuracy?
     # theta_0 is a parameter method
@@ -329,7 +329,7 @@ def sample_parameters(Theta, n=5):
         sampled_theta = list()
         theta_p = var(1.0)
         for array in Theta:
-            sampled_array, sampled_p = sampled(array)
+            sampled_array, sampled_p = sampled(array, sample_std)
             sampled_theta.append(sampled_array)
             # sum the log(p)
             theta_p += sampled_p
@@ -369,7 +369,8 @@ def learning(
         only_data_loss=only_data_loss,
         data_bs=data_bs,
         use_data_loss=use_data_loss,
-        data_safe_consistent=None
+        data_safe_consistent=None,
+        sample_std=0.01,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
@@ -404,10 +405,11 @@ def learning(
 
             if use_smooth_kernel:
                 if use_safe_loss:
+                    tmp_q_idx += 1
                     Theta = extract_parameters(m)
                     grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
                     real_data_loss, real_safe_loss = 0.0, 0.0
-                    for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
+                    for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n, sample_std=sample_std):
                         # sample_theta_p is actually log(theta_p)
 
                         sample_time = time.time()
@@ -423,7 +425,7 @@ def learning(
                         safe_loss = cal_safe_loss(m, real_trajectory_list, width, target)
 
                         # show_cuda_memory(f"after safe loss")
-                        print(f"data loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}")
+                        print(f"data loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, time: {time.time() - sample_time}")
 
                         # gradient = \exp_{\theta' \sim N(\theta)}[loss * \grad_{\theta}(log(p(\theta', \theta)))]
                         grad_safe_loss += float(safe_loss) * sample_theta_p
@@ -461,22 +463,16 @@ def learning(
 
                 real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
                 grad_data_loss, grad_safe_loss = data_loss, safe_loss
+                tmp_q_idx += 1
                 
             print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss}, real safe_loss: {real_safe_loss}, data and safe TIME: {time.time() - batch_time}")
             q_loss += real_data_loss
             c_loss += real_safe_loss
 
-            if time.time() - batch_time > 3600/(len(component_list)/bs):
-                TIME_OUT = True
-                if i <= 2:
-                    pass
-                else:
-                    break
-
             loss = grad_data_loss + lambda_ * grad_safe_loss
             # loss.backward(retain_graph=True)
             loss.backward()
-
+            torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
             # print(f"Linear1 grad: [{torch.min(m.nn.linear1.weight.grad)}, {torch.max(m.nn.linear1.weight.grad)}]")
             # print(f"Linear2 grad: [{torch.min(m.nn.linear2.weight.grad)}, {torch.max(m.nn.linear2.weight.grad)}]")
 

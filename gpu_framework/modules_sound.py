@@ -554,7 +554,7 @@ class While(nn.Module):
             #     r = torch.cuda.memory_reserved(0) 
             #     a = torch.cuda.memory_allocated(0)
             #     print(f"while, cuda memory reserved: {r}, allocated: {a}")
-            if i > 400:
+            if i > MAXIMUM_ITERATION:
                 break
         res_list.extend(abstract_state_list)
         # if debug:

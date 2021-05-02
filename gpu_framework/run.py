@@ -86,7 +86,7 @@ if __name__ == "__main__":
                 log_file_evaluation = open(file_dir_evaluation, 'a')
                 log_file_evaluation.write(f"path_sample_size: {path_sample_size}, safa_range_bound: {safe_range_bound}\n")
                 log_file_evaluation.close()
-                
+
             print(f"path_sample_size: {path_sample_size}, safa_range_bound: {safe_range_bound}")
             
             if benchmark_name == "thermostat":
@@ -181,7 +181,7 @@ if __name__ == "__main__":
                         stop_val=stop_val, 
                         epoch=num_epoch, 
                         target=target,
-                        lr=lr, 
+                        lr=lr,
                         bs=bs,
                         n=n,
                         nn_mode=nn_mode,
@@ -195,6 +195,8 @@ if __name__ == "__main__":
                         data_bs=data_bs,
                         use_data_loss=use_data_loss,
                         data_safe_consistent=data_safe_consistent, 
+                        sample_std=sample_std,
+                        sample_width=sample_width,
                         )
                     # except RuntimeError:
                     #     log_file = open(file_dir, 'a')

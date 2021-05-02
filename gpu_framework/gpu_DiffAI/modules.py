@@ -496,7 +496,7 @@ class While(nn.Module):
             # show_cuda_memory(f"[while {i}]after body")
 
             i += 1
-            if i > 400:
+            if i > MAXIMUM_ITERATION:
                 # print(f"Exceed maximum iterations: Have to END.")
                 break
         # show_cuda_memory(f"[while {i}] before last sound join")

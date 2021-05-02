@@ -247,9 +247,9 @@ class Assign(nn.Module):
             self.arg_idx = self.arg_idx.cuda()
     
     def forward(self, abstract_state_list, cur_sample_size=0):
-        # print(f"Assign Before: {[(res['x'].c, res['x'].delta) for res in x_list]}")
+        # print(f"Assign Before {self.f}: {[(res['x'].c, res['x'].delta) for res in abstract_state_list[0]]}")
         res_list = calculate_abstract_state_list(self.target_idx, self.arg_idx, self.f, abstract_state_list)
-        # print(f"Assign After: {[(res['x'].c, res['x'].delta) for res in x_list]}")
+        # print(f"Assign After {self.f}: {[(res['x'].c, res['x'].delta) for res in res_list[0]]}")
         return res_list
 
 
@@ -329,7 +329,7 @@ class While(nn.Module):
                 return res_abstract_state_list
             
             i += 1
-            if i > 400:
+            if i > MAXIMUM_ITERATION:
                 # res_abstract_state = res_abstract_state_list[0]
                 # for symbol_table in res_abstract_state:
                 #     print(symbol_table['x'].c, symbol_table['x'].delta)
@@ -354,7 +354,10 @@ def update_trajectory(symbol_table, target_idx):
         input_interval = input.getInterval()
         # print(f"idx:{idx}, input: {input.c, input.delta}")
         # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
-        assert input_interval.left.data.item() <= input_interval.right.data.item()
+        assert float(input_interval.left) <= float(input_interval.right)
+        # if float(input_interval.left) == float(input_interval.right):
+        #     print('find point:', float(input_interval.left), float(input_interval.right))
+        #     exit(0)
         input_interval_list.append(input_interval)
     # print(f"In update trajectory")
     symbol_table['trajectory'].append(input_interval_list)

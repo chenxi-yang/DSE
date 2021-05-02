@@ -65,6 +65,9 @@ def get_parser():
     p.add_argument("--use_hoang", default=False, type=str2bool, help="whether use the outest optimization")
     p.add_argument("--bound_start", default=0, type=int, help=f"the index to start with in safe bound list")
     p.add_argument("--bound_end", default=3, type=int, help=f"the index to end within safe bound list")
+    # smooth kernel in training
+    p.add_argument("--sample_std", default=1.0, type=float, help=f"std to sample theta")
+    p.add_argument("--sample_width", default=None, type=float, help=f"width to sample")
 
     # evaluation
     p.add_argument("--test_mode", default=False, type=str2bool, help="decide whether check load model and then test")
