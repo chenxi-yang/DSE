@@ -20,6 +20,7 @@ from utils import (
     batch_pair,
     batch_points,
     show_cuda_memory,
+    sample_parameters,
 )
 
 random.seed(1)
@@ -296,50 +297,6 @@ def update_model_parameter(m, theta):
     return m
 
 
-def normal_pdf(x, mean, std):
-    # print(f"----normal_pdf-----\n x: {x} \n mean: {mean} \n std: {std} \n -------")
-    y = torch.exp((-((x-mean)**2)/(2*std*std)))/ (std* torch.sqrt(2*var(math.pi)))
-    # res = torch.prod(y)
-    res = torch.sum(torch.log(y))
-    # res *= var(1e)
-
-    return res
-
-
-def sampled(x, sample_std):
-    res = torch.normal(mean=x, std=var(sample_std))
-    log_p = normal_pdf(res, mean=x, std=var(sample_std))
-    # print(f"res: {res} \n p: {p}")
-    # exit(0)
-    return res, log_p
-
-
-def sample_parameters(Theta, n=5, sample_std=1.0):
-    '''
-    This is Gaussian Smooth, TODO: accuracy?
-    # theta_0 is a parameter method
-    # sample n theta based on the normal distribution with mean=Theta std=1.0
-    # return a list of <theta, theta_p>
-    # each theta, Theta is a list of Tensor
-    '''
-    sample_parameter_time = time.time()
-
-    theta_list = list()
-    for i in range(n):
-        sampled_theta = list()
-        theta_p = var(1.0)
-        for array in Theta:
-            sampled_array, sampled_p = sampled(array, sample_std)
-            sampled_theta.append(sampled_array)
-            # sum the log(p)
-            theta_p += sampled_p
-            # theta_p *= sampled_p # !incorrect
-        # print(f"each sampled theta: {sampled_theta}")
-        theta_list.append((sampled_theta, theta_p))
-
-    return theta_list
-
-
 def extract_parameters(m):
     # extract the parameters in m into the Theta
     # this is for future sampling and derivative extraction
@@ -371,6 +328,7 @@ def learning(
         use_data_loss=use_data_loss,
         data_safe_consistent=None,
         sample_std=0.01,
+        sample_width=None,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
@@ -409,7 +367,7 @@ def learning(
                     Theta = extract_parameters(m)
                     grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
                     real_data_loss, real_safe_loss = 0.0, 0.0
-                    for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n, sample_std=sample_std):
+                    for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n, sample_std=sample_std, sample_width=sample_width):
                         # sample_theta_p is actually log(theta_p)
 
                         sample_time = time.time()
