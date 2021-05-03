@@ -76,7 +76,7 @@ def get_parser():
     p.add_argument("--real_unsafe_value", default=True, help="get the real unsafe value")
     p.add_argument("--sound_verify", default=False, type=str2bool, help="use sound verify when test_mode is True")
     p.add_argument("--unsound_verify", default=False, type=str2bool, help="use unsound verify when test_mode is False")
-    p.add_argument("--verify_use_probability", default=True, type=str2bool, help="use probability, ow, worst case training")
+    p.add_argument("--verify_use_probability", default=False, type=str2bool, help="use probability, ow, worst case training")
     
     # debug
     p.add_argument("--debug", default=False, type=str2bool, help="decide whether debug")

@@ -452,6 +452,7 @@ def learning(
         log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
         log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}\n")
         log_file.write(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss}, c: {c_loss}\n")
+        log_file.flush()
 
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):

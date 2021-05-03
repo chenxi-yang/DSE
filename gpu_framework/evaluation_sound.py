@@ -142,6 +142,7 @@ def verify(abstract_state_list, target):
     if debug:
         exit(0)
 
+
 def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx):
     trajectory_loss = var_list([0.0])
     # print(f"trajectory len: {len(symbol_table['trajectory'])}")
