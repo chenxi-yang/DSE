@@ -57,6 +57,7 @@ sample_width = args.sample_width
 
 # print(f"sample_width: {sample_width}")
 verify_use_probability = args.verify_use_probability
+ini_unsafe_probability = args.ini_unsafe_probability
 
 sound_verify = args.sound_verify
 unsound_verify = args.unsound_verify
@@ -98,9 +99,10 @@ if benchmark_name == "mountain_car":
     x_l = [-0.6]
     x_r = [-0.4]
 
-    # u,  p
+    # u, p
     safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
     phi_list = [0.0, 0.1]
+    phi_list[0] = ini_unsafe_probability
     if adaptive_weight:
         w_list = [0.01, 0.99]
     else:
@@ -111,7 +113,8 @@ if benchmark_name == "mountain_car":
     # TODO: upper bound list:
     component_bound_idx = 0
     bound_direction_idx = 1 # left or right
-    safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
+    # safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
+    safe_range_bound_list = np.around(np.arange(0.2, 1.1, 0.1), 2).tolist()
 
     # SAFE_RANGE = [100.0, 100.0]
     # safe_range_upper_bound_list = np.arange(80.0, 96.0, 5.0).tolist()
@@ -123,6 +126,7 @@ if benchmark_name == "mountain_car":
 model_name_prefix = f"{benchmark_name}_{data_attr}_{path_num_list}_{phi_list}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}_{w_list}"
 model_name_prefix = f"{model_name_prefix}_{outside_trajectory_loss}_{only_data_loss}_{data_bs}"
 model_name_prefix = f"{model_name_prefix}_{data_safe_consistent}_{bs}_{num_components}"
+
 if sample_std != 0.01:
     model_name_prefix += f"_{sample_std}"
 if sample_width is not None:
