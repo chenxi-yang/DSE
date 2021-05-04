@@ -46,6 +46,9 @@ def get_parser():
     p.add_argument("--generate_all_dataset", default=False, type=str2bool, help="generate the data set")
     p.add_argument("--fixed_dataset", default=False, type=str2bool, help="whether to use the same dataset")
 
+    # constraint
+    p.add_argument("--ini_unsafe_probability", default=0.0, type=float, help="the ini-unsafe_probability to handle")
+
     # perturbation
     p.add_argument("--num_components", default=10, type=int, help="number of components to split")
     p.add_argument("--bs", default=10, type=int, help="batch size by number of component")
@@ -65,6 +68,7 @@ def get_parser():
     p.add_argument("--use_hoang", default=False, type=str2bool, help="whether use the outest optimization")
     p.add_argument("--bound_start", default=0, type=int, help=f"the index to start with in safe bound list")
     p.add_argument("--bound_end", default=3, type=int, help=f"the index to end within safe bound list")
+
     # smooth kernel in training
     p.add_argument("--sample_std", default=1.0, type=float, help=f"std to sample theta")
     p.add_argument("--sample_width", default=None, type=float, help=f"width to sample")
