@@ -260,7 +260,25 @@ def show_component_p(component_list):
     return 
 
 
-def verification(model_path, model_name, component_list, target):
+# def analysis_trajectories(abstract_state_list):
+#     return 
+def store_trajectory(abstract_state_list, trajectory_path):
+    trajectory_log_file = open(trajectory_path, 'w')
+    trajectory_log_file.write(f"{analysis_name_list}\n")
+    for abstract_state_idx, abstract_state in enumerate(abstract_state_list):
+        trajectory_log_file.write(f"abstract_state {abstract_state_idx}\n")
+        for symbol_table_idx, symbol_table in enumerate(abstract_state):
+            trajectory = symbol_table['trajectory']
+            trajectory_log_file.write(f"symbol_table {symbol_table_idx}\n")
+            for state in trajectory:
+                for x in state:
+                    trajectory_log_file.write(f"{float(x.left)}, {float(x.right)};")
+                trajectory_log_file.write(f"\n")
+    trajectory_log_file.close()
+    return 
+
+
+def verification(model_path, model_name, component_list, target, trajectory_path):
     if benchmark_name == "thermostat":
         m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     if benchmark_name == "mountain_car":
@@ -284,6 +302,7 @@ def verification(model_path, model_name, component_list, target):
     show_component_p(component_list)
     # print(abstract_state_list[0][0]["x"].c)
     abstract_state_list = m(abstract_state_list)
+    store_trajectory(abstract_state_list, trajectory_path)
     if verify_use_probability:
         verify(abstract_state_list, target)
     else:

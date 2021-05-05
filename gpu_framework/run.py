@@ -266,7 +266,12 @@ if __name__ == "__main__":
                     print(f"to verify safe bound: {safe_range_bound}")
                     verification_time = time.time()
                     component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, verification_num_components, w=perturbation_width)
-                    verification(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", component_list=component_list, target=target)
+                    verification(
+                        model_path=MODEL_PATH, 
+                        model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", 
+                        component_list=component_list, 
+                        target=target,
+                        trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}.txt")
                     print(f"---verification time: {time.time() - verification_time} sec---")
                 # exit(0)
                 # eval(X_train, y_train, m_t, target, 'train')
