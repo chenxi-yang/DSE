@@ -56,6 +56,7 @@ sample_std = args.sample_std
 sample_width = args.sample_width
 # analyze_trajectory = args.analyze_trajectory
 analysis = args.analysis
+use_abstract_components = args.use_abstract_components
 
 # print(f"sample_width: {sample_width}")
 verify_use_probability = args.verify_use_probability
@@ -131,7 +132,7 @@ if benchmark_name == "mountain_car":
 # else:
 model_name_prefix = f"{benchmark_name}_{data_attr}_{path_num_list}_{phi_list}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}_{w_list}"
 model_name_prefix = f"{model_name_prefix}_{outside_trajectory_loss}_{only_data_loss}_{data_bs}"
-model_name_prefix = f"{model_name_prefix}_{data_safe_consistent}_{bs}_{num_components}"
+model_name_prefix = f"{model_name_prefix}_{data_safe_consistent}_{bs}_{num_components}_{use_abstract_components}"
 
 if sample_std != 0.01:
     model_name_prefix += f"_{sample_std}"
@@ -178,7 +179,7 @@ eps = 1e-10
 
 # result_prefix = f"{benchmark_name}_{path_num_list}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
 result_prefix = f"{benchmark_name}_{path_num_list}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_start}_{safe_range_end}_{safe_range_step}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
-result_prefix = f"{result_prefix}_{data_safe_consistent}_{bound_start}_{bound_end}_{sample_std}_{sample_width}"
+result_prefix = f"{result_prefix}_{data_safe_consistent}_{bound_start}_{bound_end}_{sample_std}_{sample_width}_{use_abstract_components}"
 # to avoid too long file name
 if fixed_dataset:
     result_prefix = f"{result_prefix}_{fixed_dataset}"

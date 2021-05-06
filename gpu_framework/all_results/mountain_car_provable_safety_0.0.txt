@@ -1,7 +1,7 @@
 # p=0.0
 DSE, DiffAI
 0.2, Safe, Unsafe
-0.3, X, Unsafe
+0.3, Safe, Unsafe
 0.4, X, Unsafe
 0.5, Safe, Unsafe
 0.6, Safe, Safe

@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.ticker as ticker
 import re
 import os
 import numpy as np
@@ -671,6 +672,58 @@ def empirical_safe(
     return 
 
 
+def plot_long_line(x_list, y_list_list, label_name_list, figure_name, x_label, y_label, constraint=None):
+    color_list = ['g', 'b']
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    for idx, y_list in enumerate(y_list_list):
+        sns.lineplot(ax=ax, x=x_list, y=y_list, label=label_name_list[idx], color=color_list[idx])
+    
+    if constraint is not None:
+        plt.axhline(y=constraint, color='r', linestyle='-')
+    
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(base=20))
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(figure_name)
+    # plt.grid()
+    plt.savefig(f"all_figures/{figure_name}.png")
+    plt.close()
+
+
+def extract_trajectory(
+        mode,
+        file_name,
+        name_list,
+        name_idx,
+    ):
+    f = open(f"gpu_{mode}/result_test/trajectory/{file_name}.txt", 'r')
+    f.readline()
+    f.readline()
+    f.readline()
+    left_list, right_list = list(), list()
+    for line in f:
+        if 'symbol_table' in line:
+            break
+        data = line[:-1].split(';')
+        state = data[name_idx]
+        state_data = state.split(', ')
+        left, right = float(state_data[0]), float(state_data[1])
+        left_list.append(left)
+        right_list.append(right)
+    x_list = [i for i in range(len(left_list))]
+    plot_long_line(
+        x_list, 
+        [left_list, right_list],
+        ['lower bound', 'upper bound'],
+        f"{mode}_{file_name}_{name_list[name_idx]}",
+        x_label='Iteration',
+        y_label=f"{name_list[name_idx]}",
+        )
+
+    return 
+
+
 if __name__ == "__main__":
     # plot_loss('loss/') # the q and c loss
     # plot_loss_2('loss/')
@@ -681,15 +734,27 @@ if __name__ == "__main__":
     # vary_safe_bound()
     # abstract_component()
     # extract_verify_result()
-    provable_safe(
-        benchmark_name='mountain_car',
-        mode='provable_safety',
-        p_list=[0.1, 0.5],
-    )
-    empirical_safe(
-        benchmark_name='mountain_car',
-        mode='empirical_test',
-        p_list=[0.0, 0.1, 0.5],
+    # provable_safe(
+    #     benchmark_name='mountain_car',
+    #     mode='provable_safety',
+    #     p_list=[0.1, 0.5],
+    # )
+    # empirical_safe(
+    #     benchmark_name='mountain_car',
+    #     mode='empirical_test',
+    #     p_list=[0.0, 0.1, 0.5],
+    # )
+    # extract_trajectory(
+    #     mode='DiffAI',
+    #     file_name='mountain_car_[30]_DiffAI_0.01_2_10_400_False_10_128_1000_all_linearrelu_no_act_5_True_[[-0.8, 0.8], [0.5, 10000.0]]_0.2_1.1_0.1_[0.1, 0.1]_[1.0, 0]_True_False_True_False_40_True_0_3_1.0_1e-06_True_500_1_True_True__0.4_0',
+    #     name_list=['acceleration', 'position'],
+    #     name_idx=1,
+    # )
+    extract_trajectory(
+        mode='DSE',
+        file_name='mountain_car_[30]_DSE_0.01_2_10_400_True_10_128_1000_all_linearrelu_no_act_5_True_[[-0.8, 0.8], [0.5, 10000.0]]_0.2_1.1_0.1_[0.1, 0.1]_[1.0, 0]_True_False_True_False_40_True_0_3_1.0_1e-06_True_500_1_True_True__0.4_0',
+        name_list=['acceleration', 'position'],
+        name_idx=0,
     )
 
 
