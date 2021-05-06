@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import re
 import os
 import numpy as np
+import pandas as pd
 
 import seaborn as sns
 
@@ -128,6 +130,7 @@ dataset_path_prefix = f"dataset/{benchmark_name}_{dataset_distribution}_{x_l[0]}
 result_prefix = f"{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
 if fixed_dataset:
     result_prefix = f"{result_prefix}_{fixed_dataset}"
+
 
 def read_loss(loss_path):
     q_list = list()
@@ -589,6 +592,85 @@ def extract_verify_result():
     plot_verify(verify_result, fig_name=f"{result_prefix}")
 
 
+def plot_line(x_list, y_list_list, label_name_list, figure_name, x_label, y_label, constraint=None):
+    color_list = ['g', 'b']
+
+    patch_list = list()
+    for idx, label in enumerate(label_name_list):
+        patch_list.append(mpatches.Patch(color=color_list[idx], label=label_name_list[idx]))
+
+    for idx, y_list in enumerate(y_list_list):
+        sns.pointplot(x=x_list, y=y_list, marker='o', color=color_list[idx])
+    
+    if constraint is not None:
+        plt.axhline(y=constraint, color='r', linestyle='-')
+
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(figure_name)
+    plt.legend(handles=patch_list)
+    plt.grid()
+    plt.savefig(f"all_figures/{figure_name}.png")
+    plt.close()
+
+
+def provable_safe(
+        benchmark_name,
+        mode,
+        p_list,
+    ):
+    for unsafe_p in p_list:
+        res_file = open(f"all_results/{benchmark_name}_{mode}_{unsafe_p}.txt", 'r')
+        res_file.readline()
+        label_name_list = res_file.readline()[:-1].split(', ')
+        x_list, y1_list, y2_list = list(), list(), list()
+        for line in res_file:
+            data = line[:-1].split(',')
+            print(data)
+            x, y1, y2 = float(data[0]), float(data[1]), float(data[2])
+            x_list.append(x)
+            y1_list.append(y1)
+            y2_list.append(y2)
+        plot_line(
+            x_list,
+            [y1_list, y2_list], 
+            label_name_list, 
+            f"{benchmark_name}_{mode}_{unsafe_p}",
+            x_label=f"Safe Bound",
+            y_label=f"Verified Probability of the Learnt Program",
+            constraint=unsafe_p, 
+            )
+
+    return
+
+
+def empirical_safe(
+        benchmark_name,
+        mode,
+        p_list,
+    ):
+    for unsafe_p in p_list:
+        res_file = open(f"all_results/{benchmark_name}_{mode}_{unsafe_p}.txt", 'r')
+        res_file.readline()
+        label_name_list = res_file.readline()[:-1].split(', ')
+        x_list, y1_list, y2_list = list(), list(), list()
+        for line in res_file:
+            data = line[:-1].split(',')
+            x, y1, y2 = float(data[0]), float(data[1]), float(data[2])
+            x_list.append(x)
+            y1_list.append(np.nan if y1 < 0 else y1)
+            y2_list.append(np.nan if y2 < 0 else y2)
+        plot_line(
+            x_list,
+            [y1_list, y2_list], 
+            label_name_list, 
+            f"{benchmark_name}_{mode}_{unsafe_p}",
+            x_label=f"Safe Bound",
+            y_label=f"Test Data Loss",
+            )
+    return 
+
+
 if __name__ == "__main__":
     # plot_loss('loss/') # the q and c loss
     # plot_loss_2('loss/')
@@ -599,6 +681,16 @@ if __name__ == "__main__":
     # vary_safe_bound()
     # abstract_component()
     # extract_verify_result()
+    provable_safe(
+        benchmark_name='mountain_car',
+        mode='provable_safety',
+        p_list=[0.1, 0.5],
+    )
+    empirical_safe(
+        benchmark_name='mountain_car',
+        mode='empirical_test',
+        p_list=[0.0, 0.1, 0.5],
+    )
 
 
 

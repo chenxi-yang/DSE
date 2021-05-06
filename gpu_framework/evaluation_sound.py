@@ -61,7 +61,7 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, tar
         if intersection_interval.isEmpty():
             unsafe_value = var_list([1.0])
         else:
-            safe_probability = intersection_interval.getLength().div(X.getLength())
+            safe_probability = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
             # TODO: remove this part
             # if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
             #     unsafe_value = var_list([0.0])
@@ -141,52 +141,6 @@ def verify(abstract_state_list, target):
             log_file_evaluation.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}\n")
     if debug:
         exit(0)
-
-
-def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx):
-    trajectory_loss = var_list([0.0])
-    # print(f"trajectory len: {len(symbol_table['trajectory'])}")
-    tmp_symbol_table_tra_loss = list()
-    safe_interval = target_component["condition"]
-    unsafe_probability_condition = target_component["phi"]
-    method = target_component["method"]
-    if method == "last":
-        trajectory = [symbol_table['trajectory'][-1]]
-    elif method == "all":
-        trajectory = symbol_table['trajectory'][:]
-
-    for state in trajectory:
-        X = state[target_idx]
-        if debug:
-            print(f"X:{X.left.data.item(), X.right.data.item()}")
-        intersection_interval = get_intersection(X, safe_interval)
-        if intersection_interval.isEmpty():
-            unsafe_value = var_list([1.0])
-        else:
-            safe_probability = intersection_interval.getLength().div(X.getLength())
-            # TODO: remove this part
-            # if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
-            #     unsafe_value = var_list([0.0])
-            # else:
-            #     unsafe_value = 1 - safe_probability
-            if real_unsafe_value:
-                unsafe_value = 1 - safe_probability
-            else:
-                if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
-                    unsafe_value = var_list([0.0])
-                else:
-                    unsafe_value = 1 - safe_probability
-        if verify_outside_trajectory_loss:
-            if debug:
-                print("loss of one symbol table", unsafe_value, symbol_table["probability"])
-            tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table["probability"])
-        else:
-            trajectory_loss = torch.max(trajectory_loss, unsafe_value)
-            # print(f"trajectory_loss: {trajectory_loss.data.item()}")
-    if verify_outside_trajectory_loss:
-        return tmp_symbol_table_tra_loss
-    else:
-        return trajectory_loss
 
 
 def in_interval(x, y):

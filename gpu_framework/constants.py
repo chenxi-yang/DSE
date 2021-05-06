@@ -54,7 +54,8 @@ bound_start = args.bound_start
 bound_end = args.bound_end
 sample_std = args.sample_std
 sample_width = args.sample_width
-analyze_trajectory = args.analyze_trajectory
+# analyze_trajectory = args.analyze_trajectory
+analysis = args.analysis
 
 # print(f"sample_width: {sample_width}")
 verify_use_probability = args.verify_use_probability
@@ -115,7 +116,10 @@ if benchmark_name == "mountain_car":
     component_bound_idx = 0
     bound_direction_idx = 1 # left or right
     # safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
-    safe_range_bound_list = np.around(np.arange(0.2, 1.1, 0.1), 2).tolist()
+    safe_range_start=0.2
+    safe_range_end=1.1
+    safe_range_step=0.1
+    safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
     analysis_name_list = ['acceleration', 'position']
 
     # SAFE_RANGE = [100.0, 100.0]
@@ -172,12 +176,15 @@ alpha_coeff = 0.9
 alpha_smooth_max = 0.8
 eps = 1e-10
 
-result_prefix = f"{benchmark_name}_{path_num_list}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
+# result_prefix = f"{benchmark_name}_{path_num_list}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
+result_prefix = f"{benchmark_name}_{path_num_list}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_start}_{safe_range_end}_{safe_range_step}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
 result_prefix = f"{result_prefix}_{data_safe_consistent}_{bound_start}_{bound_end}_{sample_std}_{sample_width}"
+# to avoid too long file name
 if fixed_dataset:
     result_prefix = f"{result_prefix}_{fixed_dataset}"
 if not use_data_loss:
     result_prefix = f"{result_prefix}_{use_data_loss}"
+
 if test_mode:
     # if outside_trajectory_loss:
     result_prefix = f"{result_prefix}_{verification_num_components}_{verification_num_abstract_states}_{verify_outside_trajectory_loss}_{verify_use_probability}"
@@ -195,7 +202,6 @@ else:
     #     file_dir_evaluation = f"gpu_{mode}/result/{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_evaluation.txt"
 
 trajectory_log_prefix = f"gpu_{mode}/result_test/trajectory/{result_prefix}_"
-
 
 if not debug and not generate_all_dataset and not analysis:
 

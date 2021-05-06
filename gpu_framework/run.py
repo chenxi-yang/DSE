@@ -253,14 +253,12 @@ if __name__ == "__main__":
                 if time_out == True:
                     continue
 
-                # TODO: add verification and test
-                # verification, going through the program without sampling
-                # test for the quantitative accuracy
+                # verification: going through the program without sampling
+                # test: for the quantitative accuracy
                 if not test_mode:
                     print(f"skip verification")
                     continue
-                # if safe_range_bound <= 0.7:
-                #     continue
+
                 if sound_verify:
                     print(f"------------start sound verification------------")
                     print(f"to verify safe bound: {safe_range_bound}")
@@ -273,9 +271,7 @@ if __name__ == "__main__":
                         target=target,
                         trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}.txt")
                     print(f"---verification time: {time.time() - verification_time} sec---")
-                # exit(0)
-                # eval(X_train, y_train, m_t, target, 'train')
-                # eval(X_test, y_test, m_t, target, 'test')
+                    
                 if unsound_verify:
                     # print(f"------------start unsound verification------------")
                     # print(f"to verify safe bound(train dataset): {safe_range_bound}")
