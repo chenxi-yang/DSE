@@ -126,7 +126,7 @@ class LinearReLUNoAct(nn.Module):
         # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
 
     def forward(self, x):
-        # start_time = time.time()
+        # final layer is not activation
         res = self.linear1(x)
         res = self.relu(res)
         # res = self.Sigmoid()

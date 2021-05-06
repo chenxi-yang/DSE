@@ -197,7 +197,7 @@ def safe_distance(symbol_tables, target):
             target_loss += trajectory_loss
         target_loss = target_loss / (var(len(symbol_tables)).add(float(EPSILON)))
         target_loss = target_component["w"] * (target_loss - unsafe_probability_condition)
-        target_loss = torch.max(target_loss, var(0.0))
+        # target_loss = torch.max(target_loss, var(0.0))
         loss +=  target_loss
 
     return loss
@@ -212,11 +212,19 @@ def cal_safe_loss(m, trajectory_list, width, target):
     # TODO: for now, we only keep 
     # TODO: use batch version, batch the initial states together
     # to reduce cost
-    shuffle(trajectory_list)
-    trajectory_list = trajectory_list[:int(len(trajectory_list)/2)]
-    x = [[ini_trajectory(trajectory)[0][0]] for trajectory in trajectory_list]
-    center_list, width_list = create_small_ball(x, width)
+    if use_abstract_components:
+        # trajectory_list is actually component_list
+        center_list, width_list = list(), list()
+        for component in trajectory_list:
+            center_list.append(component['center'])
+            width_list.append(component['width'])
+    else:
+        shuffle(trajectory_list)
+        trajectory_list = trajectory_list[:int(len(trajectory_list)/2)]
+        x = [[ini_trajectory(trajectory)[0][0]] for trajectory in trajectory_list]
+        center_list, width_list = create_small_ball(x, width)
     batched_center, batched_width = batch_points(center_list), batch_points(width_list)
+
     # print(f"[safe loss] center, width: {batched_center.shape}, {batched_width.shape}")
     abstract_data = initialization_nn(batched_center, batched_width)
     # if debug:
@@ -272,19 +280,25 @@ def divide_chunks(component_list, data_safe_consistent, bs=1, data_bs=2):
                 # print(f"before: {len(trajectory)}")
                 trajectory_list.append(trajectory)
                 real_trajectory_list.append(trajectory)
-                # print(f"after: {len(trajectory_list)}")
                 if data_safe_consistent:
                     continue
                 if (trajectory_idx + data_bs > len(component['trajectory_list']) - 1) and component_idx == len(components) - 1:
                     pass
                 elif len(trajectory_list) == data_bs:
                     # print(trajectory_list)
-                    yield trajectory_list, real_trajectory_list, False
+                    # yield trajectory_list,  real_trajectory_list, False
+                    if use_abstract_components:
+                        yield trajectory_list, [], False
+                    else:
+                        yield trajectory_list,  real_trajectory_list, False
                     trajectory_list = list()
             # print(f"component probability: {component['p']}")
 
         # print(f"out: {trajectory_list}")
-        yield trajectory_list, real_trajectory_list, True # use safe loss
+        if use_abstract_components:
+            yield trajectory_list, abstract_states, True # use safe loss
+        else:
+            yield trajectory_list, real_trajectory_list, True
 
 
 def update_model_parameter(m, theta):
