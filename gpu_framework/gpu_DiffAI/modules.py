@@ -544,7 +544,7 @@ class Trajectory(nn.Module):
             input_interval_list = list()
             for idx in self.target_idx:
                 #! force everything in trajectory to cpu
-                input = domain.Box(cur_x_c[idx].cpu(), cur_x_delta[idx].cpu())
+                input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
                 # print(cur_x_c[idx], cur_x_delta[idx])
                 input_interval = input.getInterval()
                 # changing c does not influence interval
