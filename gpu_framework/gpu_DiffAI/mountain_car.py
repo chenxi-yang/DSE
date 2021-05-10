@@ -18,29 +18,6 @@ if torch.cuda.is_available():
     index3 = index3.cuda()
 
 
-# DiffAI version
-# def initialization_nn(center_list, width_list, p_list=None):
-#     #center is a batch, so is the width
-#     # trajectory_list is a separate list storing the trajectory mapping to each batch
-#     # index_list
-#     # print(f"in initialization_nn")
-#     symbol_table_list = list()
-#     for idx, center in enumerate(center_list):
-#         width = width_list[idx]
-#         p = var(1.0) if p_list is None else p_list[i]
-#         symbol_table = {
-#             'x': domain.Box(var_list([center[0], 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0])),
-#             # 'safe_range': domain.Interval(P_INFINITY, N_INFINITY),
-#             'probability': var(p),
-#             'trajectory': list(),
-#             'branch': '',
-#         }
-
-#         symbol_table_list.append(symbol_table)
-
-#     return symbol_table_list
-
-
 def initialization_nn(batched_center, batched_width):
     B, D = batched_center.shape
     padding = torch.zeros(B, 1)
@@ -100,6 +77,7 @@ def f_self(x):
 
 def f_test(x):
     return x
+
 
 class LinearSig(nn.Module):
     def __init__(self, l):

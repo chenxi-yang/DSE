@@ -81,7 +81,7 @@ CURRENT_PROGRAM = 'program' + benchmark_name # 'program_test_disjunction_2'
 DATASET_PATH = f"dataset/{benchmark_name}_{data_attr}.txt"
 MODEL_PATH = f"gpu_{mode}/models"
 
-# Linear nn, Sigmoid
+# Linear nn, Sigmoidgf
 if benchmark_name == "thermostat":
     x_l = [55.0]
     x_r = [62.0]
@@ -126,6 +126,31 @@ if benchmark_name == "mountain_car":
     # SAFE_RANGE = [100.0, 100.0]
     # safe_range_upper_bound_list = np.arange(80.0, 96.0, 5.0).tolist()
     # PHI = 0.1
+
+if benchmark_name == "unsound_1":
+    x_l = [-5.0]
+    x_r = [5.0]
+
+    safe_range_list = [[-3,0, 3.0]]
+    phi_list = [0.0, 0.1]
+    phi_list[0] = ini_unsafe_probability
+    if adaptive_weight:
+        w_list = [0.01]
+    else:
+        # w_list = [0.4, 0.6]
+        w_list = [1.0]
+    method_list = ['all']
+    name_list = ['test']
+    # TODO: upper bound list:
+    component_bound_idx = 0
+    bound_direction_idx = 1 # left or right
+    # safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
+    safe_range_start=3.0
+    safe_range_end=3.5
+    safe_range_step=1.0
+    safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
+    analysis_name_list = ['test']
+
 
 # if adaptive_weight:
 #     model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}_{w_list}"
@@ -209,7 +234,7 @@ if not debug and not generate_all_dataset and not analysis:
     if os.path.exists(file_dir):
         log_file = open(file_dir, 'a')
     else:
-        log_file = open(file_dir, 'w')
+        log_file = open(file_dir, 'w')    
     log_file.write(f"{args}\n")
     log_file.write(f"Target info: {safe_range_list}, {phi_list}, \
         {w_list}, {method_list}, {safe_range_bound_list}\n")

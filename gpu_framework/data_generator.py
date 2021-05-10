@@ -12,6 +12,8 @@ def dataset_arg(dataset):
         range_ = [55.0, 62.0]
     if dataset == "mountain_car":
         range_ = [-0.6, -0.4]
+    if dataset == "unsound_1":
+        range_ = [-5.0, 5.0]
     
     return range_
 
@@ -65,6 +67,8 @@ def run(safe_bound):
         func = benchmark.thermostat
     if dataset == "mountain_car":
         func = benchmark.mountain_car
+    if dataset == "unsound_1":
+        func = benchmark.unsound_1
     
     input_range = dataset_arg(dataset)
 
