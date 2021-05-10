@@ -147,6 +147,8 @@ if __name__ == "__main__":
                         m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
                     if benchmark_name == "mountain_car":
                         m = MountainCar(l=l, nn_mode=nn_mode, module=module)
+                    if benchmark_name == "unsound_1":
+                        m = Unsound_1()
                     # print(m)
                     if test_mode:
                         # mainly for testing the verification part
@@ -173,6 +175,8 @@ if __name__ == "__main__":
                                 m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
                             if benchmark_name == "mountain_car":
                                 m = MountainCar(l=l, nn_mode=nn_mode, module=module)
+                            if benchmark_name == "unsound_1":
+                                m = Unsound_1()
                     # try: 
                     _, loss, loss_list, q, c, time_out = learning(
                         m, 

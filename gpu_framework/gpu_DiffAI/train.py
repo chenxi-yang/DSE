@@ -91,7 +91,7 @@ def cal_data_loss(m, trajectory_list, criterion):
     # print(X.shape, y.shape)
     yp = m(X, version="single_nn_learning")
     data_loss = criterion(yp, y)
-    # print(f"data_loss: {data_loss}")s
+    # print(f"data_loss: {data_loss}")
     return data_loss
 
 
