@@ -117,9 +117,12 @@ if benchmark_name == "mountain_car":
     component_bound_idx = 0
     bound_direction_idx = 1 # left or right
     # safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
-    safe_range_start=0.2
-    safe_range_end=1.1
-    safe_range_step=0.1
+    # safe_range_start=0.2
+    # safe_range_end=1.1
+    # safe_range_step=0.1
+    safe_range_start=0.03
+    safe_range_end=0.11
+    safe_range_step=0.02
     safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
     analysis_name_list = ['acceleration', 'position']
 

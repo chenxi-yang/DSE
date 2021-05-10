@@ -13,6 +13,8 @@ if benchmark_name == "thermostat":
     from gpu_DiffAI.thermostat_nn import * 
 if benchmark_name == "mountain_car":
     from gpu_DiffAI.mountain_car import *
+if benchmark_name == "unsound_1":
+    from gpu_DiffAI.unsound_1 import *
 
 from utils import (
     generate_distribution,
@@ -436,13 +438,12 @@ def learning(
                     grad_data_loss, grad_safe_loss = data_loss, safe_loss
 
                 # print(f"grad data_loss: {grad_data_loss.data.item()}, grad safe_loss: {grad_safe_loss.data.item()}, loss TIME: {time.time() - batch_time}")
-
             else:
                 if use_data_loss:
                     data_loss = cal_data_loss(m, trajectory_list, criterion)
                 else:
                     data_loss = var(0.0)
-                # print(f"in safe loss: {len(trajectory_list)}")
+                print(f"in safe loss: {len(trajectory_list)}")
                 safe_loss = cal_safe_loss(m, real_trajectory_list, width, target)
 
                 real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)

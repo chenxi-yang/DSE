@@ -101,16 +101,16 @@ def mountain_car(p0, safe_bound):
 def unsound_1(x, safe_bound):
     # x in [-5, 5]
     a = 2.0
-    b = 3.0
-    bar = 15
+    b = 20.0
+    bar = 1.0
     z = 0.0
     trajectory_list = list()
 
     y = a * x + b
     if y <= bar:
-        z = 1
+        z = 10
     else:
-        z = 100000
+        z = 1
     trajectory_list.append((x, z))
 
     return trajectory_list
