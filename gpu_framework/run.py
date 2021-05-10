@@ -95,7 +95,7 @@ if __name__ == "__main__":
                     "condition": domain.Interval(var(SAFE_RANGE[0]), var(safe_range_upper_bound)),
                     "phi": var(PHI),
                 }
-            if benchmark_name == "mountain_car":
+            if benchmark_name in ["mountain_car", "unsound_1"]:
                 target = list()
                 for idx, safe_range in enumerate(safe_range_list):
                     # only use the acceleration condition
@@ -124,7 +124,10 @@ if __name__ == "__main__":
             preprocessing_time = time.time()
             # TODO: the data is one-dimension (x = a value)
             if fixed_dataset:
-                Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
+                if benchmark_name == "mountain_car":
+                    Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
+                if benchmark_name == "unsound_1":
+                    Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
             else:
                 Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
             component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components, w=perturbation_width)

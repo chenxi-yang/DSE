@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from gpu_DiffAI.modules import *
+from gpu_DSE.modules import *
 
 import os
 
@@ -19,20 +19,22 @@ if torch.cuda.is_available():
 
 
 # input order: x, y, z
-def initialization_nn(batched_center, batched_width):
-    B, D = batched_center.shape
-    padding = torch.zeros(B, 1)
-    if torch.cuda.is_available():
-        padding = padding.cuda()
-    
-    input_center, input_width = batched_center[:, :1], batched_width[:, :1]
-    symbol_tables = {
-        'x': domain.Box(torch.cat((input_center, padding, padding), 1), torch.cat((input_width, padding, padding), 1)),
-        'trajectory_list': [[] for i in range(B)],
-        'idx_list': [i for i in range(B)], # marks which idx the tensor comes from in the input
-    }
+def initialization_abstract_state(component_list):
+    abstract_state_list = list()
+    # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
+    abstract_state = list()
+    for component in component_list:
+        center, width, p = component['center'], component['width'], component['p']
+        symbol_table = {
+            'x': domain.Box(var_list([center[0], 0.0, 0.0]), var_list([width[0], 0.0, 0.0])),
+            'probability': var(p),
+            'trajectory': list(),
+            'branch': '',
+        }
 
-    return symbol_tables
+        abstract_state.append(symbol_table)
+    abstract_state_list.append(abstract_state)
+    return abstract_state_list
 
 
 def f_test(x):
@@ -79,7 +81,7 @@ class Unsound_1(nn.Module):
         if version == "single_nn_learning":
             # TODO: use a batch-wise way
             y = self.nn(input)
-            print(f"y: {y.detach().cpu().numpy().tolist()[:3]}")
+            # print(f"y: {y.detach().cpu().numpy().tolist()[:3]}")
             x = torch.clone(y)
             x[y <= float(self.bar)] = 10.0
             x[y > float(self.bar)] = 1.0

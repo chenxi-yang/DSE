@@ -13,6 +13,8 @@ if benchmark_name == "thermostat":
     from gpu_DSE.thermostat_nn import * 
 if benchmark_name == "mountain_car":
     from gpu_DSE.mountain_car import *
+if benchmark_name == "unsound_1":
+    from gpu_DSE.unsound_1 import *
 
 from gpu_DSE.data_generator import *
 
@@ -330,6 +332,7 @@ def learning(
         q_loss, c_loss = 0.0, 0.0
         count = 0
         tmp_q_idx = 0
+
         for trajectory_list, abstract_states, use_safe_loss in divide_chunks(component_list, data_safe_consistent=data_safe_consistent, bs=bs, data_bs=data_bs):
             # print(f"x length: {len(x)}")
             # if len(trajectory_list) == 0:
@@ -346,6 +349,7 @@ def learning(
             # print(f"Theta before: {Theta}")
             if use_smooth_kernel:
                 if use_safe_loss:
+                    data_loss_list, safe_loss_list = list(), list()
                     for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n, sample_std=sample_std, sample_width=sample_width):
                         # show_cuda_memory(f"ini update model(sampled theta) ")
                         
@@ -359,6 +363,7 @@ def learning(
                             data_loss = cal_data_loss(m, trajectory_list, criterion)
                             grad_data_loss += float(data_loss) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                             real_data_loss += float(data_loss)
+                            data_loss_list.append(float(data_loss))
 
                         # show_cuda_memory(f"end sampled data loss")
                         
@@ -366,8 +371,9 @@ def learning(
                         safe_loss = cal_safe_loss(m, abstract_states, target)
                         grad_safe_loss += float(safe_loss) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                         real_safe_loss += float(safe_loss)
+                        safe_loss_list.append(float(safe_loss))
 
-                        print(f"data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}, grad data loss: {float(float(data_loss) * sample_theta_p)}, grad safe loss: {float(float(safe_loss) * sample_theta_p)}")
+                        # print(f"data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}, grad data loss: {float(float(data_loss) * sample_theta_p)}, grad safe loss: {float(float(safe_loss) * sample_theta_p)}")
                         # print(f"{'#' * 15}")
                         # print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
 
@@ -380,6 +386,10 @@ def learning(
                     grad_safe_loss /= n
                     real_data_loss /= n
                     real_safe_loss /= n
+
+                    # max_data_loss, min_data_loss = max(data_loss_list), min(data_loss_list)
+                    # max_safe_loss, min_safe_loss = max(safe_loss_list), min(safe_loss_list)
+
                 else:
                     if len(trajectory_list) == 0:
                         continue
@@ -421,16 +431,16 @@ def learning(
             # loss = grad_safe_loss
             loss.backward()
             # print(f"grad of data_loss: {float(grad_data_loss.grad)}, grad of safe_loss: {float(grad_safe_loss.grad)}")
-            print(f"value before clip", m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3])
+            print(f"value before clip, weight: {m.nn.linear.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.detach().cpu().numpy().tolist()[0]}")
             # print(m.nn.linear1.weight.grad)
             # print(m.nn.linear2.weight.grad)
             # Theta = extract_parameters(m) 
             # for partial_theta in Theta:
             #     torch.nn.utils.clip_grad_norm_(partial_theta, 1)
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
-            print(f"grad before step", m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3])
+            print(f"grad before step, weight: {m.nn.linear.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.grad.detach().cpu().numpy().tolist()[0]}")
             optimizer.step()
-            print(f"value after step", m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3])
+            print(f"value before step, weight: {m.nn.linear.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
             # new_theta = extract_parameters(m)
             # print(f"Theta after step: {new_theta}")
@@ -442,6 +452,7 @@ def learning(
         if save:
             if not debug:
                 save_model(m, MODEL_PATH, name=model_name, epoch=i)
+                print(f"save model")
             
         # if i >= 5 and i%2 == 0:
         #     for param_group in optimizer.param_groups:
