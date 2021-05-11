@@ -218,6 +218,9 @@ def extract_abstract_representation(
     # 2. measure probability 
     # 3. slice X_train, y_train into component-wise
     '''
+    # fixed random seed
+    np.random.seed(seed=1)
+    random.seed(1)
     # TODO: generate small ball based on init(trajectory), others remain
     start_t = time.time()
     # print(f"w: {w}")

@@ -15,6 +15,10 @@ if benchmark_name == "mountain_car":
     from gpu_DiffAI.mountain_car import *
 if benchmark_name == "unsound_1":
     from gpu_DiffAI.unsound_1 import *
+if benchmark_name == "unsound_1_separate":
+    from gpu_DiffAI.unsound_2_separate import *
+if benchmark_name == "unsound_1_overall":
+    from gpu_DiffAI.unsound_2_overall import *
 
 from utils import (
     generate_distribution,

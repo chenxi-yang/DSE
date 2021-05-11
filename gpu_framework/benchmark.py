@@ -116,6 +116,43 @@ def unsound_1(x, safe_bound):
     return trajectory_list
 
 
+def unsound_2_separate(x, safe_bound):
+    # x in [-5, 5]
+    a = 0.1
+    b = 2.0
+    bar = 1.0
+    z = 0.0
+    trajectory_list = list()
+    y = a * x + b
+    trajectory_list.append((x, y))
+    if y <= bar:
+        z = 10
+    else:
+        z = 1
+    y = a * z + b
+    trajectory_list.append((z, y))
+
+    return trajectory_list
+
+
+def unsound_2_overall(x, safe_bound):
+    # x in [-5, 5]
+    a = 0.1
+    b = 2.0
+    bar = 1.0
+    z = 0.0
+    trajectory_list = list()
+    y = a * x + b
+    if y <= bar:
+        z = 10
+    else:
+        z = 1
+    y = a * z + b
+    trajectory_list.append((x, y))
+
+    return trajectory_list
+
+
 def mountain_car_algo(p, v):
     # p: [goal_position, infinity], 0.1
     # u: [-0.9, 0.9], 0.1
