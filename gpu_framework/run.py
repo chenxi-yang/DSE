@@ -119,6 +119,30 @@ if __name__ == "__main__":
                             "name": name_list[idx], 
                         }
                     target.append(target_component)
+            if benchmark_name in ["unsound_2_separate", "unsound_2_overall"]:
+                target = list()
+                for idx, safe_range in enumerate(safe_range_list):
+                    # only use the acceleration condition
+                    if idx > 0:
+                        continue
+                    if idx == component_bound_idx:
+                        # TODO: only update the upper bound
+                        target_component = {
+                            "condition": domain.Interval(var(safe_range_bound), var(safe_range[1])),
+                            "phi": var(phi_list[idx]),
+                            "w": var(w_list[idx]), 
+                            "method": method_list[idx], 
+                            "name": name_list[idx], 
+                        }
+                    else:
+                        target_component = {
+                            "condition": domain.Interval(var(safe_range[0]), var(safe_range[1])),
+                            "phi": var(phi_list[idx]),
+                            "w": var(w_list[idx]), 
+                            "method": method_list[idx], 
+                            "name": name_list[idx], 
+                        }
+                    target.append(target_component)
 
             # data points generation
             preprocessing_time = time.time()
@@ -126,7 +150,7 @@ if __name__ == "__main__":
             if fixed_dataset:
                 if benchmark_name == "mountain_car":
                     Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
-                if benchmark_name == "unsound_1":
+                if benchmark_name in ["unsound_1", "unsound_2_separate", "unsound_2_overall"]:
                     Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
             else:
                 Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
@@ -152,6 +176,10 @@ if __name__ == "__main__":
                         m = MountainCar(l=l, nn_mode=nn_mode, module=module)
                     if benchmark_name == "unsound_1":
                         m = Unsound_1()
+                    if benchmark_name == "unsound_2_separate":
+                        m = Unsound_2_Separate()
+                    if benchmark_name == "unsound_2_overall":
+                        m = Unsound_2_Overall()
                     # print(m)
                     if test_mode:
                         # mainly for testing the verification part
@@ -180,6 +208,10 @@ if __name__ == "__main__":
                                 m = MountainCar(l=l, nn_mode=nn_mode, module=module)
                             if benchmark_name == "unsound_1":
                                 m = Unsound_1()
+                            if benchmark_name == "unsound_2_separate":
+                                m = Unsound_2_Separate()
+                            if benchmark_name == "unsound_2_overall":
+                                m = Unsound_2_Overall()
                     # try: 
                     _, loss, loss_list, q, c, time_out = learning(
                         m, 

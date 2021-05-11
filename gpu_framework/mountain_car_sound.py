@@ -250,7 +250,7 @@ class MountainCar(nn.Module):
         self.ifelse_v = IfElse(target_idx=[1], test=self.min_speed, f_test=f_test, body=self.assign_min_speed, orelse=self.ifelse_max_speed)
         
         self.assign_update_p = Assign(target_idx=[0], arg_idx=[0, 1], f=f_assign_update_p)
-        self.trajectory_update_1 = Trajectory(target_idx=[2, 0])
+        self.trajectory_update_1 = Trajectory(target_idx=[2, 0, 1])
         self.whileblock = nn.Sequential(
             self.ifelse_p,
             self.assign_block, 
@@ -264,7 +264,7 @@ class MountainCar(nn.Module):
         self.check_reach = Assign(target_idx=[3], arg_idx=[3], f=reward_reach)
         self.check_position = IfElse(target_idx=[0], test=self.goal_position, f_test=f_test, body=self.check_non, orelse=self.check_reach)
         
-        self.trajectory_update_2 = Trajectory(target_idx=[2, 0])
+        self.trajectory_update_2 = Trajectory(target_idx=[2, 0, 1])
         self.program = nn.Sequential(
             self.while1,
             self.check_position,

@@ -14,6 +14,10 @@ def dataset_arg(dataset):
         range_ = [-0.6, -0.4]
     if dataset == "unsound_1":
         range_ = [-5.0, 5.0]
+    if dataset == "unsound_2_separate":
+        range_ = [-5.0, 5.0]
+    if dataset == "unsound_2_overall":
+        range_ = [-5.0, 5.0]
     
     return range_
 
@@ -69,6 +73,10 @@ def run(safe_bound):
         func = benchmark.mountain_car
     if dataset == "unsound_1":
         func = benchmark.unsound_1
+    if dataset == "unsound_2_separate":
+        func = benchmark.unsound_2_separate
+    if dataset == "unsound_2_overall":
+        func = benchmark.unsound_2_overall
     
     input_range = dataset_arg(dataset)
 
