@@ -328,8 +328,6 @@ def load_model(m, folder, name, epoch=None):
         return int(epoch), m
 
 
-
-
 def save_model(model, folder, name, epoch):
     path = os.path.join(folder, f"model_{name}", str(epoch))
     try:
