@@ -15,6 +15,10 @@ if benchmark_name == "mountain_car":
     from gpu_DSE.mountain_car import *
 if benchmark_name == "unsound_1":
     from gpu_DSE.unsound_1 import *
+if benchmark_name == "unsound_2_separate":
+    from gpu_DiffAI.unsound_2_separate import *
+if benchmark_name == "unsound_2_overall":
+    from gpu_DiffAI.unsound_2_overall import *
 
 from gpu_DSE.data_generator import *
 
