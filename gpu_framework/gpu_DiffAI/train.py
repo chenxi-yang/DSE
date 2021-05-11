@@ -245,8 +245,8 @@ def cal_safe_loss(m, trajectory_list, width, target):
     # show_cuda_memory(f"[cal_safe_loss] before safe distance")
     safe_loss = safe_distance(output, target)
     # show_cuda_memory(f"[cal_safe_loss] after safe distance")
-    if debug:
-        exit(0)
+    # if debug:
+    #     exit(0)
     
     return safe_loss
 
@@ -451,6 +451,7 @@ def learning(
                 tmp_q_idx += 1
                 
             print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss}, real safe_loss: {real_safe_loss}, data and safe TIME: {time.time() - batch_time}")
+
             q_loss += real_data_loss
             c_loss += real_safe_loss
 
@@ -475,17 +476,21 @@ def learning(
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
         print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}")
         print(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss/tmp_q_idx}, c: {c_loss}")
-        log_file = open(file_dir, 'a')
-        log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
-        log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}\n")
-        log_file.write(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss}, c: {c_loss}\n")
-        log_file.flush()
+        if debug:
+            exit(0)
+        if not debug:
+            log_file = open(file_dir, 'a')
+            log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
+            log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}\n")
+            log_file.write(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss}, c: {c_loss}\n")
+            log_file.flush()
 
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
 
-        if float(c_loss) < float(EPSILON):
+        # if float(c_loss) < float(EPSILON):
+        if float(c_loss) == 0.0:
             if not debug:
                 log_file = open(file_dir, 'a')
                 log_file.write('c_loss is small enough. End. \n')

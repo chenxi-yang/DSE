@@ -57,6 +57,7 @@ sample_width = args.sample_width
 # analyze_trajectory = args.analyze_trajectory
 analysis = args.analysis
 use_abstract_components = args.use_abstract_components
+test_with_training = args.test_with_training
 
 # print(f"sample_width: {sample_width}")
 verify_use_probability = args.verify_use_probability
@@ -64,7 +65,7 @@ ini_unsafe_probability = args.ini_unsafe_probability
 
 sound_verify = args.sound_verify
 unsound_verify = args.unsound_verify
-assert(test_mode == (sound_verify or unsound_verify))
+assert((test_mode or test_with_training) == (sound_verify or unsound_verify))
 
 # thermostat: 0.3
 # mountain_car: 0.01
@@ -213,6 +214,8 @@ if fixed_dataset:
     result_prefix = f"{result_prefix}_{fixed_dataset}"
 if not use_data_loss:
     result_prefix = f"{result_prefix}_{use_data_loss}"
+if test_with_training:
+    result_prefix += f"_{test_with_training}"
 
 if test_mode:
     # if outside_trajectory_loss:

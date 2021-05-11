@@ -262,7 +262,7 @@ if __name__ == "__main__":
 
                 # verification: going through the program without sampling
                 # test: for the quantitative accuracy
-                if not test_mode:
+                if not test_mode and not test_with_training:
                     print(f"skip verification")
                     continue
 

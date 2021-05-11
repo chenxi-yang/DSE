@@ -474,7 +474,7 @@ def learning(
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
-        if float(c_loss) < float(EPSILON):
+        if float(c_loss) == 0.0:
             if not debug:
                 log_file = open(file_dir, 'a')
                 log_file.write('c_loss is small enough. End. \n')
