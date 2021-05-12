@@ -336,6 +336,10 @@ def learning(
         q_loss, c_loss = 0.0, 0.0
         count = 0
         tmp_q_idx = 0
+        if i > 0 and i % 50 == 0 and sample_width is not None:
+            print(f"before divide: {sample_width}")
+            sample_width /= 10.0
+            print(f"after divide: {sample_width}")
 
         for trajectory_list, abstract_states, use_safe_loss in divide_chunks(component_list, data_safe_consistent=data_safe_consistent, bs=bs, data_bs=data_bs):
             # print(f"x length: {len(x)}")
