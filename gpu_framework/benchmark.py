@@ -67,34 +67,28 @@ def mountain_car(p0, safe_bound):
     trajectory_list = list()
 
     while p <= goal_position:
-        # if i > 500:
-        #     break
+        # Reset position if position is out of range
         if p <= min_position:
             p = min_position
             v = 0
+        # update acceleration
         u = safe_acceleration(p, v, safe_bound)
+        # update trajectory
         trajectory_list.append((p, v, u))
-
-        # reward = reward + (-0.1) * u  * u
+        
+        # update velocity
         v = v + 0.0015 * u - 0.0025 * math.cos(3 * p)
+        # Reset v if v is out of range
         if v <= min_speed: 
             v = min_speed
         else:
             if v <= max_speed:
-                v = v # skip()
+                v = v 
             else:
                 v = max_speed
+        # update position
         p = p + v
-
-        i += 1
     
-    # if p < goal_position:
-    #     reward = reward
-    # else:
-    #     reward += 100
-    # exit(0)
-    # print(i)
-        
     return trajectory_list
 
 
