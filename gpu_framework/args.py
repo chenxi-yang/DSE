@@ -59,16 +59,36 @@ def get_parser():
     p.add_argument("--save", default=True, type=str2bool, help="decide whether to save the model or not")
     p.add_argument("--mode", help="which method used for training")
     p.add_argument("--adaptive_weight", default=False, type=str2bool, help="whether use another weight")
-    p.add_argument("--outside_trajectory_loss", default=False, type=str2bool, help="whether use the new loss function")
+    p.add_argument(
+        "--outside_trajectory_loss", 
+        default=True, 
+        type=str2bool, 
+        help="whether use the new loss function"
+    )
     p.add_argument("--verify_outside_trajectory_loss", default=False, type=str2bool,  help="define the verification method")
-    p.add_argument("--only_data_loss", default=False, type=str2bool, help="only use data loss")
+    p.add_argument(
+        "--only_data_loss", 
+        default=False, 
+        type=str2bool, 
+        help="only use data loss"
+    )
     p.add_argument("--data_bs", default=2, type=int, help="number of trajectories to use for data loss")
     p.add_argument("--use_data_loss", default=True, type=str2bool, help="use data loss")
-    p.add_argument("--data_safe_consistent", default=True, type=str2bool, help="use data loss and safe loss simultanuously")
+    p.add_argument(
+        "--data_safe_consistent", 
+        default=True, 
+        type=str2bool, 
+        help="use data loss and safe loss simultanuously"
+    )
     p.add_argument("--use_hoang", default=False, type=str2bool, help="whether use the outest optimization")
     p.add_argument("--bound_start", default=0, type=int, help=f"the index to start with in safe bound list")
     p.add_argument("--bound_end", default=3, type=int, help=f"the index to end within safe bound list")
-    p.add_argument("--use_abstract_components", default=True, type=str2bool, help=f"use abstract components in diffAI")
+    p.add_argument(
+        "--use_abstract_components", 
+        default=True, 
+        type=str2bool, 
+        help=f"use abstract components in diffAI"
+        )
 
     # smooth kernel in training
     p.add_argument("--sample_std", default=1.0, type=float, help=f"std to sample theta")
