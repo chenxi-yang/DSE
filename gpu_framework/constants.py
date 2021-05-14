@@ -100,8 +100,12 @@ if benchmark_name == "thermostat":
     # SAFE_RANGE = [50.0, 85.0] # not that loose
 
 if benchmark_name == "mountain_car":
-    x_l = [-0.6]
+    # x_l = [-0.6]
+    # x_r = [-0.4]
+    x_l = [-1.2]
     x_r = [-0.4]
+    # x_l = [-0.6]
+    # x_r = [0.0]
 
     # u, p
     safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
@@ -121,9 +125,9 @@ if benchmark_name == "mountain_car":
     # safe_range_start=0.2
     # safe_range_end=1.1
     # safe_range_step=0.1
-    safe_range_start=0.03
-    safe_range_end=0.11
-    safe_range_step=0.02
+    safe_range_start=0.5
+    safe_range_end=1.1
+    safe_range_step=0.1
     safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
     analysis_name_list = ['acceleration', 'position']
 
@@ -209,9 +213,10 @@ if benchmark_name == "unsound_2_overall":
 # if adaptive_weight:
 #     model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}_{w_list}"
 # else:
-model_name_prefix = f"{benchmark_name}_{data_attr}_{path_num_list}_{phi_list}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}_{w_list}"
-model_name_prefix = f"{model_name_prefix}_{outside_trajectory_loss}_{only_data_loss}_{data_bs}"
-model_name_prefix = f"{model_name_prefix}_{data_safe_consistent}_{bs}_{num_components}_{use_abstract_components}"
+data_attr = f"{dataset_distribution}_{x_l[0]}_{x_r[0]}"
+model_name_prefix = f"{benchmark_name}_{data_attr}_{path_num_list}_{phi_list}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}"
+model_name_prefix = f"{model_name_prefix}_{data_bs}"
+model_name_prefix = f"{model_name_prefix}_{bs}_{num_components}"
 
 if sample_std != 0.01:
     model_name_prefix += f"_{sample_std}"
@@ -220,10 +225,10 @@ if sample_width is not None:
 
 if fixed_dataset:
     model_name_prefix = f"{model_name_prefix}_{fixed_dataset}"
-if not use_data_loss:
-    model_name_prefix = f"{model_name_prefix}_{use_data_loss}"
+# if not use_data_loss:
+#     model_name_prefix = f"{model_name_prefix}_{use_data_loss}"
 
-dataset_path_prefix = f"dataset/{benchmark_name}_{dataset_distribution}_{x_l[0]}_{x_r[0]}"
+dataset_path_prefix = f"dataset/{benchmark_name}_{data_attr}"
 
 # args
 dataset_size = 50
@@ -235,7 +240,7 @@ TEST = False
 PROTECTION_LOOP_NUM = 999
 PROTECTION_LOOP_NUM_SMOOTH = 999
 # MAXIMUM_ITERATION = 50
-MAXIMUM_ITERATION = 400
+MAXIMUM_ITERATION = 250
 
 N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)
@@ -257,13 +262,13 @@ alpha_smooth_max = 0.8
 eps = 1e-10
 
 # result_prefix = f"{benchmark_name}_{path_num_list}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
-result_prefix = f"{benchmark_name}_{path_num_list}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_start}_{safe_range_end}_{safe_range_step}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
-result_prefix = f"{result_prefix}_{data_safe_consistent}_{bound_start}_{bound_end}_{sample_std}_{sample_width}_{use_abstract_components}"
+result_prefix = f"{benchmark_name}_{path_num_list}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_start}_{safe_range_end}_{safe_range_step}_{phi_list}_{sound_verify}_{unsound_verify}_{data_bs}"
+result_prefix = f"{result_prefix}_{bound_start}_{bound_end}_{sample_std}_{sample_width}_{data_attr}"
 # to avoid too long file name
 if fixed_dataset:
     result_prefix = f"{result_prefix}_{fixed_dataset}"
-if not use_data_loss:
-    result_prefix = f"{result_prefix}_{use_data_loss}"
+# if not use_data_loss:
+#     result_prefix = f"{result_prefix}_{use_data_loss}"
 if test_with_training:
     result_prefix += f"_{test_with_training}"
 

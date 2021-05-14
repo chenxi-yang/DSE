@@ -88,6 +88,8 @@ def mountain_car(p0, safe_bound):
                 v = max_speed
         # update position
         p = p + v
+        # i += 1
+        # print(i, p)
     
     return trajectory_list
 
