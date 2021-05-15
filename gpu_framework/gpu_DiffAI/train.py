@@ -494,7 +494,7 @@ def learning(
         #     break
 
         # if float(c_loss) < float(EPSILON):
-        if float(c_loss) == 0.0:
+        if float(c_loss) <= 0.0:
             if not debug:
                 log_file = open(file_dir, 'a')
                 log_file.write('c_loss is small enough. End. \n')

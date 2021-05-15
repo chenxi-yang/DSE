@@ -336,10 +336,10 @@ def learning(
         q_loss, c_loss = 0.0, 0.0
         count = 0
         tmp_q_idx = 0
-        if i > 0 and i % 50 == 0 and sample_width is not None:
-            print(f"before divide: {sample_width}")
-            sample_width /= 10.0
-            print(f"after divide: {sample_width}")
+        # if i > 0 and i % 50 == 0 and sample_width is not None:
+        #     print(f"before divide: {sample_width}")
+        #     sample_width /= 10.0
+        #     print(f"after divide: {sample_width}")
 
         for trajectory_list, abstract_states, use_safe_loss in divide_chunks(component_list, data_safe_consistent=data_safe_consistent, bs=bs, data_bs=data_bs):
             # print(f"x length: {len(x)}")
@@ -482,7 +482,7 @@ def learning(
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
-        if float(c_loss) == 0.0:
+        if float(c_loss) <= 0.0:
             if not debug:
                 log_file = open(file_dir, 'a')
                 log_file.write('c_loss is small enough. End. \n')
@@ -490,7 +490,7 @@ def learning(
             break
         
         if (time.time() - start_time)/(i+1) > 6000 or TIME_OUT:
-            if i <= 2 : # give a chance for the first epoch
+            if i <= 5: # give a chance for the first few epoch
                 pass
             else:
                 if not debug:
