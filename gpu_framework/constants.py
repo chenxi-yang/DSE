@@ -102,10 +102,12 @@ if benchmark_name == "thermostat":
 if benchmark_name == "mountain_car":
     # x_l = [-0.6]
     # x_r = [-0.4]
-    x_l = [-1.2]
-    x_r = [-0.4]
+    # x_l = [-1.2]
+    # x_r = [-0.4]
     # x_l = [-0.6]
     # x_r = [0.0]
+    x_l = [-1.6]
+    x_r = [-0.0]
 
     # u, p
     safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
