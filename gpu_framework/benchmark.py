@@ -104,7 +104,7 @@ def unsound_1(x, safe_bound):
 
     y = a * x + b
     if y <= bar:
-        z = 10
+        z = 10 # [3.1, 4.75, 6.5, 8.25, 10.0]
     else:
         z = 1
     trajectory_list.append((x, z))

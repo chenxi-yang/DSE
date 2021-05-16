@@ -10,12 +10,16 @@ index0 = torch.tensor(0)
 index1 = torch.tensor(1)
 index2 = torch.tensor(2)
 index3 = torch.tensor(3)
+min_v = torch.tensor(1.0)
+max_v = torch.tensor(10.0)
 
 if torch.cuda.is_available():
     index0 = index0.cuda()
     index1 = index1.cuda()
     index2 = index2.cuda()
     index3 = index3.cuda()
+    min_v = min_v.cuda()
+    max_v = max_v.cuda()
 
 
 # input order: x, y, z
@@ -52,10 +56,10 @@ class LinearAssign(nn.Module):
 
 
 def f_assign_min_z(x):
-    return x.set_value(var(1.0))
+    return x.set_value(min_v)
 
 def f_assign_max_z(x):
-    return x.set_value(var(10.0))
+    return x.set_value(max_v)
 
 
 class Unsound_1(nn.Module):
@@ -83,8 +87,8 @@ class Unsound_1(nn.Module):
             y = self.nn(input)
             # print(f"y: {y.detach().cpu().numpy().tolist()[:3]}")
             x = torch.clone(y)
-            x[y <= float(self.bar)] = 10.0
-            x[y > float(self.bar)] = 1.0
+            x[y <= float(self.bar)] = float(max_v)
+            x[y > float(self.bar)] = float(min_v)
             res = x
         else:
             res = self.program(input)
