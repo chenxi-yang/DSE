@@ -11,7 +11,7 @@ index1 = torch.tensor(1)
 index2 = torch.tensor(2)
 index3 = torch.tensor(3)
 min_v = torch.tensor(1.0)
-max_v = torch.tensor(10.0)
+max_v = torch.tensor(4.75)
 
 if torch.cuda.is_available():
     index0 = index0.cuda()
