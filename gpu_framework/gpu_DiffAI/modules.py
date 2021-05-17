@@ -452,8 +452,8 @@ class IfElse(nn.Module):
     def forward(self, symbol_tables):
         test = self.f_test(self.test)
         # show_cuda_memory(f"[ifelse]before calculate branch")
-        print(f"[ifelse]before calculate branch, test: {test}")
-        print(f"all: {symbol_tables['x'].c}, \n\t{symbol_tables['x'].delta}")
+        # print(f"[ifelse]before calculate branch, test: {test}")
+        # print(f"all: {symbol_tables['x'].c}, \n\t{symbol_tables['x'].delta}")
         body_symbol_tables, orelse_symbol_tables = calculate_branch(self.target_idx, self.test, symbol_tables)
         # show_cuda_memory(f"[ifelse]after calculate branch")
         # print(f"{len(branch_list)}")
@@ -461,19 +461,19 @@ class IfElse(nn.Module):
 
         if len(body_symbol_tables) > 0:
             # show_cuda_memory(f"[ifelse]before body")
-            print(f"body: {body_symbol_tables['x'].c}, \n\t{body_symbol_tables['x'].delta}")
+            # print(f"body: {body_symbol_tables['x'].c}, \n\t{body_symbol_tables['x'].delta}")
             body_symbol_tables = self.body(body_symbol_tables)
-            print(f"[ifelse]before sound join")
-            print(f"body: {body_symbol_tables['x'].c}, \n\t{body_symbol_tables['x'].delta}")
+            # print(f"[ifelse]before sound join")
+            # print(f"body: {body_symbol_tables['x'].c}, \n\t{body_symbol_tables['x'].delta}")
             
             # show_cuda_memory(f"[ifelse]after body")
         if len(orelse_symbol_tables) > 0:
             # show_cuda_memory(f"[ifelse]before orelse")
-            print(f"else: {orelse_symbol_tables['x'].c}, \n\t{orelse_symbol_tables['x'].delta}")
+            # print(f"else: {orelse_symbol_tables['x'].c}, \n\t{orelse_symbol_tables['x'].delta}")
             orelse_symbol_tables = self.orelse(orelse_symbol_tables)
             # show_cuda_memory(f"[ifelse]end orelse")
-            print(f"[ifelse]before sound join")
-            print(f"else: {orelse_symbol_tables['x'].c}, \n\t{orelse_symbol_tables['x'].delta}")
+            # print(f"[ifelse]before sound join")
+            # print(f"else: {orelse_symbol_tables['x'].c}, \n\t{orelse_symbol_tables['x'].delta}")
         
         # show_cuda_memory(f"[ifelse]before sound join")
         # print(f"body: {body_symbol_tables['x'].c}, \n\t{body_symbol_tables['x'].delta}")
@@ -481,8 +481,8 @@ class IfElse(nn.Module):
         res_symbol_tables = sound_join(body_symbol_tables, orelse_symbol_tables)
         # show_cuda_memory(f"[ifelse]after sound join")
         # print(f"length of res_symbol_tables: {len(res_symbol_tables)}")
-        print(f"[ifelse]after sound join")
-        print(f"all: {res_symbol_tables['x'].c}, \n\t{res_symbol_tables['x'].delta}")
+        # print(f"[ifelse]after sound join")
+        # print(f"all: {res_symbol_tables['x'].c}, \n\t{res_symbol_tables['x'].delta}")
 
         return res_symbol_tables
 
