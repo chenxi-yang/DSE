@@ -241,7 +241,7 @@ def cal_safe_loss(m, trajectory_list, width, target):
         center_list, width_list = create_small_ball(x, width)
     batched_center, batched_width = batch_points(center_list), batch_points(width_list)
 
-    # print(f"[safe loss] center, width: {batched_center.shape}, {batched_width.shape}")
+    print(f"[safe loss] center, width: {batched_center.shape}, {batched_width.shape}")
     abstract_data = initialization_nn(batched_center, batched_width)
     # if debug:
     #     exit(0)
@@ -462,11 +462,11 @@ def learning(
             loss = grad_data_loss + lambda_ * grad_safe_loss
             # loss.backward(retain_graph=True)
             loss.backward()
+            print(f"value before clip, weight: {m.nn.linear.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.detach().cpu().numpy().tolist()[0]}")
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
-            # print(f"Linear1 grad: [{torch.min(m.nn.linear1.weight.grad)}, {torch.max(m.nn.linear1.weight.grad)}]")
-            # print(f"Linear2 grad: [{torch.min(m.nn.linear2.weight.grad)}, {torch.max(m.nn.linear2.weight.grad)}]")
-
+            print(f"grad before step, weight: {m.nn.linear.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.grad.detach().cpu().numpy().tolist()[0]}")
             optimizer.step()
+            print(f"value before step, weight: {m.nn.linear.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
 
         if save:

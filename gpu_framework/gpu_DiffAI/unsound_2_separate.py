@@ -6,6 +6,9 @@ from gpu_DiffAI.modules import *
 
 import os
 
+# parameters
+#  --lr 0.01 --b 1000
+
 index0 = torch.tensor(0)
 index1 = torch.tensor(1)
 index2 = torch.tensor(2)

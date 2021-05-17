@@ -43,7 +43,7 @@ def F_nr(ALL_x, opt_a, g):
     return np.array([col1,col2,col3,col4,col5,col6])
 
 #This is the Runge Kutta method for the planner
-def step_plan(planner_state, next_dir,dtt):
+def step_plan(planner_state, next_dir, dtt):
 
     der = np.array([next_dir[0], next_dir[1], next_dir[2], 0, 0, 0])
     
@@ -136,10 +136,12 @@ for e in range(episodes):
 
     observation = Conv(states - planner)
 
-    print(observation)
+    # print(observation, states, planner)
+    print(f"planner: {planner}")
 
     actions = model.predict(observation.reshape(1,len(observation)))
     action_index = np.argmax(actions[0])
+    # print(f"action index: {action_index}")
     action = getAction(action_index)
 
     cur_plan = optPlan(states, maxD)
