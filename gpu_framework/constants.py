@@ -72,7 +72,7 @@ assert((test_mode or test_with_training) == (sound_verify or unsound_verify))
 
 STATUS = 'Training' # a global status, if Training: use normal module, if Verifying: use sound module
 
-path_num_list = [30]
+path_num_list = [10]
 
 K_DISJUNCTS = 10000000
 SAMPLE_SIZE = 500
@@ -141,7 +141,7 @@ if benchmark_name == "unsound_1":
     x_l = [-5.0]
     x_r = [5.0]
 
-    safe_range_list = [[-3,0, 3.0]]
+    safe_range_list = [[-3.0, 3.0]]
     phi_list = [0.0, 0.1]
     phi_list[0] = ini_unsafe_probability
     if adaptive_weight:
@@ -166,7 +166,7 @@ if benchmark_name == "unsound_2_separate":
     x_l = [-5.0]
     x_r = [5.0]
 
-    safe_range_list = [[1,0, 2.5]]
+    safe_range_list = [[1.0, 2.5]]
     phi_list = [0.0, 0.1]
     phi_list[0] = ini_unsafe_probability
     if adaptive_weight:
@@ -191,7 +191,7 @@ if benchmark_name == "unsound_2_overall":
     x_l = [-5.0]
     x_r = [5.0]
 
-    safe_range_list = [[1,0, 2.5]]
+    safe_range_list = [[1.0, 2.5]]
     phi_list = [0.0, 0.1]
     phi_list[0] = ini_unsafe_probability
     if adaptive_weight:

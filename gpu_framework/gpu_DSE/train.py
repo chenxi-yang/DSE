@@ -1,13 +1,13 @@
-import torch
-import time
+import copy
 import random
-from torch.autograd import Variable
+import time
+
+import matplotlib.pyplot as plt
 import nlopt
 import numpy as np
-import matplotlib.pyplot as plt
-import copy
-
+import torch
 from constants import benchmark_name
+from torch.autograd import Variable
 
 if benchmark_name == "thermostat":
     from gpu_DSE.thermostat_nn import * 
@@ -20,17 +20,11 @@ if benchmark_name == "unsound_2_separate":
 if benchmark_name == "unsound_2_overall":
     from gpu_DSE.unsound_2_overall import *
 
-from gpu_DSE.data_generator import *
+from utils import (batch_pair, generate_distribution, ini_trajectory,
+                   sample_parameters, show_component, show_cuda_memory,
+                   show_trajectory)
 
-from utils import (
-    generate_distribution,
-    ini_trajectory,
-    batch_pair, 
-    show_cuda_memory,
-    show_component,
-    show_trajectory,
-    sample_parameters,
-)
+from gpu_DSE.data_generator import *
 
 random.seed(1)
 
@@ -83,6 +77,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
     # weighted sum of symbol_table loss in one abstract_state
     unsafe_probability_condition = target_component["phi"]
     safe_interval = target_component["condition"]
+    # print(f"safe interval: {float(safe_interval.left)}, {float(safe_interval.right)}")
     method = target_component["method"]
     abstract_loss = var_list([0.0])
     symbol_table_wise_loss_list = list()
@@ -117,9 +112,9 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
             # if float(unsafe_value) > 0:
-            #     print(f"X: {float(X.left)}, {float(X.right)}")
+            # print(f"X: {float(X.left)}, {float(X.right)}")
             #     print(f"point: {X.isPoint()}")
-            #     print(f"unsafe value: {float(unsafe_value)}")
+            # print(f"unsafe value: {float(unsafe_value)}")
             if outside_trajectory_loss:
                 tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table['probability'])
             else:
@@ -330,16 +325,13 @@ def learning(
         epochs_to_skip = -1
     
     start_time = time.time()
+    last_update_i = 0
     for i in range(epoch):
         if i <= epochs_to_skip:
             continue
         q_loss, c_loss = 0.0, 0.0
         count = 0
         tmp_q_idx = 0
-        # if i > 0 and i % 50 == 0 and sample_width is not None:
-        #     print(f"before divide: {sample_width}")
-        #     sample_width /= 10.0
-        #     print(f"after divide: {sample_width}")
 
         for trajectory_list, abstract_states, use_safe_loss in divide_chunks(component_list, data_safe_consistent=data_safe_consistent, bs=bs, data_bs=data_bs):
             # print(f"x length: {len(x)}")
@@ -360,7 +352,7 @@ def learning(
                     data_loss_list, safe_loss_list = list(), list()
                     for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n, sample_std=sample_std, sample_width=sample_width):
                         # show_cuda_memory(f"ini update model(sampled theta) ")
-                        
+                        print(f"sample theta: {sample_theta}")
                         m = update_model_parameter(m, sample_theta)
 
                         # show_cuda_memory(f"end update model(sampled theta) ")
@@ -377,11 +369,12 @@ def learning(
                         
                         # if not only_data_loss:
                         safe_loss = cal_safe_loss(m, abstract_states, target)
+                        # safe_loss = 0.0
                         grad_safe_loss += float(safe_loss) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                         real_safe_loss += float(safe_loss)
                         safe_loss_list.append(float(safe_loss))
 
-                        # print(f"data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}, grad data loss: {float(float(data_loss) * sample_theta_p)}, grad safe loss: {float(float(safe_loss) * sample_theta_p)}")
+                        print(f"data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}, grad data loss: {float(float(data_loss) * sample_theta_p)}, grad safe loss: {float(float(safe_loss) * sample_theta_p)}")
                         # print(f"{'#' * 15}")
                         # print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
 
@@ -470,9 +463,9 @@ def learning(
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
         print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}")
         if use_smooth_kernel:
-            print(f"-----finish {i}-th epoch-----, q: {q_loss}, c: {c_loss}")
+            print(f"-----finish {i}-th epoch-----, q: {q_loss}, c: {c_loss}, sample-width: {sample_width}")
         else:
-            print(f"-----finish {i}-th epoch-----, q: {q_loss/tmp_q_idx}, c: {c_loss}")
+            print(f"-----finish {i}-th epoch-----, q: {q_loss/tmp_q_idx}, c: {c_loss}, sample-width: {sample_width}")
         if not debug:
             log_file = open(file_dir, 'a')
             log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
@@ -482,6 +475,18 @@ def learning(
         # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
         # if torch.abs(f_loss.data) < var(stop_val):
         #     break
+        # c_loss = 100.0
+        # if sample_width is not None and float(c_loss) < 1.0:
+        #     if i - last_update_i > 20:
+        #         print(f"before divide: {sample_width}")
+        #         sample_width *= 0.1
+        #         last_update_i = i
+        #         print(f"after divide: {sample_width}")
+        if i > 0 and i % 10 == 0:
+            print(f"before divide: {sample_width}")
+            sample_width *= 0.1
+            print(f"after divide: {sample_width}")
+
         if float(c_loss) <= 0.0:
             if not debug:
                 log_file = open(file_dir, 'a')

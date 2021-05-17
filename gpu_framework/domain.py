@@ -471,6 +471,7 @@ class Box():
         return res
     
     def matmul(self, other):
+        # print(f"in matmul, self.c: {self.c.shape}, self.delta: {self.delta.shape}, other: {other.shape}")
         return self.new(self.c.matmul(other), self.delta.matmul(other.abs()))
     
     def add(self, other):

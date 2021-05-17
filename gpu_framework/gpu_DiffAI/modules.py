@@ -109,11 +109,15 @@ Program Statement
 
 def calculate_x_list(target_idx, arg_idx, f, symbol_tables):
     x = symbol_tables['x']
+    # print(f"in cal: {x.c.shape}, {x.delta.shape}")
     input = x.select_from_index(1, arg_idx)
+    # print(f"in cal: input: {input.c.shape}, {input.delta.shape}")
     res = f(input)
     # print(f, res.c.shape, x.c.shape, target_idx)
     x.c[:, target_idx] = res.c 
     x.delta[:, target_idx] = res.delta
+    # print(f"in cal: x:{x.c.shape}, {x.delta.shape}")
+    # exit(0)
     symbol_tables['x'] = x
 
     return symbol_tables
@@ -124,37 +128,52 @@ def calculate_branch(target_idx, test, symbol_tables):
     x = symbol_tables['x']
     target = x.select_from_index(1, target_idx) # select the batch target from x
 
-    # select the idx of left = target.right < test,  right = target.right >= test
+    # select the idx of left = target.left < test,  right = target.right >= test
     # select the trajectory accordingly
     # select the idx accordingly
     # split the other
 
     left = target.getLeft() < test
+    if debug:
+        print(f"left: {left}")  
     if True in left: # split to left
         left_idx = left.nonzero(as_tuple=True)[0].tolist()
         # x_left.c, x_left.delta = x.c[left.squeeze()], x.delta[left.squeeze()]
-        x_left = domain.Box(x.c[left.squeeze()], x.delta[left.squeeze()])
+        # print(f"left: {left}")
+        x_left = domain.Box(x.c[left.squeeze(1)], x.delta[left.squeeze(1)])
+        # x_left =  domain.Box(x.c[left[0]], x.delta[left[0]])
+        # print(f"x_left: {x_left.c},\n\t {x_left.delta}")
         left_target_c, left_target_delta = target.c[left].unsqueeze(1), target.delta[left].unsqueeze(1)
+        # print(f"left target:", left_target_c, left_target_delta, test)
 
         # get the new c, delta
-        left_target_c = ((left_target_c - left_target_delta) + torch.min((left_target_c + left_target_delta), test)) / 2.0
-        left_target_delta = (torch.min((left_target_c + left_target_delta), test) - (left_target_c - left_target_delta)) / 2.0
-        x_left.c[:, target_idx:target_idx+1] = left_target_c
-        x_left.delta[:, target_idx:target_idx+1] = left_target_delta
+        new_left_target_c = ((left_target_c - left_target_delta) + torch.min((left_target_c + left_target_delta), test)) / 2.0
+        # print(left_target_c + left_target_delta, test, torch.min((left_target_c + left_target_delta), test), (left_target_c - left_target_delta))
+        # print((torch.min((left_target_c + left_target_delta), test) - (left_target_c - left_target_delta)))
+        new_left_target_delta = (torch.min((left_target_c + left_target_delta), test) - (left_target_c - left_target_delta)) / 2.0
+        x_left.c[:, target_idx:target_idx+1] = new_left_target_c
+        x_left.delta[:, target_idx:target_idx+1] = new_left_target_delta
+        # print(f"x_left after update: {x_left.c}, \n\t{x_left.delta}")
         body_symbol_tables['x'] = x_left
         body_symbol_tables['trajectory_list'] = [symbol_tables['trajectory_list'][i] for i in left_idx]
         body_symbol_tables['idx_list'] = [symbol_tables['idx_list'][i] for i in left_idx]
+        # exit(0)
     
     right = target.getRight() >= test
+    if debug:
+        print(f"right:  {right}")
     if True in right: # split to right
+        # exit(0)
         right_idx = right.nonzero(as_tuple=True)[0].tolist()
-        x_right = domain.Box(x.c[right.squeeze()], x.delta[right.squeeze()])
+        x_right = domain.Box(x.c[right.squeeze(1)], x.delta[right.squeeze(1)])
+        # print(f"x_right: {x_right.c}, {x_right.delta}")
         right_target_c, right_target_delta = target.c[right].unsqueeze(1), target.delta[right].unsqueeze(1)
 
-        right_target_c = (torch.max((right_target_c - right_target_delta), test) + (right_target_c + right_target_delta)) / 2.0
-        right_target_delta = ((right_target_c + right_target_delta) - torch.max((right_target_c - right_target_delta), test)) / 2.0
-        x_right.c[:, target_idx:target_idx+1] = right_target_c
-        x_right.delta[:, target_idx:target_idx+1] = right_target_delta
+        new_right_target_c = (torch.max((right_target_c - right_target_delta), test) + (right_target_c + right_target_delta)) / 2.0
+        new_right_target_delta = ((right_target_c + right_target_delta) - torch.max((right_target_c - right_target_delta), test)) / 2.0
+        x_right.c[:, target_idx:target_idx+1] = new_right_target_c
+        x_right.delta[:, target_idx:target_idx+1] = new_right_target_delta
+        # print(f"x_right after update: {x_right.c}, {x_right.delta}")
         orelse_symbol_tables['x'] = x_right
         orelse_symbol_tables['trajectory_list'] = [symbol_tables['trajectory_list'][i] for i in right_idx]
         orelse_symbol_tables['idx_list'] = [symbol_tables['idx_list'][i] for i in right_idx]
@@ -433,25 +452,37 @@ class IfElse(nn.Module):
     def forward(self, symbol_tables):
         test = self.f_test(self.test)
         # show_cuda_memory(f"[ifelse]before calculate branch")
+        print(f"[ifelse]before calculate branch, test: {test}")
+        print(f"all: {symbol_tables['x'].c}, \n\t{symbol_tables['x'].delta}")
         body_symbol_tables, orelse_symbol_tables = calculate_branch(self.target_idx, self.test, symbol_tables)
         # show_cuda_memory(f"[ifelse]after calculate branch")
         # print(f"{len(branch_list)}")
-        
         # print(f"In IfElse, {len(body_list)}, {len(else_list)}")
-        
+
         if len(body_symbol_tables) > 0:
             # show_cuda_memory(f"[ifelse]before body")
+            print(f"body: {body_symbol_tables['x'].c}, \n\t{body_symbol_tables['x'].delta}")
             body_symbol_tables = self.body(body_symbol_tables)
+            print(f"[ifelse]before sound join")
+            print(f"body: {body_symbol_tables['x'].c}, \n\t{body_symbol_tables['x'].delta}")
+            
             # show_cuda_memory(f"[ifelse]after body")
         if len(orelse_symbol_tables) > 0:
             # show_cuda_memory(f"[ifelse]before orelse")
+            print(f"else: {orelse_symbol_tables['x'].c}, \n\t{orelse_symbol_tables['x'].delta}")
             orelse_symbol_tables = self.orelse(orelse_symbol_tables)
             # show_cuda_memory(f"[ifelse]end orelse")
+            print(f"[ifelse]before sound join")
+            print(f"else: {orelse_symbol_tables['x'].c}, \n\t{orelse_symbol_tables['x'].delta}")
         
         # show_cuda_memory(f"[ifelse]before sound join")
+        # print(f"body: {body_symbol_tables['x'].c}, \n\t{body_symbol_tables['x'].delta}")
+        # print(f"else: {orelse_symbol_tables['x'].c}, \n\t{orelse_symbol_tables['x'].delta}")
         res_symbol_tables = sound_join(body_symbol_tables, orelse_symbol_tables)
         # show_cuda_memory(f"[ifelse]after sound join")
         # print(f"length of res_symbol_tables: {len(res_symbol_tables)}")
+        print(f"[ifelse]after sound join")
+        print(f"all: {res_symbol_tables['x'].c}, \n\t{res_symbol_tables['x'].delta}")
 
         return res_symbol_tables
 

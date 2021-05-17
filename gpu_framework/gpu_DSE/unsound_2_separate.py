@@ -6,6 +6,14 @@ from gpu_DSE.modules import *
 
 import os
 
+# parameters:
+# --sample_width 1 --lr 0.05 --b 10 --num_components 10 --bs 2
+# 40  (20 update sample-width)
+# --sample_width 1 --lr 0.1 --b 10 --num_components 10 --bs 2
+# 5, 13
+# --sample_width 0.1 --lr 0.1 --b 10 --num_components 10 --bs 2
+# 4, 10, 
+
 index0 = torch.tensor(0)
 index1 = torch.tensor(1)
 index2 = torch.tensor(2)
@@ -85,7 +93,8 @@ class Unsound_2_Separate(nn.Module):
         if version == "single_nn_learning":
             # TODO: use a batch-wise way
             y = self.nn(input)
-            print(f"y: {y.detach().cpu().numpy().tolist()[:3]}")
+            # print(f"input: {input.detach().cpu().numpy().tolist()[:3]}")
+            # print(f"y: {y.detach().cpu().numpy().tolist()[:3]}")
             res = y
         else:
             res = self.program(input)

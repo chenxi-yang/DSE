@@ -127,6 +127,7 @@ if __name__ == "__main__":
                         continue
                     if idx == component_bound_idx:
                         # TODO: only update the upper bound
+                        print(safe_range)
                         target_component = {
                             "condition": domain.Interval(var(safe_range_bound), var(safe_range[1])),
                             "phi": var(phi_list[idx]),
