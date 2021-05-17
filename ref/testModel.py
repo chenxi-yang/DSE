@@ -110,15 +110,15 @@ def getAction(index):
     return [np.tan(0.1), np.tan(0.1), 11.81]
 
 def Conv(ALL_x):
-    pos = ALL_x[0:3]/5.0;
-    vel = ALL_x[3:6]/10.0;
+    pos = ALL_x[0:3]/5.0
+    vel = ALL_x[3:6]/10.0
     ret_val = np.concatenate((pos,vel),axis=0)
     return ret_val
 
 g = 9.81
 maxD = 0.25
 dtt = 0.1
-episodes = 1000
+episodes = 100
 
 states = np.array([0.1, 0.1, 0.1, 0.0, 0.0, 0])
 planner = np.array([0.2, 0.1, 0.1, 0, 0, 0])
@@ -136,7 +136,7 @@ for e in range(episodes):
 
     observation = Conv(states - planner)
 
-    #print(observation)
+    print(observation)
 
     actions = model.predict(observation.reshape(1,len(observation)))
     action_index = np.argmax(actions[0])
