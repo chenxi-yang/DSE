@@ -194,8 +194,8 @@ def safe_distance(symbol_tables, target):
                         unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(float(EPSILON)))
                         # unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
                 else:
-                    if debug:
-                        print(f"not empty")
+                    # if debug:
+                    #     print(f"not empty")
                     safe_portion = (intersection_interval.getLength() + eps) / (X.getLength() + eps)
                     # safe_probability = torch.index_select(safe_portion, 0, index0)
                     unsafe_value = 1 - safe_portion
@@ -211,8 +211,13 @@ def safe_distance(symbol_tables, target):
             target_loss += trajectory_loss
             if debug:
                 print(f"trajectory loss: {float(trajectory_loss)}")
-        target_loss = target_loss / (var(len(symbol_tables)).add(float(EPSILON)))
+        print(f"len: {len(symbol_tables['trajectory_list'])}")
+        target_loss = target_loss / (var(len(symbol_tables['trajectory_list'])).add(float(EPSILON)))
+        if debug:
+            print(f"target loss 1: {float(target_loss)}")
         target_loss = target_component["w"] * (target_loss - unsafe_probability_condition)
+        if debug:
+            print(f"target loss 2: {float(target_loss)}")
         # target_loss = torch.max(target_loss, var(0.0))
         loss += target_loss
 
@@ -242,6 +247,7 @@ def cal_safe_loss(m, trajectory_list, width, target):
     batched_center, batched_width = batch_points(center_list), batch_points(width_list)
 
     print(f"[safe loss] center, width: {batched_center.shape}, {batched_width.shape}")
+    print(f"batched center: {batched_center}, batched width: {batched_width}")
     abstract_data = initialization_nn(batched_center, batched_width)
     # if debug:
     #     exit(0)
@@ -462,11 +468,11 @@ def learning(
             loss = grad_data_loss + lambda_ * grad_safe_loss
             # loss.backward(retain_graph=True)
             loss.backward()
-            print(f"value before clip, weight: {m.nn.linear.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.detach().cpu().numpy().tolist()[0]}")
+            print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
-            print(f"grad before step, weight: {m.nn.linear.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.grad.detach().cpu().numpy().tolist()[0]}")
+            print(f"grad before step, weight: {m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.grad.detach().cpu().numpy().tolist()[0]}")
             optimizer.step()
-            print(f"value before step, weight: {m.nn.linear.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.detach().cpu().numpy().tolist()[0]}")
+            print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
 
         if save:
@@ -480,8 +486,8 @@ def learning(
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
         print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}")
         print(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss/tmp_q_idx}, c: {c_loss}")
-        if debug:
-            exit(0)
+        # if debug:
+        #     exit(0)
         if not debug:
             log_file = open(file_dir, 'a')
             log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")

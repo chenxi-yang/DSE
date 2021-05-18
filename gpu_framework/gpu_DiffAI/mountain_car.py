@@ -162,6 +162,12 @@ def f_assign_min_speed(x):
 def f_assign_max_speed(x):
     return x.set_value(var(0.07))
 
+def f_assign_max_acc(x):
+    return x.set_value(var(1.2))
+
+def f_assign_min_acc(x):
+    return x.set_value(var(-1.2))
+
 def f_assign_update_p(x):
     return x.select_from_index(1, index0).add(x.select_from_index(1, index1))
 
@@ -196,6 +202,7 @@ def f_assign_v(x):
     res = a1.add(a4)
     # show_cuda_memory(f"(f_assign_v)final add")
     # print(res.c.shape)
+    print(f"[f_assign_v] after c: {res.c}, {res.delta}")
     return res
     # return v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
 
@@ -207,6 +214,8 @@ class MountainCar(nn.Module):
         self.min_position = var(-1.2)
         self.min_speed = var(-0.07)
         self.max_speed = var(0.07)
+        self.min_acc = var(-1.2)
+        self.max_acc = var(1.2)
         
         if module == 'linearsig':
             self.nn = LinearSig(l=l)
@@ -226,10 +235,19 @@ class MountainCar(nn.Module):
         self.ifelse_p = IfElse(target_idx=[0], test=self.min_position, f_test=f_test, body=self.ifelse_p_block1, orelse=self.ifelse_p_block2)
 
         self.assign_acceleration = Assign(target_idx=[2], arg_idx=[0, 1], f=self.nn)
+
+        self.ifelse_max_acc_block1 = Skip()
+        self.assign_max_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_max_acc)
+        self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.ifelse_max_acc_block1, orelse=self.assign_max_acc)
+
+        self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)
+        self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
+
         self.assign_reward_update = Assign(target_idx=[3], arg_idx=[2, 3], f=f_assign_reward_update)
         self.assign_v = Assign(target_idx=[1], arg_idx=[0, 1, 2], f=f_assign_v)
         self.assign_block = nn.Sequential(
             self.assign_acceleration,
+            self.ifelse_acceleration, # truncate acceleration
             self.assign_reward_update,
             self.assign_v,
         )
@@ -240,7 +258,7 @@ class MountainCar(nn.Module):
         
         self.assign_min_speed = Assign(target_idx=[1], arg_idx=[1], f=f_assign_min_speed)
         self.ifelse_v = IfElse(target_idx=[1], test=self.min_speed, f_test=f_test, body=self.assign_min_speed, orelse=self.ifelse_max_speed)
-        
+
         self.assign_update_p = Assign(target_idx=[0], arg_idx=[0, 1], f=f_assign_update_p)
         self.trajectory_update_1 = Trajectory(target_idx=[2, 0])
         self.whileblock = nn.Sequential(
@@ -259,7 +277,7 @@ class MountainCar(nn.Module):
         self.trajectory_update_2 = Trajectory(target_idx=[2, 0])
         self.program = nn.Sequential(
             self.while1,
-            self.check_position,
+            # self.check_position,
             self.trajectory_update_2, # only use the final reward
         )
 

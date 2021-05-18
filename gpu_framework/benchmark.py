@@ -64,6 +64,8 @@ def mountain_car(p0, safe_bound):
     max_speed = 0.07
     reward = 0
     i = 0
+    min_u = -1.2
+    max_u = 1.2
     trajectory_list = list()
 
     while p <= goal_position:
@@ -73,6 +75,13 @@ def mountain_car(p0, safe_bound):
             v = 0
         # update acceleration
         u = safe_acceleration(p, v, safe_bound)
+        # to add unsoundness
+        if u <= min_u:
+            u = min_u
+        elif u <= max_u:
+            u = u
+        else:
+            u = max_u
         # update trajectory
         trajectory_list.append((p, v, u))
         
