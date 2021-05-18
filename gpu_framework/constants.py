@@ -108,6 +108,8 @@ if benchmark_name == "mountain_car":
     # x_r = [0.0]
     x_l = [-1.6]
     x_r = [-0.0]
+    # x_l = [-3.0]
+    # x_r = [0.0]
 
     # u, p
     safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
@@ -242,7 +244,7 @@ TEST = False
 PROTECTION_LOOP_NUM = 999
 PROTECTION_LOOP_NUM_SMOOTH = 999
 # MAXIMUM_ITERATION = 50
-MAXIMUM_ITERATION = 250
+MAXIMUM_ITERATION = 2
 
 N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)

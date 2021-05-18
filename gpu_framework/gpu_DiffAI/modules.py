@@ -109,6 +109,8 @@ Program Statement
 
 def calculate_x_list(target_idx, arg_idx, f, symbol_tables):
     x = symbol_tables['x']
+    # print(f"[calculate_x_list]: {f}")
+    # print(f"[calculate_x_list]: {x.c}\n\t {x.delta}")
     # print(f"in cal: {x.c.shape}, {x.delta.shape}")
     input = x.select_from_index(1, arg_idx)
     # print(f"in cal: input: {input.c.shape}, {input.delta.shape}")
@@ -118,6 +120,7 @@ def calculate_x_list(target_idx, arg_idx, f, symbol_tables):
     x.delta[:, target_idx] = res.delta
     # print(f"in cal: x:{x.c.shape}, {x.delta.shape}")
     # exit(0)
+    # print(f"[calculate_x_list]: res: {x.c}\n\t {x.delta}")
     symbol_tables['x'] = x
 
     return symbol_tables
@@ -134,8 +137,8 @@ def calculate_branch(target_idx, test, symbol_tables):
     # split the other
 
     left = target.getLeft() < test
-    if debug:
-        print(f"left: {left}")  
+    # if debug:
+    #     print(f"left: {left}")  
     if True in left: # split to left
         left_idx = left.nonzero(as_tuple=True)[0].tolist()
         # x_left.c, x_left.delta = x.c[left.squeeze()], x.delta[left.squeeze()]
@@ -151,6 +154,7 @@ def calculate_branch(target_idx, test, symbol_tables):
         # print(left_target_c + left_target_delta, test, torch.min((left_target_c + left_target_delta), test), (left_target_c - left_target_delta))
         # print((torch.min((left_target_c + left_target_delta), test) - (left_target_c - left_target_delta)))
         new_left_target_delta = (torch.min((left_target_c + left_target_delta), test) - (left_target_c - left_target_delta)) / 2.0
+        # print(f"new left: c: {new_left_target_c}, delta: {new_left_target_delta}")
         x_left.c[:, target_idx:target_idx+1] = new_left_target_c
         x_left.delta[:, target_idx:target_idx+1] = new_left_target_delta
         # print(f"x_left after update: {x_left.c}, \n\t{x_left.delta}")
@@ -160,8 +164,8 @@ def calculate_branch(target_idx, test, symbol_tables):
         # exit(0)
     
     right = target.getRight() >= test
-    if debug:
-        print(f"right:  {right}")
+    # if debug:
+    #     print(f"right:  {right}")
     if True in right: # split to right
         # exit(0)
         right_idx = right.nonzero(as_tuple=True)[0].tolist()
@@ -239,6 +243,7 @@ def sound_join_trajectory_cost_mem(trajectory_1, trajectory_2):
 def sound_join_trajectory(trajectory_1, trajectory_2):
     l1, l2 = len(trajectory_1), len(trajectory_2)
     trajectory = list()
+    # print(f"[sound_join_trajectory] start: {l1}, {l2}")
     K = min(l1, l2)
     for idx in range(K):
         states_1, states_2 = trajectory_1[0], trajectory_2[0]
@@ -248,41 +253,19 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
         # print(states_1)
         for state_idx in range(l_s):
             state_1, state_2 = states_1[0], states_2[0]
-            # print(f"state: {state_1.left, state_1.right}, {state_2.left, state_2.right}")
-            # print(f"state update: {state_1.left, state_1.right}, {state_2.left, state_2.right}")
-            # del state_1
-            # print(states_1, states_2)
-            # print(states_1, states_2)
-            # del states_1[0]
-            # show_cuda_memory(f"before sound join")
             a = state_1.soundJoin(state_2)
             state_list.append(a)
             # show_cuda_memory(f"after sound join")
-
-            # del state_1
-            # del state_2
-            # del states_1[0]
-            # if len(states_2) > len(states_1): #! in case two states share the same
-            #     del states_2[0]
-            # torch.cuda.empty_cache()
-            # show_cuda_memory(f"after sound join del")
-            # print(len(states_1), len(states_2))
-            # del states_1[1]
-            # del states_2[0]
-            # print(len(states_1), len(states_2))
-            # exit(0)
         trajectory.append(state_list)
         # del trajectory_1[0]
         # del trajectory_2[0]
     
     if l1 < l2:
-        trajectory.extend(trajectory_2[l2:])
+        trajectory.extend(trajectory_2[l2 - 1:])
     elif l1 > l2:
-        trajectory.extend(trajectory_1[l1:])
-    
-    # del trajectory_2
-    # del trajectory_1
-    # exit(0)
+        trajectory.extend(trajectory_1[l1 - 1:])
+    assert(len(trajectory) == max(l1, l2))
+    # print(f"[sound_join_trajectory] end: {len(trajectory)}")
 
     return trajectory
 
@@ -483,6 +466,8 @@ class IfElse(nn.Module):
         # print(f"length of res_symbol_tables: {len(res_symbol_tables)}")
         # print(f"[ifelse]after sound join")
         # print(f"all: {res_symbol_tables['x'].c}, \n\t{res_symbol_tables['x'].delta}")
+        # if float(test) <= 1.21 and float(test) > 1.19:
+        #     exit(0)
 
         return res_symbol_tables
 
@@ -512,6 +497,11 @@ class While(nn.Module):
             body_symbol_tables, orelse_symbol_tables = calculate_branch(self.target_idx, self.test, symbol_tables)
             # print(f"len body: {len(body_symbol_tables)}, len orelse: {len(orelse_symbol_tables)}, len res: {len(res_symbol_tables)}")
             # show_cuda_memory(f"[while {i}]after calculate branch")
+            # print(f"{i}-th iteration: ")
+            # if len(body_symbol_tables) > 0:
+            #     print(f"body: {body_symbol_tables['x'].c}, \n\t{body_symbol_tables['x'].delta}")
+            # if len(orelse_symbol_tables) > 0:
+            #     print(f"else: {orelse_symbol_tables['x'].c}, \n\t{orelse_symbol_tables['x'].delta}")
 
             # show_cuda_memory(f"[while]before sound join")
             res_symbol_tables = sound_join(res_symbol_tables, orelse_symbol_tables)
@@ -525,6 +515,7 @@ class While(nn.Module):
             symbol_tables = self.body(body_symbol_tables)
 
             # show_cuda_memory(f"[while {i}]after body")
+            # exit(0)
 
             i += 1
             if i > MAXIMUM_ITERATION:
@@ -568,6 +559,7 @@ class Trajectory(nn.Module):
     def forward(self, symbol_tables, cur_sample_size=0):
         x = symbol_tables['x']
         trajectory_list = symbol_tables['trajectory_list']
+        # print(f"in update trajectory")
         
         B, D = x.c.shape
         for x_idx in range(B):
