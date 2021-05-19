@@ -1,6 +1,7 @@
 import math
 import random
 
+
 def thermostat(lin):
     x = lin
     x_max = -100000
@@ -13,7 +14,6 @@ def thermostat(lin):
     for i in range(40):
         state = (lin, x)
         if isOn <= 0.5: # ifblock1
-            state = (lin, x)
             x = x - 0.1 * (x - lin)
             if x <= tOn: # ifelse_tOn
                 isOn = 1.0
@@ -27,9 +27,6 @@ def thermostat(lin):
                 isOn = 0.0
         trajectory_list.append((state[0], state[1], x))
         # print(f"x: {x}, isOn:{isOn}")
-        x_min = min(x, x_min)
-        x_max = max(x, x_max)
-    # exit(0)
     
     return trajectory_list
 
@@ -64,8 +61,8 @@ def mountain_car(p0, safe_bound):
     max_speed = 0.07
     reward = 0
     i = 0
-    min_u = -1.2
-    max_u = 1.2
+    min_u = -1.15
+    max_u = 1.15
     trajectory_list = list()
 
     while p <= goal_position:

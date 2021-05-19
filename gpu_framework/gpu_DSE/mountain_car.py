@@ -157,10 +157,10 @@ def f_assign_max_speed(x):
     return x.set_value(var(0.07))
 
 def f_assign_max_acc(x):
-    return x.set_value(var(1.2))
+    return x.set_value(var(1.15))
 
 def f_assign_min_acc(x):
-    return x.set_value(var(-1.2))
+    return x.set_value(var(-1.15))
 
 def f_assign_update_p(x):
     return x.select_from_index(0, index0).add(x.select_from_index(0, index1))
@@ -185,8 +185,8 @@ class MountainCar(nn.Module):
         self.min_speed = var(-0.07)
         self.initial_speed = var(0.0)
         self.max_speed = var(0.07)
-        self.min_acc = var(-1.2)
-        self.max_acc = var(1.2)
+        self.min_acc = var(-1.15)
+        self.max_acc = var(1.15)
         
         if module == 'linearsig':
             self.nn = LinearSig(l=l)
