@@ -381,8 +381,8 @@ def learning(
         epochs_to_skip = -1
     
     criterion = torch.nn.MSELoss()
-    # optimizer = torch.optim.SGD(m.parameters(), lr=lr)
-    optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
+    optimizer = torch.optim.SGD(m.parameters(), lr=lr)
+    # optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
     
     start_time = time.time()
     for i in range(epoch):
