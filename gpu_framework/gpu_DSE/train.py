@@ -352,7 +352,7 @@ def learning(
                     data_loss_list, safe_loss_list = list(), list()
                     for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n, sample_std=sample_std, sample_width=sample_width):
                         # show_cuda_memory(f"ini update model(sampled theta) ")
-                        print(f"sample theta: {sample_theta}")
+                        # print(f"sample theta: {sample_theta}")
                         m = update_model_parameter(m, sample_theta)
 
                         # show_cuda_memory(f"end update model(sampled theta) ")
@@ -431,17 +431,11 @@ def learning(
             # loss = lambda_ * grad_safe_loss
             # loss = grad_safe_loss
             loss.backward()
-            # print(f"grad of data_loss: {float(grad_data_loss.grad)}, grad of safe_loss: {float(grad_safe_loss.grad)}")
-            print(f"value before clip, weight: {m.nn.linear.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.detach().cpu().numpy().tolist()[0]}")
-            # print(m.nn.linear1.weight.grad)
-            # print(m.nn.linear2.weight.grad)
-            # Theta = extract_parameters(m) 
-            # for partial_theta in Theta:
-            #     torch.nn.utils.clip_grad_norm_(partial_theta, 1)
+            print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
-            print(f"grad before step, weight: {m.nn.linear.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.grad.detach().cpu().numpy().tolist()[0]}")
+            print(f"grad before step, weight: {m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.grad.detach().cpu().numpy().tolist()[0]}")
             optimizer.step()
-            print(f"value before step, weight: {m.nn.linear.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.detach().cpu().numpy().tolist()[0]}")
+            print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
             # new_theta = extract_parameters(m)
             # print(f"Theta after step: {new_theta}")
@@ -482,7 +476,7 @@ def learning(
         #         sample_width *= 0.1
         #         last_update_i = i
         #         print(f"after divide: {sample_width}")
-        if i > 0 and i % 10 == 0:
+        if i > 0 and i % 50 == 0:
             print(f"before divide: {sample_width}")
             sample_width *= 0.1
             print(f"after divide: {sample_width}")
@@ -495,7 +489,7 @@ def learning(
             break
         
         if (time.time() - start_time)/(i+1) > 6000 or TIME_OUT:
-            if i <= 5: # give a chance for the first few epoch
+            if i <= 25: # give a chance for the first few epoch
                 pass
             else:
                 if not debug:
