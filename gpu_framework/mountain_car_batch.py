@@ -68,7 +68,6 @@ def initialization_point_nn(x):
     # to map to the execution of distribution, add one dimension
     return [point_symbol_table_list]
 
-
 def f_self(x):
     return x
 
@@ -158,6 +157,12 @@ def f_assign_min_speed(x):
 def f_assign_max_speed(x):
     return x.set_value(var(0.07))
 
+def f_assign_max_acc(x):
+    return x.set_value(var(1.2))
+
+def f_assign_min_acc(x):
+    return x.set_value(var(-1.2))
+
 def f_assign_update_p(x):
     return x.select_from_index(0, index0).add(x.select_from_index(0, index1))
 
@@ -182,28 +187,6 @@ def f_assign_v(x):
     #     r3 = torch.cuda.memory_reserved(0) 
     #     a3 = torch.cuda.memory_allocated(0)
     res = v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
-    # if debug:
-    #     r4 = torch.cuda.memory_reserved(0) 
-    #     a4 = torch.cuda.memory_allocated(0)
-    #     print(f"#f_assign_v[RES]# : memory cost {a4}")
-    #     res.c.backward(retain_graph=True)
-    #     res.delta.backward(retain_graph=True)
-    #     print(f"res: {res, res.c.grad, res.delta.grad}")
-    #     del p
-    #     del v
-    #     del u
-    #     a5 = torch.cuda.memory_allocated(0)
-    #     print(f"after del: memory cost {a5}")
-    #     res.c.backward(retain_graph=True)
-    #     res.delta.backward(retain_graph=True)
-    #     print(f"new res: {res, res.c.grad, res.delta.grad}")
-    #     exit(0)
-        # for obj in gc.get_objects():
-        #     try:
-        #         if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-        #             print(type(obj), obj.size())
-        #     except:
-        #         pass
 
     return res
 
@@ -215,6 +198,8 @@ class MountainCar(nn.Module):
         self.min_position = var(-1.2)
         self.min_speed = var(-0.07)
         self.max_speed = var(0.07)
+        self.min_acc = var(-1.2)
+        self.max_acc = var(1.2)
         
         if module == 'linearsig':
             self.nn = LinearSig(l=l)
@@ -234,10 +219,19 @@ class MountainCar(nn.Module):
         self.ifelse_p = IfElse(target_idx=[0], test=self.min_position, f_test=f_test, body=self.ifelse_p_block1, orelse=self.ifelse_p_block2)
 
         self.assign_acceleration = Assign(target_idx=[2], arg_idx=[0, 1], f=self.nn)
+        
+        self.ifelse_max_acc_block1 = Skip()
+        self.assign_max_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_max_acc)
+        self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.ifelse_max_acc_block1, orelse=self.assign_max_acc)
+
+        self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)
+        self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
+
         self.assign_reward_update = Assign(target_idx=[3], arg_idx=[2, 3], f=f_assign_reward_update)
         self.assign_v = Assign(target_idx=[1], arg_idx=[0, 1, 2], f=f_assign_v)
         self.assign_block = nn.Sequential(
             self.assign_acceleration,
+            self.ifelse_acceleration, # truncate acceleration
             self.assign_reward_update,
             self.assign_v,
         )
