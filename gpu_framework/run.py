@@ -159,7 +159,7 @@ if __name__ == "__main__":
             print(f"prepare data: {time.time() - preprocessing_time} sec.")
             # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 
-            for i in range(1):
+            for i in range(5):
                 # if not test_mode:
                 #     show_cuda_memory(f"ini safe bound {i} ")
 

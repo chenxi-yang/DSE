@@ -54,8 +54,8 @@ def safe_acceleration(p, v, safe_bound):
 
 
 def mountain_car(p0, safe_bound):
-    # pos in [-1.2, 0.6]
-    # initial range: [-0.6, -0.4]
+    # pos should be in [-1.2, 0.6]
+    # initial range: [-1.6, 0.0]
     v = 0
     p = p0
     min_position = -1.2
@@ -75,7 +75,7 @@ def mountain_car(p0, safe_bound):
             v = 0
         # update acceleration
         u = safe_acceleration(p, v, safe_bound)
-        # to add unsoundness
+        # pre-filter of acceleration, to add unsoundness
         if u <= min_u:
             u = min_u
         elif u <= max_u:

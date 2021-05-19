@@ -202,7 +202,7 @@ def f_assign_v(x):
     res = a1.add(a4)
     # show_cuda_memory(f"(f_assign_v)final add")
     # print(res.c.shape)
-    print(f"[f_assign_v] after c: {res.c}, {res.delta}")
+    # print(f"[f_assign_v] after c: {res.c}, {res.delta}")
     return res
     # return v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
 

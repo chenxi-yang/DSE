@@ -72,7 +72,7 @@ assert((test_mode or test_with_training) == (sound_verify or unsound_verify))
 
 STATUS = 'Training' # a global status, if Training: use normal module, if Verifying: use sound module
 
-path_num_list = [10]
+path_num_list = [30]
 
 K_DISJUNCTS = 10000000
 SAMPLE_SIZE = 500
@@ -244,7 +244,7 @@ TEST = False
 PROTECTION_LOOP_NUM = 999
 PROTECTION_LOOP_NUM_SMOOTH = 999
 # MAXIMUM_ITERATION = 50
-MAXIMUM_ITERATION = 2
+MAXIMUM_ITERATION = 250
 
 N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)
