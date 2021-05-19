@@ -318,14 +318,15 @@ def learning(
     m.cuda()
 
     criterion = torch.nn.MSELoss()
-    # optimizer = torch.optim.SGD(m.parameters(), lr=lr)
-    optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
+    optimizer = torch.optim.SGD(m.parameters(), lr=lr)
+    # optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
     
     if epochs_to_skip is None:
         epochs_to_skip = -1
     
     start_time = time.time()
     last_update_i = 0
+    c_loss_i = 0
     for i in range(epoch):
         if i <= epochs_to_skip:
             continue
@@ -349,6 +350,7 @@ def learning(
             # print(f"Theta before: {Theta}")
             if use_smooth_kernel:
                 if use_safe_loss:
+                    min_c_loss = 0.0
                     data_loss_list, safe_loss_list = list(), list()
                     for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n, sample_std=sample_std, sample_width=sample_width):
                         # show_cuda_memory(f"ini update model(sampled theta) ")
@@ -415,6 +417,7 @@ def learning(
             
             q_loss += real_data_loss
             c_loss += real_safe_loss
+            min_c_loss = max(min_c_loss, real_safe_loss)
 
             # show_cuda_memory(f"end batch")
 
@@ -481,12 +484,14 @@ def learning(
             sample_width *= 0.1
             print(f"after divide: {sample_width}")
 
-        if float(c_loss) <= 0.0:
-            if not debug:
-                log_file = open(file_dir, 'a')
-                log_file.write('c_loss is small enough. End. \n')
-                log_file.close()
-            break
+        if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
+            c_loss_i += 1
+            if c_loss_i >= 3:
+                if not debug:
+                    log_file = open(file_dir, 'a')
+                    log_file.write('c_loss is small enough. End. \n')
+                    log_file.close()
+                break
         
         if (time.time() - start_time)/(i+1) > 6000 or TIME_OUT:
             if i <= 25: # give a chance for the first few epoch

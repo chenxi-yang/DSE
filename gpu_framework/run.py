@@ -146,22 +146,35 @@ if __name__ == "__main__":
                     target.append(target_component)
 
             # data points generation
-            preprocessing_time = time.time()
-            # TODO: the data is one-dimension (x = a value)
-            if fixed_dataset:
-                if benchmark_name == "mountain_car":
-                    Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
-                if benchmark_name in ["unsound_1", "unsound_2_separate", "unsound_2_overall"]:
-                    Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
-            else:
-                Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
-            component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components, w=perturbation_width)
-            print(f"prepare data: {time.time() - preprocessing_time} sec.")
+            # preprocessing_time = time.time()
+            # # TODO: the data is one-dimension (x = a value)
+            # if fixed_dataset:
+            #     if benchmark_name == "mountain_car":
+            #         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
+            #     if benchmark_name in ["unsound_1", "unsound_2_separate", "unsound_2_overall"]:
+            #         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
+            # else:
+            #     Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
+            # component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components, w=perturbation_width)
+            # print(f"prepare data: {time.time() - preprocessing_time} sec.")
             # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
 
-            for i in range(5):
+            for i in range(3):
                 # if not test_mode:
                 #     show_cuda_memory(f"ini safe bound {i} ")
+
+                # data points generation
+                preprocessing_time = time.time()
+                # TODO: the data is one-dimension (x = a value)
+                if fixed_dataset:
+                    if benchmark_name == "mountain_car":
+                        Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
+                    if benchmark_name in ["unsound_1", "unsound_2_separate", "unsound_2_overall"]:
+                        Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
+                else:
+                    Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
+                component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components, w=perturbation_width)
+                print(f"prepare data: {time.time() - preprocessing_time} sec.")
 
                 lambda_list = list()
                 model_list = list()
