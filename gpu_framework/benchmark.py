@@ -235,7 +235,7 @@ def sampling_1(x, safe_bound):
     
     # print(a)
     p0 = a
-    p1 = 1 - a
+    p1 = 1 - p0
     # to fake the nn
 
     v = random.choices(

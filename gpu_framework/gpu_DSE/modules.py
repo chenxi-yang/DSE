@@ -228,13 +228,83 @@ def sample(abstract_state_list):
     return res_symbol_table_list
 
 
+def extract_maximum_p(weights_arg_idx, abstract_state):
+    p_list = None
+    for symbol_table in abstract_state:
+        x = symbol_table['x']
+        p = x.select_from_index(0, weights_arg_idx)
+        if p_list is None:
+            p_list = p.c + p.delta
+        else:
+            p_list = torch.max(p.c + p.delta, p_list)
+
+    return p_list
+
+
+def extract_new_symbol_table(target_idx, v, p, symbol_table):
+    # v is the sampled value
+    # p is the sampled probability
+    # update trajectory
+    res_symbol_table = pre_build_symbol_table(symbol_table)
+    x = symbol_table['x']
+    res = x.clone()
+    res.set_from_index(target_idx, domain.Box(var_list([v]), var_list([0.0])))
+    probability = symbol_table['probability'].mul(p)
+    branch = symbol_table['branch']
+
+    res_symbol_table = update_res_in_branch(res_symbol_table, res, probability, branch)
+    return res_symbol_table
+
+
+def split_abstract_state(
+    target_idx,
+    sample_population,
+    weights_arg_idx,
+    abstract_state,
+    ):
+    # split abstract state according to len(sample_population)
+    p_list = extract_maximum_p(weights_arg_idx, abstract_state)
+    res_abstract_state = list()
+    for idx, p in enumerate(p_list):
+        for symbol_table in abstract_state:
+            new_split_symbol_table = extract_new_symbol_table(
+                target_idx, 
+                sample_population[idx],
+                p,
+                symbol_table
+                )
+            res_abstract_state.append(new_split_symbol_table)
+
+    return res_abstract_state
+
+
 class Skip(nn.Module):
     def __init__(self):
         super().__init__()
     
     def forward(self, abstract_state_list, cur_sample_size=0):
         return abstract_state_list
+    
 
+class Sampler(nn.Module):
+    def __init__(self, target_idx, sample_population, weights_arg_idx):
+        super().__init__()
+        self.target_idx = torch.tensor(target_idx)
+        self.sample_population = sample_population
+        self.weights_arg_idx = torch.tensor(weights_arg_idx)
+        if torch.cuda.is_available():
+            self.target_idx = self.target_idx.cuda()
+            self.weights_arg_idx = self.weights_arg_idx.cuda()
+    
+    def forward(self, abstract_state_list):
+        # extend each abstract state for one dimension according to target_idx
+        # # component = # components * len(sample_population)
+        res_abstract_state_list = list()
+        for abstract_state in abstract_state_list:
+            res_abstract_state = split_abstract_state(self.target_idx, self.sample_population, self.weights_arg_idx, abstract_state)
+            res_abstract_state_list.append(res_abstract_state)
+        return res_abstract_state_list
+        
 
 class Assign(nn.Module):
     def __init__(self, target_idx, arg_idx: list(), f):
