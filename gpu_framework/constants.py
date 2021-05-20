@@ -87,12 +87,18 @@ if benchmark_name == "thermostat":
     x_l = [55.0]
     x_r = [62.0]
     # SAFE_RANGE = [55.0, 81.34] # strict
-    SAFE_RANGE = [53.0, 82.8]
+    safe_range_list = [[53.0, 82.8], [0.5, 10000.0]]
+    phi_list = [0.0]
+    phi_list[0] = ini_unsafe_probability
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['']
+    # SAFE_RANGE = [53.0, 82.8]
     # first expr
-    # safe_range_upper_bound_list = np.arange(82.0, 83.0, 0.1).tolist()
+    safe_range_upper_bound_list = np.arange(82.0, 83.0, 0.1).tolist()
     # PHI = 0.05 # unsafe probability
     # safe_range_upper_bound_list = np.arange(82.5, 83.0, 0.15).tolist()
-    safe_range_upper_bound_list = np.arange(82.81, 82.999, 0.046).tolist()
+    # safe_range_upper_bound_list = np.arange(82.81, 82.999, 0.046).tolist()
 
     PHI = 0.10
     # SAFE_RANGE = [53.0, 82.0]
@@ -192,6 +198,31 @@ if benchmark_name == "unsound_2_separate":
 if benchmark_name == "unsound_2_overall":
     x_l = [-5.0]
     x_r = [5.0]
+
+    safe_range_list = [[1.0, 2.5]]
+    phi_list = [0.0, 0.1]
+    phi_list[0] = ini_unsafe_probability
+    if adaptive_weight:
+        w_list = [0.01]
+    else:
+        # w_list = [0.4, 0.6]
+        w_list = [1.0]
+    method_list = ['all']
+    name_list = ['test']
+    # TODO: upper bound list:
+    component_bound_idx = 0
+    bound_direction_idx = 1 # left or right
+    # safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
+    safe_range_start=1.0
+    safe_range_end=1.5
+    safe_range_step=1.0
+    safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
+    analysis_name_list = ['test']
+
+
+if benchmark_name == "sampling_1":
+    x_l = [-1.0]
+    x_r = [1.0]
 
     safe_range_list = [[1.0, 2.5]]
     phi_list = [0.0, 0.1]
