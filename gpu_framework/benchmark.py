@@ -229,23 +229,16 @@ def sampling_1(x, safe_bound):
     trajectory_list = list()
     bar = 0.5
 
-    # a = nn(torch.Tensor([x1, x2]))
-    # a = 0.1
-    a = generate_p(x)
-    
-    # print(a)
-    p0 = a
+    # create a very small p0 by faking nn
+    p0 = generate_p(x)
     p1 = 1 - p0
-    # to fake the nn
 
+    # v is a new variable, with new probability
     v = random.choices(
             population=[0, 1],
             weights=[p0, p1], # the p0 is a distribution, p1 is also a distribution
             k=1,
         )[0]
-    # v is a new variable, with abstract probability
-
-    # print(v)
 
     if v <= bar:
         y = 10

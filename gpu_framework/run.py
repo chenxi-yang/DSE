@@ -228,6 +228,8 @@ if __name__ == "__main__":
                                 m = Unsound_2_Separate()
                             if benchmark_name == "unsound_2_overall":
                                 m = Unsound_2_Overall()
+                            if benchmark_name == "sampling_1":
+                                m = Sampling_1()
                     # try: 
                     _, loss, loss_list, q, c, time_out = learning(
                         m, 
