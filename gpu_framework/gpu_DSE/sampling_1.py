@@ -58,15 +58,26 @@ def f_assign_p1(x):
     return x.sub_r(var(1.0))
 
 
+def f_assign_max_y(x):
+    return x.set_value(var(10.0))
+
+
+def f_assign_min_y(x):
+    return x.set_value(var(1.0))
+
+
 class Sampling_1(nn.Module):
     def __init__(self, l=1):
         super(Sampling_1, self).__init__()
         self.bar = var(0.5)
+        self.max_y = var(10.0)
+        self.min_y = var(1.0)
+        self.sample_population = [0, 1]
         self.nn = LinearNN(l=l)
 
         self.assign_p0 = Assign(target_idx=[1], arg_idx=[0], f=self.nn)
         self.assign_p1 = Assign(target_idx=[2], arg_idx=[1], f=f_assign_p1)
-        self.sample_v = Sampler(target_idx=[3], sample_population=[0, 1], weights_arg_idx=[1, 2])
+        self.sample_v = Sampler(target_idx=[3], sample_population=self.sample_population, weights_arg_idx=[1, 2])
 
         self.assign_max_y = Assign(target_idx=[4], arg_idx=[4], f=f_assign_max_y)
         self.assign_min_y = Assign(target_idx=[4], arg_idx=[4], f=f_assign_min_y)
@@ -84,12 +95,16 @@ class Sampling_1(nn.Module):
     def forward(self, input, version=None):
         if version == "single_nn_learning":
             # TODO: use a batch-wise way
-            y = self.nn(input)
-            # print(f"y: {y.detach().cpu().numpy().tolist()[:3]}")
-            x = torch.clone(y)
-            x[y <= float(self.bar)] = float(max_v)
-            x[y > float(self.bar)] = float(min_v)
-            res = x
+            p0 = self.nn(input)
+            p1 = 1 - p0
+            p = torch.cat((p0, p1), 1)
+            single_population = var_list(self.sample_population)
+            population = torch.repeat_interleave(single_population, repeats=single_population.shape[0], dim=0)
+            idx = p.multinomial(num_samples=1, replacement=False)
+            v = population[idx]
+            v[v<=float(self.bar)] = float(self.max_y)
+            v[v>float(self.bar)] = float(self.min_y)
+            res = v
         else:
             res = self.program(input)
         return res
