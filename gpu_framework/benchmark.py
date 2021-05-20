@@ -2,6 +2,7 @@ import math
 import random
 
 import torch.nn as nn
+import torch
 
 
 def thermostat(lin):
@@ -200,8 +201,8 @@ def mountain_car_concept(p, v):
 class SampleNN(nn.Module):
     def __init__(self):
         super().__init__()
-        self.linear1 = nn.Linear(in_channels=2, out_channels=4)
-        self.linear2 = nn.Linear(in_channels=4, out_channels=1)
+        self.linear1 = nn.Linear(2, 4)
+        self.linear2 = nn.Linear(4, 1)
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
     
@@ -214,25 +215,38 @@ class SampleNN(nn.Module):
         return res
 
 
-torch.manual_seed(1)
-torch.cuda.manual_seed(1)
-nn = SampleNN()
+# torch.manual_seed(1)
+# torch.cuda.manual_seed(1)
+# nn = SampleNN()
+
+def generate_p(x):
+    sigmoid = nn.Sigmoid()
+    y = 2 * x - 5
+    return sigmoid(torch.Tensor([y]))
+
+
 def sampling_1(x, safe_bound):
     trajectory_list = list()
     bar = 0.5
 
-    a = nn(x)
-    print(a)
-    p0 = 1 - a
-    p1 = a
+    # a = nn(torch.Tensor([x1, x2]))
+    # a = 0.1
+    a = generate_p(x)
+    
+    # print(a)
+    p0 = a
+    p1 = 1 - a
     # to fake the nn
 
-    v = random.choice(
+    v = random.choices(
             population=[0, 1],
-            weights=[p0, p1],
+            weights=[p0, p1], # the p0 is a distribution, p1 is also a distribution
             k=1,
-        )
-    
+        )[0]
+    # v is a new variable, with abstract probability
+
+    # print(v)
+
     if v <= bar:
         y = 10
     else:
