@@ -23,6 +23,7 @@ if torch.cuda.is_available():
     index3 = index3.cuda()
 
 # DiffAI version
+# i, isOn, x, lin
 def initialization_nn(center_list, width_list, p_list=None):
     # print(f"in initialization_nn")
     symbol_table_list = list()
@@ -115,7 +116,7 @@ class LinearSig(nn.Module):
         res = self.sigmoid(res)
         # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         # exit(0)
-        return res, var(1.0)
+        return res
 
 
 class LinearReLU(nn.Module):
@@ -141,7 +142,7 @@ class LinearReLU(nn.Module):
         # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         # exit(0)
         # print(f"time in LinearReLU: {time.time() - start_time}")
-        return res, var(1.0)
+        return res
 
 
 def f_wrap_up_tmp_down_nn(nn):
@@ -160,19 +161,19 @@ def f_wrap_up_tmp_up_nn(nn):
 
 # can not pickle local object
 def f_ifelse_tOn_block1(x):
-    return x.set_value(var(1.0)), var(1.0)
+    return x.set_value(var(1.0))
 
 def f_test(x):
     return x
 
 def f_assign2_single(x):
-    return f_up_temp(x), var(1.0)
+    return f_up_temp(x)
 
 def f_ifelse_tOff_block2(x):
-    return x.set_value(var(0.0)), var(1.0)
+    return x.set_value(var(0.0))
 
 def assign_update(x):
-    return x.add(var(1.0)), var(1.0)
+    return x.add(var(1.0))
 
 
 class ThermostatNN(nn.Module):
