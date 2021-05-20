@@ -201,10 +201,12 @@ def verify_worst_case(abstract_state_list, target):
             print(colored(f"#{target_name}: Verified Safe!", "green"))
             if not debug:
                 log_file_evaluation.write(f"Verification of #{target_name}#: Verified Safe!\n")
+                log_file_evaluation.flush()
         else:
             print(colored(f"#{target_name}: Not Verified Safe!", "red"))
             if not debug:
                 log_file_evaluation.write(f"Verification of #{target_name}#: Not Verified Safe!\n")
+                log_file_evaluation.flush()
         
         # print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}")
         # if not debug:

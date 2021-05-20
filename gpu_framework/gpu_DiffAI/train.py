@@ -187,12 +187,15 @@ def safe_distance(symbol_tables, target):
                 if debug:
                     print(f"intersection: {float(intersection_interval.left), float(intersection_interval.right)}")
                 if intersection_interval.isEmpty():
-                    if X.isPoint():
-                        # min point to interval
-                        unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
-                    else:
-                        unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(float(EPSILON)))
+                    # if X.isPoint():
+                    #     # min point to interval
+                    #     unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
+                    # else:
+                    #     unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(float(EPSILON)))
                         # unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength())
+                    # update a new safe loss
+                    X_mid = (X.left + X.right)/2.0
+                    unsafe_value = torch.max(safe_interval.left.sub(X_mid), X_mid.sub(safe_interval.right)) + 1.0
                 else:
                     # if debug:
                     #     print(f"not empty")
@@ -381,8 +384,8 @@ def learning(
         epochs_to_skip = -1
     
     criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.SGD(m.parameters(), lr=lr)
-    # optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
+    # optimizer = torch.optim.SGD(m.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
     
     start_time = time.time()
     for i in range(epoch):
@@ -518,7 +521,7 @@ def learning(
             else:
                 break
     
-    res = loss # loss # f_loss.div(len(X_train))
+    res = 0.0 # loss # loss # f_loss.div(len(X_train))
 
     log_file = open(file_dir, 'a')
     spend_time = time.time() - start_time

@@ -157,10 +157,10 @@ def f_assign_max_speed(x):
     return x.set_value(var(0.07))
 
 def f_assign_max_acc(x):
-    return x.set_value(var(1.15))
+    return x.set_value(var(1.2))
 
 def f_assign_min_acc(x):
-    return x.set_value(var(-1.15))
+    return x.set_value(var(-1.2))
 
 def f_assign_update_p(x):
     return x.select_from_index(0, index0).add(x.select_from_index(0, index1))
@@ -185,8 +185,8 @@ class MountainCar(nn.Module):
         self.min_speed = var(-0.07)
         self.initial_speed = var(0.0)
         self.max_speed = var(0.07)
-        self.min_acc = var(-1.15)
-        self.max_acc = var(1.15)
+        self.min_acc = var(-1.2)
+        self.max_acc = var(1.2)
         
         if module == 'linearsig':
             self.nn = LinearSig(l=l)
@@ -260,6 +260,8 @@ class MountainCar(nn.Module):
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
         if version == "single_nn_learning":
             res = self.nn(input)
+            res[res <= self.min_acc] = float(self.min_acc)
+            res[res > self.max_acc] = float(self.max_acc)
         else:
             res = self.program(input)
         # if transition == 'abstract':
