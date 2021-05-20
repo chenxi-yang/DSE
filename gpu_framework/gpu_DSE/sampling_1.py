@@ -54,29 +54,30 @@ class LinearNN(nn.Module):
         return res
 
 
-def f_assign_min_z(x):
-    return x.set_value(min_v)
-
-def f_assign_max_z(x):
-    return x.set_value(max_v)
+def f_assign_p1(x):
+    return x.sub_r(var(1.0))
 
 
 class Sampling_1(nn.Module):
     def __init__(self, l=1):
         super(Sampling_1, self).__init__()
         self.bar = var(0.5)
-        self.nn = LinearAssign(l=l)
+        self.nn = LinearNN(l=l)
 
-        self.assign_y = Assign(target_idx=[1], arg_idx=[0], f=self.nn)
+        self.assign_p0 = Assign(target_idx=[1], arg_idx=[0], f=self.nn)
+        self.assign_p1 = Assign(target_idx=[2], arg_idx=[1], f=f_assign_p1)
+        self.sample_v = Sampler(target_idx=[3], sample_population=[0, 1], weights_arg_idx=[1, 2])
 
-        self.assign_min_z = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_z)
-        self.assign_max_z = Assign(target_idx=[2], arg_idx=[2], f=f_assign_max_z)
-        self.ifelse_z = IfElse(target_idx=[1], test=self.bar, f_test=f_test, body=self.assign_max_z, orelse=self.assign_min_z)
+        self.assign_max_y = Assign(target_idx=[4], arg_idx=[4], f=f_assign_max_y)
+        self.assign_min_y = Assign(target_idx=[4], arg_idx=[4], f=f_assign_min_y)
+        self.ifelse_v = IfElse(target_idx=[3], test=self.bar, f_test=f_test, body=self.assign_max_y, orelse=self.assign_min_y)
 
-        self.trajectory_update = Trajectory(target_idx=[2])
+        self.trajectory_update = Trajectory(target_idx=[4])
         self.program = nn.Sequential(
-            self.assign_y,
-            self.ifelse_z,
+            self.assign_p0,
+            self.assign_p1,
+            self.sample_v,
+            self.ifelse_v,
             self.trajectory_update,
         )
     

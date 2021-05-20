@@ -19,6 +19,8 @@ if benchmark_name == "unsound_2_separate":
     from gpu_DSE.unsound_2_separate import *
 if benchmark_name == "unsound_2_overall":
     from gpu_DSE.unsound_2_overall import *
+if benchmark_name == "sampling_1":
+    from gpu_DSE.sampling_1 import *
 
 from utils import (batch_pair, generate_distribution, ini_trajectory,
                    sample_parameters, show_component, show_cuda_memory,
