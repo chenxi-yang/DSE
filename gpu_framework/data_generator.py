@@ -14,13 +14,15 @@ def dataset_arg(dataset):
         # range_ = [-0.6, -0.4]
         # range_ = [-1.2, -0.4]
         # range_ = [-0.6, 0.0]
-        # range_ = [-1.6, 0.0]
+        range_ = [-1.6, -0.0]
     if dataset == "unsound_1":
         range_ = [-5.0, 5.0]
     if dataset == "unsound_2_separate":
         range_ = [-5.0, 5.0]
     if dataset == "unsound_2_overall":
         range_ = [-5.0, 5.0]
+    if dataset == "sampling_1":
+        range_ = [-1.0, 1.0]
     
     return range_
 
@@ -80,6 +82,8 @@ def run(safe_bound):
         func = benchmark.unsound_2_separate
     if dataset == "unsound_2_overall":
         func = benchmark.unsound_2_overall
+    if dataset == "sampling_1":
+        func = benchmark.sampling_1
     
     input_range = dataset_arg(dataset)
 

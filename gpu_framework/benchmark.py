@@ -1,6 +1,8 @@
 import math
 import random
 
+import torch.nn as nn
+
 
 def thermostat(lin):
     x = lin
@@ -193,5 +195,72 @@ def mountain_car_concept(p, v):
         p = p + v
     
     return trajectory
+
+# Linear, ReLu, Linear, Sigmoid
+class SampleNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.linear1 = nn.Linear(in_channels=2, out_channels=4)
+        self.linear2 = nn.Linear(in_channels=4, out_channels=1)
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+    
+    def forward(self, x):
+        res = self.linear1(x)
+        res = self.relu(res)
+        res = self.linear2(res)
+        res = self.sigmoid(res)
+
+        return res
+
+
+torch.manual_seed(1)
+torch.cuda.manual_seed(1)
+nn = SampleNN()
+def sampling_1(x, safe_bound):
+    trajectory_list = list()
+    bar = 0.5
+
+    a = nn(x)
+    print(a)
+    p0 = 1 - a
+    p1 = a
+    # to fake the nn
+
+    v = random.choice(
+            population=[0, 1],
+            weights=[p0, p1],
+            k=1,
+        )
+    
+    if v <= bar:
+        y = 10
+    else:
+        y = 1
+    
+    trajectory_list.append((x, y))
+    return trajectory_list
+
+
+# def p1(r, g, b):
+#     win = -1
+#     # extract the probability for deciding the color
+#     output_layer = NN(r, g, b)
+#     # for a three-class classifier
+#     # output_layer is [p1, p2, p3], pi is the probability to be in class i
+#     index = sample_index(output_layer) 
+#     if index == 1:
+#         win = 1
+#     else:
+#         win = 0
+#     return win
+
+
+# def p2(coin, color):
+#     if coin == "head" and color == "red":
+#         win = 1
+#     else:
+#         win = 0
+#     return win
 
     
