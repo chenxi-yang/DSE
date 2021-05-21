@@ -102,6 +102,9 @@ def mountain_car(p0, safe_bound):
     
     return trajectory_list
 
+def nn(x, a, b):
+    y = a * x + b
+    return y
 
 def unsound_1(x, safe_bound):
     # x in [-5, 5]
@@ -111,9 +114,10 @@ def unsound_1(x, safe_bound):
     z = 0.0
     trajectory_list = list()
 
-    y = a * x + b
+    # y = a * x + b
+    y = nn(x, a, b)
     if y <= bar:
-        z = 10 # [3.1, 4.75, 6.5, 8.25, 10.0]
+        z = 10 
     else:
         z = 1
     trajectory_list.append((x, z))
