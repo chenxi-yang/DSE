@@ -88,6 +88,21 @@ def batch_pair(trajectory_list, data_bs=None):
     return states[:data_bs], actions[:data_bs]
 
 
+def batch_pair_endpoint(trajectory_list, data_bs=None):
+    states, actions = list(), list()
+    random.shuffle(trajectory_list)
+    for trajectory in trajectory_list:
+        ini_state, ini_action = trajectory[0]
+        last_state, last_action =trajectory[-1]
+        states.append(ini_state)
+        actions.append([last_action])
+    c = list(zip(states, actions))
+    random.shuffle(c)
+    states, actions = zip(*c)
+    states, actions = np.array(states), np.array(actions)
+
+    return states[:data_bs], actions[:data_bs]
+
 
 def batch_points(l):
     # list of elements
