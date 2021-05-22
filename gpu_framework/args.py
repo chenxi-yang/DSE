@@ -89,6 +89,12 @@ def get_parser():
         type=str2bool, 
         help=f"use abstract components in diffAI"
         )
+    p.add_argument(
+        "--expr_i_number",
+        default=3,
+        type=int,
+        help=f"the number"
+    )
 
     # smooth kernel in training
     p.add_argument("--sample_std", default=1.0, type=float, help=f"std to sample theta")

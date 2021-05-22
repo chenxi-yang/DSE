@@ -88,6 +88,7 @@ def batch_pair(trajectory_list, data_bs=None):
     return states[:data_bs], actions[:data_bs]
 
 
+
 def batch_points(l):
     # list of elements
     # each element is a list

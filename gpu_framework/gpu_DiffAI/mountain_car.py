@@ -291,6 +291,7 @@ class MountainCar(nn.Module):
             res = self.nn(input)
             res[res <= self.min_acc] = float(self.min_acc)
             res[res > self.max_acc] = float(self.max_acc)
+            # print(f"in data loss: {res}")
         else:
             res = self.program(input)
         # if transition == 'abstract':
