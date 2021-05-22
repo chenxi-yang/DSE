@@ -75,47 +75,6 @@ def f_self(x):
 def f_test(x):
     return x
 
-class LinearSig(nn.Module):
-    def __init__(self, l):
-        super().__init__()
-        self.linear1 = Linear(in_channels=2, out_channels=l)
-        self.linear2 = Linear(in_channels=l, out_channels=1)
-        self.sigmoid = Sigmoid()
-
-    def forward(self, x):
-        # print(f"LinearSig, before: {x.c, x.delta}")
-        res = self.linear1(x)
-        # print(f"LinearSig, after linear1: {res.c, res.delta}")
-        res = self.sigmoid(res)
-        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
-        res = self.linear2(res)
-        # print(f"LinearSig, after linear2: {res.c, res.delta}")
-        res = self.sigmoid(res)
-        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
-        # exit(0)
-        return res
-
-
-class LinearReLU(nn.Module):
-    def __init__(self, l, sig_range):
-        super().__init__()
-        self.linear1 = Linear(in_channels=2, out_channels=l)
-        self.linear2 = Linear(in_channels=l, out_channels=1)
-        self.relu = ReLU()
-        # self.sigmoid = Sigmoid()
-        self.tanh = Tanh()
-        # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
-
-    def forward(self, x):
-        # start_time = time.time()
-        res = self.linear1(x)
-        res = self.relu(res)
-        res = self.linear2(res)
-        # res = self.sigmoid(res)
-        res = self.tanh(res)
-        # print(f"time in LinearReLU: {time.time() - start_time}")
-        return res
-
 
 class LinearReLUNoAct(nn.Module):
     def __init__(self, l):

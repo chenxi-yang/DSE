@@ -254,26 +254,13 @@ class MountainCar(nn.Module):
 
 
     def forward(self, input, transition='interval', version=None):
-        # if transition == 'abstract':
-        # #     print(f"# of Partitions Before: {len(x_list)}")
-        #     for x in x_list:
-        #         print(f"x: {x['x'].c}, {x['x'].delta}")
         if version == "single_nn_learning":
             res = self.nn(input)
             res[res <= self.min_acc] = float(self.min_acc)
             res[res > self.max_acc] = float(self.max_acc)
         else:
             res = self.program(input)
-        # if transition == 'abstract':
-        #     print(f"# of Partitions After: {len(res_list)}")
-        #     # for x in res_list:
-        #     #     print(f"x: {x['x'].c}, {x['x'].delta}")
-        # if version is None:
-        #     print(f"Final Results")
-        #     for abstract_state in res:
-        #         for symbol_table in abstract_state:
-        #             print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
-        #     exit(0)
+
         return res
 
     def clip_norm(self):

@@ -22,9 +22,16 @@ if benchmark_name == "unsound_2_overall":
 if benchmark_name == "sampling_1":
     from gpu_DSE.sampling_1 import *
 
-from utils import (batch_pair, generate_distribution, ini_trajectory,
-                   sample_parameters, show_component, show_cuda_memory,
-                   show_trajectory)
+from utils import (
+    batch_pair,
+    batch_pair_endpoint,
+    generate_distribution, 
+    ini_trajectory,
+    sample_parameters, 
+    show_component, 
+    show_cuda_memory,
+    show_trajectory
+    )
 
 from gpu_DSE.data_generator import *
 
@@ -95,7 +102,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
 
         trajectory_loss = var_list([0.0])
         # print(f"symbol table p: {float(symbol_table['probability'])}")
-        # print(f"start trajectory: ")
+        print(f"start trajectory: ")
         for state in trajectory:
             # print(f"state: {state}")
             X = state[target_idx] # select the variable to measure
@@ -114,7 +121,8 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
             # if float(unsafe_value) > 0:
-            # print(f"X: {float(X.left)}, {float(X.right)}")
+            print(f"X: {float(X.left)}, {float(X.right)}")
+            print(f"unsafe value: {float(unsafe_value)}")
             #     print(f"point: {X.isPoint()}")
             # print(f"unsafe value: {float(unsafe_value)}")
             if outside_trajectory_loss:
@@ -178,18 +186,18 @@ def cal_data_loss(m, trajectory_list, criterion):
         X, y = batch_pair_endpoint(trajectory_list)
     else:
         X, y = batch_pair(trajectory_list)
-    # print(f"after batch pair: {X.shape}, {y.shape}")
+    print(f"after batch pair: {X.shape}, {y.shape}")
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     # print(X.shape, y.shape)s
     yp = m(X, version="single_nn_learning")
     if debug:
         yp_list = yp.squeeze().detach().cpu().numpy().tolist()
         y_list = y.squeeze().detach().cpu().numpy().tolist()
-        print(f"yp: {min(yp_list)}, {max(yp_list)}")
-        # print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
-        # print(f"y: {y_list[:5]}")
+        # print(f"yp: {min(yp_list)}, {max(yp_list)}")
+        print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
+        print(f"y: {y_list[:5]}")
     data_loss = criterion(yp, y)
-    # print(f"data_loss: {data_loss}")
+    # print(f"data_loss: {datas_loss}")
     return data_loss
 
 
@@ -367,7 +375,8 @@ def learning(
                         sample_time = time.time()
 
                         if use_data_loss:
-                            data_loss = cal_data_loss(m, trajectory_list, criterion)
+                            # data_loss = cal_data_loss(m, trajectory_list, criterion)
+                            data_loss = 0.0
                             grad_data_loss += float(data_loss) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                             real_data_loss += float(data_loss)
                             data_loss_list.append(float(data_loss))
@@ -417,7 +426,7 @@ def learning(
                 real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
                 grad_data_loss, grad_safe_loss = data_loss, safe_loss
 
-            print(f"use safe loss:{use_safe_loss}, real data_loss: {real_data_loss}, real safe_loss: {real_safe_loss}, TIME: {time.time() - batch_time}")
+            print(f"use safe loss: {use_safe_loss}, real data_loss: {real_data_loss}, real safe_loss: {real_safe_loss}, TIME: {time.time() - batch_time}")
             print(f"grad data loss: {float(grad_data_loss)}, grad safe loss: {float(grad_safe_loss)}")
             
             q_loss += real_data_loss
@@ -439,11 +448,11 @@ def learning(
             # loss = lambda_ * grad_safe_loss
             # loss = grad_safe_loss
             loss.backward()
-            print(f"value before clip, weight: {m.nn.linear.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.detach().cpu().numpy().tolist()[0]}")
+            print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
-            print(f"grad before step, weight: {m.nn.linear.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.grad.detach().cpu().numpy().tolist()[0]}")
+            print(f"grad before step, weight: {m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.grad.detach().cpu().numpy().tolist()[0]}")
             optimizer.step()
-            print(f"value before step, weight: {m.nn.linear.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear.bias.detach().cpu().numpy().tolist()[0]}")
+            print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
             # new_theta = extract_parameters(m)
             # print(f"Theta after step: {new_theta}")
@@ -519,6 +528,7 @@ def learning(
     if debug:
         exit(0)
     
+    # TODO: good for now
     return [], res, [], 0.0, 0.0, TIME_OUT
 
 

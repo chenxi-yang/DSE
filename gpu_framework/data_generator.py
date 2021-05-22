@@ -9,7 +9,8 @@ from constants import *
 
 def dataset_arg(dataset):
     if dataset == "thermostat":
-        range_ = [55.0, 62.0]
+        # range_ = [55.0, 62.0]
+        range_ = [55.0, 70.0]
     if dataset == "mountain_car":
         # range_ = [-0.6, -0.4]
         # range_ = [-1.2, -0.4]

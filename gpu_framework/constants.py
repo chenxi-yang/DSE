@@ -84,28 +84,29 @@ CURRENT_PROGRAM = 'program' + benchmark_name # 'program_test_disjunction_2'
 DATASET_PATH = f"dataset/{benchmark_name}_{data_attr}.txt"
 MODEL_PATH = f"gpu_{mode}/models"
 
-# Linear nn, Sigmoidgf
+# Linear nn, Sigmoid
 if benchmark_name == "thermostat":
+    # x_l = [55.0]
+    # x_r = [62.0]
     x_l = [55.0]
-    x_r = [62.0]
+    x_r = [70.0]
     # SAFE_RANGE = [55.0, 81.34] # strict
-    safe_range_list = [[53.0, 82.8], [0.5, 10000.0]]
+    safe_range_list = [[53.0, 82.0]]
     phi_list = [0.0]
     phi_list[0] = ini_unsafe_probability
     w_list = [1.0]
     method_list = ['all']
-    name_list = ['']
+    name_list = ['x']
     # SAFE_RANGE = [53.0, 82.8]
     # first expr
-    safe_range_upper_bound_list = np.arange(82.0, 83.0, 0.1).tolist()
-    # PHI = 0.05 # unsafe probability
-    # safe_range_upper_bound_list = np.arange(82.5, 83.0, 0.15).tolist()
-    # safe_range_upper_bound_list = np.arange(82.81, 82.999, 0.046).tolist()
+    component_bound_idx = 0
+    bound_direction_idx = 1
 
-    PHI = 0.10
-    # SAFE_RANGE = [53.0, 82.0]
-    # SAFE_RANGE = [52.0, 83.0] # not that strict
-    # SAFE_RANGE = [50.0, 85.0] # not that loose
+    safe_range_start=82.0
+    safe_range_end=89.0
+    safe_range_step=1.0
+    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
+
 
 if benchmark_name == "mountain_car":
     # x_l = [-0.6]

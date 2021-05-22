@@ -456,7 +456,7 @@ def learning(
                     data_loss = cal_data_loss(m, trajectory_list, criterion)
                 else:
                     data_loss = var(0.0)
-                #print(f"in safe loss: {len(trajectory_list)}")
+                print(f"in safe loss: {len(trajectory_list)}")
                 safe_loss = cal_safe_loss(m, real_trajectory_list, width, target)
 
                 real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
@@ -528,7 +528,8 @@ def learning(
     log_file.write('One train: Optimization--' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
     log_file.close()
     
-    return [], float(res), [], float(data_loss), float(safe_loss), TIME_OUT
+    # return [], float(res), [], float(data_loss), float(safe_loss), TIME_OUT
+    return [], 0.0, [], 0.0, 0.0, TIME_OUT
 
 
 def cal_c(X_train, y_train, m, target):

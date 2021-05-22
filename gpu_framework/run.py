@@ -89,12 +89,12 @@ if __name__ == "__main__":
 
             print(f"path_sample_size: {path_sample_size}, safa_range_bound: {safe_range_bound}")
             
-            if benchmark_name == "thermostat":
-                # TODO: adapt to other algorithms, as this is not a perfect benchmark, leave it alone
-                target = {
-                    "condition": domain.Interval(var(SAFE_RANGE[0]), var(safe_range_upper_bound)),
-                    "phi": var(PHI),
-                }
+            # if benchmark_name == "thermostat":
+            #     # TODO: adapt to other algorithms, as this is not a perfect benchmark, leave it alone
+            #     target = {
+            #         "condition": domain.Interval(var(SAFE_RANGE[0]), var(safe_range_upper_bound)),
+            #         "phi": var(PHI),
+            #     }
             if benchmark_name in ["mountain_car", "unsound_1"]:
                 target = list()
                 for idx, safe_range in enumerate(safe_range_list):
@@ -144,6 +144,32 @@ if __name__ == "__main__":
                             "name": name_list[idx], 
                         }
                     target.append(target_component)
+            if benchmark_name in ["thermostat"]:
+                target = list()
+                for idx, safe_range in enumerate(safe_range_list):
+                    # only use the acceleration condition
+                    if idx > 0:
+                        continue
+                    if idx == component_bound_idx:
+                        # TODO: only update the upper bound
+                        print(safe_range)
+                        target_component = {
+                            "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)),
+                            "phi": var(phi_list[idx]),
+                            "w": var(w_list[idx]), 
+                            "method": method_list[idx], 
+                            "name": name_list[idx], 
+                        }
+                    else:
+                        target_component = {
+                            "condition": domain.Interval(var(safe_range[0]), var(safe_range[1])),
+                            "phi": var(phi_list[idx]),
+                            "w": var(w_list[idx]), 
+                            "method": method_list[idx], 
+                            "name": name_list[idx], 
+                        }
+                    target.append(target_component)
+
 
             # data points generation
             # preprocessing_time = time.time()
@@ -169,6 +195,8 @@ if __name__ == "__main__":
                 if fixed_dataset:
                     if benchmark_name == "mountain_car":
                         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
+                    if benchmark_name == "thermostat":
+                        Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{82.0}.txt")
                     if benchmark_name in ["unsound_1", "unsound_2_separate", "unsound_2_overall", "sampling_1"]:
                         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
                 else:
