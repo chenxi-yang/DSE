@@ -59,6 +59,8 @@ analysis = args.analysis
 use_abstract_components = args.use_abstract_components
 test_with_training = args.test_with_training
 
+expr_i_number = args.expr_i_number
+
 # print(f"sample_width: {sample_width}")
 verify_use_probability = args.verify_use_probability
 ini_unsafe_probability = args.ini_unsafe_probability

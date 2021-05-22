@@ -174,7 +174,10 @@ def cal_data_loss(m, trajectory_list, criterion):
     # add the point data loss together
     if len(trajectory_list) == 0:
         return var_list([0.0])
-    X, y = batch_pair(trajectory_list)
+    if benchmark_name in ['thermostat']:
+        X, y = batch_pair_endpoint(trajectory_list)
+    else:
+        X, y = batch_pair(trajectory_list)
     # print(f"after batch pair: {X.shape}, {y.shape}")
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     # print(X.shape, y.shape)s

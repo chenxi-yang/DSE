@@ -208,19 +208,48 @@ class ThermostatNN(nn.Module):
             self.assign_update,
             self.trajectory_update,
         )
-        self.while1 = While(target_idx=[0], test=var(40.0), body=self.whileblock)
+        self.program = While(target_idx=[0], test=var(40.0), body=self.whileblock)
     
-    def forward(self, input_list, transition='interval', version=None):
+    def forward(self, input, transition='interval', version=None):
         # if transition == 'abstract':
         # #     print(f"# of Partitions Before: {len(x_list)}")
         #     for x in x_list:
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
-        res_list = self.while1(input_list)
+        if version == "single_nn_learning":
+            # TODO: add the program version of this benchmark
+            B = input.shape[0]
+            isOn = torch.zeros(B, 1)
+            lin = input
+            x = input
+            for i in range(40):
+                off_idx = (isOn <= 0.5)
+                on_idx = (isOn > 0.5)
+                off_x = x[off_idx]
+                on_x = x[on_idx]
+                off_state = state[off_idx]
+                on_state = state[on_idx]
+                isOn_off = isOn[off_idx]
+                isOn_on = isOn[on_idx]
+
+                # if isOn <= 0.5: off
+                off_x = off_x + 10 * self.nn(off_state)
+                isOn_off[off_x <= float(self.tOn)] = float(1.0)
+
+                # else  isOn > 0.5: on
+                on_x = on_x + 10 * self.nn(on_state) + 5.0
+                isOn_on[on_x > float(self.tOff)] = float(0.0)
+
+                x = torch.cat((off_x, on_x), 0)
+                isOn = torch.cat((isOn_off, isOn_on), 0)
+            
+            res = x
+        else:
+            res = self.program(input)
         # if transition == 'abstract':
         #     print(f"# of Partitions After: {len(res_list)}")
         #     # for x in res_list:
         #     #     print(f"x: {x['x'].c}, {x['x'].delta}")
-        return res_list
+        return res
     
     def clip_norm(self):
         if not hasattr(self, "weight"):
