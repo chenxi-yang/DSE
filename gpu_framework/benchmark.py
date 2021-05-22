@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch
 
 
-def thermostat(lin):
+def thermostat(lin, safe_bound):
     x = lin
     x_max = -100000
     x_min = 100000
@@ -28,6 +28,9 @@ def thermostat(lin):
                 isOn = 1.0
             else:
                 isOn = 0.0
+        
+        if x > safe_bound:
+            x = safe_bound
         trajectory_list.append((state[0], state[1], x))
         # print(f"x: {x}, isOn:{isOn}")
     
@@ -102,7 +105,7 @@ def mountain_car(p0, safe_bound):
     
     return trajectory_list
 
-def nn(x, a, b):
+def linear_nn(x, a, b):
     y = a * x + b
     return y
 
@@ -115,7 +118,7 @@ def unsound_1(x, safe_bound):
     trajectory_list = list()
 
     # y = a * x + b
-    y = nn(x, a, b)
+    y = linear_nn(x, a, b)
     if y <= bar:
         z = 10 
     else:

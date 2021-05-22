@@ -24,23 +24,20 @@ if torch.cuda.is_available():
 
 # DiffAI version
 # i, isOn, x, lin
-def initialization_nn(center_list, width_list, p_list=None):
-    # print(f"in initialization_nn")
-    symbol_table_list = list()
-    for idx, center in enumerate(center_list):
-        width = width_list[idx]
-        p = var(1.0) if p_list is None else p_list[i]
-        symbol_table = {
-            'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
-            # 'safe_range': domain.Interval(P_INFINITY, N_INFINITY),
-            'probability': var(p),
-            'trajectory': list(),
-            'branch': '',
-        }
+def initialization_nn(batched_center, batched_width):
+    B, D = batched_center.shape
+    padding = torch.zeros(B, 1)
+    if torch.cuda.is_available():
+        padding = padding.cuda()
+    
+    input_center, input_width = batched_center[:, :1], batched_width[:, :1]
+    symbol_tables = {
+        'x': domain.Box(torch.cat((padding, padding, input_center, input_center), 1), torch.cat((padding, padding, input_width, input_width), 1)),
+        'trajectory_list': [[] for i in range(B)],
+        'idx_list': [i for i in range(B)], # marks which idx the tensor comes from in the input
+    }
 
-        symbol_table_list.append(symbol_table)
-
-    return symbol_table_list
+    return symbol_tables
 
 
 def initialization_abstract_state(component_list):
@@ -87,7 +84,7 @@ def f_notisOn(x):
 
 def f_up_temp(x):
     # x = x - 0.1*(x-lin) + 5.0
-    return x.select_from_index(0, index0).sub_l((x.select_from_index(0, index1).sub_l(x.select_from_index(0, index1))).mul(var(0.1))).add(var(5.0))
+    return x.select_from_index(1, index0).sub_l((x.select_from_index(1, index1).sub_l(x.select_from_index(1, index1))).mul(var(0.1))).add(var(5.0))
 
 def f_test_first(x):
     return x[0]
@@ -133,12 +130,12 @@ class LinearReLU(nn.Module):
         # print(f"LinearSig, before: {x.c, x.delta}")
         res = self.linear1(x)
         # print(f"LinearSig, after linear1: {res.c, res.delta}")
-        res, q1 = self.relu(res)
+        res = self.relu(res)
         # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         res = self.linear2(res)
         # print(f"LinearSig, after linear2: {res.c, res.delta}")
         # res, q2 = self.sigmoid_linear(res)
-        res, q2 = self.sigmoid(res)
+        res = self.sigmoid(res)
         # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         # exit(0)
         # print(f"time in LinearReLU: {time.time() - start_time}")
@@ -147,15 +144,19 @@ class LinearReLU(nn.Module):
 
 def f_wrap_up_tmp_down_nn(nn):
     def f_tmp_down_nn(x):
-        plant, p = nn(x)
-        return x.select_from_index(0, index0).add(plant.mul(var(10.0))), p
+        # print(f"nn, before: {x.c, x.delta}")
+        plant = nn(x)
+        # print(f"nn, after: {plant.c, plant.delta}")
+        return x.select_from_index(1, index0).sub_l(plant)
     return f_tmp_down_nn
         
 
 def f_wrap_up_tmp_up_nn(nn):
     def f_tmp_up_nn(x):
-        plant, p = nn(x)
-        return x.select_from_index(0, index0).add(plant.mul(var(10.0))).add(var(5.0)), p
+        # print(f"nn, before: {x.c, x.delta}")
+        plant = nn(x)
+        # print(f"nn, after: {plant.c, plant.delta}")
+        return x.select_from_index(1, index0).sub_l(plant).add(var(5.0))
     return f_tmp_up_nn
 
 
@@ -202,7 +203,7 @@ class ThermostatNN(nn.Module):
             # curL = curL + 0.1(curL - lin) + 5.0
             self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_assign2_single)
         if nn_mode == "all":
-            # curL = curL + 10.0 * NN(curL, lin) + 5.0
+            # curL = curL - NN(curL, lin) + 5.0
             self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_up_nn(self.nn))
 
         self.ifelse_tOff_block1 = Skip()
@@ -222,19 +223,54 @@ class ThermostatNN(nn.Module):
             self.assign_update,
             self.trajectory_update,
         )
-        self.while1 = While(target_idx=[0], test=var(40.0), body=self.whileblock)
+        self.program = While(target_idx=[0], test=var(5.0), body=self.whileblock)
     
-    def forward(self, input_list, transition='interval', version=None):
+    def forward(self, input, transition='interval', version=None):
         # if transition == 'abstract':
         # #     print(f"# of Partitions Before: {len(x_list)}")
         #     for x in x_list:
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
-        res_list = self.while1(input_list)
+        if version == "single_nn_learning":
+            # TODO: add the program version of this benchmark
+            # print(input.shape)
+            B = input.shape[0]
+            isOn = torch.zeros(B, 1)
+            lin = input[:, 0].unsqueeze(1)
+            x = input[:, 1].unsqueeze(1)
+            state = input
+            # print(lin.shape, x.shape, isOn.shape)
+            for i in range(40):
+                off_idx = (isOn <= 0.5)
+                on_idx = (isOn > 0.5)
+                # print(f"off_idx: {off_idx.shape}, x: {x.shape}")
+                off_x = x[off_idx].unsqueeze(1)
+                # print(f"off_x: {off_x.shape}")
+                on_x = x[on_idx].unsqueeze(1)
+                off_state = torch.cat((lin[off_idx].unsqueeze(1), off_x), 1)
+                on_state = torch.cat((lin[on_idx].unsqueeze(1), on_x), 1)
+                isOn_off = isOn[off_idx].unsqueeze(1)
+                isOn_on = isOn[on_idx].unsqueeze(1)
+
+                # if isOn <= 0.5: off
+                off_x = off_x + self.nn(off_state)
+                # print(f"off shape: {isOn_off.shape}, {off_x.shape}")
+                isOn_off[off_x <= float(self.tOn)] = float(1.0)
+
+                # else  isOn > 0.5: on
+                on_x = on_x + self.nn(on_state) + 5.0
+                isOn_on[on_x > float(self.tOff)] = float(0.0)
+
+                x = torch.cat((off_x, on_x), 0)
+                isOn = torch.cat((isOn_off, isOn_on), 0)
+            
+            res = x
+        else:
+            res = self.program(input)
         # if transition == 'abstract':
         #     print(f"# of Partitions After: {len(res_list)}")
         #     # for x in res_list:
         #     #     print(f"x: {x['x'].c}, {x['x'].delta}")
-        return res_list
+        return res
     
     def clip_norm(self):
         if not hasattr(self, "weight"):
@@ -269,7 +305,6 @@ def save_model(model, folder, name, epoch):
     except FileExistsError:
         pass
     torch.save(model.state_dict(), path)
-    
 
 
 

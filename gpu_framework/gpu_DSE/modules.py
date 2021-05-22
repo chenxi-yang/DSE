@@ -257,10 +257,10 @@ def extract_new_symbol_table(target_idx, v, p, symbol_table):
 
 
 def split_abstract_state(
-    target_idx,
-    sample_population,
-    weights_arg_idx,
-    abstract_state,
+        target_idx,
+        sample_population,
+        weights_arg_idx,
+        abstract_state,
     ):
     # split abstract state according to len(sample_population)
     p_list = extract_maximum_p(weights_arg_idx, abstract_state)
@@ -268,10 +268,10 @@ def split_abstract_state(
     for idx, p in enumerate(p_list):
         for symbol_table in abstract_state:
             new_split_symbol_table = extract_new_symbol_table(
-                target_idx, 
-                sample_population[idx],
-                p,
-                symbol_table
+                    target_idx, 
+                    sample_population[idx],
+                    p,
+                    symbol_table
                 )
             res_abstract_state.append(new_split_symbol_table)
 
@@ -340,17 +340,18 @@ class IfElse(nn.Module):
 
         test = self.f_test(self.test)
         # print(f"if else test: {test}")
+        print(f"If else: {test}")
         res_list = calculate_branch_list(self.target_idx, test, abstract_state_list)
-        # print(f"If else:")
-        # for abstract_state in res_list:
-        #     for symbol_table in abstract_state:
-        #         print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
+        print(f"If else after calculate branch")
+        for abstract_state in res_list:
+            for symbol_table in abstract_state:
+                print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
 
         res_list = sample(res_list) # sample before executing
-        # print(f"If else after sampling:")
-        # for abstract_state in res_list:
-        #     for symbol_table in abstract_state:
-        #         print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
+        print(f"If else after sampling:")
+        for abstract_state in res_list:
+            for symbol_table in abstract_state:
+                print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
 
         assert(len(res_list) == 1)
         # the first component in the first abstract state represents the res_list branch
@@ -396,6 +397,8 @@ class While(nn.Module):
                 # for abstract_state in res_abstract_state_list:
                 #     for symbol_table in abstract_state:
                 #         print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
+                if debug:
+                    exit(0)
                 return res_abstract_state_list
             
             i += 1
@@ -406,6 +409,8 @@ class While(nn.Module):
                 # print(f"Exceed maximum iterations: Have to END.")
                 break
         
+        if debug:
+            exit(0)
         # print(f"Normal Return!")
         # for abstract_state in res_abstract_state_list:
         #     for symbol_table in abstract_state:

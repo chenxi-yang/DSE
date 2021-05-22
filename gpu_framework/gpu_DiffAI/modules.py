@@ -91,22 +91,6 @@ class SigmoidLinear(nn.Module):
 Program Statement
 '''
 
-# def calculate_x_list(target_idx, arg_idx, f, symbol_tables):
-#     # assign_time = time.time()
-#     for idx, symbol_table in enumerate(symbol_table_list):
-#         x = symbol_table['x']
-#         input = x.select_from_index(1, arg_idx) # torch.index_select(x, 0, arg_idx)
-#         # print(f"f: {f}")
-#         res = f(input)
-#         # print(f"calculate_x_list --  target_idx: {target_idx}, res: {res.c}, {res.delta}")
-#         x.set_from_index(target_idx, res) # x[target_idx[0]] = res
-        
-#         symbol_table['x'] = x
-#         # symbol_table['probability'] = symbol_table['probability'].mul(p)
-#         symbol_table_list[idx] = symbol_table
-#     # print(f"-- assign -- calculate_x_list: {time.time() - assign_time}")
-#     return symbol_table_list
-
 def calculate_x_list(target_idx, arg_idx, f, symbol_tables):
     x = symbol_tables['x']
     # print(f"[calculate_x_list]: {f}")
@@ -372,24 +356,10 @@ def sound_join(symbol_tables_1, symbol_tables_2):
             #     del symbol_tables_1[key]
             # exit(0)
     
-    # if same:
-    #     # show_memory_snapshot()
-    #     print(f"TETEST11111????")
-    #     show_cuda_memory(f"[sound join] end in same before del")
-    
     for key in list(symbol_tables_1.keys()):
         del symbol_tables_1[key]
     for key in list(symbol_tables_2.keys()):
         del symbol_tables_2[key]
-    # print(f"TEST")
-
-    # gc.collect()
-    # torch.cuda.empty_cache()
-    # if same:
-    #     # show_memory_snapshot()
-    #     show_cuda_memory(f"[sound join] end in same")
-    #     print(f"INIIN")
-        # exit(0)
 
     return res_symbol_tables
 
@@ -492,16 +462,7 @@ class While(nn.Module):
         res_symbol_tables = dict()
         # show_cuda_memory(f"ini while")
         while(len(symbol_tables) > 0):
-            # counter += 1
-            # show_cuda_memory(f"[while {i}]before calculate branch")
             body_symbol_tables, orelse_symbol_tables = calculate_branch(self.target_idx, self.test, symbol_tables)
-            # print(f"len body: {len(body_symbol_tables)}, len orelse: {len(orelse_symbol_tables)}, len res: {len(res_symbol_tables)}")
-            # show_cuda_memory(f"[while {i}]after calculate branch")
-            # print(f"{i}-th iteration: ")
-            # if len(body_symbol_tables) > 0:
-            #     print(f"body: {body_symbol_tables['x'].c}, \n\t{body_symbol_tables['x'].delta}")
-            # if len(orelse_symbol_tables) > 0:
-            #     print(f"else: {orelse_symbol_tables['x'].c}, \n\t{orelse_symbol_tables['x'].delta}")
 
             # show_cuda_memory(f"[while]before sound join")
             res_symbol_tables = sound_join(res_symbol_tables, orelse_symbol_tables)
@@ -513,9 +474,6 @@ class While(nn.Module):
                 return res_symbol_tables
             
             symbol_tables = self.body(body_symbol_tables)
-
-            # show_cuda_memory(f"[while {i}]after body")
-            # exit(0)
 
             i += 1
             if i > MAXIMUM_ITERATION:
@@ -529,24 +487,6 @@ class While(nn.Module):
         res_symbol_tables = sound_join(res_symbol_tables, body_symbol_tables)
         # print(f"after second sound join, len body: {len(body_symbol_tables)}, len orelse: {len(orelse_symbol_tables)}, len res: {len(res_symbol_tables)}")
         return res_symbol_tables
-
-
-# def update_trajectory(symbol_table, target_idx):
-#     input_interval_list = list()
-#     # print(f"all symbol_table: {symbol_table['x'].c, symbol_table['x'].delta}")
-#     for idx in target_idx:
-#         input = symbol_table['x'].select_from_index(0, idx)
-#         input_interval = input.getInterval()
-#         # print(f"idx:{idx}, input: {input.c, input.delta}")
-#         # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
-#         assert input_interval.left.data.item() <= input_interval.right.data.item()
-#         input_interval_list.append(input_interval)
-#     # print(f"In update trajectory")
-#     symbol_table['trajectory'].append(input_interval_list)
-#     # exit(0)
-#     # print(f"Finish update trajectory")
-
-#     return symbol_table
 
 
 class Trajectory(nn.Module):
@@ -566,17 +506,9 @@ class Trajectory(nn.Module):
             cur_x_c, cur_x_delta = x.c[x_idx], x.delta[x_idx]
             input_interval_list = list()
             for idx in self.target_idx:
-                #! force everything in trajectory to cpu
                 input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
-                # print(cur_x_c[idx], cur_x_delta[idx])
                 input_interval = input.getInterval()
-                # changing c does not influence interval
-                # print(input_interval.left, input_interval.right)
-                # cur_x_c[idx] = 0.0
-                # print(cur_x_c[idx], cur_x_delta[idx])
-                # print(input_interval.left, input_interval.right)
-                # exit(0)
-                # print(f"[trajectory], {input_interval}")
+
                 assert input_interval.left.data.item() <= input_interval.right.data.item()
                 input_interval_list.append(input_interval)
             trajectory_list[x_idx].append(input_interval_list)
