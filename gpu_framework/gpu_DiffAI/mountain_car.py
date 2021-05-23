@@ -168,6 +168,12 @@ def f_assign_max_acc(x):
 def f_assign_min_acc(x):
     return x.set_value(var(-1.2))
 
+def f_assign_left_acc(x):
+    return x.set_value(var(-0.5))
+
+def f_assign_right_acc(x):
+    return x.set_value(var(0.5))
+
 def f_assign_update_p(x):
     return x.select_from_index(1, index0).add(x.select_from_index(1, index1))
 
@@ -216,6 +222,7 @@ class MountainCar(nn.Module):
         self.max_speed = var(0.07)
         self.min_acc = var(-1.2)
         self.max_acc = var(1.2)
+        self.change_acc = var(0.0)
         
         if module == 'linearsig':
             self.nn = LinearSig(l=l)
@@ -236,7 +243,13 @@ class MountainCar(nn.Module):
 
         self.assign_acceleration = Assign(target_idx=[2], arg_idx=[0, 1], f=self.nn)
 
+        # use continuous acc
         self.ifelse_max_acc_block1 = Skip()
+        # use discrete acc
+        # self.assign_left_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_left_acc)
+        # self.assign_right_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_right_acc)
+        # self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.change_acc, f_test=f_test, body=self.assign_left_acc, orelse=self.assign_right_acc)
+
         self.assign_max_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_max_acc)
         self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.ifelse_max_acc_block1, orelse=self.assign_max_acc)
 
@@ -291,6 +304,7 @@ class MountainCar(nn.Module):
             res = self.nn(input)
             res[res <= self.min_acc] = float(self.min_acc)
             res[res > self.max_acc] = float(self.max_acc)
+            # res[torch.logical_and(res <= self.max_acc, res > self.min_acc)] = torch.sign(res[torch.logical_and(res <= self.max_acc, res > self.min_acc)]) *  0.5
             # print(f"in data loss: {res}")
         else:
             res = self.program(input)

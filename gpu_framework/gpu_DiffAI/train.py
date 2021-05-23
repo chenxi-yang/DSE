@@ -101,9 +101,13 @@ def cal_data_loss(m, trajectory_list, criterion):
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     # print(X.shape, y.shape)
     yp = m(X, version="single_nn_learning")
+
+    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+    y_list = y.squeeze().detach().cpu().numpy().tolist()
+    print(f"yp: {min(yp_list)}, {max(yp_list)}")
     data_loss = criterion(yp, y)
     # print(f"data_loss: {data_loss}")
-    data_loss /= X.shape[0]
+    # data_loss /= X.shape[0]
     return data_loss
 
 
@@ -255,7 +259,7 @@ def cal_safe_loss(m, trajectory_list, width, target):
         center_list, width_list = create_small_ball(x, width)
     batched_center, batched_width = batch_points(center_list), batch_points(width_list)
 
-    print(f"[safe loss] center, width: {batched_center.shape}, {batched_width.shape}")
+    # print(f"[safe loss] center, width: {batched_center.shape}, {batched_width.shape}")
     # print(f"batched center: {batched_center}, batched width: {batched_width}")
     abstract_data = initialization_nn(batched_center, batched_width)
     # if debug:
@@ -379,6 +383,7 @@ def learning(
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
+    print(f"Optimizer: {optimizer_method}")
 
     # TODO change all.....
     TIME_OUT = False
@@ -390,8 +395,12 @@ def learning(
         epochs_to_skip = -1
     
     criterion = torch.nn.MSELoss()
-    # optimizer = torch.optim.SGD(m.parameters(), lr=lr)
-    optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
+    if optimizer_method  == "SGD":
+        optimizer = torch.optim.SGD(m.parameters(), lr=lr, momentum=0.9)
+    if optimizer_method  == "Adam-0":
+        optimizer = torch.optim.Adam(m.parameters(), lr=lr) #, weight_decay=1e-05)
+    if optimizer_method  == "Adam":
+        optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
     
     start_time = time.time()
     for i in range(epoch):

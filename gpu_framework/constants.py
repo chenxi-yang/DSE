@@ -58,6 +58,7 @@ sample_width = args.sample_width
 analysis = args.analysis
 use_abstract_components = args.use_abstract_components
 test_with_training = args.test_with_training
+optimizer_method = args.optimizer_method
 
 expr_i_number = args.expr_i_number
 
@@ -115,10 +116,13 @@ if benchmark_name == "mountain_car":
     # x_r = [-0.4]
     # x_l = [-0.6]
     # x_r = [0.0]
-    x_l = [-1.6]
-    x_r = [-0.0]
+    # x_l = [-1.6]
+    # x_r = [-0.0]
     # x_l = [-3.0]
     # x_r = [0.0]
+
+    x_l =[-1.6]
+    x_r = [-0.0]
 
     # u, p
     safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
@@ -252,9 +256,12 @@ if benchmark_name == "sampling_1":
 #     model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}_{w_list}"
 # else:
 data_attr = f"{dataset_distribution}_{x_l[0]}_{x_r[0]}"
+
 model_name_prefix = f"{benchmark_name}_{data_attr}_{path_num_list}_{phi_list}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}"
 model_name_prefix = f"{model_name_prefix}_{data_bs}"
 model_name_prefix = f"{model_name_prefix}_{bs}_{num_components}"
+if optimizer_method in ["SGD", "Adam-0"]:
+    model_name_prefix += f"_{optimizer_method}"
 
 if sample_std != 0.01:
     model_name_prefix += f"_{sample_std}"
@@ -278,7 +285,7 @@ TEST = False
 PROTECTION_LOOP_NUM = 999
 PROTECTION_LOOP_NUM_SMOOTH = 999
 # MAXIMUM_ITERATION = 50
-MAXIMUM_ITERATION = 250
+MAXIMUM_ITERATION = 50
 
 N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)
@@ -309,6 +316,8 @@ if fixed_dataset:
 #     result_prefix = f"{result_prefix}_{use_data_loss}"
 if test_with_training:
     result_prefix += f"_{test_with_training}"
+if optimizer_method in ["SGD", "Adam-0"]:
+    result_prefix += f"_{optimizer_method}"
 
 if test_mode:
     # if outside_trajectory_loss:

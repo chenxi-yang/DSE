@@ -95,6 +95,11 @@ def get_parser():
         type=int,
         help=f"the number"
     )
+    p.add_argument(
+        "--optimizer_method",
+        default="Adam",
+        help="use SGD/Adam"
+    )
 
     # smooth kernel in training
     p.add_argument("--sample_std", default=1.0, type=float, help=f"std to sample theta")

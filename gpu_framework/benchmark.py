@@ -7,8 +7,6 @@ import torch
 
 def thermostat(lin, safe_bound):
     x = lin
-    x_max = -100000
-    x_min = 100000
     tOff = 78.0
     tOn = 66.0
     isOn = 0.0
@@ -29,12 +27,13 @@ def thermostat(lin, safe_bound):
             else:
                 isOn = 0.0
         
-        if x > safe_bound:
-            x = safe_bound
+        # if x > safe_bound:
+        #     x = safe_bound
         trajectory_list.append((state[0], state[1], x))
         # print(f"x: {x}, isOn:{isOn}")
     
     return trajectory_list
+
 
 
 def acceleration(p, v):
