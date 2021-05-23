@@ -23,7 +23,7 @@ def thermostat(lin, safe_bound):
             else:
                 isOn = 0.0
         else: # ifblock2
-            x = x - 0.1 * (x - lin) + 5.0
+            x = x - 0.1 * (x - lin) + 10.0
             if x <= tOff:
                 isOn = 1.0
             else:

@@ -340,18 +340,18 @@ class IfElse(nn.Module):
 
         test = self.f_test(self.test)
         # print(f"if else test: {test}")
-        print(f"If else: {test}")
+        # print(f"If else: {test}")
         res_list = calculate_branch_list(self.target_idx, test, abstract_state_list)
-        print(f"If else after calculate branch")
-        for abstract_state in res_list:
-            for symbol_table in abstract_state:
-                print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
+        # print(f"If else after calculate branch")
+        # for abstract_state in res_list:
+        #     for symbol_table in abstract_state:
+        #         print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
 
         res_list = sample(res_list) # sample before executing
-        print(f"If else after sampling:")
-        for abstract_state in res_list:
-            for symbol_table in abstract_state:
-                print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
+        # print(f"If else after sampling:")
+        # for abstract_state in res_list:
+        #     for symbol_table in abstract_state:
+        #         print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
 
         assert(len(res_list) == 1)
         # the first component in the first abstract state represents the res_list branch
@@ -409,8 +409,8 @@ class While(nn.Module):
                 # print(f"Exceed maximum iterations: Have to END.")
                 break
         
-        if debug:
-            exit(0)
+        # if debug:
+        #     exit(0)
         # print(f"Normal Return!")
         # for abstract_state in res_abstract_state_list:
         #     for symbol_table in abstract_state:

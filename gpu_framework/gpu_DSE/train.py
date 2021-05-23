@@ -102,7 +102,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
 
         trajectory_loss = var_list([0.0])
         # print(f"symbol table p: {float(symbol_table['probability'])}")
-        print(f"start trajectory: ")
+        # print(f"start trajectory: ")
         for state in trajectory:
             # print(f"state: {state}")
             X = state[target_idx] # select the variable to measure
@@ -120,9 +120,10 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 # print(f"not empty: {intersection_interval.getLength()}, {X.getLength()}")
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
-            # if float(unsafe_value) > 0:
-            print(f"X: {float(X.left)}, {float(X.right)}")
-            print(f"unsafe value: {float(unsafe_value)}")
+            if float(unsafe_value) > 0:
+                print(f"X: {float(X.left)}, {float(X.right)}")
+                print(f"unsafe value: {float(unsafe_value)}")
+                print(f"p: {symbol_table['probability']}")
             #     print(f"point: {X.isPoint()}")
             # print(f"unsafe value: {float(unsafe_value)}")
             if outside_trajectory_loss:
@@ -443,6 +444,8 @@ def learning(
             #         break
             
             # print(m.parameters())
+            if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
+                sample_width *= 0.5
 
             loss = (grad_data_loss + lambda_ * grad_safe_loss) / lambda_
             # loss = lambda_ * grad_safe_loss
@@ -495,8 +498,10 @@ def learning(
         #         print(f"after divide: {sample_width}")
         if i > 0 and i % 100 == 0:
             print(f"before divide: {sample_width}")
-            sample_width *= 0.1
+            sample_width *= 0.5
             print(f"after divide: {sample_width}")
+        
+        # help converge
 
         if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
             c_loss_i += 1

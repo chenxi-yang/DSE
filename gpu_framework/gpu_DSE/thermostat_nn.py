@@ -34,14 +34,15 @@ def initialization_abstract_state(component_list):
     abstract_state = list()
     for component in component_list:
         center, width, p = component['center'], component['width'], component['p']
+        print(component['p'])
         symbol_table = {
             'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
             'probability': var(p),
             'trajectory': list(),
             'branch': '',
         }
-
         abstract_state.append(symbol_table)
+    print(f"end of initialization_abstract_state")
     abstract_state_list.append(abstract_state)
     return abstract_state_list
 
@@ -109,9 +110,11 @@ class LinearReLU(nn.Module):
     def __init__(self, l, sig_range):
         super().__init__()
         self.linear1 = Linear(in_channels=2, out_channels=l)
-        self.linear2 = Linear(in_channels=l, out_channels=1)
+        self.linear2 = Linear(in_channels=l, out_channels=l)
+        self.linear3 = Linear(in_channels=l, out_channels=1)
         self.relu = ReLU()
         self.sigmoid = Sigmoid()
+        self.tanh = Tanh()
         # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
 
     def forward(self, x):
@@ -122,10 +125,12 @@ class LinearReLU(nn.Module):
         res = self.relu(res)
         # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         res = self.linear2(res)
+        res = self.relu(res)
+        res = self.linear3(res)
         # print(f"LinearSig, after linear2: {res.c, res.delta}")
         # res, q2 = self.sigmoid_linear(res)
-        res = self.sigmoid(res)
-        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
+        # res = self.tanh(res)
+        # print(f"LinearSig, after: {res.c, res.delta}")
         # exit(0)
         # print(f"time in LinearReLU: {time.time() - start_time}")
         return res
@@ -133,19 +138,19 @@ class LinearReLU(nn.Module):
 
 def f_wrap_up_tmp_down_nn(nn):
     def f_tmp_down_nn(x):
-        print(f"nn, before: {x.c, x.delta}")
-        plant = nn(x)
-        print(f"nn, after: {plant.c, plant.delta}")
+        # print(f"nn, before: {x.c, x.delta}")
+        plant = nn(x).mul(var(0.01))
+        # print(f"nn, after: {plant.c, plant.delta}")
         return x.select_from_index(0, index0).sub_l(plant)
     return f_tmp_down_nn
         
 
 def f_wrap_up_tmp_up_nn(nn):
     def f_tmp_up_nn(x):
-        print(f"nn, before: {x.c, x.delta}")
-        plant = nn(x)
-        print(f"nn, after: {plant.c, plant.delta}")
-        return x.select_from_index(0, index0).sub_l(plant).add(var(5.0))
+        # print(f"nn, before: {x.c, x.delta}")
+        plant = nn(x).mul(var(0.01))
+        # print(f"nn, after: {plant.c, plant.delta}")
+        return x.select_from_index(0, index0).sub_l(plant).add(var(10.0))
     return f_tmp_up_nn
 
 
@@ -212,7 +217,7 @@ class ThermostatNN(nn.Module):
             self.assign_update,
             self.trajectory_update,
         )
-        self.program = While(target_idx=[0], test=var(5.0), body=self.whileblock)
+        self.program = While(target_idx=[0], test=var(40.0), body=self.whileblock)
     
     def forward(self, input, transition='interval', version=None):
         # if transition == 'abstract':
