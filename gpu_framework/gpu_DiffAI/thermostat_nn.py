@@ -145,7 +145,10 @@ class LinearReLU(nn.Module):
 def f_wrap_up_tmp_down_nn(nn):
     def f_tmp_down_nn(x):
         # print(f"nn, before: {x.c, x.delta}")
-        plant = nn(x).mul(var(0.001))
+        # print(f"value linear1, weight: {nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
+        # print(f"value linear2, weight: {nn.linear2.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {nn.linear2.bias.detach().cpu().numpy().tolist()[0]}")
+        # print(f"value linear3, weight: {nn.linear3.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {nn.linear3.bias.detach().cpu().numpy().tolist()[0]}")
+        plant = nn(x).mul(var(0.01))
         # print(f"nn, after: {plant.c, plant.delta}")
         return x.select_from_index(1, index0).sub_l(plant)
     return f_tmp_down_nn
@@ -154,7 +157,7 @@ def f_wrap_up_tmp_down_nn(nn):
 def f_wrap_up_tmp_up_nn(nn):
     def f_tmp_up_nn(x):
         # print(f"nn, before: {x.c, x.delta}")
-        plant = nn(x).mul(var(0.001))
+        plant = nn(x).mul(var(0.01))
         # print(f"nn, after: {plant.c, plant.delta}")
         return x.select_from_index(1, index0).sub_l(plant).add(var(10.0))
     return f_tmp_up_nn
@@ -252,12 +255,12 @@ class ThermostatNN(nn.Module):
                 isOn_on = isOn[on_idx].unsqueeze(1)
 
                 # if isOn <= 0.5: off
-                off_x = off_x + self.nn(off_state)
+                off_x = off_x - self.nn(off_state) * 0.01
                 # print(f"off shape: {isOn_off.shape}, {off_x.shape}")
                 isOn_off[off_x <= float(self.tOn)] = float(1.0)
 
                 # else  isOn > 0.5: on
-                on_x = on_x + self.nn(on_state) + 5.0
+                on_x = on_x - self.nn(on_state) * 0.01 + 10.0
                 isOn_on[on_x > float(self.tOff)] = float(0.0)
 
                 x = torch.cat((off_x, on_x), 0)

@@ -92,6 +92,7 @@ Program Statement
 '''
 
 def calculate_x_list(target_idx, arg_idx, f, symbol_tables):
+    # print(f"[calculate_x_list]: {f}")
     x = symbol_tables['x']
     # print(f"[calculate_x_list]: {f}")
     # print(f"[calculate_x_list]: {x.c}\n\t {x.delta}")

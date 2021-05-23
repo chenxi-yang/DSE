@@ -186,7 +186,7 @@ def assign_probability(perturbation_x_dict, component_list):
     for idx, component in enumerate(component_list):
         p = extract_upper_probability_per_component(component, perturbation_x_dict)
         # print(f"p: {p}")
-        component['p'] = max(p, 1e-02)
+        component['p'] = max(p, 1e-10)
         component_list[idx] = component
     # print(f"sum of upper bound: {sum([component['p'] for component in component_list])}")
     # exit(0)
@@ -313,7 +313,7 @@ def get_truncated_normal_width(mean, std, width):
         truncated_normal = truncnorm((mean-width-mean)/std, (mean+width-mean)/std, loc=mean, scale=std)
         res = truncated_normal.rvs()
     except ValueError:
-        width *= 0.5
+        width *= 2.0
         truncated_normal = truncnorm((mean-width-mean)/std, (mean+width-mean)/std, loc=mean, scale=std)
         res = truncated_normal.rvs()
     return res
