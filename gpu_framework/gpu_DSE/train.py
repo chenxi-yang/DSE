@@ -534,7 +534,7 @@ def learning(
                 TIME_OUT = True
                 break
     
-    res = real_data_loss + float(lambda_) * real_safe_loss# loss # f_loss.div(len(X_train))
+    res = 0.0 # real_data_loss + float(lambda_) * real_safe_loss# loss # f_loss.div(len(X_train))
 
     if not debug:
         log_file = open(file_dir, 'a')
