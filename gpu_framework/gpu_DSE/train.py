@@ -120,10 +120,10 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 # print(f"not empty: {intersection_interval.getLength()}, {X.getLength()}")
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
-            if float(unsafe_value) > 0:
-                print(f"X: {float(X.left)}, {float(X.right)}")
-                print(f"unsafe value: {float(unsafe_value)}")
-                print(f"p: {symbol_table['probability']}")
+            # if float(unsafe_value) > 0:
+            #     print(f"X: {float(X.left)}, {float(X.right)}")
+            #     print(f"unsafe value: {float(unsafe_value)}")
+            #     print(f"p: {symbol_table['probability']}")
             #     print(f"point: {X.isPoint()}")
             # print(f"unsafe value: {float(unsafe_value)}")
             if outside_trajectory_loss:
@@ -198,6 +198,7 @@ def cal_data_loss(m, trajectory_list, criterion):
         print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
         print(f"y: {y_list[:5]}")
     data_loss = criterion(yp, y)
+    data_loss /= X.shape[0]
     # print(f"data_loss: {datas_loss}")
     return data_loss
 
@@ -376,8 +377,8 @@ def learning(
                         sample_time = time.time()
 
                         if use_data_loss:
-                            # data_loss = cal_data_loss(m, trajectory_list, criterion)
-                            data_loss = 0.0
+                            data_loss = cal_data_loss(m, trajectory_list, criterion)
+                            # data_loss = 0.0
                             grad_data_loss += float(data_loss) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                             real_data_loss += float(data_loss)
                             data_loss_list.append(float(data_loss))

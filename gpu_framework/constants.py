@@ -102,11 +102,11 @@ if benchmark_name == "thermostat":
     component_bound_idx = 0
     bound_direction_idx = 1
 
-    safe_range_start=86.0
+    safe_range_start=86.5
     safe_range_end=92.0
-    safe_range_step=1.0
+    safe_range_step=0.5
     safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
-
+    analysis_name_list = ['x']
 
 if benchmark_name == "mountain_car":
     # x_l = [-0.6]

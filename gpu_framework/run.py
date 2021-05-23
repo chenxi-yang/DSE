@@ -248,6 +248,10 @@ if __name__ == "__main__":
                         if m is None:
                             if benchmark_name == "thermostat":
                                 m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
+                                print(f"value linear1, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
+                                print(f"value linear2, weight: {m.nn.linear2.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear2.bias.detach().cpu().numpy().tolist()[0]}")
+                                print(f"value linear3, weight: {m.nn.linear3.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear3.bias.detach().cpu().numpy().tolist()[0]}")
+        
                             if benchmark_name == "mountain_car":
                                 m = MountainCar(l=l, nn_mode=nn_mode, module=module)
                             if benchmark_name == "unsound_1":

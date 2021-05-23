@@ -25,6 +25,7 @@ from utils import (
     ini_trajectory,
     batch_pair,
     batch_points,
+    batch_pair_endpoint, 
     show_cuda_memory,
     sample_parameters,
 )
@@ -91,13 +92,18 @@ def cal_data_loss(m, trajectory_list, criterion):
     # for the point in the same batch
     # calculate the data loss of each point
     # add the point data loss together
-    X, y = batch_pair(trajectory_list, data_bs=512)
+    # X, y = batch_pair(trajectory_list, data_bs=512)
+    if benchmark_name in ['thermostat']:
+        X, y = batch_pair_endpoint(trajectory_list)
+    else:
+        X, y = batch_pair(trajectory_list)
     # print(f"after batch pair: {X.shape}, {y.shape}")
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     # print(X.shape, y.shape)
     yp = m(X, version="single_nn_learning")
     data_loss = criterion(yp, y)
     # print(f"data_loss: {data_loss}")
+    data_loss /= X.shape[0]
     return data_loss
 
 
