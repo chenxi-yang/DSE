@@ -194,6 +194,8 @@ class MountainCar(nn.Module):
         self.min_acc = var(-1.2)
         self.max_acc = var(1.2)
         self.change_acc = var(0.0)
+        self.min_abs_acc = var(0.1)
+        self.neg_min_abs_acc = var(-0.1)
         
         if module == 'linearsig':
             self.nn = LinearSig(l=l)
@@ -214,17 +216,25 @@ class MountainCar(nn.Module):
 
         self.assign_acceleration = Assign(target_idx=[2], arg_idx=[0, 1], f=self.nn)
         
+        self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)  
+
         # use continuous acc
-        self.ifelse_max_acc_block1 = Skip()
+        # self.ifelse_max_acc_block1 = Skip()
+
         # use discrete acc
         # self.assign_left_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_left_acc)
         # self.assign_right_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_right_acc)
         # self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.change_acc, f_test=f_test, body=self.assign_left_acc, orelse=self.assign_right_acc)
 
+        # filter abs lower acc
+        self.assign_acc_self = Skip()
+        self.ifelse_min_abs_acc = IfElse(target_idx=[2], test=self.neg_min_abs_acc, f_test=f_test, body=self.assign_acc_self, orelse=self.assign_min_acc)
+        self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.min_abs_acc, f_test=f_test, body=self.ifelse_min_abs_acc, orelse=self.assign_acc_self)
+        
         self.assign_max_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_max_acc)
         self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.ifelse_max_acc_block1, orelse=self.assign_max_acc)
 
-        self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)
+        # self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)
         self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
 
         self.assign_reward_update = Assign(target_idx=[3], arg_idx=[2, 3], f=f_assign_reward_update)
@@ -271,6 +281,7 @@ class MountainCar(nn.Module):
             res = self.nn(input)
             res[res <= self.min_acc] = float(self.min_acc)
             res[res > self.max_acc] = float(self.max_acc)
+            res[torch.abs(res) <= self.min_abs_acc] = float(self.min_acc)
             # res[torch.logical_and(res <= self.max_acc, res > self.min_acc)] = torch.sign(res[torch.logical_and(res <= self.max_acc, res > self.min_acc)]) *  0.5
         else:
             res = self.program(input)
