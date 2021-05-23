@@ -196,7 +196,11 @@ def cal_data_loss(m, trajectory_list, criterion):
         y_list = y.squeeze().detach().cpu().numpy().tolist()
         # print(f"yp: {min(yp_list)}, {max(yp_list)}")
         print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
-        print(f"y: {y_list[:5]}")
+        # print(f"y: {y_list[:5]}")
+    
+    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+    y_list = y.squeeze().detach().cpu().numpy().tolist()
+    print(f"yp: {min(yp_list)}, {max(yp_list)}")
     data_loss = criterion(yp, y)
     data_loss /= X.shape[0]
     # print(f"data_loss: {datas_loss}")
@@ -325,6 +329,7 @@ def learning(
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
+    print(f"Optimizer: {optimizer_method}")
 
     TIME_OUT = False
 
@@ -333,9 +338,14 @@ def learning(
     m.cuda()
 
     criterion = torch.nn.MSELoss()
-    # optimizer = torch.optim.SGD(m.parameters(), lr=lr)
-    optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
-    
+    if optimizer_method  == "SGD":
+        optimizer = torch.optim.SGD(m.parameters(), lr=lr, momentum=0.9)
+    if optimizer_method  == "Adam-0":
+        optimizer = torch.optim.Adam(m.parameters(), lr=lr) #, weight_decay=1e-05)
+    if optimizer_method  == "Adam":
+        optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
+
+
     if epochs_to_skip is None:
         epochs_to_skip = -1
     
