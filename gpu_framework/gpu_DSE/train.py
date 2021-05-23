@@ -123,8 +123,8 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
             # if float(unsafe_value) > 0:
             #     print(f"X: {float(X.left)}, {float(X.right)}")
             #     print(f"unsafe value: {float(unsafe_value)}")
-            #     print(f"p: {symbol_table['probability']}")
-            #     print(f"point: {X.isPoint()}")
+                # print(f"p: {symbol_table['probability']}")
+                # print(f"point: {X.isPoint()}")
             # print(f"unsafe value: {float(unsafe_value)}")
             if outside_trajectory_loss:
                 tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table['probability'])
