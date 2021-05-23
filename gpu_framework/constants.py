@@ -91,7 +91,7 @@ if benchmark_name == "thermostat":
     x_l = [55.0]
     x_r = [70.0]
     # SAFE_RANGE = [55.0, 81.34] # strict
-    safe_range_list = [[53.0, 82.0]]
+    safe_range_list = [[50.0, 82.0]]
     phi_list = [0.0]
     phi_list[0] = ini_unsafe_probability
     w_list = [1.0]
@@ -102,8 +102,8 @@ if benchmark_name == "thermostat":
     component_bound_idx = 0
     bound_direction_idx = 1
 
-    safe_range_start=82.0
-    safe_range_end=89.0
+    safe_range_start=86.0
+    safe_range_end=92.0
     safe_range_step=1.0
     safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
 
