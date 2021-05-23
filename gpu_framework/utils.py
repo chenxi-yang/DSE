@@ -368,6 +368,25 @@ def sample_parameters(Theta, n=5, sample_std=1.0, sample_width=1e-6):
     return theta_list
 
 
+def trigger_sample_width(safe_loss_list):
+    if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
+        return True
+    
+    safe_loss_list.sort()
+    length = len(safe_loss_list)
+    if length % 2 == 0:
+        l = safe_loss_list[int(length/2) - 1]
+        r = safe_loss_list[int(length/2)]
+    else:
+        l = safe_loss_list[int(length/2)]
+        r = safe_loss_list[int(length/2) + 1]
+    if l <= 0.5 * r:
+        return True
+    else:
+        return False
+
+
+
 
 
 
