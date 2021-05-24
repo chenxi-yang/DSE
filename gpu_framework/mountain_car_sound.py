@@ -182,6 +182,9 @@ class MountainCar(nn.Module):
         self.max_speed = var(0.07)
         self.min_acc = var(-1.2)
         self.max_acc = var(1.2)
+        self.change_acc = var(0.0)
+        self.min_abs_acc = var(0.01)
+        self.neg_min_abs_acc = - self.min_abs_acc
         
         if module == 'linearsig':
             self.nn = LinearSig(l=l)
@@ -201,12 +204,25 @@ class MountainCar(nn.Module):
         self.ifelse_p = IfElse(target_idx=[0], test=self.min_position, f_test=f_test, body=self.ifelse_p_block1, orelse=self.ifelse_p_block2)
 
         self.assign_acceleration = Assign(target_idx=[2], arg_idx=[0, 1], f=self.nn)
+
+        self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)       
+
+        # use continuous acc
+        # self.ifelse_max_acc_block1 = Skip()
+       
+        # use discrete acc
+        # self.assign_left_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_left_acc)
+        # self.assign_right_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_right_acc)
+        # self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.change_acc, f_test=f_test, body=self.assign_left_acc, orelse=self.assign_right_acc)
         
-        self.ifelse_max_acc_block1 = Skip()
+        # filter abs lower acc
+        self.assign_acc_self = Skip()
+        self.ifelse_min_abs_acc = IfElse(target_idx=[2], test=self.neg_min_abs_acc, f_test=f_test, body=self.assign_acc_self, orelse=self.assign_min_acc)
+        self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.min_abs_acc, f_test=f_test, body=self.ifelse_min_abs_acc, orelse=self.assign_acc_self)
+        
         self.assign_max_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_max_acc)
         self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.ifelse_max_acc_block1, orelse=self.assign_max_acc)
 
-        self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)
         self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
 
         self.assign_reward_update = Assign(target_idx=[3], arg_idx=[2, 3], f=f_assign_reward_update)
@@ -224,9 +240,9 @@ class MountainCar(nn.Module):
         
         self.assign_min_speed = Assign(target_idx=[1], arg_idx=[1], f=f_assign_min_speed)
         self.ifelse_v = IfElse(target_idx=[1], test=self.min_speed, f_test=f_test, body=self.assign_min_speed, orelse=self.ifelse_max_speed)
-        
+
         self.assign_update_p = Assign(target_idx=[0], arg_idx=[0, 1], f=f_assign_update_p)
-        self.trajectory_update_1 = Trajectory(target_idx=[2, 0, 1])
+        self.trajectory_update_1 = Trajectory(target_idx=[2, 0])
         self.whileblock = nn.Sequential(
             self.ifelse_p,
             self.assign_block, 
@@ -238,12 +254,12 @@ class MountainCar(nn.Module):
 
         self.check_non = Skip() # nothing changes
         self.check_reach = Assign(target_idx=[3], arg_idx=[3], f=reward_reach)
-        self.check_position = IfElse(target_idx=[0], test=self.goal_position, f_test=f_test, body=self.check_non, orelse=self.check_reach)
+        self.check_position = IfElse(target_idx=[0], test=self.goal_position-var(1e-5), f_test=f_test, body=self.check_non, orelse=self.check_reach)
         
-        self.trajectory_update_2 = Trajectory(target_idx=[2, 0, 1])
+        self.trajectory_update_2 = Trajectory(target_idx=[2, 0])
         self.program = nn.Sequential(
             self.while1,
-            self.check_position,
+            # self.check_position,
             self.trajectory_update_2, # only use the final reward
         )
 
@@ -255,6 +271,11 @@ class MountainCar(nn.Module):
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
         if version == "single_nn_learning":
             res = self.nn(input)
+            res[res <= self.min_acc] = float(self.min_acc)
+            res[res > self.max_acc] = float(self.max_acc)
+            res[torch.abs(res) <= self.min_abs_acc] = float(self.min_acc)
+            # res[torch.logical_and(res <= self.max_acc, res > self.min_acc)] = torch.sign(res[torch.logical_and(res <= self.max_acc, res > self.min_acc)]) *  0.5
+            # print(f"in data loss: {res}")
         else:
             res = self.program(input)
         # if transition == 'abstract':

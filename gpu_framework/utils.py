@@ -380,7 +380,7 @@ def trigger_sample_width(safe_loss_list):
     else:
         l = safe_loss_list[int(length/2)]
         r = safe_loss_list[int(length/2) + 1]
-    if l <= 0.5 * r:
+    if l <= 0.6 * r:
         return True
     else:
         return False
