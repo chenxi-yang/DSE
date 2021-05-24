@@ -328,6 +328,7 @@ def learning(
         data_safe_consistent=None,
         sample_std=0.01,
         sample_width=None,
+        weight_decay=None,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
@@ -345,7 +346,12 @@ def learning(
     if optimizer_method  == "Adam-0":
         optimizer = torch.optim.Adam(m.parameters(), lr=lr) #, weight_decay=1e-05)
     if optimizer_method  == "Adam":
-        optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
+        if benchmark_name == "mountain_car":
+            weight_decay = 1e-7
+        if weight_decay is None:
+            optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
+        else:
+            optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=weight_decay)
 
 
     if epochs_to_skip is None:
