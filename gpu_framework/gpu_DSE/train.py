@@ -31,7 +31,8 @@ from utils import (
     show_component, 
     show_cuda_memory,
     show_trajectory,
-    trigger_sample_width,
+    shrink_sample_width,
+    widen_sample_width,
     )
 
 from gpu_DSE.data_generator import *
@@ -456,9 +457,12 @@ def learning(
             #         break
             
             # print(m.parameters())
-            if trigger_sample_width(safe_loss_list):
+            if shrink_sample_width(safe_loss_list):
             # if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
                 sample_width *= 0.5
+            # if widen_sample_width(safe_loss_list):
+            #     sample_width *= 2.0
+            
 
             loss = (grad_data_loss + lambda_ * grad_safe_loss) / lambda_
             # loss = lambda_ * grad_safe_loss
