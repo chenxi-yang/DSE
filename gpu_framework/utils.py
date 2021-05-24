@@ -313,7 +313,7 @@ def get_truncated_normal_width(mean, std, width):
         truncated_normal = truncnorm((mean-width-mean)/std, (mean+width-mean)/std, loc=mean, scale=std)
         res = truncated_normal.rvs()
     except ValueError:
-        width *= 2.0
+        width = width * 2.0
         truncated_normal = truncnorm((mean-width-mean)/std, (mean+width-mean)/std, loc=mean, scale=std)
         res = truncated_normal.rvs()
     return res
@@ -368,7 +368,7 @@ def sample_parameters(Theta, n=5, sample_std=1.0, sample_width=1e-6):
     return theta_list
 
 
-def trigger_sample_width(safe_loss_list):
+def shrink_sample_width(safe_loss_list):
     if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
         return True
     
@@ -381,6 +381,14 @@ def trigger_sample_width(safe_loss_list):
         l = safe_loss_list[int(length/2)]
         r = safe_loss_list[int(length/2) + 1]
     if l <= 0.6 * r:
+        return True
+    else:
+        return False
+
+
+def widen_sample_width(safe_loss_list):
+    # stuck
+    if safe_loss_list.count(safe_loss_list[0]) == len(safe_loss_list) and safe_loss_list[0]!= 0.0:
         return True
     else:
         return False

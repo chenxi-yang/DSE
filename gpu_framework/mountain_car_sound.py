@@ -183,7 +183,7 @@ class MountainCar(nn.Module):
         self.min_acc = var(-1.2)
         self.max_acc = var(1.2)
         self.change_acc = var(0.0)
-        self.min_abs_acc = var(0.01)
+        self.min_abs_acc = var(0.1)
         self.neg_min_abs_acc = - self.min_abs_acc
         
         if module == 'linearsig':

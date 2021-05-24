@@ -245,7 +245,8 @@ def sampling_1(x, safe_bound):
             weights=[p0, p1], # the p0 is a distribution, p1 is also a distribution
             k=1,
         )[0]
-
+    
+    # DiffAI version: if p0 > p1: y=10 else: y=1; if intersection: both
     if v <= bar:
         y = 10
     else:
