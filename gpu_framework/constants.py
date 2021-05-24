@@ -59,6 +59,7 @@ analysis = args.analysis
 use_abstract_components = args.use_abstract_components
 test_with_training = args.test_with_training
 optimizer_method = args.optimizer_method
+simple_debug = args.simple_debug
 
 expr_i_number = args.expr_i_number
 
@@ -285,7 +286,10 @@ TEST = False
 PROTECTION_LOOP_NUM = 999
 PROTECTION_LOOP_NUM_SMOOTH = 999
 # MAXIMUM_ITERATION = 50
-MAXIMUM_ITERATION = 50
+if single_debug:
+    MAXIMUM_ITERATION = 5
+else:
+    MAXIMUM_ITERATION = 50
 
 N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)
