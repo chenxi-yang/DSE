@@ -231,29 +231,35 @@ def generate_p(x):
     return sigmoid(torch.Tensor([y]))
 
 
+# def sampling_1(x, safe_bound):
+#     trajectory_list = list()
+#     bar = 0.5
+
+#     # create a very small p0 by faking nn
+#     p0 = generate_p(x)
+#     p1 = 1 - p0
+
+#     # v is a new variable, with new probability
+#     v = random.choices(
+#             population=[0, 1],
+#             weights=[p0, p1], # the p0 is a distribution, p1 is also a distribution
+#             k=1,
+#         )[0]
+    
+#     # DiffAI version: if p0 > p1: y=10 else: y=1; if intersection: both
+#     if v <= bar:
+#         y = 10
+#     else:
+#         y = 1
+    
+#     trajectory_list.append((x, y))
+#     return trajectory_list
+
 def sampling_1(x, safe_bound):
-    trajectory_list = list()
+    trajectory_list = list() # for data loss
+    
     bar = 0.5
 
-    # create a very small p0 by faking nn
-    p0 = generate_p(x)
-    p1 = 1 - p0
-
-    # v is a new variable, with new probability
-    v = random.choices(
-            population=[0, 1],
-            weights=[p0, p1], # the p0 is a distribution, p1 is also a distribution
-            k=1,
-        )[0]
-    
-    # DiffAI version: if p0 > p1: y=10 else: y=1; if intersection: both
-    if v <= bar:
-        y = 10
-    else:
-        y = 1
-    
-    trajectory_list.append((x, y))
-    return trajectory_list
 
 
 # def p1(r, g, b):
