@@ -106,6 +106,8 @@ def cal_data_loss(m, trajectory_list, criterion):
     y_list = y.squeeze().detach().cpu().numpy().tolist()
     print(f"yp: {min(yp_list)}, {max(yp_list)}")
     data_loss = criterion(yp, y)
+    if benchmark_name == "thermostat":
+        data_loss /= X.shape[0]
     # print(f"data_loss: {data_loss}")
     # data_loss /= X.shape[0]
     return data_loss

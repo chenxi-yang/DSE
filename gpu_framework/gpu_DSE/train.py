@@ -104,7 +104,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
 
         trajectory_loss = var_list([0.0])
         # print(f"symbol table p: {float(symbol_table['probability'])}")
-        # print(f"start trajectory: ")
+        print(f"start trajectory: ")
         for state in trajectory:
             # print(f"state: {state}")
             X = state[target_idx] # select the variable to measure
@@ -123,8 +123,8 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
             # if float(unsafe_value) > 0:
-            #     print(f"X: {float(X.left)}, {float(X.right)}")
-            #     print(f"unsafe value: {float(unsafe_value)}")
+            print(f"X: {float(X.left)}, {float(X.right)}")
+            print(f"unsafe value: {float(unsafe_value)}")
                 # print(f"p: {symbol_table['probability']}")
                 # print(f"point: {X.isPoint()}")
             # print(f"unsafe value: {float(unsafe_value)}")
@@ -204,7 +204,8 @@ def cal_data_loss(m, trajectory_list, criterion):
     y_list = y.squeeze().detach().cpu().numpy().tolist()
     print(f"yp: {min(yp_list)}, {max(yp_list)}")
     data_loss = criterion(yp, y)
-    data_loss /= X.shape[0]
+    if benchmark_name == "thermostat":
+        data_loss /= X.shape[0]
     # print(f"data_loss: {datas_loss}")
     return data_loss
 
