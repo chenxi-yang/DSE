@@ -3,6 +3,7 @@ import random
 
 import torch.nn as nn
 import torch
+from scipy.stats import bernoulli
 
 
 def thermostat(lin, safe_bound):
@@ -47,11 +48,37 @@ def acceleration(p, v):
 
 def safe_acceleration(p, v, safe_bound):
     u = 0.0
+    # if v <= 0.0:
+    #     # u = - 0.8
+    #     u = - safe_bound + random.uniform(0.00001, 0)
+    # else:
+    #     u = safe_bound + random.uniform(-0.00001, 0)
+    # if v <= 0.0:
+    #     u = -(-v/0.05)**0.5 * safe_bound + 0.01* (0.5 - p)/1.2
+    # else:
+    #     u = (v/0.05) ** 0.5 * safe_bound + 0.01 * (0.5 - p)/1.2
+
+    # u = (v/0.1)**2 * 10 * safe_bound + 0.01* (0.5 - p)/1.2
+    # u = v * (v ** 2 / 0.025) ** 0.5 * safe_bound + 0.01* (0.5 - p)/1.2
+    # print(p, v, u)
+    # if v <= 0.0:
+    #     # u = - 0.8
+    #     u = - safe_bound + random.uniform(0.00001, 0)
+    # else:
+    #     u = safe_bound + random.uniform(-0.00001, 0)
+    # u = v / ((v+0.1)**2) * (-v**2 + (safe_bound - 0.2)) + 0.01* (0.5 - p)/1.2
+    # if v <= 0.0:
+    #     u = - safe_bound * v + random.uniform(0.00001, 0)
+    # else:
+    #     u = safe_bound + random.uniform(-0.00001, 0)
+    # fraction = - 1 / (0.1**2) * v ** 2 + 1
+    # u = safe_bound * v/0.07 * 10 * fraction + 0.01* (0.5 - p)/1.2 * v * fraction
+    # print(p, v, u)
     if v <= 0.0:
-        # u = - 0.8
-        u = - safe_bound + random.uniform(0.00001, 0)
+        u = - safe_bound
     else:
-        u = safe_bound + random.uniform(-0.00001, 0)
+        u = safe_bound
+    
     return u
 
 
@@ -66,8 +93,8 @@ def mountain_car(p0, safe_bound):
     max_speed = 0.07
     reward = 0
     i = 0
-    min_u = -1.15
-    max_u = 1.15
+    min_u = -1.6
+    max_u = 1.6
     trajectory_list = list()
 
     while p <= goal_position:
@@ -78,6 +105,7 @@ def mountain_car(p0, safe_bound):
         # update acceleration
         u = safe_acceleration(p, v, safe_bound)
         # pre-filter of acceleration, to add unsoundness
+
         if u <= min_u:
             u = min_u
         elif u <= max_u:
@@ -86,6 +114,7 @@ def mountain_car(p0, safe_bound):
             u = max_u
         # update trajectory
         trajectory_list.append((p, v, u))
+        
         
         # update velocity
         v = v + 0.0015 * u - 0.0025 * math.cos(3 * p)
@@ -101,6 +130,7 @@ def mountain_car(p0, safe_bound):
         p = p + v
         # i += 1
         # print(i, p)
+    # print(f'finish one')
     
     return trajectory_list
 
@@ -164,6 +194,40 @@ def unsound_2_overall(x, safe_bound):
     return trajectory_list
 
 
+# torch.manual_seed(1)
+# torch.cuda.manual_seed(1)
+# nn = SampleNN()
+
+
+def sampling_1(x, safe_bound):
+    trajectory_list = list() # for data loss
+
+    bar = 0.5
+    
+    return trajectory_list
+
+
+'''
+Conceptual Benchmarks
+'''
+
+# Linear, ReLu, Linear, Sigmoid
+class SampleNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.linear1 = nn.Linear(2, 4)
+        self.linear2 = nn.Linear(4, 1)
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+    
+    def forward(self, x):
+        res = self.linear1(x)
+        res = self.relu(res)
+        res = self.linear2(res)
+        res = self.sigmoid(res)
+
+        return res
+
 def mountain_car_algo(p, v):
     # p: [goal_position, infinity], 0.1
     # u: [-0.9, 0.9], 0.1
@@ -203,27 +267,6 @@ def mountain_car_concept(p, v):
     
     return trajectory
 
-# Linear, ReLu, Linear, Sigmoid
-class SampleNN(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.linear1 = nn.Linear(2, 4)
-        self.linear2 = nn.Linear(4, 1)
-        self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
-    
-    def forward(self, x):
-        res = self.linear1(x)
-        res = self.relu(res)
-        res = self.linear2(res)
-        res = self.sigmoid(res)
-
-        return res
-
-
-# torch.manual_seed(1)
-# torch.cuda.manual_seed(1)
-# nn = SampleNN()
 
 def generate_p(x):
     sigmoid = nn.Sigmoid()
@@ -254,13 +297,6 @@ def generate_p(x):
     
 #     trajectory_list.append((x, y))
 #     return trajectory_list
-
-def sampling_1(x, safe_bound):
-    trajectory_list = list() # for data loss
-    
-    bar = 0.5
-
-
 
 # def p1(r, g, b):
 #     win = -1

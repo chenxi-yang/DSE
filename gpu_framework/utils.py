@@ -347,7 +347,7 @@ def sample_parameters(Theta, n=5, sample_std=1.0, sample_width=1e-6):
     # sample n theta based on the normal distribution with mean=Theta std=1.0
     # return a list of <theta, theta_p>
     # each theta, Theta is a list of Tensor
-
+    sample_time = time.time()
     # show_cuda_memory(f"ini sample para")
     theta_list = list()
     for i in range(n):
@@ -362,7 +362,7 @@ def sample_parameters(Theta, n=5, sample_std=1.0, sample_width=1e-6):
         # print(f"each sampled theta: {sampled_theta}")
         # print(f"each probability: {theta_p}")
         theta_list.append((sampled_theta, theta_p))
-    
+    print(f"sample parameter time: {time.time() - sample_time} sec.")
     # show_cuda_memory(f"end sample para")
     # exit(0)
     return theta_list

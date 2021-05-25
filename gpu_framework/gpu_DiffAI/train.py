@@ -403,7 +403,7 @@ def learning(
         optimizer = torch.optim.Adam(m.parameters(), lr=lr) #, weight_decay=1e-05)
     if optimizer_method  == "Adam":
         if benchmark_name == "mountain_car":
-            weight_decay = 1e-7
+            weight_decay = 1e-6
         if weight_decay is None:
             optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
         else:
