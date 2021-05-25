@@ -194,7 +194,8 @@ if __name__ == "__main__":
                 # TODO: the data is one-dimension (x = a value)
                 if fixed_dataset:
                     if benchmark_name == "mountain_car":
-                        Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
+                        # Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
+                        Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
                     if benchmark_name == "thermostat":
                         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{86.0}.txt")
                     if benchmark_name in ["unsound_1", "unsound_2_separate", "unsound_2_overall", "sampling_1"]:
@@ -361,7 +362,7 @@ if __name__ == "__main__":
                         trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}.txt")
                     print(f"---verification time: {time.time() - verification_time} sec---")
                     
-                if unsound_verify:
+                # if unsound_verify:
                     # print(f"------------start unsound verification------------")
                     # print(f"to verify safe bound(train dataset): {safe_range_bound}")
                     # verification_time = time.time()

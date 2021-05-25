@@ -15,8 +15,8 @@ def dataset_arg(dataset):
         # range_ = [-0.6, -0.4]
         # range_ = [-1.2, -0.4]
         # range_ = [-0.6, 0.0]
-        # range_ = [-1.6, -0.0]
-        range_ = [-16.0, 0.0]
+        range_ = [-1.6, -0.0]
+        # range_ = [-16.0, 0.0]
     if dataset == "unsound_1":
         range_ = [-5.0, 5.0]
     if dataset == "unsound_2_separate":
@@ -45,12 +45,15 @@ def generate_dataset(func, distribution, input_range, safe_bound, data_size=5000
         x_list = X.rvs(data_size).tolist()
     
     max_tra_l = 0.0
+    avg_tra_l = 0.0
     for x in x_list:
         trajectory_list = func(x, safe_bound)
         res_list.append(trajectory_list)
         max_tra_l = max(len(trajectory_list), max_tra_l)
+        avg_tra_l = avg_tra_l + len(trajectory_list)
         # min_tra, max_tra = min(trajectory_l, min_tra), max(trajectory_r, max_tra)
     
+    print(f"avg trajectory length: {avg_tra_l/len(x_list)}")
     print(f"max trajectory length: {max_tra_l}")
     # print(f"min-tra, max_tra: {min_tra}, {max_tra}")
     # thermostat: min-tra, max_tra: 52.01157295666703, 82.79782533533135

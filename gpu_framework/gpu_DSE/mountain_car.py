@@ -120,7 +120,8 @@ class LinearReLUNoAct(nn.Module):
         super().__init__()
         self.linear1 = Linear(in_channels=2, out_channels=l)
         self.linear2 = Linear(in_channels=l, out_channels=l)
-        self.linear_output = Linear(in_channels=l, out_channels=1)
+        self.linear3 = Linear(in_channels=l, out_channels=2)
+        self.linear_output = Linear(in_channels=2, out_channels=1)
         self.relu = ReLU()
         self.sigmoid = Sigmoid()
         # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
@@ -128,15 +129,18 @@ class LinearReLUNoAct(nn.Module):
     def forward(self, x):
         # final layer is not activation
         res = self.linear1(x)
-        res = self.relu(res)
-        # res = self.Sigmoid()
-        res = self.linear2(res)
+        # res = self.relu(res)
+        # # res = self.Sigmoid()
+        # res = self.linear2(res)
         
+        res = self.relu(res)
+        res = self.linear3(res)
         res = self.relu(res)
         res = self.linear_output(res)
         # res = self.sigmoid(res)
         # !!!!!!! between [-1.0, 1.0]
         # print(f"in Linear")
+        # res = res.mul(var(10.0))
         # print(f"time in LinearReLU: {time.time() - start_time}")
         return res
 
@@ -191,8 +195,8 @@ class MountainCar(nn.Module):
         self.min_speed = var(-0.07)
         self.initial_speed = var(0.0)
         self.max_speed = var(0.07)
-        self.min_acc = var(-1.2)
-        self.max_acc = var(1.2)
+        self.min_acc = var(-1.6)
+        self.max_acc = var(1.6)
         self.change_acc = var(0.0)
         self.min_abs_acc = var(0.01)
         self.neg_min_abs_acc = - self.min_abs_acc
@@ -219,7 +223,7 @@ class MountainCar(nn.Module):
         self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)  
 
         # use continuous acc
-        # self.ifelse_max_acc_block1 = Skip()
+        self.ifelse_max_acc_block1 = Skip()
 
         # use discrete acc
         # self.assign_left_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_left_acc)
@@ -227,9 +231,9 @@ class MountainCar(nn.Module):
         # self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.change_acc, f_test=f_test, body=self.assign_left_acc, orelse=self.assign_right_acc)
 
         # filter abs lower acc
-        self.assign_acc_self = Skip()
-        self.ifelse_min_abs_acc = IfElse(target_idx=[2], test=self.neg_min_abs_acc, f_test=f_test, body=self.assign_acc_self, orelse=self.assign_min_acc)
-        self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.min_abs_acc, f_test=f_test, body=self.ifelse_min_abs_acc, orelse=self.assign_acc_self)
+        # self.assign_acc_self = Skip()
+        # self.ifelse_min_abs_acc = IfElse(target_idx=[2], test=self.neg_min_abs_acc, f_test=f_test, body=self.assign_acc_self, orelse=self.assign_min_acc)
+        # self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.min_abs_acc, f_test=f_test, body=self.ifelse_min_abs_acc, orelse=self.assign_acc_self)
         
         self.assign_max_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_max_acc)
         self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.ifelse_max_acc_block1, orelse=self.assign_max_acc)
@@ -278,10 +282,14 @@ class MountainCar(nn.Module):
 
     def forward(self, input, transition='interval', version=None):
         if version == "single_nn_learning":
+            print(input.detach().cpu().numpy().tolist()[:3])
             res = self.nn(input)
-            res[res <= self.min_acc] = float(self.min_acc)
-            res[res > self.max_acc] = float(self.max_acc)
-            res[torch.abs(res) <= self.min_abs_acc] = float(self.min_acc)
+            print(res.detach().cpu().numpy().tolist()[:3])
+            # res *= 10
+            # res[res <= self.min_acc] = float(self.min_acc)
+            # res[res > self.max_acc] = float(self.max_acc)
+
+            # res[torch.abs(res) <= self.min_abs_acc] = float(self.min_acc)
             # res[torch.logical_and(res <= self.max_acc, res > self.min_acc)] = torch.sign(res[torch.logical_and(res <= self.max_acc, res > self.min_acc)]) *  0.5
         else:
             res = self.program(input)

@@ -143,8 +143,8 @@ if benchmark_name == "mountain_car":
     # safe_range_start=0.2
     # safe_range_end=1.1
     # safe_range_step=0.1
-    safe_range_start=0.5
-    safe_range_end=1.1
+    safe_range_start=1.0 # 0.5
+    safe_range_end=1.5 # 1.1
     safe_range_step=0.1
     safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
     analysis_name_list = ['acceleration', 'position']

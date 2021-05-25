@@ -104,7 +104,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
 
         trajectory_loss = var_list([0.0])
         # print(f"symbol table p: {float(symbol_table['probability'])}")
-        print(f"start trajectory: ")
+        # print(f"start trajectory: ")
         for state in trajectory:
             # print(f"state: {state}")
             X = state[target_idx] # select the variable to measure
@@ -123,8 +123,8 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
             # if float(unsafe_value) > 0:
-            print(f"X: {float(X.left)}, {float(X.right)}")
-            print(f"unsafe value: {float(unsafe_value)}")
+            # print(f"X: {float(X.left)}, {float(X.right)}")
+            # print(f"unsafe value: {float(unsafe_value)}")
                 # print(f"p: {symbol_table['probability']}")
                 # print(f"point: {X.isPoint()}")
             # print(f"unsafe value: {float(unsafe_value)}")
@@ -186,9 +186,9 @@ def cal_data_loss(m, trajectory_list, criterion):
     if len(trajectory_list) == 0:
         return var_list([0.0])
     if benchmark_name in ['thermostat']:
-        X, y = batch_pair_endpoint(trajectory_list)
+        X, y = batch_pair_endpoint(trajectory_list, data_bs=512)
     else:
-        X, y = batch_pair(trajectory_list)
+        X, y = batch_pair(trajectory_list, data_bs=512)
     print(f"after batch pair: {X.shape}, {y.shape}")
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     # print(X.shape, y.shape)s
@@ -200,9 +200,13 @@ def cal_data_loss(m, trajectory_list, criterion):
         print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
         # print(f"y: {y_list[:5]}")
     
+    # print(f"x: {X}")
     yp_list = yp.squeeze().detach().cpu().numpy().tolist()
     y_list = y.squeeze().detach().cpu().numpy().tolist()
+    # print(yp_list)
+    # print(y_list)
     print(f"yp: {min(yp_list)}, {max(yp_list)}")
+    print(f"y: {min(y_list)}, {max(y_list)}")
     data_loss = criterion(yp, y)
     if benchmark_name == "thermostat":
         data_loss /= X.shape[0]
@@ -348,15 +352,20 @@ def learning(
         optimizer = torch.optim.Adam(m.parameters(), lr=lr) #, weight_decay=1e-05)
     if optimizer_method  == "Adam":
         if benchmark_name == "mountain_car":
-            weight_decay = 1e-7
+            weight_decay = 1e-06
         if weight_decay is None:
             optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
         else:
             optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=weight_decay)
-
+    print(weight_decay)
 
     if epochs_to_skip is None:
         epochs_to_skip = -1
+    
+    if benchmark_name == "mountain_car":
+        nn_separate = True
+    else:
+        nn_separate = False
     
     start_time = time.time()
     last_update_i = 0
@@ -396,8 +405,11 @@ def learning(
                         sample_time = time.time()
 
                         if use_data_loss:
-                            data_loss = cal_data_loss(m, trajectory_list, criterion)
-                            # data_loss = 0.0
+                            if not nn_separate:
+                                data_loss = cal_data_loss(m, trajectory_list, criterion)
+                            else:
+                                data_loss = 0.0
+                            print(f"samplet theta p: {float(sample_theta_p)}")
                             grad_data_loss += float(data_loss) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                             real_data_loss += float(data_loss)
                             data_loss_list.append(float(data_loss))
@@ -405,13 +417,13 @@ def learning(
                         # show_cuda_memory(f"end sampled data loss")
                         
                         # if not only_data_loss:
-                        safe_loss = cal_safe_loss(m, abstract_states, target)
-                        # safe_loss = 0.0
+                        # safe_loss = cal_safe_loss(m, abstract_states, target)
+                        safe_loss = 0.0
                         grad_safe_loss += float(safe_loss) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                         real_safe_loss += float(safe_loss)
                         safe_loss_list.append(float(safe_loss))
 
-                        print(f"data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}, grad data loss: {float(float(data_loss) * sample_theta_p)}, grad safe loss: {float(float(safe_loss) * sample_theta_p)}")
+                        print(f"data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}, grad data loss: {float(grad_data_loss)}, grad safe loss: {float(grad_safe_loss)}")
                         # print(f"{'#' * 15}")
                         # print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
 
@@ -420,9 +432,15 @@ def learning(
                     m = update_model_parameter(m, Theta)
                     # show_cuda_memory(f"end update model(Theta)")
 
-                    grad_data_loss /= n
+                    if nn_separate:
+                        data_loss = cal_data_loss(m, trajectory_list, criterion)
+                        real_data_loss = float(data_loss)
+                        grad_data_loss = data_loss
+                    else:
+                        grad_data_loss /= n
+                        real_data_loss /= n
+
                     grad_safe_loss /= n
-                    real_data_loss /= n
                     real_safe_loss /= n
 
                     # max_data_loss, min_data_loss = max(data_loss_list), min(data_loss_list)
@@ -436,14 +454,16 @@ def learning(
                     safe_loss = var_list([0.0])
                     real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
                     grad_data_loss, grad_safe_loss = data_loss, safe_loss
+                
+                min_c_loss = max(min_c_loss, real_safe_loss)
             else:
                 if len(trajectory_list) == 0:
                     continue
                 tmp_q_idx += 1
                 data_loss = cal_data_loss(m, trajectory_list, criterion)
                 safe_loss = var_list([0.0])
-                if not only_data_loss:
-                    safe_loss = cal_safe_loss(m, abstract_states, target)
+                # if not only_data_loss:
+                #     safe_loss = cal_safe_loss(m, abstract_states, target)
                 real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
                 grad_data_loss, grad_safe_loss = data_loss, safe_loss
 
@@ -452,7 +472,6 @@ def learning(
             
             q_loss += real_data_loss
             c_loss += real_safe_loss
-            min_c_loss = max(min_c_loss, real_safe_loss)
 
             # show_cuda_memory(f"end batch")
 
@@ -463,12 +482,12 @@ def learning(
             #     else:
             #         break
             
-            # print(m.parameters())
-            if shrink_sample_width(safe_loss_list):
-            # if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
-                sample_width *= 0.5
-            # if widen_sample_width(safe_loss_list):
-            #     sample_width *= 2.0
+            # # print(m.parameters())
+            # if shrink_sample_width(safe_loss_list):
+            # # if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
+            #     sample_width *= 0.5
+            # # if widen_sample_width(safe_loss_list):
+            # #     sample_width *= 2.0
             
 
             loss = (grad_data_loss + lambda_ * grad_safe_loss) / lambda_
@@ -527,14 +546,14 @@ def learning(
         
         # help converge
 
-        if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
-            c_loss_i += 1
-            if c_loss_i >= 3:
-                if not debug:
-                    log_file = open(file_dir, 'a')
-                    log_file.write('c_loss is small enough. End. \n')
-                    log_file.close()
-                break
+        # if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
+        #     c_loss_i += 1
+        #     if c_loss_i >= 3:
+        #         if not debug:
+        #             log_file = open(file_dir, 'a')
+        #             log_file.write('c_loss is small enough. End. \n')
+        #             log_file.close()
+        #         break
         
         if (time.time() - start_time)/(i+1) > 6000 or TIME_OUT:
             if i <= 25: # give a chance for the first few epoch
