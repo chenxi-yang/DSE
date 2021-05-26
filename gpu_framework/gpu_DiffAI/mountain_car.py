@@ -126,25 +126,31 @@ class LinearReLUNoAct(nn.Module):
         super().__init__()
         self.linear1 = Linear(in_channels=2, out_channels=l)
         self.linear2 = Linear(in_channels=l, out_channels=l)
-        self.linear_output = Linear(in_channels=l, out_channels=1)
+        self.linear3 = Linear(in_channels=l, out_channels=2)
+        self.linear_output = Linear(in_channels=2, out_channels=1)
         self.relu = ReLU()
         self.sigmoid = Sigmoid()
         # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
 
     def forward(self, x):
-        # start_time = time.time()
-        res = self.linear1(x)
-        res = self.relu(res)
-        # res = self.Sigmoid()
-        res = self.linear2(res)
+        # final layer is not activation
         
+        res = self.linear1(x)
+        # res = self.relu(res)
+        # # res = self.Sigmoid()
+        # res = self.linear2(res)
+        
+        res = self.relu(res)
+        res = self.linear3(res)
         res = self.relu(res)
         res = self.linear_output(res)
         # res = self.sigmoid(res)
         # !!!!!!! between [-1.0, 1.0]
         # print(f"in Linear")
+        # res = res.mul(var(10.0))
         # print(f"time in LinearReLU: {time.time() - start_time}")
         return res
+
 
 
 def reward_reach(x):
@@ -173,6 +179,10 @@ def f_assign_left_acc(x):
 
 def f_assign_right_acc(x):
     return x.set_value(var(0.5))
+
+def f_assign_reset_acc(x):
+    return x.set_value(var(0.0))
+    # return x.add(0.3)
 
 def f_assign_update_p(x):
     return x.select_from_index(1, index0).add(x.select_from_index(1, index1))
@@ -249,12 +259,12 @@ class MountainCar(nn.Module):
 
         # use continuous acc
         self.ifelse_max_acc_block1 = Skip()
-       
+
         # use discrete acc
         # self.assign_left_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_left_acc)
         # self.assign_right_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_right_acc)
         # self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.change_acc, f_test=f_test, body=self.assign_left_acc, orelse=self.assign_right_acc)
-        
+
         # filter abs lower acc
         # self.assign_acc_self = Skip()
         # self.ifelse_min_abs_acc = IfElse(target_idx=[2], test=self.neg_min_abs_acc, f_test=f_test, body=self.assign_acc_self, orelse=self.assign_min_acc)
@@ -263,7 +273,17 @@ class MountainCar(nn.Module):
         self.assign_max_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_max_acc)
         self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.ifelse_max_acc_block1, orelse=self.assign_max_acc)
 
+        # self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)
         self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
+
+        # self.assign_max_acc = Skip()
+        # self.assign_reset_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_reset_acc)
+        # self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.assign_reset_acc, orelse=self.assign_max_acc)
+        # self.assign_min_acc = Skip()
+        # self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
+
+        # self.l_neg_min_abs_acc = Skip()
+        # self.ifelse_acceleration = IfElse(target_idx=[2], test=self.neg_min_abs_acc, f_test=f_test, body=self.l_neg_min_abs_acc, orelse=self.ifelse_min_abs_acc)
 
         self.assign_reward_update = Assign(target_idx=[3], arg_idx=[2, 3], f=f_assign_reward_update)
         self.assign_v = Assign(target_idx=[1], arg_idx=[0, 1, 2], f=f_assign_v)
@@ -310,9 +330,11 @@ class MountainCar(nn.Module):
         #     for x in x_list:
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
         if version == "single_nn_learning":
+            print(f"input: {input}")
             res = self.nn(input)
             res[res <= self.min_acc] = float(self.min_acc)
             res[res > self.max_acc] = float(self.max_acc)
+            print(f"res: {res}")
             # res[torch.abs(res) <= self.min_abs_acc] = float(self.min_acc)
             # res[torch.logical_and(res <= self.max_acc, res > self.min_acc)] = torch.sign(res[torch.logical_and(res <= self.max_acc, res > self.min_acc)]) *  0.5
             # print(f"in data loss: {res}")

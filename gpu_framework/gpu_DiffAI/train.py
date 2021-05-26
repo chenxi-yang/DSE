@@ -94,16 +94,20 @@ def cal_data_loss(m, trajectory_list, criterion):
     # add the point data loss together
     # X, y = batch_pair(trajectory_list, data_bs=512)
     if benchmark_name in ['thermostat']:
-        X, y = batch_pair_endpoint(trajectory_list)
+        X, y = batch_pair_endpoint(trajectory_list, data_bs=None)
     else:
-        X, y = batch_pair(trajectory_list)
+        X, y = batch_pair(trajectory_list, data_bs=None)
     # print(f"after batch pair: {X.shape}, {y.shape}")
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     # print(X.shape, y.shape)
     yp = m(X, version="single_nn_learning")
 
+    x_list = X.squeeze().detach().cpu().numpy().tolist()
     yp_list = yp.squeeze().detach().cpu().numpy().tolist()
     y_list = y.squeeze().detach().cpu().numpy().tolist()
+    
+    max_index = yp_list.index(max(yp_list))
+    print(f"x to max yp: {x_list[max_index]}")
     print(f"yp: {min(yp_list)}, {max(yp_list)}")
     data_loss = criterion(yp, y)
     if benchmark_name == "thermostat":
@@ -392,6 +396,7 @@ def learning(
 
     # print(m)
     m.cuda()
+    count_c_loss = 0.0
 
     if epochs_to_skip is None:
         epochs_to_skip = -1
@@ -525,12 +530,18 @@ def learning(
         #     break
 
         # if float(c_loss) < float(EPSILON):
+        # if benchmark_name == "mountain_car":
+        #     pass # no early stop
+        # else:
+    
         if float(c_loss) <= 0.0:
-            if not debug:
-                log_file = open(file_dir, 'a')
-                log_file.write('c_loss is small enough. End. \n')
-                log_file.close()
-            break
+            count_c_loss += 1
+            if count_c_loss >= 2:
+                if not debug:
+                    log_file = open(file_dir, 'a')
+                    log_file.write('c_loss is small enough. End. \n')
+                    log_file.close()
+                break
         
         if (time.time() - start_time)/(i+1) > 3600 or TIME_OUT:
             if not debug:

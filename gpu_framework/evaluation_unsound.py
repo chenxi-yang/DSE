@@ -5,14 +5,14 @@ from constants import *
 # from optimization import *
 
 if benchmark_name == "thermostat":
-    from thermostat_nn_batch import (
+    from thermostat_nn_sound import (
         ThermostatNN,
         load_model,
         save_model,
         initialization_abstract_state,
     )
 if benchmark_name == "mountain_car":
-    from mountain_car_batch import (
+    from mountain_car_sound import (
         MountainCar,
         load_model,
         save_model,
@@ -20,8 +20,16 @@ if benchmark_name == "mountain_car":
         initialization_point_nn,
     )
 if benchmark_name == "unsound_1":
-    from unsound_1_batch import (
+    from unsound_1_sound import (
         Unsound_1,
+        load_model,
+        save_model,
+        initialization_abstract_state,
+        initialization_point_nn,
+    )
+if benchmark_name == "sampling_1":
+    from unsound_1_sound import (
+        Sampling_1,
         load_model,
         save_model,
         initialization_abstract_state,

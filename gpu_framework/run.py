@@ -254,6 +254,7 @@ if __name__ == "__main__":
                                 print(f"value linear3, weight: {m.nn.linear3.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear3.bias.detach().cpu().numpy().tolist()[0]}")
         
                             if benchmark_name == "mountain_car":
+                                # torch.manual_seed(1)
                                 m = MountainCar(l=l, nn_mode=nn_mode, module=module)
                             if benchmark_name == "unsound_1":
                                 m = Unsound_1()
