@@ -227,6 +227,12 @@ def sampling_1(x, safe_bound):
     return trajectory_list
 
 
+def sampling_2(x, safe_bound):
+    
+
+
+
+
 '''
 Conceptual Benchmarks
 '''
