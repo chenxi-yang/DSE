@@ -555,11 +555,11 @@ class IfElse(nn.Module):
             # show_tra_l(else_list)
 
         if len(body_list) > 0:
-            print(f"in body")
+            # print(f"in body")
             body_list = self.body(body_list)
             # res_list.extend(body_list)
         if len(else_list) > 0:
-            print(f"in else")
+            # print(f"in else")
             else_list = self.orelse(else_list)
             # res_list.extend(else_list)
         # if debug:
