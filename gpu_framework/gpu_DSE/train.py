@@ -186,9 +186,9 @@ def cal_data_loss(m, trajectory_list, criterion):
     if len(trajectory_list) == 0:
         return var_list([0.0])
     if benchmark_name in ['thermostat']:
-        X, y = batch_pair_endpoint(trajectory_list, data_bs=512)
+        X, y = batch_pair_endpoint(trajectory_list, data_bs=None)
     else:
-        X, y = batch_pair(trajectory_list, data_bs=512)
+        X, y = batch_pair(trajectory_list, data_bs=None)
     print(f"after batch pair: {X.shape}, {y.shape}")
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     # print(X.shape, y.shape)s
@@ -352,7 +352,7 @@ def learning(
         optimizer = torch.optim.Adam(m.parameters(), lr=lr) #, weight_decay=1e-05)
     if optimizer_method  == "Adam":
         if benchmark_name == "mountain_car":
-            weight_decay = 1e-06
+            weight_decay = 1e-05
         if weight_decay is None:
             optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
         else:
@@ -378,7 +378,7 @@ def learning(
         tmp_q_idx = 0
 
         for trajectory_list, abstract_states, use_safe_loss in divide_chunks(component_list, data_safe_consistent=data_safe_consistent, bs=bs, data_bs=data_bs):
-            # print(f"x length: {len(x)}")
+            # print(f"x lengsth: {len(x)}")
             # if len(trajectory_list) == 0:
             #     continue
             # show_cuda_memory(f"ini batch free")
@@ -409,7 +409,7 @@ def learning(
                                 data_loss = cal_data_loss(m, trajectory_list, criterion)
                             else:
                                 data_loss = 0.0
-                            print(f"samplet theta p: {float(sample_theta_p)}")
+                            print(f"sample theta p: {float(sample_theta_p)}")
                             grad_data_loss += float(data_loss) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                             real_data_loss += float(data_loss)
                             data_loss_list.append(float(data_loss))
@@ -417,8 +417,8 @@ def learning(
                         # show_cuda_memory(f"end sampled data loss")
                         
                         # if not only_data_loss:
-                        # safe_loss = cal_safe_loss(m, abstract_states, target)
-                        safe_loss = 0.0
+                        safe_loss = cal_safe_loss(m, abstract_states, target)
+                        # safe_loss = 0.0
                         grad_safe_loss += float(safe_loss) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                         real_safe_loss += float(safe_loss)
                         safe_loss_list.append(float(safe_loss))
@@ -442,6 +442,7 @@ def learning(
 
                     grad_safe_loss /= n
                     real_safe_loss /= n
+                    print(f"In short, data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}, grad data loss: {float(grad_data_loss)}, grad safe loss: {float(grad_safe_loss)}")
 
                     # max_data_loss, min_data_loss = max(data_loss_list), min(data_loss_list)
                     # max_safe_loss, min_safe_loss = max(safe_loss_list), min(safe_loss_list)
@@ -486,8 +487,8 @@ def learning(
             # if shrink_sample_width(safe_loss_list):
             # # if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
             #     sample_width *= 0.5
-            # # if widen_sample_width(safe_loss_list):
-            # #     sample_width *= 2.0
+            # if widen_sample_width(safe_loss_list):
+            #     sample_width *= 2.0
             
 
             loss = (grad_data_loss + lambda_ * grad_safe_loss) / lambda_
@@ -546,14 +547,17 @@ def learning(
         
         # help converge
 
-        # if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
-        #     c_loss_i += 1
-        #     if c_loss_i >= 3:
-        #         if not debug:
-        #             log_file = open(file_dir, 'a')
-        #             log_file.write('c_loss is small enough. End. \n')
-        #             log_file.close()
-        #         break
+        # if benchmark_name == "mountain_car":
+        #     pass # no early stop
+        # else:
+        if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
+            c_loss_i += 1
+            if c_loss_i >= 2:
+                if not debug:
+                    log_file = open(file_dir, 'a')
+                    log_file.write('c_loss is small enough. End. \n')
+                    log_file.close()
+                break
         
         if (time.time() - start_time)/(i+1) > 6000 or TIME_OUT:
             if i <= 25: # give a chance for the first few epoch

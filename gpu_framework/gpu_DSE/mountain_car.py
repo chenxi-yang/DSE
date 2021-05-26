@@ -172,6 +172,9 @@ def f_assign_left_acc(x):
 def f_assign_right_acc(x):
     return x.set_value(var(0.5))
 
+def f_assign_reset_acc(x):
+    return x.set_value(var(0.0))
+
 def f_assign_update_p(x):
     return x.select_from_index(0, index0).add(x.select_from_index(0, index1))
 
@@ -195,10 +198,12 @@ class MountainCar(nn.Module):
         self.min_speed = var(-0.07)
         self.initial_speed = var(0.0)
         self.max_speed = var(0.07)
-        self.min_acc = var(-1.6)
-        self.max_acc = var(1.6)
+        self.min_acc = var(-1.2)
+        self.max_acc = var(1.2)
         self.change_acc = var(0.0)
-        self.min_abs_acc = var(0.01)
+
+        self.add_value = var(0.3)
+        self.min_abs_acc = var(0.3)
         self.neg_min_abs_acc = - self.min_abs_acc
         
         if module == 'linearsig':
@@ -240,6 +245,15 @@ class MountainCar(nn.Module):
 
         # self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)
         self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
+
+        # self.assign_max_acc = Skip()
+        # self.assign_reset_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_reset_acc)
+        # self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.assign_reset_acc, orelse=self.assign_max_acc)
+        # self.assign_min_acc = Skip()
+        # self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
+
+        # self.l_neg_min_abs_acc = Skip()
+        # self.ifelse_acceleration = IfElse(target_idx=[2], test=self.neg_min_abs_acc, f_test=f_test, body=self.l_neg_min_abs_acc, orelse=self.ifelse_min_abs_acc)
 
         self.assign_reward_update = Assign(target_idx=[3], arg_idx=[2, 3], f=f_assign_reward_update)
         self.assign_v = Assign(target_idx=[1], arg_idx=[0, 1, 2], f=f_assign_v)

@@ -5,6 +5,8 @@ import torch.nn as nn
 import torch
 from scipy.stats import bernoulli
 
+import numpy as np
+
 
 def thermostat(lin, safe_bound):
     x = lin
@@ -134,9 +136,11 @@ def mountain_car(p0, safe_bound):
     
     return trajectory_list
 
+
 def linear_nn(x, a, b):
     y = a * x + b
     return y
+
 
 def unsound_1(x, safe_bound):
     # x in [-5, 5]
@@ -198,12 +202,28 @@ def unsound_2_overall(x, safe_bound):
 # torch.cuda.manual_seed(1)
 # nn = SampleNN()
 
+def generate_p(x, y):
+    sigmoid = nn.Sigmoid()
+    z = 2 * x + 5 * y + 1
+    return sigmoid(torch.Tensor([z]))
+
 
 def sampling_1(x, safe_bound):
     trajectory_list = list() # for data loss
 
+    y = np.random.binomial(1, 0.2, 1).tolist()[0] # select from bernoulli distribution
     bar = 0.5
     
+    v = generate_p(x, y)
+    trajectory_list.append((x, y, v))
+
+    if p <= bar:
+        z = 10
+    else:
+        z = 1
+
+    print(z)
+
     return trajectory_list
 
 
@@ -266,12 +286,6 @@ def mountain_car_concept(p, v):
         p = p + v
     
     return trajectory
-
-
-def generate_p(x):
-    sigmoid = nn.Sigmoid()
-    y = 2 * x - 5
-    return sigmoid(torch.Tensor([y]))
 
 
 # def sampling_1(x, safe_bound):

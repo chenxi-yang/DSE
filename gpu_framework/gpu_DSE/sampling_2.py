@@ -19,7 +19,7 @@ if torch.cuda.is_available():
     index3 = index3.cuda()
 
 
-# input order: x, p0, p1, v, p, z
+# input order: x, p0, p1, v, y
 def initialization_abstract_state(component_list):
     abstract_state_list = list()
     # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
@@ -27,7 +27,7 @@ def initialization_abstract_state(component_list):
     for component in component_list:
         center, width, p = component['center'], component['width'], component['p']
         symbol_table = {
-            'x': domain.Box(var_list([center[0], 0.0, 0.0, 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0, 0.0, 0.0])),
+            'x': domain.Box(var_list([center[0], 0.0, 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0, 0.0])),
             'probability': var(p),
             'trajectory': list(),
             'branch': '',
@@ -54,11 +54,9 @@ class LinearNN(nn.Module):
         return res
 
 
-def f_assign_p0(x):
-    return x.set_value(var(0.2))
-
 def f_assign_p1(x):
-    return x.set_value(var(0.8))
+    return x.sub_r(var(1.0))
+
 
 def f_assign_max_y(x):
     return x.set_value(var(10.0))
@@ -72,48 +70,41 @@ class Sampling_1(nn.Module):
     def __init__(self, l=1):
         super(Sampling_1, self).__init__()
         self.bar = var(0.5)
-        self.max_z = var(10.0)
-        self.min_z = var(1.0)
+        self.max_y = var(10.0)
+        self.min_y = var(1.0)
         self.sample_population = [0, 1]
         self.nn = LinearNN(l=l)
 
-        self.assign_p0 = Assign(target_idx=[1], arg_idx=[1], f=f_assign_p0)
-        self.assign_p1 = Assign(target_idx=[2], arg_idx=[2], f=f_assign_p1)
+        self.assign_p0 = Assign(target_idx=[1], arg_idx=[0], f=self.nn)
+        self.assign_p1 = Assign(target_idx=[2], arg_idx=[1], f=f_assign_p1)
         self.sample_v = Sampler(target_idx=[3], sample_population=self.sample_population, weights_arg_idx=[1, 2])
-
-        self.p = Assign(target_idx=[4], arg_idx=[0, 3], f=self.nn)
 
         self.assign_max_y = Assign(target_idx=[4], arg_idx=[4], f=f_assign_max_y)
         self.assign_min_y = Assign(target_idx=[4], arg_idx=[4], f=f_assign_min_y)
-        self.ifelse_p = IfElse(target_idx=[4], test=self.bar, f_test=f_test, body=self.assign_max_z, orelse=self.assign_min_z)
+        self.ifelse_v = IfElse(target_idx=[3], test=self.bar, f_test=f_test, body=self.assign_max_y, orelse=self.assign_min_y)
 
         self.trajectory_update = Trajectory(target_idx=[4])
         self.program = nn.Sequential(
             self.assign_p0,
             self.assign_p1,
             self.sample_v,
-            self.assign_p,
-            self.ifelse_p,
+            self.ifelse_v,
             self.trajectory_update,
         )
     
     def forward(self, input, version=None):
         if version == "single_nn_learning":
             # TODO: use a batch-wise way
-            # p0 = self.nn(input)
-            # p1 = 1 - p0
-            # p = torch.cat((p0, p1), 1)
-            # single_population = var_list(self.sample_population)
-            # population = torch.repeat_interleave(single_population, repeats=single_population.shape[0], dim=0)
-            # idx = p.multinomial(num_samples=1, replacement=False)
-            # v = population[idx]
-            # v[v<=float(self.bar)] = float(self.max_y)
-            # v[v>float(self.bar)] = float(self.min_y)
-            # res = v
-
-            # sample_idx = var_list(self.sample_population)
-            res = self.nn(input)
-
+            p0 = self.nn(input)
+            p1 = 1 - p0
+            p = torch.cat((p0, p1), 1)
+            single_population = var_list(self.sample_population)
+            population = torch.repeat_interleave(single_population, repeats=single_population.shape[0], dim=0)
+            idx = p.multinomial(num_samples=1, replacement=False)
+            v = population[idx]
+            v[v<=float(self.bar)] = float(self.max_y)
+            v[v>float(self.bar)] = float(self.min_y)
+            res = v
         else:
             res = self.program(input)
         return res

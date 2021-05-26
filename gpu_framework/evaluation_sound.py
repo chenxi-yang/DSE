@@ -25,6 +25,14 @@ if benchmark_name == "unsound_1":
         save_model,
         initialization_abstract_state,
     )
+if benchmark_name == "sampling_1":
+    from sampling_1_sound import (
+        Sampling_1,
+        load_model,
+        save_model,
+        initialization_abstract_state,
+    )
+
 
 import domain
 
