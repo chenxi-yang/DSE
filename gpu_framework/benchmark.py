@@ -211,7 +211,8 @@ def generate_p(x, y):
 def sampling_1(x, safe_bound):
     trajectory_list = list() # for data loss
 
-    y = np.random.binomial(1, 0.2, 1).tolist()[0] # select from bernoulli distribution
+    # select from bernoulli distribution
+    y = np.random.binomial(1, 0.2, 1).tolist()[0] 
     bar = 0.5
     
     v = generate_p(x, y)
@@ -222,8 +223,6 @@ def sampling_1(x, safe_bound):
         z = 10
     else:
         z = 1
-
-    print(z)
 
     return trajectory_list
 

@@ -122,7 +122,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 # print(f"not empty: {intersection_interval.getLength()}, {X.getLength()}")
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
-            # if float(unsafe_value) > 0:
+            # if float(unsafe_valåue) > 0:
             # print(f"X: {float(X.left)}, {float(X.right)}")
             # print(f"unsafe value: {float(unsafe_value)}")
                 # print(f"p: {symbol_table['probability']}")
@@ -409,6 +409,7 @@ def learning(
                                 data_loss = cal_data_loss(m, trajectory_list, criterion)
                             else:
                                 data_loss = 0.0
+                            # data_loss = 0.0
                             print(f"sample theta p: {float(sample_theta_p)}")
                             grad_data_loss += float(data_loss) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
                             real_data_loss += float(data_loss)
@@ -416,9 +417,10 @@ def learning(
 
                         # show_cuda_memory(f"end sampled data loss")
                         
-                        # if not only_data_loss:
-                        safe_loss = cal_safe_loss(m, abstract_states, target)
-                        # safe_loss = 0.0
+                        if not only_data_loss:
+                            safe_loss = cal_safe_loss(m, abstract_states, target)
+                        else:
+                            safe_loss = 0.0
                         grad_safe_loss += float(safe_loss) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                         real_safe_loss += float(safe_loss)
                         safe_loss_list.append(float(safe_loss))
@@ -484,9 +486,13 @@ def learning(
             #         break
             
             # # print(m.parameters())
-            if shrink_sample_width(safe_loss_list):
-            # if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
-                sample_width *= 0.5
+            if not only_data_loss:
+                if benchmark_name == "mountain_car":
+                    pass
+                else:
+                    if shrink_sample_width(safe_loss_list):
+                    # if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
+                        sample_width *= 0.5
             # if widen_sample_width(safe_loss_list):
             #     sample_width *= 2.0
             
@@ -540,24 +546,27 @@ def learning(
         #         sample_width *= 0.1
         #         last_update_i = i
         #         print(f"after divide: {sample_width}")
-        if i > 0 and i % 100 == 0:
-            print(f"before divide: {sample_width}")
-            sample_width *= 0.5
-            print(f"after divide: {sample_width}")
+        # if i > 0 and i % 100 == 0:
+        #     print(f"before divide: {sample_width}")
+        #     sample_width *= 0.5
+        #     print(f"after divide: {sample_width}")
         
         # help converge
 
         if benchmark_name == "mountain_car":
             pass # no early stop
         else:
-            if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
-                c_loss_i += 1
-                if c_loss_i >= 2:
-                    if not debug:
-                        log_file = open(file_dir, 'a')
-                        log_file.write('c_loss is small enough. End. \n')
-                        log_file.close()
-                    break
+            if only_data_loss:
+                pass
+            else:
+                if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
+                    c_loss_i += 1
+                    if c_loss_i >= 2:
+                        if not debug:
+                            log_file = open(file_dir, 'a')
+                            log_file.write('c_loss is small enough. End. \n')
+                            log_file.close()
+                        break
         
         if (time.time() - start_time)/(i+1) > 6000 or TIME_OUT:
             if i <= 25: # give a chance for the first few epoch
