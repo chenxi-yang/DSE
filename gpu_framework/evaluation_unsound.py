@@ -5,14 +5,14 @@ from constants import *
 # from optimization import *
 
 if benchmark_name == "thermostat":
-    from thermostat_nn_sound import (
+    from thermostat_nn_batch import (
         ThermostatNN,
         load_model,
         save_model,
         initialization_abstract_state,
     )
 if benchmark_name == "mountain_car":
-    from mountain_car_sound import (
+    from mountain_car_batch import (
         MountainCar,
         load_model,
         save_model,
@@ -20,7 +20,7 @@ if benchmark_name == "mountain_car":
         initialization_point_nn,
     )
 if benchmark_name == "unsound_1":
-    from unsound_1_sound import (
+    from unsound_1_batch import (
         Unsound_1,
         load_model,
         save_model,
@@ -28,12 +28,12 @@ if benchmark_name == "unsound_1":
         initialization_point_nn,
     )
 if benchmark_name == "sampling_1":
-    from unsound_1_sound import (
+    from sampling_1_batch import (
         Sampling_1,
         load_model,
         save_model,
         initialization_abstract_state,
-        initialization_point_nn,
+        # initialization_point_nn,
     )
 
 import domain
@@ -343,7 +343,10 @@ def verification_unsound(
         m = MountainCar(l=l, nn_mode=nn_mode, module=module)
     if benchmark_name == "unsound_1":
         m = Unsound_1()
+    if benchmark_name == "sampling_1":
+        m = Sampling_1(l=l, nn_mode=nn_mode)
         
+    
     _, m = load_model(m, MODEL_PATH, name=model_name)
     if m is None:
         print(f"No model to Unsound Verify!!")
@@ -360,7 +363,7 @@ def verification_unsound(
 
     # split batch
     test_objective(m, trajectory_test, criterion, test_bs)
-    verify_unsound(m, trajectory_test, target, test_abstract_bs)
+    # verify_unsound(m, trajectory_test, target, test_abstract_bs)
 
     
 

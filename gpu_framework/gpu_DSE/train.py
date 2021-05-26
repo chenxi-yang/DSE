@@ -484,9 +484,9 @@ def learning(
             #         break
             
             # # print(m.parameters())
-            # if shrink_sample_width(safe_loss_list):
-            # # if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
-            #     sample_width *= 0.5
+            if shrink_sample_width(safe_loss_list):
+            # if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
+                sample_width *= 0.5
             # if widen_sample_width(safe_loss_list):
             #     sample_width *= 2.0
             
@@ -547,17 +547,17 @@ def learning(
         
         # help converge
 
-        # if benchmark_name == "mountain_car":
-        #     pass # no early stop
-        # else:
-        if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
-            c_loss_i += 1
-            if c_loss_i >= 2:
-                if not debug:
-                    log_file = open(file_dir, 'a')
-                    log_file.write('c_loss is small enough. End. \n')
-                    log_file.close()
-                break
+        if benchmark_name == "mountain_car":
+            pass # no early stop
+        else:
+            if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
+                c_loss_i += 1
+                if c_loss_i >= 2:
+                    if not debug:
+                        log_file = open(file_dir, 'a')
+                        log_file.write('c_loss is small enough. End. \n')
+                        log_file.close()
+                    break
         
         if (time.time() - start_time)/(i+1) > 6000 or TIME_OUT:
             if i <= 25: # give a chance for the first few epoch

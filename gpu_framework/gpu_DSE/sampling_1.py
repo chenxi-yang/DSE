@@ -19,7 +19,7 @@ if torch.cuda.is_available():
     index3 = index3.cuda()
 
 
-# input order: x, p0, p1, v, p, z
+# input order: x, p0, p1, v, p, y
 def initialization_abstract_state(component_list):
     abstract_state_list = list()
     # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
@@ -45,11 +45,27 @@ def f_test(x):
 class LinearNN(nn.Module):
     def __init__(self, l=1):
         super().__init__()
-        self.linear = Linear(in_channels=1, out_channels=1)
+        self.linear1 = Linear(in_channels=2, out_channels=1)
         self.sigmoid = Sigmoid()
     
     def forward(self, x):
-        res = self.linear(x)
+        res = self.linear1(x)
+        res = self.sigmoid(res)
+        return res
+
+
+class LinearNNComplex(nn.Module):
+    def __init__(self, l=4):
+        super().__init__()
+        self.linear1 = Linear(in_channels=2, out_channels=l)
+        self.linear2 = Linear(in_channels=l, out_channels=1)
+        self.sigmoid = Sigmoid()
+        self.relu = ReLU()
+
+    def forward(self, x):
+        res = self.linear1(x)
+        res = self.relu(res)
+        res = self.linear2(res)
         res = self.sigmoid(res)
         return res
 
@@ -69,25 +85,30 @@ def f_assign_min_y(x):
 
 
 class Sampling_1(nn.Module):
-    def __init__(self, l=1):
+    def __init__(self, l=1, nn_mode="complex"):
         super(Sampling_1, self).__init__()
         self.bar = var(0.5)
         self.max_z = var(10.0)
         self.min_z = var(1.0)
         self.sample_population = [0, 1]
-        self.nn = LinearNN(l=l)
+        # simple version
+        if nn_mode == "simple":
+            self.nn = LinearNN(l=l)
+        # complex version
+        if nn_mode == "complex":
+            self.nn = LinearNNComplex(l=l)
 
         self.assign_p0 = Assign(target_idx=[1], arg_idx=[1], f=f_assign_p0)
         self.assign_p1 = Assign(target_idx=[2], arg_idx=[2], f=f_assign_p1)
         self.sample_v = Sampler(target_idx=[3], sample_population=self.sample_population, weights_arg_idx=[1, 2])
 
-        self.p = Assign(target_idx=[4], arg_idx=[0, 3], f=self.nn)
+        self.assign_p = Assign(target_idx=[4], arg_idx=[0, 3], f=self.nn)
 
-        self.assign_max_y = Assign(target_idx=[4], arg_idx=[4], f=f_assign_max_y)
-        self.assign_min_y = Assign(target_idx=[4], arg_idx=[4], f=f_assign_min_y)
-        self.ifelse_p = IfElse(target_idx=[4], test=self.bar, f_test=f_test, body=self.assign_max_z, orelse=self.assign_min_z)
+        self.assign_max_y = Assign(target_idx=[5], arg_idx=[5], f=f_assign_max_y)
+        self.assign_min_y = Assign(target_idx=[5], arg_idx=[5], f=f_assign_min_y)
+        self.ifelse_p = IfElse(target_idx=[4], test=self.bar, f_test=f_test, body=self.assign_max_y, orelse=self.assign_min_y)
 
-        self.trajectory_update = Trajectory(target_idx=[4])
+        self.trajectory_update = Trajectory(target_idx=[5])
         self.program = nn.Sequential(
             self.assign_p0,
             self.assign_p1,

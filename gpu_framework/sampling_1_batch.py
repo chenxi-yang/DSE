@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from modules_sound import *
+from modules_batch import *
 
 import os
 
