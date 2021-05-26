@@ -63,10 +63,12 @@ class LinearNNComplex(nn.Module):
         self.relu = ReLU()
 
     def forward(self, x):
+        print(f"x: {x.c}, {x.delta}")
         res = self.linear1(x)
         res = self.relu(res)
         res = self.linear2(res)
         res = self.sigmoid(res)
+        print(f"res: {res.c}, {res.delta}")
         return res
 
 
@@ -77,10 +79,12 @@ def f_assign_p1(x):
     return x.set_value(var(0.8))
 
 def f_assign_max_y(x):
+    # print(f"max")
     return x.set_value(var(10.0))
 
 
 def f_assign_min_y(x):
+    # print(f"min")
     return x.set_value(var(1.0))
 
 

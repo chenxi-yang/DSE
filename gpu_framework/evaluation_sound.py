@@ -177,6 +177,7 @@ def extract_symbol_table_trajectory_worst_case(symbol_table, target_component, t
     symbol_table_worst_case_safe = True
     for state in trajectory:
         X = state[target_idx]
+        # print(f"X: {X.left}, {X.right}")
         if not in_interval(X, safe_interval):
             return False
 

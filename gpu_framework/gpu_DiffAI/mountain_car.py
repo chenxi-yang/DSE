@@ -134,7 +134,6 @@ class LinearReLUNoAct(nn.Module):
 
     def forward(self, x):
         # final layer is not activation
-        
         res = self.linear1(x)
         # res = self.relu(res)
         # # res = self.Sigmoid()
