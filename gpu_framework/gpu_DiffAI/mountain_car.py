@@ -332,8 +332,8 @@ class MountainCar(nn.Module):
         if version == "single_nn_learning":
             print(f"input: {input}")
             res = self.nn(input)
-            res[res <= self.min_acc] = float(self.min_acc)
-            res[res > self.max_acc] = float(self.max_acc)
+            # res[res <= self.min_acc] = float(self.min_acc)
+            # res[res > self.max_acc] = float(self.max_acc)
             print(f"res: {res}")
             # res[torch.abs(res) <= self.min_abs_acc] = float(self.min_acc)
             # res[torch.logical_and(res <= self.max_acc, res > self.min_acc)] = torch.sign(res[torch.logical_and(res <= self.max_acc, res > self.min_acc)]) *  0.5

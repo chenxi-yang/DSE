@@ -256,6 +256,8 @@ def verification(model_path, model_name, component_list, target, trajectory_path
         m = MountainCar(l=l, nn_mode=nn_mode, module=module)
     if benchmark_name == "unsound_1":
         m = Unsound_1()
+    if benchmark_name == "sampling_1":
+        m = Sampling_1(l=l, nn_mode=nn_mode)
     
     _, m = load_model(m, MODEL_PATH, name=model_name)
     if m is None:

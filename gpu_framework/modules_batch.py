@@ -418,6 +418,27 @@ class Skip(nn.Module):
         return x_list
 
 
+#TODO: to implement if needed empirical loss
+class Sampler(nn.Module):
+    def __init__(self, target_idx, sample_population, weights_arg_idx):
+        super().__init__()
+        self.target_idx = torch.tensor(target_idx)
+        self.sample_population = sample_population
+        self.weights_arg_idx = torch.tensor(weights_arg_idx)
+        if torch.cuda.is_available():
+            self.target_idx = self.target_idx.cuda()
+            self.weights_arg_idx = self.weights_arg_idx.cuda()
+    
+    def forward(self, abstract_state_list):
+        # extend each abstract state for one dimension according to target_idx
+        # # component = # components * len(sample_population)
+        res_abstract_state_list = list()
+        for abstract_state in abstract_state_list:
+            res_abstract_state = split_abstract_state(self.target_idx, self.sample_population, self.weights_arg_idx, abstract_state)
+            res_abstract_state_list.append(res_abstract_state)
+        return res_abstract_state_list
+
+
 class Assign(nn.Module):
     def __init__(self, target_idx, arg_idx: list(), f):
         super().__init__()

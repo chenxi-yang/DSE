@@ -107,8 +107,8 @@ def cal_data_loss(m, trajectory_list, criterion):
     y_list = y.squeeze().detach().cpu().numpy().tolist()
     
     max_index = yp_list.index(max(yp_list))
-    print(f"x to max yp: {x_list[max_index]}")
-    print(f"yp: {min(yp_list)}, {max(yp_list)}")
+    # print(f"x to max yp: {x_list[max_index]}")
+    # print(f"yp: {min(yp_list)}, {max(yp_list)}")
     data_loss = criterion(yp, y)
     if benchmark_name == "thermostat":
         data_loss /= X.shape[0]
@@ -530,18 +530,17 @@ def learning(
         #     break
 
         # if float(c_loss) < float(EPSILON):
-        # if benchmark_name == "mountain_car":
-        #     pass # no early stop
-        # else:
-    
-        if float(c_loss) <= 0.0:
-            count_c_loss += 1
-            if count_c_loss >= 2:
-                if not debug:
-                    log_file = open(file_dir, 'a')
-                    log_file.write('c_loss is small enough. End. \n')
-                    log_file.close()
-                break
+        if benchmark_name == "mountain_car":
+            pass # no early stop
+        else:
+            if float(c_loss) <= 0.0:
+                count_c_loss += 1
+                if count_c_loss >= 2:
+                    if not debug:
+                        log_file = open(file_dir, 'a')
+                        log_file.write('c_loss is small enough. End. \n')
+                        log_file.close()
+                    break
         
         if (time.time() - start_time)/(i+1) > 3600 or TIME_OUT:
             if not debug:

@@ -224,7 +224,8 @@ if __name__ == "__main__":
                     if benchmark_name == "unsound_2_overall":
                         m = Unsound_2_Overall()
                     if benchmark_name == "sampling_1":
-                        m = Sampling_1()
+                        # print(nn_mode)
+                        m = Sampling_1(l=l, nn_mode=nn_mode)
                     # print(m)
                     if test_mode:
                         # mainly for testing the verification part
@@ -263,7 +264,7 @@ if __name__ == "__main__":
                             if benchmark_name == "unsound_2_overall":
                                 m = Unsound_2_Overall()
                             if benchmark_name == "sampling_1":
-                                m = Sampling_1()
+                                m = Sampling_1(l=l, nn_mode=nn_mode)
                     # try: 
                     _, loss, loss_list, q, c, time_out = learning(
                         m, 

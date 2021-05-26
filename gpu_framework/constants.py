@@ -21,6 +21,7 @@ bs = args.bs
 n = args.n
 l = args.l
 nn_mode = args.nn_mode
+# print(f"nn_mode: {nn_mode}")
 b = args.b
 module = args.module
 num_components = args.num_components
@@ -261,6 +262,8 @@ data_attr = f"{dataset_distribution}_{x_l[0]}_{x_r[0]}"
 model_name_prefix = f"{benchmark_name}_{data_attr}_{path_num_list}_{phi_list}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}"
 model_name_prefix = f"{model_name_prefix}_{data_bs}"
 model_name_prefix = f"{model_name_prefix}_{bs}_{num_components}"
+if benchmark_name == "sampling_1":
+    model_name_prefix = f"{model_name_prefix}_{l}"
 if optimizer_method in ["SGD", "Adam-0"]:
     model_name_prefix += f"_{optimizer_method}"
 

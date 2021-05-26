@@ -407,6 +407,34 @@ def sound_join_k(l1, l2, k):
     return res_list
 
 
+def extract_maximum_p(weights_arg_idx, abstract_state):
+    p_list = None
+    for symbol_table in abstract_state:
+        x = symbol_table['x']
+        p = x.select_from_index(0, weights_arg_idx)
+        if p_list is None:
+            p_list = p.c + p.delta
+        else:
+            p_list = torch.max(p.c + p.delta, p_list)
+
+    return p_list
+
+
+def extract_new_symbol_table(target_idx, v, p, symbol_table):
+    # v is the sampled value
+    # p is the sampled probability
+    # update trajectory
+    res_symbol_table = pre_build_symbol_table(symbol_table)
+    x = symbol_table['x']
+    res = x.clone()
+    res.set_from_index(target_idx, domain.Box(var_list([v]), var_list([0.0])))
+    probability = symbol_table['probability'].mul(p)
+    branch = symbol_table['branch']
+
+    res_symbol_table = update_res_in_branch(res_symbol_table, res, probability, branch)
+    return res_symbol_table
+
+
 def split_abstract_state(
         target_idx,
         sample_population,

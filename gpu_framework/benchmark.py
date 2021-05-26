@@ -215,9 +215,10 @@ def sampling_1(x, safe_bound):
     bar = 0.5
     
     v = generate_p(x, y)
+    v = v.detach().cpu().numpy().tolist()[0]
     trajectory_list.append((x, y, v))
 
-    if p <= bar:
+    if v <= bar:
         z = 10
     else:
         z = 1
