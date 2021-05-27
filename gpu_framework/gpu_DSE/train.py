@@ -21,6 +21,8 @@ if benchmark_name == "unsound_2_overall":
     from gpu_DSE.unsound_2_overall import *
 if benchmark_name == "sampling_1":
     from gpu_DSE.sampling_1 import *
+if benchmark_name == "sampling_2":
+    from gpu_DSE.sampling_2 import *
 
 from utils import (
     batch_pair,
@@ -370,6 +372,8 @@ def learning(
     start_time = time.time()
     last_update_i = 0
     c_loss_i = 0
+    min_data_loss_fixed_c = 1000
+
     for i in range(epoch):
         if i <= epochs_to_skip:
             continue
@@ -444,6 +448,7 @@ def learning(
 
                     grad_safe_loss /= n
                     real_safe_loss /= n
+
                     print(f"In short, data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}, grad data loss: {float(grad_data_loss)}, grad safe loss: {float(grad_safe_loss)}")
 
                     # max_data_loss, min_data_loss = max(data_loss_list), min(data_loss_list)
@@ -516,8 +521,14 @@ def learning(
         
         if save:
             if not debug:
-                save_model(m, MODEL_PATH, name=model_name, epoch=i)
-                print(f"save model")
+                if real_safe_loss == 0.0:
+                    if real_data_loss < min_data_loss_fixed_c:
+                        min_data_loss_fixed_c = min(min_data_loss_fixed_c, min_data_loss_fixed_c)
+                        save_model(m, MODEL_PATH, name=model_name, epoch=i)
+                        print(f"save model")
+                else:
+                    save_model(m, MODEL_PATH, name=model_name, epoch=i)
+                    print(f"save model")
             
         # if i >= 5 and i%2 == 0:
         #     for param_group in optimizer.param_groups:

@@ -209,6 +209,7 @@ def generate_p(x, y):
 
 
 def sampling_1(x, safe_bound):
+    # x: [-1.0, 1.0]
     trajectory_list = list() # for data loss
 
     # select from bernoulli distribution
@@ -227,8 +228,49 @@ def sampling_1(x, safe_bound):
     return trajectory_list
 
 
-def sampling_2(x, safe_bound):
+def extract_expRank(yExp, colRank):
+    y = 0.2 * (10 - yExp) + colRank
+    return y 
     
+
+def sampling_2(yExp, safe_bound):
+    # yExp: [0.0, 10.0]
+    # condition: p of (hire==1) <= 0.3
+    # if our framework, safe area: hire==0, max_unsafe_probability = 0.3
+    p_gender = 0.5
+    p_colRank = 0.5
+    trajectory_list = list()
+
+    gender = np.random.binomial(1, p_gender, 1).tolist()[0]
+    # top, non-top: [0, 1]
+    colRank = np.random.binomial(1, p_colRank, 1).tolist()[0] 
+    if gender <= 0.5:
+        colRank = 1.0 # if gender is in a minor group, colRank is assigned to non-top
+    
+    # extract the relative rank
+    expRank = NN(yExp, colRank)
+    trajectory_list.append((yExp, colRank, expRank))
+
+    if colRank <= 0.5:
+        hire = 1
+    elif expRank <= 1.8:
+        hire = 1
+    else:
+        hire = 0.0
+    
+    # if gender == 0 and hire == 1: 
+    #     z = 1 
+    # elif gender == 1 and hire == 1:
+    #     z = 5
+    # else:
+    #     z = 10
+    #  assert(p(z==1) > p(z==5))
+
+    
+    return trajectory_list
+    
+
+
 
 
 
