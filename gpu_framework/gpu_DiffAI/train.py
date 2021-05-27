@@ -397,6 +397,7 @@ def learning(
     # print(m)
     m.cuda()
     count_c_loss = 0.0
+    min_data_loss_fixed_c = 1000.0
 
     if epochs_to_skip is None:
         epochs_to_skip = -1
@@ -504,9 +505,17 @@ def learning(
             optimizer.step()
             print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
-
+        
         if save:
-            save_model(m, MODEL_PATH, name=model_name, epoch=i)
+            if not debug:
+                if real_safe_loss == 0.0:
+                    if real_data_loss < min_data_loss_fixed_c:
+                        min_data_loss_fixed_c = min(min_data_loss_fixed_c, min_data_loss_fixed_c)
+                        save_model(m, MODEL_PATH, name=model_name, epoch=i)
+                        print(f"save model")
+                else:
+                    save_model(m, MODEL_PATH, name=model_name, epoch=i)
+                    print(f"save model")
         
         # if i >= 5 and i%2 == 0:
         #     for param_group in optimizer.param_groups:
