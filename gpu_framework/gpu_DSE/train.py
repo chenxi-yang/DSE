@@ -98,7 +98,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
     for symbol_table in abstract_state:
         abstract_state_p += symbol_table['probability']
 
-    print(f"in each abstract state: {len(abstract_state)}")
+    # print(f"in each abstract state: {len(abstract_state)}")
     for symbol_table in abstract_state:
         if method == "last":
             trajectory = [symbol_table['trajectory'][-1]]
@@ -130,9 +130,9 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
             # if float(unsafe_valåue) > 0:
-            print(f"X: {float(X.left)}, {float(X.right)}")
-            print(f"unsafe value: {float(unsafe_value)}")
-            print(f"p: {symbol_table['probability']}")
+            # print(f"X: {float(X.left)}, {float(X.right)}")
+            # print(f"unsafe value: {float(unsafe_value)}")
+            # print(f"p: {symbol_table['probability']}")
                 # print(f"point: {X.isPoint()}")
             # print(f"unsafe value: {float(unsafe_value)}")
             if outside_trajectory_loss:
@@ -370,7 +370,7 @@ def learning(
     if epochs_to_skip is None:
         epochs_to_skip = -1
     
-    if benchmark_name == "mountain_car":
+    if benchmark_name in ["mountain_car"]:
         nn_separate = True
     else:
         nn_separate = False

@@ -26,6 +26,7 @@ import time
 from utils import (
     extract_abstract_representation,
     show_cuda_memory,
+    count_parameters,
 )
 
 
@@ -269,6 +270,8 @@ if __name__ == "__main__":
                                 m = Sampling_1(l=l, nn_mode=nn_mode)
                             if benchmark_name == "sampling_2":
                                 m = Sampling_2(l=l, nn_mode=nn_mode)
+                    
+                    print(f"parameters: {count_parameters(m)}")
                     # try: 
                     _, loss, loss_list, q, c, time_out = learning(
                         m, 

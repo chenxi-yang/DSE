@@ -313,7 +313,9 @@ def get_truncated_normal_width(mean, std, width):
         truncated_normal = truncnorm((mean-width-mean)/std, (mean+width-mean)/std, loc=mean, scale=std)
         res = truncated_normal.rvs()
     except ValueError:
+        print(f"before width: {width}")
         width = width * 2.0
+        print(f"after width: {width}")
         truncated_normal = truncnorm((mean-width-mean)/std, (mean+width-mean)/std, loc=mean, scale=std)
         res = truncated_normal.rvs()
     return res
@@ -380,7 +382,7 @@ def shrink_sample_width(safe_loss_list):
     else:
         l = safe_loss_list[int(length/2)]
         r = safe_loss_list[int(length/2) + 1]
-    if l <= 0.6 * r:
+    if l <= 0.6 * r or (l < 1.0 * sum(safe_loss_list)/len(safe_loss_list) and safe_loss_list[0] <= 0.1 * safe_loss_list[-1]):
         return True
     else:
         return False
@@ -392,6 +394,10 @@ def widen_sample_width(safe_loss_list):
         return True
     else:
         return False
+
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
 

@@ -68,6 +68,7 @@ class LinearNNComplex(nn.Module):
         res = self.linear2(res)
         res = self.sigmoid(res)
         return res
+    
 
 
 def f_assign_p0(x):
