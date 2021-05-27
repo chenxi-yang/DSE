@@ -386,6 +386,7 @@ def learning(
         data_safe_consistent=None,
         sample_std=0.01,
         sample_width=None,
+        weight_decay=None,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training====')
