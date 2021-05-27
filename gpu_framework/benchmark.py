@@ -210,6 +210,7 @@ def generate_p(x, y):
 
 def sampling_1(x, safe_bound):
     # x: [-1.0, 1.0]
+    # condition: safe area: z == 1; max_unsafe_probability=0.0
     trajectory_list = list() # for data loss
 
     # select from bernoulli distribution
@@ -236,7 +237,8 @@ def extract_expRank(yExp, colRank):
 def sampling_2(yExp, safe_bound):
     # yExp: [0.0, 10.0]
     # condition: p of (hire==1) <= 0.3
-    # if our framework, safe area: hire==0, max_unsafe_probability = 0.3
+    # in our framework, safe area: hire==0, max_unsafe_probability = 0.3
+
     p_gender = 0.5
     p_colRank = 0.5
     trajectory_list = list()
@@ -258,6 +260,7 @@ def sampling_2(yExp, safe_bound):
     else:
         hire = 0.0
     
+    # TODO: for fairness
     # if gender == 0 and hire == 1: 
     #     z = 1 
     # elif gender == 1 and hire == 1:
@@ -265,7 +268,6 @@ def sampling_2(yExp, safe_bound):
     # else:
     #     z = 10
     #  assert(p(z==1) > p(z==5))
-
     
     return trajectory_list
     

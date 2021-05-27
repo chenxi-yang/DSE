@@ -106,8 +106,8 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, tar
             unsafe_value = 0.0
 
         if verify_outside_trajectory_loss:
-            # if debug:
-            print("loss of one symbol table", unsafe_value, symbol_table["probability"])
+            if debug:
+                print("loss of one symbol table", unsafe_value, symbol_table["probability"])
             tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table["probability"])
         else:
             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
@@ -123,7 +123,7 @@ def extract_unsafe(abstract_state, target_component, target_idx):
     abstract_state_unsafe_value = var_list([0.0])
     if verify_outside_trajectory_loss:
         symbol_table_wise_loss_list = list()
-        print(f"Abstract_state: {len(abstract_state)}")
+        # print(f"Abstract_state: {len(abstract_state)}")
         for symbol_table in abstract_state:
             # print('Symbol_Table')
             tmp_symbol_table_tra_loss = get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx=target_idx)
