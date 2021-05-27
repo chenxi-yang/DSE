@@ -26,7 +26,7 @@ def dataset_arg(dataset):
     if dataset == "sampling_1":
         range_ = [-1.0, 1.0]
     if dataset == "sampling_2":
-        range_ = [-1.0, 1.0]
+        range_ = [0.0, 10.0]
     
     return range_
 

@@ -338,6 +338,7 @@ def sound_join_symbol_table(symbol_table_1, symbol_table_2):
     symbol_table = {
         'x': symbol_table_1['x'].sound_join(symbol_table_2['x']),
         'probability': torch.max(symbol_table_1['probability'], symbol_table_2['probability']),
+        # 'probability': symbol_table_1['probability'].add(symbol_table_2['probability']),
         'trajectory': sound_join_trajectory(symbol_table_1['trajectory'], symbol_table_2['trajectory']), 
         'branch': '',
     }
@@ -453,6 +454,7 @@ def split_abstract_state(
                     symbol_table
                 )
             res_abstract_state.append(new_split_symbol_table)
+    # print(f"new split symbol: {len(res_abstract_state)}")
 
     return res_abstract_state
     

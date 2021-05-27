@@ -33,6 +33,14 @@ if benchmark_name == "sampling_1":
         initialization_abstract_state,
     )
 
+if benchmark_name == "sampling_2":
+    from sampling_2_sound import (
+        Sampling_2,
+        load_model,
+        save_model,
+        initialization_abstract_state,
+    )
+
 
 import domain
 
@@ -89,9 +97,17 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, tar
                     unsafe_value = var_list([0.0])
                 else:
                     unsafe_value = 1 - safe_probability
+        
+        # when verify
+        # in verification, for each component, if a part of it is unsafe, it's unsafe
+        if unsafe_value > 0.0:
+            unsafe_value = 1.0
+        else:
+            unsafe_value = 0.0
+
         if verify_outside_trajectory_loss:
-            if debug:
-                print("loss of one symbol table", unsafe_value, symbol_table["probability"])
+            # if debug:
+            print("loss of one symbol table", unsafe_value, symbol_table["probability"])
             tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table["probability"])
         else:
             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
@@ -107,7 +123,7 @@ def extract_unsafe(abstract_state, target_component, target_idx):
     abstract_state_unsafe_value = var_list([0.0])
     if verify_outside_trajectory_loss:
         symbol_table_wise_loss_list = list()
-        # print(f"Abstract_state")
+        print(f"Abstract_state: {len(abstract_state)}")
         for symbol_table in abstract_state:
             # print('Symbol_Table')
             tmp_symbol_table_tra_loss = get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx=target_idx)
@@ -259,6 +275,8 @@ def verification(model_path, model_name, component_list, target, trajectory_path
         m = Unsound_1()
     if benchmark_name == "sampling_1":
         m = Sampling_1(l=l, nn_mode=nn_mode)
+    if benchmark_name == "sampling_2":
+        m = Sampling_2(l=l, nn_mode=nn_mode)
     
     _, m = load_model(m, MODEL_PATH, name=model_name)
     if m is None:
