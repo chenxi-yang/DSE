@@ -94,6 +94,11 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
     method = target_component["method"]
     abstract_loss = var_list([0.0])
     symbol_table_wise_loss_list = list()
+    abstract_state_p = var_list([0.0])
+    for symbol_table in abstract_state:
+        abstract_state_p += symbol_table['probability']
+
+    print(f"in each abstract state: {len(abstract_state)}")
     for symbol_table in abstract_state:
         if method == "last":
             trajectory = [symbol_table['trajectory'][-1]]
@@ -125,13 +130,13 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
             # if float(unsafe_valåue) > 0:
-            # print(f"X: {float(X.left)}, {float(X.right)}")
-            # print(f"unsafe value: {float(unsafe_value)}")
-                # print(f"p: {symbol_table['probability']}")
+            print(f"X: {float(X.left)}, {float(X.right)}")
+            print(f"unsafe value: {float(unsafe_value)}")
+            print(f"p: {symbol_table['probability']}")
                 # print(f"point: {X.isPoint()}")
             # print(f"unsafe value: {float(unsafe_value)}")
             if outside_trajectory_loss:
-                tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table['probability'])
+                tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table['probability'] / abstract_state_p)
             else:
                 trajectory_loss = torch.max(trajectory_loss, unsafe_value)
 
@@ -140,7 +145,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
 
         # print(f"add part: {trajectory_loss, symbol_table['probability']}")
         if not outside_trajectory_loss:
-            abstract_loss += trajectory_loss * symbol_table['probability']
+            abstract_loss += trajectory_loss * symbol_table['probability'] / abstract_state_p
         # print(f"abstract_loss: {abstract_loss}")
     if outside_trajectory_loss:
         abstract_state_wise_trajectory_loss = zip(*symbol_table_wise_loss_list)
@@ -162,6 +167,7 @@ def safe_distance(abstract_state_list, target):
     loss = var_list([0.0])
     for idx, target_component in enumerate(target):
         target_loss = var_list([0.0])
+        print(f"len abstract_state_list: {len(abstract_state_list)}")
         for abstract_state in abstract_state_list:
             abstract_state_safe_loss = extract_abstract_state_safe_loss(
                 abstract_state, target_component, target_idx=idx, 
@@ -529,6 +535,8 @@ def learning(
                 else:
                     save_model(m, MODEL_PATH, name=model_name, epoch=i)
                     print(f"save model")
+                
+                # return [], 0.0, [], 0.0, 0.0, TIME_OUT
             
         # if i >= 5 and i%2 == 0:
         #     for param_group in optimizer.param_groups:
