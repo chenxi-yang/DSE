@@ -25,6 +25,8 @@ def dataset_arg(dataset):
         range_ = [-5.0, 5.0]
     if dataset == "sampling_1":
         range_ = [-1.0, 1.0]
+    if dataset == "sampling_2":
+        range_ = [-1.0, 1.0]
     
     return range_
 
@@ -89,6 +91,8 @@ def run(safe_bound):
         func = benchmark.unsound_2_overall
     if dataset == "sampling_1":
         func = benchmark.sampling_1
+    if dataset == "sampling_2":
+        func = benchmark.sampling_2
     
     input_range = dataset_arg(dataset)
 
