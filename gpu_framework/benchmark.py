@@ -248,7 +248,7 @@ def sampling_2(yExp, safe_bound):
         colRank = 1.0 # if gender is in a minor group, colRank is assigned to non-top
     
     # extract the relative rank
-    expRank = NN(yExp, colRank)
+    expRank = extract_expRank(yExp, colRank)
     trajectory_list.append((yExp, colRank, expRank))
 
     if colRank <= 0.5:

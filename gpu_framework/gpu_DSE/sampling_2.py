@@ -103,7 +103,7 @@ def f_assign_false_hire(x):
 # 8:hire
 class Sampling_2(nn.Module):
     def __init__(self, l=1, nn_mode="simple"):
-        super(Sampling_1, self).__init__()
+        super(Sampling_2, self).__init__()
         self.p_gender = var(0.5)
         self.not_p_gender = 1 - self.p_gender
         self.p_colRank = var(0.5)
