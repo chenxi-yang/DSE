@@ -364,7 +364,7 @@ if __name__ == "__main__":
                         trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}.txt")
                     print(f"---verification time: {time.time() - verification_time} sec---")
                     
-                # if unsound_verify:
+                if (test_mode and unsound_verify) or test_with_training:
                     # print(f"------------start unsound verification------------")
                     # print(f"to verify safe bound(train dataset): {safe_range_bound}")
                     # verification_time = time.time()

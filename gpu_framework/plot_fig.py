@@ -746,12 +746,12 @@ if __name__ == "__main__":
     #     mode='empirical_test',
     #     p_list=[0.0, 0.1, 0.5],
     # )
-    extract_trajectory(
-        mode='DiffAI',
-        file_name='mountain_car_[30]_DiffAI_0.01_2_10_400_False_10_128_1000_all_linearrelu_no_act_5_True_[[-0.8, 0.8], [0.5, 10000.0]]_0.03_0.11_0.02_[0.0, 0.1]_[1.0, 0]_True_False_True_False_40_True_1_5_1.0_1e-06_True_True_True_10_1_True_False__0.05_0',
-        name_list=['acceleration', 'position', 'velocity'],
-        name_idx=0,
-    )
+    # extract_trajectory(
+    #     mode='DiffAI',
+    #     file_name='mountain_car_[30]_DiffAI_0.01_2_10_400_False_10_128_1000_all_linearrelu_no_act_5_True_[[-0.8, 0.8], [0.5, 10000.0]]_0.03_0.11_0.02_[0.0, 0.1]_[1.0, 0]_True_False_True_False_40_True_1_5_1.0_1e-06_True_True_True_10_1_True_False__0.05_0',
+    #     name_list=['acceleration', 'position', 'velocity'],
+    #     name_idx=0,
+    # )
     # extract_trajectory(
     #     mode='DSE',
     #     file_name='mountain_car_[30]_DSE_0.01_2_10_400_True_10_128_1000_all_linearrelu_no_act_5_True_[[-0.8, 0.8], [0.5, 10000.0]]_0.2_1.1_0.1_[0.1, 0.1]_[1.0, 0]_True_False_True_False_40_True_0_3_1.0_1e-06_True_500_1_True_True__0.4_0',
@@ -759,7 +759,7 @@ if __name__ == "__main__":
     #     name_idx=0,
     # )
 
-
+    pass
 
 
 
