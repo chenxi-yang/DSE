@@ -14,123 +14,123 @@ from args import *
 import numpy as np
 # import domain
 
-args = get_args()
-generate_all_dataset = args.generate_all_dataset
-dataset_distribution = args.dataset_distribution
-lr = args.lr
-stop_val = args.stop_val
-t_epoch = args.t_epoch
-optimizer_name = args.optimizer
-w = args.w
-benchmark_name = args.benchmark_name
-train_size = args.train_size
-test_size = args.test_size
-num_epoch = args.num_epoch
-width = args.width
-bs = args.bs
-n = args.n
-l = args.l
-nn_mode = args.nn_mode
-b = args.b
-module = args.module
-num_components = args.num_components
-verification_num_components = args.verification_num_components
-verification_num_abstract_states = args.verification_num_abstract_states
-use_smooth_kernel = args.use_smooth_kernel
-save = args.save
-test_mode = args.test_mode
-adaptive_weight = args.adaptive_weight
-outside_trajectory_loss = args.outside_trajectory_loss
-verify_outside_trajectory_loss = args.verify_outside_trajectory_loss
-# safe_start_idx = args.safe_start_idx
-# safe_end_idx = args.safe_end_idx
-# path_sample_size = args.path_sample_size
-data_attr = args.data_attr
-# thermostat: normal_55.0_62.0
-# mountain_car: normal_-0.6_-0.4
-# print(f"test_mode: {test_mode}")
-mode = args.mode
-debug = args.debug
-perturbation_width = args.perturbation_width
-real_unsafe_value =  args.real_unsafe_value
-only_data_loss = args.only_data_loss
-data_bs = args.data_bs
-fixed_dataset = args.fixed_dataset
-cuda_debug = args.cuda_debug
+# args = get_args()
+# generate_all_dataset = args.generate_all_dataset
+# dataset_distribution = args.dataset_distribution
+# lr = args.lr
+# stop_val = args.stop_val
+# t_epoch = args.t_epoch
+# optimizer_name = args.optimizer
+# w = args.w
+# benchmark_name = args.benchmark_name
+# train_size = args.train_size
+# test_size = args.test_size
+# num_epoch = args.num_epoch
+# width = args.width
+# bs = args.bs
+# n = args.n
+# l = args.l
+# nn_mode = args.nn_mode
+# b = args.b
+# module = args.module
+# num_components = args.num_components
+# verification_num_components = args.verification_num_components
+# verification_num_abstract_states = args.verification_num_abstract_states
+# use_smooth_kernel = args.use_smooth_kernel
+# save = args.save
+# test_mode = args.test_mode
+# adaptive_weight = args.adaptive_weight
+# outside_trajectory_loss = args.outside_trajectory_loss
+# verify_outside_trajectory_loss = args.verify_outside_trajectory_loss
+# # safe_start_idx = args.safe_start_idx
+# # safe_end_idx = args.safe_end_idx
+# # path_sample_size = args.path_sample_size
+# data_attr = args.data_attr
+# # thermostat: normal_55.0_62.0
+# # mountain_car: normal_-0.6_-0.4
+# # print(f"test_mode: {test_mode}")
+# mode = args.mode
+# debug = args.debug
+# perturbation_width = args.perturbation_width
+# real_unsafe_value =  args.real_unsafe_value
+# only_data_loss = args.only_data_loss
+# data_bs = args.data_bs
+# fixed_dataset = args.fixed_dataset
+# cuda_debug = args.cuda_debug
 
-sound_verify = args.sound_verify
-unsound_verify = args.unsound_verify
-assert(test_mode == (sound_verify or unsound_verify))
+# sound_verify = args.sound_verify
+# unsound_verify = args.unsound_verify
+# assert(test_mode == (sound_verify or unsound_verify))
 
-# thermostat: 0.3
-# mountain_car: 0.01
+# # thermostat: 0.3
+# # mountain_car: 0.01
 
 
-STATUS = 'Training' # a global status, if Training: use normal module, if Verifying: use sound module
+# STATUS = 'Training' # a global status, if Training: use normal module, if Verifying: use sound module
 
-path_num_list = [50]
+# path_num_list = [50]
 
-K_DISJUNCTS = 10000000
-SAMPLE_SIZE = 500
-DOMAIN = "interval" # [interval, zonotope]
+# K_DISJUNCTS = 10000000
+# SAMPLE_SIZE = 500
+# DOMAIN = "interval" # [interval, zonotope]
 
-CURRENT_PROGRAM = 'program' + benchmark_name # 'program_test_disjunction_2'
-DATASET_PATH = f"dataset/{benchmark_name}_{data_attr}.txt"
-MODEL_PATH = f"gpu_{mode}/models"
+# CURRENT_PROGRAM = 'program' + benchmark_name # 'program_test_disjunction_2'
+# DATASET_PATH = f"dataset/{benchmark_name}_{data_attr}.txt"
+# MODEL_PATH = f"gpu_{mode}/models"
 
-# Linear nn, Sigmoid
-if benchmark_name == "thermostat":
-    x_l = [55.0]
-    x_r = [62.0]
-    # SAFE_RANGE = [55.0, 81.34] # strict
-    SAFE_RANGE = [53.0, 82.8]
-    # first expr
-    # safe_range_upper_bound_list = np.arange(82.0, 83.0, 0.1).tolist()
-    # PHI = 0.05 # unsafe probability
-    # safe_range_upper_bound_list = np.arange(82.5, 83.0, 0.15).tolist()
-    safe_range_upper_bound_list = np.arange(82.81, 82.999, 0.046).tolist()
+# # Linear nn, Sigmoid
+# if benchmark_name == "thermostat":
+#     x_l = [55.0]
+#     x_r = [62.0]
+#     # SAFE_RANGE = [55.0, 81.34] # strict
+#     SAFE_RANGE = [53.0, 82.8]
+#     # first expr
+#     # safe_range_upper_bound_list = np.arange(82.0, 83.0, 0.1).tolist()
+#     # PHI = 0.05 # unsafe probability
+#     # safe_range_upper_bound_list = np.arange(82.5, 83.0, 0.15).tolist()
+#     safe_range_upper_bound_list = np.arange(82.81, 82.999, 0.046).tolist()
 
-    PHI = 0.10
-    # SAFE_RANGE = [53.0, 82.0]
-    # SAFE_RANGE = [52.0, 83.0] # not that strict
-    # SAFE_RANGE = [50.0, 85.0] # not that loose
+#     PHI = 0.10
+#     # SAFE_RANGE = [53.0, 82.0]
+#     # SAFE_RANGE = [52.0, 83.0] # not that strict
+#     # SAFE_RANGE = [50.0, 85.0] # not that loose
 
-if benchmark_name == "mountain_car":
-    x_l = [-0.6]
-    x_r = [-0.4]
+# if benchmark_name == "mountain_car":
+#     x_l = [-0.6]
+#     x_r = [-0.4]
 
-    # u,  p
-    safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
-    phi_list = [0.0, 0.1]
-    if adaptive_weight:
-        w_list = [0.01, 0.99]
-    else:
-        # w_list = [0.4, 0.6]
-        w_list = [1.0, 0]
-    method_list = ['all', 'last']
-    name_list = ['acceleration', 'position']
-    # TODO: upper bound list:
-    component_bound_idx = 0
-    bound_direction_idx = 1 # left or right
-    safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
+#     # u,  p
+#     safe_range_list = [[-0.8, 0.8], [0.5, 10000.0]]
+#     phi_list = [0.0, 0.1]
+#     if adaptive_weight:
+#         w_list = [0.01, 0.99]
+#     else:
+#         # w_list = [0.4, 0.6]
+#         w_list = [1.0, 0]
+#     method_list = ['all', 'last']
+#     name_list = ['acceleration', 'position']
+#     # TODO: upper bound list:
+#     component_bound_idx = 0
+#     bound_direction_idx = 1 # left or right
+#     safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
 
-    # SAFE_RANGE = [100.0, 100.0]
-    # safe_range_upper_bound_list = np.arange(80.0, 96.0, 5.0).tolist()
-    # PHI = 0.1
+#     # SAFE_RANGE = [100.0, 100.0]
+#     # safe_range_upper_bound_list = np.arange(80.0, 96.0, 5.0).tolist()
+#     # PHI = 0.1
 
-# if adaptive_weight:
-#     model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}_{w_list}"
-# else:
-model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}_{w_list}_{phi_list}"
-model_name_prefix = f"{model_name_prefix}_{outside_trajectory_loss}_{only_data_loss}_{data_bs}"
-if fixed_dataset:
-    model_name_prefix = f"{model_name_prefix}_{fixed_dataset}"
+# # if adaptive_weight:
+# #     model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}_{w_list}"
+# # else:
+# model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}_{w_list}_{phi_list}"
+# model_name_prefix = f"{model_name_prefix}_{outside_trajectory_loss}_{only_data_loss}_{data_bs}"
+# if fixed_dataset:
+#     model_name_prefix = f"{model_name_prefix}_{fixed_dataset}"
 
-dataset_path_prefix = f"dataset/{benchmark_name}_{dataset_distribution}_{x_l[0]}_{x_r[0]}"
+# dataset_path_prefix = f"dataset/{benchmark_name}_{dataset_distribution}_{x_l[0]}_{x_r[0]}"
 
-result_prefix = f"{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
-if fixed_dataset:
-    result_prefix = f"{result_prefix}_{fixed_dataset}"
+# result_prefix = f"{benchmark_name}_{mode}_{lr}_{bs}_{num_epoch}_{train_size}_{use_smooth_kernel}_{num_components}_{l}_{b}_{nn_mode}_{module}_{n}_{save}_{safe_range_list}_{safe_range_bound_list}_{phi_list}_{w_list}_{outside_trajectory_loss}_{only_data_loss}_{sound_verify}_{unsound_verify}_{data_bs}"
+# if fixed_dataset:
+#     result_prefix = f"{result_prefix}_{fixed_dataset}"
 
 
 def read_loss(loss_path):
@@ -593,14 +593,26 @@ def extract_verify_result():
     plot_verify(verify_result, fig_name=f"{result_prefix}")
 
 
-def plot_line(x_list, y_list_list, label_name_list, figure_name, x_label, y_label, constraint=None):
-    color_list = ['g', 'b']
+def plot_line(
+    x_list, 
+    y_list_list, 
+    label_name_list, 
+    figure_name, 
+    x_label, 
+    y_label, 
+    constraint=None,
+    figure_save_name=None,
+    y_log=False
+    ):
+    color_list = ['g', 'b', 'r', 'y']
 
     patch_list = list()
     for idx, label in enumerate(label_name_list):
         patch_list.append(mpatches.Patch(color=color_list[idx], label=label_name_list[idx]))
 
     for idx, y_list in enumerate(y_list_list):
+        if len(y_list) < len(x_list):
+            y_list.extend([np.nan]*(len(x_list) - len(y_list)))
         sns.pointplot(x=x_list, y=y_list, marker='o', color=color_list[idx])
     
     if constraint is not None:
@@ -608,10 +620,14 @@ def plot_line(x_list, y_list_list, label_name_list, figure_name, x_label, y_labe
 
     plt.xlabel(x_label)
     plt.ylabel(y_label)
+    if y_log:
+        plt.yscale('log')
     plt.title(figure_name)
     plt.legend(handles=patch_list)
     plt.grid()
-    plt.savefig(f"all_figures/{figure_name}.png")
+    if figure_save_name is None:
+        figure_save_name = figure_name
+    plt.savefig(f"all_figures/{figure_save_name}.png")
     plt.close()
 
 
@@ -726,6 +742,160 @@ def extract_trajectory(
     return 
 
 
+def extract_test_info(
+    file_name_list,
+    method_name_list,
+    benchmark_name,
+    ):
+    # unsafe_p_file_name = f"all_results/{benchmark_name}_unsafe_p.txt"
+    # data_loss_file_name = f"all_results/{benchmark_name}_data_loss.txt"
+    # unsafe_p_f = open(unsafe_p_file_name, 'w')
+    # data_loss_f = open(data_loss_file_name, 'w')
+    method_res_dict = dict()
+    all_safe_bound_list = list()
+    all_data_loss_list = list()
+    all_unsafe_p_list = list()
+
+    get_safe_bound = False
+    for idx, file_name in enumerate(file_name_list):
+        f = open(file_name, 'r')
+        f.readline()
+        f.readline()
+        safe_bound_list = list()
+        data_loss_list = list()
+        unsafe_p_list = list()
+        
+        tmp_data_loss_list = list()
+        tmp_unsafe_p_list = list()
+        for line in f:
+            if 'range_bound' in line:
+                if len(tmp_data_loss_list) > 0:
+                    data_loss_list.append(sum(tmp_data_loss_list)/len(tmp_data_loss_list))
+                    unsafe_p_list.append(sum(tmp_unsafe_p_list)/len(tmp_unsafe_p_list))
+                safe_range_bound = float(line[:-1].split(': ')[-1])
+                # print(line)
+                # print(safe_range_bound)
+                safe_bound_list.append(safe_range_bound)
+                tmp_data_loss_list = list()
+                tmp_unsafe_p_list = list()
+            if 'Details' in line:
+                unsafe_p = float(line.split(', ')[0].split(': ')[1])
+                # print(unsafe_p)
+                tmp_unsafe_p_list.append(unsafe_p)
+            if 'test data loss' in line:
+                data_loss = float(line[:-1].split(': ')[1])
+                # print(data_loss)
+                tmp_data_loss_list.append(data_loss)
+
+        if len(tmp_data_loss_list) > 0:
+            data_loss_list.append(sum(tmp_data_loss_list)/len(tmp_data_loss_list))
+            unsafe_p_list.append(sum(tmp_unsafe_p_list)/len(tmp_unsafe_p_list))
+        
+        method_name = method_name_list[idx]
+        method_res_dict[method_name] = {
+            'safe_bound_list': safe_bound_list,
+            'data_loss_list': data_loss_list,
+            'unsafe_p_list': unsafe_p_list,
+        }
+        print(f"method: {method_name_list[idx]}")
+        print(safe_bound_list)
+        print(data_loss_list)
+        print(unsafe_p_list)
+        all_safe_bound_list = safe_bound_list[:]
+        all_data_loss_list.append(data_loss_list[:])
+        all_unsafe_p_list.append(unsafe_p_list[:])
+
+    # all_safe_bound_list = method_res[method_name_list[0]]['safe_bound_list']
+    # all_data_loss_list = [method_res_dict[method_name]['data_loss_list'] for method_name in method_res_dict]
+    # all_unsafe_p_list = [method_res_dict[method_name]['unsafe_p_list'] for method_name in method_res_dict]
+
+    plot_line(
+        x_list = all_safe_bound_list, 
+        y_list_list = all_unsafe_p_list, 
+        label_name_list = method_name_list, 
+        figure_name=f"{benchmark_name} Verified Unsafe Probability", 
+        x_label="Safe Bound", 
+        y_label="Verified Unsafe Probability", 
+        figure_save_name=f"{benchmark_name}_unsafe_p",
+        y_log=True,
+        constraint=None,
+        )
+        
+    plot_line(
+        x_list = all_safe_bound_list, 
+        y_list_list = all_data_loss_list, 
+        label_name_list = method_name_list, 
+        figure_name=f"{benchmark_name} Data Loss", 
+        x_label="Safe Bound", 
+        y_label="Data Loss", 
+        figure_save_name=f"{benchmark_name}_data_loss",
+        constraint=None,
+        )
+
+    return 
+
+
+def plot_bar(
+    x_list,
+    y_list,
+    x_label,
+    y_label,
+    figure_name,
+    figure_save_name=None,
+    y_log=None,
+    ):
+    color_list = ['g', 'b', 'r', 'y']
+
+    # patch_list = list()
+    # for idx, label in enumerate(label_name_list):
+    #     patch_list.append(mpatches.Patch(color=color_list[idx], label=label_name_list[idx]))
+
+    sns.barplot(x=x_list, y=y_list)
+    for idx, y_list in enumerate(y_list_list):
+        if len(y_list) < len(x_list):
+            y_list.extend([np.nan]*(len(x_list) - len(y_list)))
+        sns.pointplot(x=x_list, y=y_list, marker='o', color=color_list[idx])
+    
+    if constraint is not None:
+        plt.axhline(y=constraint, color='r', linestyle='-')
+
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    if y_log:
+        plt.yscale('log')
+    plt.title(figure_name)
+    plt.legend(handles=patch_list)
+    plt.grid()
+    if figure_save_name is None:
+        figure_save_name = figure_name
+    plt.savefig(f"all_figures/{figure_save_name}.png")
+    plt.close()
+    return 
+            
+
+def extract_running_time(
+        file_name='all_results/thermostat_running_time.txt',
+        benchmark_name='Thermostat',
+    ):
+    f = open(file_name, 'r')
+    f.readline()
+    label_list = list()
+    time_list = list()
+    for line in f:
+        label, time = line[:-1].split(', ')
+        label_list.append(label)
+        time_list.append(time)
+    
+    plot_bar(
+        x_list = label_list,
+        y_list = time_list,
+        x_label="Method",
+        y_label = "Training Time per Epoch",
+        figure_name =f"{benchmark_name} Running Time",
+        figure_save_name=f"{benchmark_name}_running_time",
+    )
+
+
 if __name__ == "__main__":
     # plot_loss('loss/') # the q and c loss
     # plot_loss_2('loss/')
@@ -759,7 +929,25 @@ if __name__ == "__main__":
     #     name_idx=0,
     # )
 
-    pass
+    extract_test_info(
+        file_name_list = [
+            'gpu_DiffAI/result/thermostat_[30]_DiffAI_0.001_2000_30_800_False_2000_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
+            'gpu_DiffAI/result/thermostat_[30]_DiffAI_0.01_10_30_800_False_10_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
+            'gpu_DSE/result/thermostat_[30]_DSE_0.01_1_30_800_True_1_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
+            'gpu_DSE/result/thermostat_[30]_DSE_0.01_10_30_800_True_10_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt'
+        ],
+        method_name_list = [
+            'DiffAI(2k)',
+            'DiffAI(10)',
+            'DSE(10)',
+            'DSE(1)',
+        ],
+        benchmark_name='Thermostat',
+    )
 
+    extract_running_time(
+        file_name = 'all_results/thermostat_running_time.txt',
+        benchmark_name='Thermostat',
+    )
 
 
