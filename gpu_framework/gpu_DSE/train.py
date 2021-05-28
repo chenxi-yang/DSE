@@ -370,7 +370,7 @@ def learning(
     if epochs_to_skip is None:
         epochs_to_skip = -1
     
-    if benchmark_name in ["mountain_car"]:
+    if benchmark_name in ["mountain_car", "sampling_2"]:
         nn_separate = True
     else:
         nn_separate = False

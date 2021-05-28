@@ -56,28 +56,46 @@ def f_test(x):
     return x
 
 
-class LinearAssign(nn.Module):
+class LinearNN(nn.Module):
     def __init__(self, l=1):
         super().__init__()
-        self.linear = Linear(in_channels=1, out_channels=1)
+        self.linear1 = Linear(in_channels=1, out_channels=1)
     
     def forward(self, x):
-        res = self.linear(x)
+        res = self.linear1(x)
+        return res
+
+
+class LinearNNComplex(nn.Module):
+    def __init__(self, l=4):
+        super().__init__()
+        self.linear1 = Linear(in_channels=1, out_channels=l)
+        self.linear2 = Linear(in_channels=l, out_channels=1)
+        self.relu = ReLU()
+
+    def forward(self, x):
+        res = self.linear1(x)
+        res = self.relu(res)
+        res = self.linear2(res)
         return res
 
 
 def f_assign_min_z(x):
-    return x.set_value(var(1.0))
+    return x.set_value(min_v)
 
 def f_assign_max_z(x):
-    return x.set_value(var(10.0))
+    return x.set_value(max_v)
 
 
 class Unsound_1(nn.Module):
-    def __init__(self, l=1):
+    def __init__(self, l=1, nn_mode="simple"):
         super(Unsound_1, self).__init__()
         self.bar = var(1.0)
-        self.nn = LinearAssign(l=l)
+        if nn_mode == "simple":
+            self.nn = LinearNN(l=l)
+        # complex version
+        if nn_mode == "complex":
+            self.nn = LinearNNComplex(l=l)
 
         self.assign_y = Assign(target_idx=[1], arg_idx=[0], f=self.nn)
 
