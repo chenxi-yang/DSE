@@ -10,12 +10,16 @@ index0 = torch.tensor(0)
 index1 = torch.tensor(1)
 index2 = torch.tensor(2)
 index3 = torch.tensor(3)
+min_v = torch.tensor(1.0)
+max_v = torch.tensor(10.0)
 
 if torch.cuda.is_available():
     index0 = index0.cuda()
     index1 = index1.cuda()
     index2 = index2.cuda()
     index3 = index3.cuda()
+    min_v = min_v.cuda()
+    max_v = max_v.cuda()
 
 
 # input order: x, y, z
