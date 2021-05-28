@@ -351,7 +351,7 @@ def verification_unsound(
     if benchmark_name == "mountain_car":
         m = MountainCar(l=l, nn_mode=nn_mode, module=module)
     if benchmark_name == "unsound_1":
-        m = Unsound_1()
+        m = Unsound_1(l=l, nn_mode=nn_mode)
     if benchmark_name == "sampling_1":
         m = Sampling_1(l=l, nn_mode=nn_mode)
     if benchmark_name == "sampling_2":

@@ -219,7 +219,7 @@ if __name__ == "__main__":
                     if benchmark_name == "mountain_car":
                         m = MountainCar(l=l, nn_mode=nn_mode, module=module)
                     if benchmark_name == "unsound_1":
-                        m = Unsound_1()
+                        m = Unsound_1(l=l, nn_mode=nn_mode)
                     if benchmark_name == "unsound_2_separate":
                         m = Unsound_2_Separate()
                     if benchmark_name == "unsound_2_overall":
@@ -261,7 +261,7 @@ if __name__ == "__main__":
                                 # torch.manual_seed(1)
                                 m = MountainCar(l=l, nn_mode=nn_mode, module=module)
                             if benchmark_name == "unsound_1":
-                                m = Unsound_1()
+                                m = Unsound_1(l=l, nn_mode=nn_mode)
                             if benchmark_name == "unsound_2_separate":
                                 m = Unsound_2_Separate()
                             if benchmark_name == "unsound_2_overall":
