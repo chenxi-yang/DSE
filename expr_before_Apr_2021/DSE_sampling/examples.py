@@ -390,7 +390,7 @@ def electronic_oscillator_loop(x, y, z, omega1, omega2, tau):
 def path_explosion(h):
 # safe constraint of h: (4.0, 26.48)
     bound  = ??(4.0, 6.0)
-    count = 0
+    i = 0
     while(h < 10.0):
         h = h + 0.01
         if (h <= bound):
