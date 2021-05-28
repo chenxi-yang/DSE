@@ -136,7 +136,10 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 # print(f"point: {X.isPoint()}")
             # print(f"unsafe value: {float(unsafe_value)}")
             if outside_trajectory_loss:
-                tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table['probability'] / abstract_state_p)
+                if benchmark_name in ["thermostat"]:
+                    tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table['probability'])
+                else:
+                    tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table['probability']  / abstract_state_p)
             else:
                 trajectory_loss = torch.max(trajectory_loss, unsafe_value)
 
@@ -145,7 +148,10 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
 
         # print(f"add part: {trajectory_loss, symbol_table['probability']}")
         if not outside_trajectory_loss:
-            abstract_loss += trajectory_loss * symbol_table['probability'] / abstract_state_p
+            if benchmark_name in ["thermostat"]:
+                abstract_loss += trajectory_loss * symbol_table['probability']
+            else:
+                abstract_loss += trajectory_loss * symbol_table['probability'] / abstract_state_p
         # print(f"abstract_loss: {abstract_loss}")
     if outside_trajectory_loss:
         abstract_state_wise_trajectory_loss = zip(*symbol_table_wise_loss_list)
