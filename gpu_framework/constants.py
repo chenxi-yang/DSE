@@ -158,7 +158,7 @@ if benchmark_name == "unsound_1":
     x_l = [-5.0]
     x_r = [5.0]
 
-    safe_range_list = [[-3.0, 3.0]]
+    safe_range_list = [[1.0, 1.0]]
     phi_list = [0.0, 0.1]
     phi_list[0] = ini_unsafe_probability
     if adaptive_weight:
@@ -172,8 +172,8 @@ if benchmark_name == "unsound_1":
     component_bound_idx = 0
     bound_direction_idx = 1 # left or right
     # safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
-    safe_range_start=3.0
-    safe_range_end=3.5
+    safe_range_start=1.0
+    safe_range_end=1.5
     safe_range_step=1.0
     safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
     analysis_name_list = ['test']
@@ -287,7 +287,7 @@ data_attr = f"{dataset_distribution}_{x_l[0]}_{x_r[0]}"
 model_name_prefix = f"{benchmark_name}_{data_attr}_{path_num_list}_{phi_list}_{n}_{lr}_{nn_mode}_{module}_{use_smooth_kernel}"
 model_name_prefix = f"{model_name_prefix}_{data_bs}"
 model_name_prefix = f"{model_name_prefix}_{bs}_{num_components}"
-if benchmark_name == "sampling_1":
+if benchmark_name in ["sampling_1", "unsound_1", "sampling_2"]:
     model_name_prefix = f"{model_name_prefix}_{l}"
 if optimizer_method in ["SGD", "Adam-0"]:
     model_name_prefix += f"_{optimizer_method}"
