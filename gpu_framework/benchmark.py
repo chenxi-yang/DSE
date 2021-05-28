@@ -270,6 +270,29 @@ def sampling_2(yExp, safe_bound):
     #  assert(p(z==1) > p(z==5))
     
     return trajectory_list
+
+
+def path_explosion(h, safe_bound):
+    # h: [0.0, 5.0]
+    # safe constraint of h: (4.0, 26.48)
+    bound  = ??(4.0, 6.0)
+    i = 0
+
+    for i in range(i):
+        h = h + 0.01
+        if (h <= bound):
+            if (h <= bound - 0.001):
+                h = 2 * h
+            else:
+                h = 3 * h
+        count += 1
+
+    if (h <= 3*bound - 0.001):
+        h = h
+    else:
+        h = 10 * h
+    
+    return count
     
 
 
@@ -336,6 +359,7 @@ def mountain_car_concept(p, v):
         p = p + v
     
     return trajectory
+
 
 
 # def sampling_1(x, safe_bound):

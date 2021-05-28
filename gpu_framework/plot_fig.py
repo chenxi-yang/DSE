@@ -835,42 +835,42 @@ def extract_test_info(
     return 
 
 
-def plot_bar(
-    x_list,
-    y_list,
-    x_label,
-    y_label,
-    figure_name,
-    figure_save_name=None,
-    y_log=None,
-    ):
-    color_list = ['g', 'b', 'r', 'y']
+# def plot_bar(
+#     x_list,
+#     y_list,
+#     x_label,
+#     y_label,
+#     figure_name,
+#     figure_save_name=None,
+#     y_log=None,
+#     ):
+#     color_list = ['g', 'b', 'r', 'y']
 
-    # patch_list = list()
-    # for idx, label in enumerate(label_name_list):
-    #     patch_list.append(mpatches.Patch(color=color_list[idx], label=label_name_list[idx]))
+#     # patch_list = list()
+#     # for idx, label in enumerate(label_name_list):
+#     #     patch_list.append(mpatches.Patch(color=color_list[idx], label=label_name_list[idx]))
 
-    sns.barplot(x=x_list, y=y_list)
-    for idx, y_list in enumerate(y_list_list):
-        if len(y_list) < len(x_list):
-            y_list.extend([np.nan]*(len(x_list) - len(y_list)))
-        sns.pointplot(x=x_list, y=y_list, marker='o', color=color_list[idx])
+#     sns.barplot(x=x_list, y=y_list, )
+#     for idx, y_list in enumerate(y_list_list):
+#         if len(y_list) < len(x_list):
+#             y_list.extend([np.nan]*(len(x_list) - len(y_list)))
+#         sns.pointplot(x=x_list, y=y_list, marker='o', color=color_list[idx])
     
-    if constraint is not None:
-        plt.axhline(y=constraint, color='r', linestyle='-')
+#     if constraint is not None:
+#         plt.axhline(y=constraint, color='r', linestyle='-')
 
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    if y_log:
-        plt.yscale('log')
-    plt.title(figure_name)
-    plt.legend(handles=patch_list)
-    plt.grid()
-    if figure_save_name is None:
-        figure_save_name = figure_name
-    plt.savefig(f"all_figures/{figure_save_name}.png")
-    plt.close()
-    return 
+#     plt.xlabel(x_label)
+#     plt.ylabel(y_label)
+#     if y_log:
+#         plt.yscale('log')
+#     plt.title(figure_name)
+#     plt.legend(handles=patch_list)
+#     plt.grid()
+#     if figure_save_name is None:
+#         figure_save_name = figure_name
+#     plt.savefig(f"all_figures/{figure_save_name}.png")
+#     plt.close()
+#     return 
             
 
 def extract_running_time(
@@ -945,9 +945,9 @@ if __name__ == "__main__":
         benchmark_name='Thermostat',
     )
 
-    extract_running_time(
-        file_name = 'all_results/thermostat_running_time.txt',
-        benchmark_name='Thermostat',
-    )
+    # extract_running_time(
+    #     file_name = 'all_results/thermostat_running_time.txt',
+    #     benchmark_name='Thermostat',
+    # )
 
 
