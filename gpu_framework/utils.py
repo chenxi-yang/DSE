@@ -382,7 +382,7 @@ def shrink_sample_width(safe_loss_list):
     else:
         l = safe_loss_list[int(length/2)]
         r = safe_loss_list[int(length/2) + 1]
-    if l <= 0.6 * r or (l < 1.0 * sum(safe_loss_list)/len(safe_loss_list) and safe_loss_list[0] <= 0.1 * safe_loss_list[-1]):
+    if l <= 0.6 * r:  # or (l < 1.0 * sum(safe_loss_list)/len(safe_loss_list) and safe_loss_list[0] <= 0.1 * safe_loss_list[-1]):
         return True
     else:
         return False
