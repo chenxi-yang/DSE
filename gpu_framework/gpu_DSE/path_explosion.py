@@ -102,8 +102,8 @@ class PathExplosion(nn.Module):
     def __init__(self, l=1, nn_mode="complex"):
         super(PathExplosion, self).__init__()
         self.goal_h = var(10.0)
-        self.tmp_h_1_bound = var(0.0)
-        self.tmp_h_2_bound = var(-0.001)
+        self.tmp_h1_bound = var(0.0)
+        self.tmp_h2_bound = var(-0.001)
 
         # simple version
         if nn_mode == "simple":
@@ -123,7 +123,7 @@ class PathExplosion(nn.Module):
         self.assign_3h = Assign(target_idx=[0], arg_idx=[0], f=f_assign_3h)
         self.ifelse_h_in_2 = IfElse(target_idx=[3], test=self.tmp_h2_bound, f_test=f_test, body=self.assign_2h, orelse=self.assign_3h)
         self.h_skip = Skip()
-        self.ifelse_h_in = IfElse(target_idx=[3], test=self.tmp_h_1_bound, f_test=f_test, body=self.ifelse_h_in_2, orelse=self.h_skip)
+        self.ifelse_h_in = IfElse(target_idx=[3], test=self.tmp_h1_bound, f_test=f_test, body=self.ifelse_h_in_2, orelse=self.h_skip)
 
         self.assign_count = Assign(target_id=[2], arg_idx=[2], f=f_update_count)
         self.whileblock = nn.Sequential(
@@ -139,7 +139,7 @@ class PathExplosion(nn.Module):
         self.assign_tmp_h_2 = Assign(target_idx=[4], arg_idx=[0, 1], f=f_assign_tmp_h_2)
 
         self.assign_10h = Assign(target_idx=[0], arg_idx=[0], f=f_assign_10h)
-        self.ifelse_h_out = IfElse(target_idx=[4], test=self.tmp_h_2_bound, f_test=f_test, body=self.h_skip, orelse=self.assign_10h)
+        self.ifelse_h_out = IfElse(target_idx=[4], test=self.tmp_h2_bound, f_test=f_test, body=self.h_skip, orelse=self.assign_10h)
 
         self.program = nn.Sequential(
             self.assign_bound,
