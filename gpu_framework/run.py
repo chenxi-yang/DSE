@@ -272,6 +272,8 @@ if __name__ == "__main__":
                                 m = Sampling_1(l=l, nn_mode=nn_mode)
                             if benchmark_name == "sampling_2":
                                 m = Sampling_2(l=l, nn_mode=nn_mode)
+                            if benchmark_name == "path_explosion":
+                                m = PathExplosion(l=l, nn_mode=nn_mode)
                     
                     print(f"parameters: {count_parameters(m)}")
                     # try: 

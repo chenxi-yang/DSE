@@ -125,7 +125,7 @@ class PathExplosion(nn.Module):
         self.h_skip = Skip()
         self.ifelse_h_in = IfElse(target_idx=[3], test=self.tmp_h1_bound, f_test=f_test, body=self.ifelse_h_in_2, orelse=self.h_skip)
 
-        self.assign_count = Assign(target_id=[2], arg_idx=[2], f=f_update_count)
+        self.assign_count = Assign(target_idx=[2], arg_idx=[2], f=f_update_count)
         self.whileblock = nn.Sequential(
             self.assign_basic_h,
             self.assign_tmp_h_1,
