@@ -179,8 +179,8 @@ def verify(abstract_state_list, target):
         print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}")
         if not debug:
             log_file_evaluation.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}\n")
-    if debug:
-        exit(0)
+    # if debug:
+    #     exit(0)
 
 
 def in_interval(x, y):

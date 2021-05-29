@@ -305,6 +305,31 @@ if benchmark_name == "path_explosion":
     analysis_name_list = ['test']
 
 
+if benchmark_name == "path_explosion_2":
+    x_l = [2.0]
+    x_r = [4.9]
+
+    safe_range_list = [[0.0, 5.1]]
+    phi_list = [0.0, 0.1]
+    phi_list[0] = ini_unsafe_probability
+    if adaptive_weight:
+        w_list = [0.01]
+    else:
+        # w_list = [0.4, 0.6]
+        w_list = [1.0]
+    method_list = ['all']
+    name_list = ['test']
+    # TODO: upper bound list:
+    component_bound_idx = 0
+    bound_direction_idx = 1 # left or right
+    # safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
+    safe_range_start=5.1
+    safe_range_end=5.2
+    safe_range_step=1.0
+    safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
+    analysis_name_list = ['test']
+
+
 # if adaptive_weight:
 #     model_name_prefix = f"{benchmark_name}_{data_attr}_{n}_{lr}_{use_smooth_kernel}_{w_list}"
 # else:
@@ -347,6 +372,8 @@ else:
         MAXIMUM_ITERATION = 500
     else:
         MAXIMUM_ITERATION = 250
+    if benchmark_name == "mountain_car" and extract_one_trajectory:
+        MAXIMUM_ITERATION = 500
 
 N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)
