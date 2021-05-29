@@ -207,7 +207,12 @@ def cal_data_loss(m, trajectory_list, criterion):
     else:
         X, y = batch_pair(trajectory_list, data_bs=None)
     print(f"after batch pair: {X.shape}, {y.shape}")
-    X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
+
+    X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
+    if torch.cuda.is_available():
+        X = X.cuda()
+        y = y.cuda()
+    
     # print(X.shape, y.shape)s
     yp = m(X, version="single_nn_learning")
     if debug:
@@ -360,7 +365,8 @@ def learning(
 
     # m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     # print(m)
-    m.cuda()
+    if torch.cuda.is_available():
+        m.cuda()
 
     criterion = torch.nn.MSELoss()
     if optimizer_method  == "SGD":
@@ -379,7 +385,7 @@ def learning(
     if epochs_to_skip is None:
         epochs_to_skip = -1
     
-    if benchmark_name in ["mountain_car", "sampling_2"]:
+    if benchmark_name in ["mountain_car", "sampling_2", "path_explosion"]:
         nn_separate = True
     else:
         nn_separate = False

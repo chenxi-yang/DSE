@@ -273,7 +273,7 @@ def sampling_2(yExp, safe_bound):
 
 
 def extract_bound(h0):
-    y = 0 * h0 + 5.49
+    y = 0.0001 * h0 + 5.49
     return y
 
 
@@ -287,7 +287,10 @@ def path_explosion(h0, safe_bound):
     # bound = 5.49
 
     h = h0
+
     bound = extract_bound(h0)
+    trajectory_list.append((h0, bound))
+    
     while h < 10.0:
         h = h + 0.01
         if (h <= bound):
@@ -302,7 +305,7 @@ def path_explosion(h0, safe_bound):
     else:
         h = 10 * h
     
-    trajectory_list.append((h0, count))
+    # trajectory_list.append((h0, count))
     
     return trajectory_list
     

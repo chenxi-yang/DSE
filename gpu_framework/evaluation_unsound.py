@@ -44,6 +44,13 @@ if benchmark_name == "sampling_2":
         initialization_abstract_state,
         # initialization_point_nn,
     )
+if benchmark_name == "path_explosion":
+    from path_explosion_sound import (
+        PathExplosion,
+        load_model,
+        save_model,
+        initialization_abstract_state,
+    )
 
 import domain
 
@@ -357,7 +364,8 @@ def verification_unsound(
         m = Sampling_1(l=l, nn_mode=nn_mode)
     if benchmark_name == "sampling_2":
         m = Sampling_2(l=l, nn_mode=nn_mode)
-
+    if benchmark_name == "path_explosion":
+        m = PathExplosion(l=l, nn_mode=nn_mode)
     
     _, m = load_model(m, MODEL_PATH, name=model_name)
     if m is None:
