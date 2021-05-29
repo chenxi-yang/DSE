@@ -784,6 +784,8 @@ def extract_test_info(
                 tmp_unsafe_p_list.append(unsafe_p)
             if 'test data loss' in line:
                 data_loss = float(line[:-1].split(': ')[1])
+                if benchmark_name == "Thermostat":
+                    data_loss = data_loss ** 0.5
                 # print(data_loss)
                 tmp_data_loss_list.append(data_loss)
 

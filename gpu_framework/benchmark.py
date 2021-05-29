@@ -272,13 +272,23 @@ def sampling_2(yExp, safe_bound):
     return trajectory_list
 
 
-def path_explosion(h, safe_bound):
-    # h: [0.0, 5.0]
-    # safe constraint of h: (4.0, 26.48)
-    bound  = ??(4.0, 6.0)
-    i = 0
+def extract_bound(h0):
+    y = 0 * h0 + 5.49
+    return y
 
-    for i in range(i):
+
+def path_explosion(h0, safe_bound):
+    # h0: [2.0, 9.9]
+    # safe area of h: [4.0, 26.48]
+    
+    trajectory_list = list()
+    count = 0
+
+    # bound = 5.49
+
+    h = h0
+    bound = extract_bound(h0)
+    while h < 10.0:
         h = h + 0.01
         if (h <= bound):
             if (h <= bound - 0.001):
@@ -292,13 +302,10 @@ def path_explosion(h, safe_bound):
     else:
         h = 10 * h
     
-    return count
+    trajectory_list.append((h0, count))
     
-
-
-
-
-
+    return trajectory_list
+    
 
 '''
 Conceptual Benchmarks
