@@ -55,11 +55,11 @@ def initialization_abstract_state_point(component_list):
     # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
     abstract_state = list()
     symbol_table = {
-        'x': domain.Box(var_list([-0.5, 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0])),
+        'x': domain.Box(var_list([0.1, 0.0, 0.0, 0.0]), var_list([0.0, 0.0, 0.0, 0.0])),
         'probability': var(1.0),
         'trajectory': list(),
         'branch': '',
-        'idx': idx, 
+        'idx': 0, 
     }
 
     abstract_state.append(symbol_table)
@@ -293,7 +293,7 @@ class MountainCar(nn.Module):
         self.ifelse_v = IfElse(target_idx=[1], test=self.min_speed, f_test=f_test, body=self.assign_min_speed, orelse=self.ifelse_max_speed)
         
         self.assign_update_p = Assign(target_idx=[0], arg_idx=[0, 1], f=f_assign_update_p)
-        self.trajectory_update_1 = Trajectory(target_idx=[2, 0])
+        self.trajectory_update_1 = Trajectory(target_idx=[2, 0, 1])
         self.whileblock = nn.Sequential(
             self.ifelse_p,
             self.assign_block, 

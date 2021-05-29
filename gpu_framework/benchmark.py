@@ -277,6 +277,7 @@ def extract_bound(h0):
     return y
 
 
+# not work
 def path_explosion(h0, safe_bound):
     # h0: [3.0, 9.9]
     # safe area of h: [4.0, 26.48]
@@ -292,15 +293,15 @@ def path_explosion(h0, safe_bound):
     # trajectory_list.append((h0, bound))
 
     while h < 10.0:
-        h = h + 0.01
+        h = h + 0.1
         if (h <= bound):
-            if (h <= bound - 0.001):
+            if (h <= bound - 0.01):
                 h = 2 * h
             else:
                 h = 3 * h
         count += 1
 
-    if (h <= 3*bound - 0.001):
+    if (h <= 3*bound - 0.01):
         h = h
     else:
         h = 10 * h
@@ -308,7 +309,32 @@ def path_explosion(h0, safe_bound):
     trajectory_list.append((h0, count))
     
     return trajectory_list
-    
+
+
+def extract_h(h):
+    return h * 2 - 5.1
+
+
+def path_explosion_2(h0, safe_bound):
+    # h0: [2.0, 4.9]
+    # safe area: h: [0.0, 5.1]
+
+    trajectory_list = list()
+
+    bar1 = 3.0
+    bar2 = 5.0
+    h = h0
+    for i in range(50):
+        h += 0.2
+        if h <= bar1:
+            h += 0.2
+        elif h <= bar2:
+            h_pre = h
+            h = extract_h(h_pre)
+            trajectory_list.append((h_pre, h))
+
+    return trajectory_list
+        
 
 '''
 Conceptual Benchmarks
