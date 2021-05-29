@@ -115,7 +115,7 @@ def get_parser():
     p.add_argument("--verify_use_probability", default=False, type=str2bool, help="use probability, ow, worst case training")
     p.add_argument("--analysis", default=False, type=str2bool, help="decide whether to analyze trajectory")
     p.add_argument("--test_with_training", default=False, type=str2bool, help="verify during training")
-
+    p.add_argument("--extract_one_trajectory", default=False, type=str2bool, help="extract trajectory starting from one point")
     # debug
     p.add_argument("--debug", default=False, type=str2bool, help="decide whether debug")
     p.add_argument("--cuda_debug", default=False, type=str2bool,  help="decide whether de cuda memory bug")

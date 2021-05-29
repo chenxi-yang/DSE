@@ -289,8 +289,8 @@ def path_explosion(h0, safe_bound):
     h = h0
 
     bound = extract_bound(h0)
-    trajectory_list.append((h0, bound))
-    
+    # trajectory_list.append((h0, bound))
+
     while h < 10.0:
         h = h + 0.01
         if (h <= bound):
@@ -305,7 +305,7 @@ def path_explosion(h0, safe_bound):
     else:
         h = 10 * h
     
-    # trajectory_list.append((h0, count))
+    trajectory_list.append((h0, count))
     
     return trajectory_list
     

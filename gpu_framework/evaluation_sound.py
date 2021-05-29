@@ -17,6 +17,7 @@ if benchmark_name == "mountain_car":
         load_model,
         save_model,
         initialization_abstract_state,
+        initialization_abstract_state_point,
     )
 if benchmark_name == "unsound_1":
     from unsound_1_sound import (
@@ -258,7 +259,10 @@ def show_component_p(component_list):
 
 # def analysis_trajectories(abstract_state_list):
 #     return 
-def store_trajectory(abstract_state_list, trajectory_path):
+def store_trajectory(abstract_state_list, trajectory_path, category=None):
+    if category is not None:
+        trajectory_path = trajectory_path + f"_{category}"
+    trajectory_path += ".txt"
     trajectory_log_file = open(trajectory_path, 'w')
     trajectory_log_file.write(f"{analysis_name_list}\n")
     for abstract_state_idx, abstract_state in enumerate(abstract_state_list):
@@ -302,12 +306,17 @@ def verification(model_path, model_name, component_list, target, trajectory_path
         param.requires_grad = False
     # print(m.nn.linear1.weight)
     
-    abstract_state_list = initialization_abstract_state(component_list)
+    if extract_one_trajectory:
+        abstract_state_list = initialization_abstract_state_point(component_list)
+        category = 'point'
+    else:
+        abstract_state_list = initialization_abstract_state(component_list)
+        category = None
     print(f"Ini # of abstract state: {len(abstract_state_list)}")
     show_component_p(component_list)
     # print(abstract_state_list[0][0]["x"].c)
     abstract_state_list = m(abstract_state_list)
-    store_trajectory(abstract_state_list, trajectory_path)
+    store_trajectory(abstract_state_list, trajectory_path, category=category)
     if verify_use_probability:
         verify(abstract_state_list, target)
     else:

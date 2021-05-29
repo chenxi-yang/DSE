@@ -50,6 +50,23 @@ def initialization_abstract_state(component_list):
     return abstract_state_list
 
 
+def initialization_abstract_state_point(component_list):
+    abstract_state_list = list()
+    # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
+    abstract_state = list()
+    symbol_table = {
+        'x': domain.Box(var_list([-0.5, 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0])),
+        'probability': var(1.0),
+        'trajectory': list(),
+        'branch': '',
+        'idx': idx, 
+    }
+
+    abstract_state.append(symbol_table)
+    abstract_state_list.append(abstract_state)
+    return abstract_state_list
+
+
 def initialization_one_point_nn(x):
     return domain.Box(var_list([x[0], 0.0, 0.0, 0.0]), var_list([0.0] * 4))
 
@@ -290,7 +307,7 @@ class MountainCar(nn.Module):
         self.check_reach = Assign(target_idx=[3], arg_idx=[3], f=reward_reach)
         self.check_position = IfElse(target_idx=[0], test=self.goal_position-var(1e-5), f_test=f_test, body=self.check_non, orelse=self.check_reach)
         
-        self.trajectory_update_2 = Trajectory(target_idx=[2, 0])
+        self.trajectory_update_2 = Trajectory(target_idx=[2, 0, 1])
         self.program = nn.Sequential(
             self.while1,
             self.check_position,

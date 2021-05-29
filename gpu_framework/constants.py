@@ -67,6 +67,7 @@ expr_i_number = args.expr_i_number
 # print(f"sample_width: {sample_width}")
 verify_use_probability = args.verify_use_probability
 ini_unsafe_probability = args.ini_unsafe_probability
+extract_one_trajectory = args.extract_one_trajectory
 
 sound_verify = args.sound_verify
 unsound_verify = args.unsound_verify
