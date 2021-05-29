@@ -146,10 +146,14 @@ def update_res_in_branch(res_symbol_table, res, probability, branch):
 def split_branch_symbol_table(target_idx, test, symbol_table):
     body_symbol_table, orelse_symbol_table = dict(), dict()
     branch_time = time.time()
+    # print(test)
 
     x = symbol_table['x']
+    # print(x, x.c, x.delta)
     target = x.select_from_index(0, target_idx)
     # res_symbol_table = pre_build_symbol_table(symbol_table)
+    # print(target, target.c, target.delta, test)
+    # print(f"[split_branch_symbol_table] start splitting")
 
     if target.getRight().data.item() <= test.data.item():
         res = x.clone()
@@ -193,6 +197,7 @@ def split_branch_symbol_table(target_idx, test, symbol_table):
 def split_branch_abstract_state(target_idx, test, abstract_state):
     body_abstract_state, orelse_abstract_state = list(), list()
     for symbol_table in abstract_state:
+        # print(f"[split_branch_abstract_state]: {test}")
         body_symbol_table, orelse_symbol_table = split_branch_symbol_table(target_idx, test, symbol_table)
         if len(body_symbol_table) > 0:
             body_abstract_state.append(body_symbol_table)
@@ -205,6 +210,7 @@ def calculate_branch_list(target_idx, test, abstract_state_list):
     res_abstract_state_list = list()
     assert(len(abstract_state_list) == 1)
     for abstract_state in abstract_state_list: 
+        # print(f"[calculate_branch_list]: {test}")
         body_abstract_state, orelse_abstract_state = split_branch_abstract_state(target_idx, test, abstract_state)
         if len(body_abstract_state) > 0:
             res_abstract_state_list.append(body_abstract_state)
@@ -333,11 +339,12 @@ class IfElse(nn.Module):
         self.orelse = orelse
         if torch.cuda.is_available():
             self.target_idx = self.target_idx.cuda()
+        # print(f"[ifelse]: {self.test}")
     
     def forward(self, abstract_state_list):
         # print(f"Ifelse: target_idx: {self.target_idx}")
         # print(f"############one ifelse ##################")
-
+        # print(f"If else self: {self.test}")
         test = self.f_test(self.test)
         # print(f"if else test: {test}")
         # print(f"If else: {test}")
@@ -375,7 +382,13 @@ class While(nn.Module):
     def forward(self, abstract_state_list):
         i = 0
         while(len(abstract_state_list) > 0):
+            # print(f"[while]pre calculate_branch_list:")
+            # for abstract_state in abstract_state_list:
+            #     for symbol_table in abstract_state:
+            #         print(f"symbol_table: {symbol_table['x'].c}, {symbol_table['x'].delta}, {symbol_table['branch']}")
+            # print(f"[while test], {self.test}")
             pre_abstract_state_list = calculate_branch_list(self.target_idx, self.test, abstract_state_list)
+            # print('test', self.test)
             # print(f"pre_abstract_state_list:")
             # for abstract_state in pre_abstract_state_list:
             #     for symbol_table in abstract_state:
