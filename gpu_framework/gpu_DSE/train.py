@@ -23,6 +23,9 @@ if benchmark_name == "sampling_1":
     from gpu_DSE.sampling_1 import *
 if benchmark_name == "sampling_2":
     from gpu_DSE.sampling_2 import *
+if benchmark_name == "path_explosion":
+    from gpu_DSE.path_explosion import *
+
 
 from utils import (
     batch_pair,

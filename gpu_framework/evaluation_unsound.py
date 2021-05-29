@@ -223,6 +223,7 @@ def trajectory2points(trajectory_list, bs):
 def test_objective(m, trajectory_test, criterion, test_bs):
     data_loss = 0.0
     count = 0
+    test_bs = 8
     for x, y in trajectory2points(trajectory_test, test_bs):
         yp = m(x, version="single_nn_learning")
         batch_data_loss = criterion(yp, y)
