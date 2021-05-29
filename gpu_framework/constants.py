@@ -342,7 +342,10 @@ PROTECTION_LOOP_NUM_SMOOTH = 999
 if simple_debug:
     MAXIMUM_ITERATION = 5
 else:
-    MAXIMUM_ITERATION = 250
+    if benchmark_name == "path_explosion":
+        MAXIMUM_ITERATION = 500
+    else:
+        MAXIMUM_ITERATION = 250
 
 N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)
