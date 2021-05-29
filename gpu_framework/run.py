@@ -372,7 +372,7 @@ if __name__ == "__main__":
                         model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", 
                         component_list=component_list, 
                         target=target,
-                        trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}.txt")
+                        trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}")
                     print(f"---verification time: {time.time() - verification_time} sec---")
                     
                 if (test_mode and unsound_verify) or test_with_training:
