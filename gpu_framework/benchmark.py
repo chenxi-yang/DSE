@@ -278,7 +278,7 @@ def extract_bound(h0):
 
 
 def path_explosion(h0, safe_bound):
-    # h0: [2.0, 9.9]
+    # h0: [3.0, 9.9]
     # safe area of h: [4.0, 26.48]
     
     trajectory_list = list()
