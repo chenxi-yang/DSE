@@ -2,19 +2,9 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from helper import * 
-from constants import *
-import constants
-import domain
-
-from gpu_DSE.modules import *
+from gpu_DiffAI.modules import *
 
 import os
-
-# x_list
-# i, isOn, x, lin  = 0.0, 0.0, input, x
-# tOff = 62.0
-# tOn = 80.0
 
 index0 = torch.tensor(0)
 index1 = torch.tensor(1)
@@ -27,7 +17,24 @@ if torch.cuda.is_available():
     index2 = index2.cuda()
     index3 = index3.cuda()
 
-# input order: position, velocity, u, u_p, reward
+
+def initialization_nn(batched_center, batched_width):
+    B, D = batched_center.shape
+    padding = torch.zeros(B, 1)
+    if torch.cuda.is_available():
+        padding = padding.cuda()
+    
+    input_center, input_width = batched_center[:, :1], batched_width[:, :1]
+    symbol_tables = {
+        'x': domain.Box(torch.cat((input_center, padding, padding, padding, padding), 1), torch.cat((input_width, padding, padding, padding, padding), 1)),
+        'trajectory_list': [[] for i in range(B)],
+        'idx_list': [i for i in range(B)], # marks which idx the tensor comes from in the input
+    }
+
+    return symbol_tables
+
+
+# input order: position, velocity, u, reward
 def initialization_abstract_state(component_list):
     abstract_state_list = list()
     # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
@@ -53,7 +60,7 @@ def initialization_one_point_nn(x):
 def initialization_point_nn(x):
     point_symbol_table_list = list()
     symbol_table = {
-        'x': domain.Box(var_list([x[0], 0.0, 0.0, 0.0, 0.0]), var_list([0.0] *5)),
+        'x': domain.Box(var_list([x[0], 0.0, 0.0, 0.0, 0.0]), var_list([0.0] * 5)),
         'probability': var(1.0),
         'trajectory': list(),
         'branch': '',
@@ -149,7 +156,7 @@ def f_assign_min_v(x):
     return x.set_value(var(0.0))
 
 def f_assign_update_p(x):
-    return x.select_from_index(0, index0).add(x.select_from_index(0, index1))
+    return x.select_from_index(1, index0).add(x.select_from_index(1, index1))
 
 def f_assign_left_u(x):
     return x.set_value(var(-1.0))
@@ -160,9 +167,9 @@ def f_assign_right_u(x):
 
 def f_assign_v(x):
     # x: p, v, u
-    p = x.select_from_index(0, index0)
-    v = x.select_from_index(0, index1)
-    u = x.select_from_index(0, index2)
+    p = x.select_from_index(1, index0)
+    v = x.select_from_index(1, index1)
+    u = x.select_from_index(1, index2)
     # TODO: cos
     return v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
 
@@ -272,11 +279,6 @@ def save_model(model, folder, name, epoch):
     except FileExistsError:
         pass
     torch.save(model.state_dict(), path)
-    
-
-
-
-
 
 
 

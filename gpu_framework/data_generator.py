@@ -31,7 +31,7 @@ def dataset_arg(dataset):
         range_ = [2.0, 9.9]
     if dataset == "path_explosion_2":
         range_ = [2.0, 4.8]
-    if dataset == "mountain_car_2":
+    if dataset == "mountain_car_1":
         range_ =[-0.6, -0.4]
     
     return range_
@@ -46,6 +46,7 @@ def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
 def generate_dataset(func, distribution, input_range, safe_bound, data_size=50000):
     res_list = list()
     min_tra, max_tra = 100000, -100000
+    print(f"genetate")
 
     if distribution == "normal":
         l, r = input_range[0], input_range[1]
@@ -116,7 +117,6 @@ def run(safe_bound):
         # path=f"dataset/{dataset}_{distribution}_{input_range[0]}_{input_range[1]}_{safe_bound}.txt",
         path=f"{dataset_path_prefix}_{safe_bound}.txt"
         )
-
 
 if __name__ == "__main__":
     for safe_bound in safe_range_bound_list:

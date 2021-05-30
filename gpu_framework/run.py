@@ -96,7 +96,7 @@ if __name__ == "__main__":
             #         "condition": domain.Interval(var(SAFE_RANGE[0]), var(safe_range_upper_bound)),
             #         "phi": var(PHI),
             #     }
-            if benchmark_name in ["mountain_car", "unsound_1"]:
+            if benchmark_name in ["mountain_car", "mountain_car_1", "unsound_1"]:
                 target = list()
                 for idx, safe_range in enumerate(safe_range_list):
                     # only use the acceleration condition

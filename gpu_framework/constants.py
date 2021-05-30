@@ -78,7 +78,7 @@ assert((test_mode or test_with_training) == (sound_verify or unsound_verify))
 
 STATUS = 'Training' # a global status, if Training: use normal module, if Verifying: use sound module
 
-if benchmark_name == "path_explosion_2":
+if benchmark_name in ["path_explosion_2", "path_explosion"]:
     path_num_list = [100]
 else:
     path_num_list = [30]
@@ -358,7 +358,7 @@ if benchmark_name == "mountain_car_1":
     # safe_range_step=0.1
     safe_range_start=0.07
     safe_range_end=0.08 # 1.1
-    safe_range_step=-0.1
+    safe_range_step=0.1
     safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
     analysis_name_list = ['acceleration', 'position']
 
@@ -410,6 +410,11 @@ else:
     else:
         MAXIMUM_ITERATION = 250
     if benchmark_name == "mountain_car":
+        if extract_one_trajectory:
+            MAXIMUM_ITERATION = 500
+        else:
+            MAXIMUM_ITERATION = 300
+    if benchmark_name == "mountain_car_1":
         if extract_one_trajectory:
             MAXIMUM_ITERATION = 500
         else:

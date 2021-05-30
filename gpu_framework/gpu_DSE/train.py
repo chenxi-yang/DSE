@@ -122,6 +122,8 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
         for state in trajectory:
             # print(f"state: {state}")
             X = state[target_idx] # select the variable to measure
+            if benchmark_name == "mountain_car_1":
+                print(f"v: {float(state[0].left)}, {float(state[0].right)}; p: {float(state[1].left)}, {float(state[1].right)}; u: {float(state[2].left)}, {float(state[2].right)};")
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 # print(f"point: {X.isPoint()}")
@@ -138,7 +140,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 unsafe_value = 1 - safe_portion
             # if float(unsafe_valåue) > 0:
             # print(f"X: {float(X.left)}, {float(X.right)}")
-            # print(f"unsafe value: {float(unsafe_value)}")
+            print(f"unsafe value: {float(unsafe_value)}")
             # print(f"p: {symbol_table['probability']}")
                 # print(f"point: {X.isPoint()}")
             # print(f"unsafe value: {float(unsafe_value)}")
@@ -389,7 +391,7 @@ def learning(
     if epochs_to_skip is None:
         epochs_to_skip = -1
     
-    if benchmark_name in ["mountain_car", "sampling_2", "path_explosion", "path_explosion_2"]:
+    if benchmark_name in ["mountain_car", "mountain_car_1", "sampling_2", "path_explosion", "path_explosion_2"]:
         nn_separate = True
     else:
         nn_separate = False
@@ -520,12 +522,12 @@ def learning(
             
             # # print(m.parameters())
             if not only_data_loss:
-                if benchmark_name == "mountain_car":
+                if benchmark_name in ["mountain_car", "mountain_car_1"]:
                     pass
                 else:
                     if shrink_sample_width(safe_loss_list):
                     # if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
-                        if benchmark_name == "path_explosion_2" and sample_width <= 0.01:
+                        if benchmark_name in ["path_explosion_2",  "path_explosion"] and sample_width <= 0.01:
                             pass
                         elif sample_width < 2e-07:
                             pass
@@ -599,7 +601,7 @@ def learning(
         
         # help converge
 
-        if benchmark_name == "mountain_car":
+        if benchmark_name in ["mountain_car", "mountain_car_1"]:
             pass # no early stop
         else:
             if only_data_loss:

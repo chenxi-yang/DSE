@@ -55,7 +55,7 @@ def initialization_abstract_state_point(component_list):
     # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
     abstract_state = list()
     symbol_table = {
-        'x': domain.Box(var_list([0.1, 0.0, 0.0, 0.0]), var_list([0.0, 0.0, 0.0, 0.0])),
+        'x': domain.Box(var_list([-0.5, 0.0, 0.0, 0.0]), var_list([0.0, 0.0, 0.0, 0.0])),
         'probability': var(1.0),
         'trajectory': list(),
         'branch': '',
