@@ -194,7 +194,7 @@ if __name__ == "__main__":
                 preprocessing_time = time.time()
                 # TODO: the data is one-dimension (x = a value)
                 if fixed_dataset:
-                    if benchmark_name == "mountain_car":
+                    if benchmark_name in ["mountain_car", "mountain_car_1"]:
                         # Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
                         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
                     if benchmark_name == "thermostat":
@@ -218,6 +218,8 @@ if __name__ == "__main__":
                         m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
                     if benchmark_name == "mountain_car":
                         m = MountainCar(l=l, nn_mode=nn_mode, module=module)
+                    if benchmark_name == "mountain_car_1":
+                        m = MountainCar1(l=l, nn_mode=nn_mode, module=module)
                     if benchmark_name == "unsound_1":
                         m = Unsound_1(l=l, nn_mode=nn_mode)
                     if benchmark_name == "unsound_2_separate":
@@ -264,6 +266,8 @@ if __name__ == "__main__":
                             if benchmark_name == "mountain_car":
                                 # torch.manual_seed(1)
                                 m = MountainCar(l=l, nn_mode=nn_mode, module=module)
+                            if benchmark_name == "mountain_car_1":
+                                m = MountainCar1(l=l, nn_mode=nn_mode, module=module)
                             if benchmark_name == "unsound_1":
                                 m = Unsound_1(l=l, nn_mode=nn_mode)
                             if benchmark_name == "unsound_2_separate":

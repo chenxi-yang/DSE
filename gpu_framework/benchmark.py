@@ -50,32 +50,6 @@ def acceleration(p, v):
 
 def safe_acceleration(p, v, safe_bound):
     u = 0.0
-    # if v <= 0.0:
-    #     # u = - 0.8
-    #     u = - safe_bound + random.uniform(0.00001, 0)
-    # else:
-    #     u = safe_bound + random.uniform(-0.00001, 0)
-    # if v <= 0.0:
-    #     u = -(-v/0.05)**0.5 * safe_bound + 0.01* (0.5 - p)/1.2
-    # else:
-    #     u = (v/0.05) ** 0.5 * safe_bound + 0.01 * (0.5 - p)/1.2
-
-    # u = (v/0.1)**2 * 10 * safe_bound + 0.01* (0.5 - p)/1.2
-    # u = v * (v ** 2 / 0.025) ** 0.5 * safe_bound + 0.01* (0.5 - p)/1.2
-    # print(p, v, u)
-    # if v <= 0.0:
-    #     # u = - 0.8
-    #     u = - safe_bound + random.uniform(0.00001, 0)
-    # else:
-    #     u = safe_bound + random.uniform(-0.00001, 0)
-    # u = v / ((v+0.1)**2) * (-v**2 + (safe_bound - 0.2)) + 0.01* (0.5 - p)/1.2
-    # if v <= 0.0:
-    #     u = - safe_bound * v + random.uniform(0.00001, 0)
-    # else:
-    #     u = safe_bound + random.uniform(-0.00001, 0)
-    # fraction = - 1 / (0.1**2) * v ** 2 + 1
-    # u = safe_bound * v/0.07 * 10 * fraction + 0.01* (0.5 - p)/1.2 * v * fraction
-    # print(p, v, u)
     if v <= 0.0:
         u = - safe_bound
     else:
@@ -117,7 +91,6 @@ def mountain_car(p0, safe_bound):
         # update trajectory
         trajectory_list.append((p, v, u))
         
-        
         # update velocity
         v = v + 0.0015 * u - 0.0025 * math.cos(3 * p)
         # Reset v if v is out of range
@@ -129,6 +102,55 @@ def mountain_car(p0, safe_bound):
             else:
                 v = max_speed
         # update position
+        p = p + v
+        # i += 1
+        # print(i, p)
+    # print(f'finish one')
+    
+    return trajectory_list
+
+
+def safe_acceleration_p(p, v, safe_bound):
+    u_p = 0.0
+    if v <= 0.0:
+        u_p = 0 # left
+    else:
+        u_p = 1 # right
+    
+    return u_p
+
+
+def mountain_car_1(p0, safe_bound):
+    # pos should be in [-1.2, 0.6]
+    # initial range: [-0.4, -0.6]
+    # safe area of v: [-0.07, 0.07]
+    v = 0
+    p = p0
+    min_position = -1.2
+    goal_position = 0.5
+
+    i = 0
+    trajectory_list = list()
+
+    while p <= goal_position:
+        # Reset position if position is out of range
+        if p <= min_position:
+            p = min_position
+            v = 0
+        # update acceleration
+        u_p = safe_acceleration_p(p, v, safe_bound)
+        # update trajectories
+        trajectory_list.append((p, v, u_p))
+
+        # u = np.random.binomial(1, u_p, 1).tolist()[0]
+        if u_p <= 0.5:
+            u  = -1.0
+        else:
+            u = 1.0
+        
+        # update velocity
+        v = v + 0.0015 * u - 0.0025 * math.cos(3 * p)
+
         p = p + v
         # i += 1
         # print(i, p)

@@ -13,6 +13,8 @@ if benchmark_name == "thermostat":
     from gpu_DSE.thermostat_nn import * 
 if benchmark_name == "mountain_car":
     from gpu_DSE.mountain_car import *
+if benchmark_name == "mountain_car_1":
+    from gpu_DSE.mountain_car_1 import *
 if benchmark_name == "unsound_1":
     from gpu_DSE.unsound_1 import *
 if benchmark_name == "unsound_2_separate":

@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from gpu_DSE.modules import *
+from gpu_DiffAI.modules import *
 
 import os
 
@@ -19,24 +19,45 @@ if torch.cuda.is_available():
     index3 = index3.cuda()
 
 
-# input order: h0, bound, count, tmp_h_1, tmp_h_2
-def initialization_abstract_state(component_list):
-    abstract_state_list = list()
-    # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
-    abstract_state = list()
-    for component in component_list:
-        center, width, p = component['center'], component['width'], component['p']
-        symbol_table = {
-            'x': domain.Box(var_list([center[0], 0.0, 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0, 0.0])),
-            'probability': var(p),
-            'trajectory': list(),
-            'branch': '',
-        }
+# input order: h, i
+def initialization_nn(batched_center, batched_width):
+    B, D = batched_center.shape
+    padding = torch.zeros(B, 1)
+    if torch.cuda.is_available():
+        padding = padding.cuda()
+    
+    input_center, input_width = batched_center[:, :1], batched_width[:, :1]
+    # print(input_center.shape, input_width.shape)
+    # right = input_center + input_width 
+    # input_center = input_center[right > 4.799].unsqueeze(1)
+    # input_width = input_width[right > 4.799].unsqueeze(1)
+    # print(input_center.shape, input_width.shape)
+    # padding = torch.zeros(1, 1)
+    # if torch.cuda.is_available():
+    #     padding = padding.cuda()
 
-        abstract_state.append(symbol_table)
-    abstract_state_list.append(abstract_state)
-    return abstract_state_list
+    symbol_tables = {
+        'x': domain.Box(torch.cat((input_center, padding), 1), torch.cat((input_width, padding), 1)),
+        'trajectory_list': [[] for i in range(B)],
+        'idx_list': [i for i in range(B)], # marks which idx the tensor comes from in the input
+    }
 
+    return symbol_tables
+
+
+def initialization_point_nn(x):
+    point_symbol_table_list = list()
+    symbol_table = {
+        'x': domain.Box(var_list([x[0], 0.0]), var_list([0.0] * 2)),
+        'probability': var(1.0),
+        'trajectory': list(),
+        'branch': '',
+    }
+
+    point_symbol_table_list.append(symbol_table)
+
+    # to map to the execution of distribution, add one dimension
+    return [point_symbol_table_list]
 
 def f_test(x):
     return x
