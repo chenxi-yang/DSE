@@ -13,6 +13,8 @@ if benchmark_name == "thermostat":
     from gpu_DiffAI.thermostat_nn import * 
 if benchmark_name == "mountain_car":
     from gpu_DiffAI.mountain_car import *
+if benchmark_name == "mountain_car_1":
+    from gpu_DiffAI.mountain_car_1 import *
 if benchmark_name == "unsound_1":
     from gpu_DiffAI.unsound_1 import *
 if benchmark_name == "unsound_2_separate":
@@ -21,6 +23,8 @@ if benchmark_name == "unsound_2_overall":
     from gpu_DiffAI.unsound_2_overall import *
 if benchmark_name == "path_explosion_2":
     from gpu_DiffAI.path_explosion_2 import *
+if benchmark_name == "path_explosion":
+    from gpu_DiffAI.path_explosion import *
 
 from utils import (
     generate_distribution,
@@ -547,7 +551,7 @@ def learning(
         #     break
 
         # if float(c_loss) < float(EPSILON):
-        if benchmark_name == "mountain_car":
+        if benchmark_name in ["mountain_car", "mountain_car_1"]:
             pass # no early stop
         else:
             if float(c_loss) <= 0.0:

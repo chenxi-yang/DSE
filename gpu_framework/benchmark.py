@@ -144,7 +144,7 @@ def mountain_car_1(p0, safe_bound):
 
         # u = np.random.binomial(1, u_p, 1).tolist()[0]
         if u_p <= 0.5:
-            u  = -1.0
+            u = -1.0
         else:
             u = 1.0
         
@@ -154,7 +154,7 @@ def mountain_car_1(p0, safe_bound):
         p = p + v
         # i += 1
         # print(i, p)
-    # print(f'finish one')
+    print(f'finish one')
     
     return trajectory_list
 
