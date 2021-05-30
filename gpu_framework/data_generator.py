@@ -31,6 +31,8 @@ def dataset_arg(dataset):
         range_ = [2.0, 9.9]
     if dataset == "path_explosion_2":
         range_ = [2.0, 4.8]
+    if dataset == "mountain_car_2":
+        range_ =[-0.6, -0.4]
     
     return range_
 

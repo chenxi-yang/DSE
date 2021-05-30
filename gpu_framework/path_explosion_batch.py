@@ -48,7 +48,10 @@ class LinearNN(nn.Module):
         self.linear1 = Linear(in_channels=1, out_channels=1)
     
     def forward(self, x):
+        # print(f"input x: {x.c}, {x.delta}")
+        # print(x.shape)
         res = self.linear1(x)
+        # print(f"res: {res.c}, {res.delta}")
         return res
 
 
@@ -66,40 +69,23 @@ class LinearNNComplex(nn.Module):
         return res
 
 
-def f_assign_update_h(x):
-    return x.add(var(0.01))
+def f_assign_h_update(x):
+    return x.add(var(0.2))
 
-def f_assign_tmp_h_1(x):
-    # x[0] - x[1]
-    x0 = x.select_from_index(0, index0)
-    x1 = x.select_from_index(0, index1)
-    return x0.sub_l(x1)
-
-def f_assign_tmp_h_2(x):
-    # x[0] - x[1]
-    x0 = x.select_from_index(0, index0)
-    x1 = x.select_from_index(0, index1)
-    return x0.sub_l(x1.mul(var(3.0)))
-
-def f_assign_2h(x):
-    return x.mul(var(2.0))
-
-def f_assign_3h(x):
-    return x.mul(var(3.0))
-
-def f_assign_10h(x):
-    return x.mul(var(10.0))
-
-def f_update_count(x):
+def f_assign_i_update(x):
     return x.add(var(1.0))
+
+def f_assign_h_increase(x):
+    return x.mul(var(2.0)).add(var(1.0))
 
 # input order: 0:h0, 1:bound, 2:count, 3:tmp_h_1, 4:tmp_h_2
 class PathExplosion(nn.Module):
     def __init__(self, l=1, nn_mode="complex"):
         super(PathExplosion, self).__init__()
-        self.goal_h = var(10.0)
-        self.tmp_h1_bound = var(0.0)
-        self.tmp_h2_bound = var(-0.001)
+        self.goal_iteration = var(50.0)
+        self.bar1 = var(3.0)
+        self.bar2 = var(5.0)
+        self.bar3 = var(2.5)
 
         # simple version
         if nn_mode == "simple":
@@ -108,73 +94,59 @@ class PathExplosion(nn.Module):
         if nn_mode == "complex":
             self.nn = LinearNNComplex(l=l)
 
-        # new
-        self.assign_bound = Assign(target_idx=[1], arg_idx=[0], f=self.nn)
+        self.assign_i_update = Assign(target_idx=[1], arg_idx=[1], f=f_assign_i_update)
+        self.assign_h_update = Assign(target_idx=[0], arg_idx=[0], f=f_assign_h_update)
+
+        self.assign_h_update_nn = Assign(target_idx=[0], arg_idx=[0], f=self.nn)
+        self.assign_skip = Skip()
+
+        self.ifelse_h_block2 = IfElse(target_idx=[0], test=self.bar2, f_test=f_test, body=self.assign_h_update_nn, orelse=self.assign_skip)
+        self.ifelse_h = IfElse(target_idx=[0], test=self.bar1, f_test=f_test, body=self.assign_h_update, orelse=self.ifelse_h_block2)
+
+        self.assign_h_increase = Assign(target_idx=[0], arg_idx=[0], f=f_assign_h_increase)
+        self.ifelse_h2 = IfElse(target_idx=[0], test=self.bar3, f_test=f_test, body=self.assign_h_increase, orelse=self.assign_skip)
         self.trajectory_update = Trajectory(target_idx=[0])
-
-        self.assign_basic_h = Assign(target_idx=[1], arg_idx=[0], f=f_assign_update_h)
-        self.assign_tmp_h_1 = Assign(target_idx=[3], arg_idx=[0, 1], f=f_assign_tmp_h_1)
-
-        self.assign_2h = Assign(target_idx=[0], arg_idx=[0], f=f_assign_2h)
-        self.assign_3h = Assign(target_idx=[0], arg_idx=[0], f=f_assign_3h)
-        self.ifelse_h_in_2 = IfElse(target_idx=[3], test=self.tmp_h2_bound, f_test=f_test, body=self.assign_2h, orelse=self.assign_3h)
-        self.h_skip = Skip()
-        self.ifelse_h_in = IfElse(target_idx=[3], test=self.tmp_h1_bound, f_test=f_test, body=self.ifelse_h_in_2, orelse=self.h_skip)
-
-        self.assign_count = Assign(target_idx=[2], arg_idx=[2], f=f_update_count)
         self.whileblock = nn.Sequential(
-            self.assign_basic_h,
-            self.assign_tmp_h_1,
-            self.ifelse_h_in,
-            self.assign_count,
+            self.assign_i_update,
+            self.assign_h_update,
+            self.ifelse_h,
+            # self.ifelse_h2,
             self.trajectory_update,
         )
-
-        self.while_h = While(target_idx=[0], test=self.goal_h, body=self.whileblock)
-
-        self.assign_tmp_h_2 = Assign(target_idx=[4], arg_idx=[0, 1], f=f_assign_tmp_h_2)
-
-        self.assign_10h = Assign(target_idx=[0], arg_idx=[0], f=f_assign_10h)
-        self.ifelse_h_out = IfElse(target_idx=[4], test=self.tmp_h2_bound, f_test=f_test, body=self.h_skip, orelse=self.assign_10h)
-
+        self.while_i = While(target_idx=[1], test=self.goal_iteration, body=self.whileblock)
         self.program = nn.Sequential(
-            self.assign_bound,
-            self.while_h,
-            self.assign_tmp_h_2,
-            self.ifelse_h_out,
-            self.trajectory_update,
+            self.trajectory_update, 
+            self.while_i,
         )
     
     def forward(self, input, version=None):
         if version == "single_nn_learning":
-            B = input.shape[0]
-            count = torch.zeros(B, 1)
-            if torch.cuda.is_available():
-                count = count.cuda()
+            # B = input.shape[0]
+            # count = torch.zeros(B, 1)
+            # if torch.cuda.is_available():
+            #     count = count.cuda()
 
+            # # print(input.shape)
+            # print(f"input: {input.detach().cpu().numpy().tolist()[0]}")
+            res = self.nn(input)
+            # print(f"res: {res.detach().cpu().numpy().tolist()[0]}")
             # print(input.shape)
-            print(f"input: {input.detach().cpu().numpy().tolist()[0]}")
-            bound = self.nn(input)
-            print(f"bound: {bound.detach().cpu().numpy().tolist()[0]}")
-            res = bound
-            
-            # while_idx = (input <= 10.0)
-            # while_condition_res = torch.any(while_idx)
+            # for i in range(50):
+            #     input += 0.2
+            #     b1_idx = (input <= self.bar1)
+            #     b2_idx = (torch.logical_and(input > self.bar1, input <= self.bar2))
+            #     b3_idx = (input > self.bar2)
 
-            # while(while_condition_res == True): # there is tensor in the batch <= 10.0
-            #     input[while_idx] = input[while_idx] + 0.01
-            #     bound_idx = (input <= bound)
-            #     bound2_idx = (input <= (bound - 0.001))
-            #     bound3_idx = (input > (bound - 0.001))
-            #     input[torch.logical_and(bound_idx, bound2_idx)] = input[torch.logical_and(bound_idx, bound2_idx)] * 2.0
-            #     input[torch.logical_and(bound_idx, bound3_idx)] = input[torch.logical_and(bound_idx, bound3_idx)] * 3.0
+            #     b1 = input[b1_idx].unsqueeze(1)
+            #     b2 = input[b2_idx].unsqueeze(1)
+            #     b3 = input[b3_idx].unsqueeze(1)
 
-            #     count[while_idx] += 1
-            #     while_idx = (input <= 10.0)
-            #     while_condition_res = torch.any(while_idx)
-            
-            # input[input > (3 * bound - 0.001)] = input[input > (3 * bound - 0.001)] * 10.0
-            # res = count
+            #     b1 = b1 + 0.2
+            #     b2 = self.nn(b2)
+            #     b3 = b3
+            #     input = torch.cat((b1, b2, b3), 0)
+
+            # res = input
         else:
             res = self.program(input)
         return res

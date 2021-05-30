@@ -916,7 +916,7 @@ def plot_mc_trajectory(
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(figure_name)
-    # plt.grid()
+    plt.grid()
     plt.savefig(f"all_figures/{figure_save_name}.png")
     plt.close()
 
