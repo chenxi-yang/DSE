@@ -1019,12 +1019,12 @@ if __name__ == "__main__":
         file_name_list = [
             'gpu_DSE/result_test/trajectory/mountain_car_[30]_DSE_0.01_10_160_200_True_10_128_1000_all_linearrelu_no_act_5_False_1.4_0.8_-0.1_[0.0, 0.1]_True_False_40_0_6_1.0_1e-06_normal_-1.6_-0.0_True_2000_1_True_True__1.4_0_point.txt',
             'gpu_DiffAI/result_test/trajectory/mountain_car_[30]_DiffAI_0.01_50_40_200_False_50_128_1000_all_linearrelu_no_act_5_False_1.4_0.8_-0.1_[0.0, 0.1]_True_False_40_0_6_1.0_1e-05_normal_-1.6_-0.0_True_2000_1_True_True__1.4_0_point.txt',
-        ]
+        ],
         method_name_list = [
             'DSE',
             'DiffAI',
-        ]
-        benchmark_name='Mountain-Car(1.4)'
+        ],
+        benchmark_name='Mountain-Car(1.4)',
     )
 
 
