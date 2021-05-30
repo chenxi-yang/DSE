@@ -41,7 +41,6 @@ if benchmark_name == "sampling_2":
         save_model,
         initialization_abstract_state,
     )
-
 if benchmark_name == "path_explosion":
     from path_explosion_sound import (
         PathExplosion,
@@ -49,7 +48,13 @@ if benchmark_name == "path_explosion":
         save_model,
         initialization_abstract_state,
     )
-
+if benchmark_name == "path_explosion_2":
+    from path_explosion_2_sound import (
+        PathExplosion2,
+        load_model,
+        save_model,
+        initialization_abstract_state,
+    )
 
 import domain
 
@@ -291,6 +296,8 @@ def verification(model_path, model_name, component_list, target, trajectory_path
         m = Sampling_2(l=l, nn_mode=nn_mode)
     if benchmark_name == "path_explosion":
         m = PathExplosion(l=l, nn_mode=nn_mode)
+    if benchmark_name == "path_explosion_2":
+        m = PathExplosion2(l=l, nn_mode=nn_mode)
     
     _, m = load_model(m, MODEL_PATH, name=model_name)
     if m is None:

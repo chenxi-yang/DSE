@@ -145,7 +145,7 @@ if __name__ == "__main__":
                             "name": name_list[idx], 
                         }
                     target.append(target_component)
-            if benchmark_name in ["thermostat", "path_explosion"]:
+            if benchmark_name in ["thermostat", "path_explosion", "path_explosion_2"]:
                 target = list()
                 for idx, safe_range in enumerate(safe_range_list):
                     # only use the acceleration condition
@@ -199,7 +199,7 @@ if __name__ == "__main__":
                         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
                     if benchmark_name == "thermostat":
                         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{86.0}.txt")
-                    if benchmark_name in ["unsound_1", "unsound_2_separate", "unsound_2_overall", "sampling_1", "sampling_2", "path_explosion"]:
+                    if benchmark_name in ["unsound_1", "unsound_2_separate", "unsound_2_overall", "sampling_1", "sampling_2", "path_explosion", "path_explosion_2"]:
                         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
                 else:
                     Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
@@ -231,6 +231,8 @@ if __name__ == "__main__":
                         m = Sampling_2(l=l, nn_mode=nn_mode)
                     if benchmark_name == "path_explosion":
                         m = PathExplosion(l=l, nn_mode=nn_mode)
+                    if benchmark_name == "path_explosion_2":
+                        m = PathExplosion2(l=l, nn_mode=nn_mode)
                     # print(m)
                     if test_mode:
                         # mainly for testing the verification part
@@ -274,6 +276,8 @@ if __name__ == "__main__":
                                 m = Sampling_2(l=l, nn_mode=nn_mode)
                             if benchmark_name == "path_explosion":
                                 m = PathExplosion(l=l, nn_mode=nn_mode)
+                            if benchmark_name == "path_explosion_2":
+                                m = PathExplosion2(l=l, nn_mode=nn_mode)
                     
                     print(f"parameters: {count_parameters(m)}")
                     # try: 

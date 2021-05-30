@@ -97,6 +97,7 @@ def calculate_x_list(target_idx, arg_idx, f, symbol_tables):
     # print(f"[calculate_x_list]: {f}")
     # print(f"[calculate_x_list]: {x.c}\n\t {x.delta}")
     # print(f"in cal: {x.c.shape}, {x.delta.shape}")
+    # print(f"[in cal]: {x.c.detach().cpu().numpy().tolist()}\n\t {x.delta.detach().cpu().numpy().tolist()}") 
     input = x.select_from_index(1, arg_idx)
     # print(f"in cal: input: {input.c.shape}, {input.delta.shape}")
     res = f(input)
@@ -105,7 +106,7 @@ def calculate_x_list(target_idx, arg_idx, f, symbol_tables):
     x.delta[:, target_idx] = res.delta
     # print(f"in cal: x:{x.c.shape}, {x.delta.shape}")
     # exit(0)
-    # print(f"[calculate_x_list]: res: {x.c}\n\t {x.delta}")
+    # print(f"[calculate_x_list]: res: {x.c.detach().cpu().numpy().tolist()}\n\t {x.delta.detach().cpu().numpy().tolist()}") 
     symbol_tables['x'] = x
 
     return symbol_tables
@@ -121,7 +122,7 @@ def calculate_branch(target_idx, test, symbol_tables):
     # select the idx accordingly
     # split the other
 
-    left = target.getLeft() < test
+    left = target.getLeft() <= test
     # if debug:
     #     print(f"left: {left}")  
     if True in left: # split to left
@@ -148,7 +149,7 @@ def calculate_branch(target_idx, test, symbol_tables):
         body_symbol_tables['idx_list'] = [symbol_tables['idx_list'][i] for i in left_idx]
         # exit(0)
     
-    right = target.getRight() >= test
+    right = target.getRight() > test
     # if debug:
     #     print(f"right:  {right}")
     if True in right: # split to right
@@ -162,7 +163,9 @@ def calculate_branch(target_idx, test, symbol_tables):
         new_right_target_delta = ((right_target_c + right_target_delta) - torch.max((right_target_c - right_target_delta), test)) / 2.0
         x_right.c[:, target_idx:target_idx+1] = new_right_target_c
         x_right.delta[:, target_idx:target_idx+1] = new_right_target_delta
+
         # print(f"x_right after update: {x_right.c}, {x_right.delta}")
+
         orelse_symbol_tables['x'] = x_right
         orelse_symbol_tables['trajectory_list'] = [symbol_tables['trajectory_list'][i] for i in right_idx]
         orelse_symbol_tables['idx_list'] = [symbol_tables['idx_list'][i] for i in right_idx]

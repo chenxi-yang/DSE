@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from gpu_DSE.modules import *
+from modules_batch import *
 
 import os
 
@@ -32,12 +32,9 @@ def initialization_abstract_state(component_list):
             'trajectory': list(),
             'branch': '',
         }
-        # print(symbol_table['x'].c, symbol_table['x'].delta)
 
         abstract_state.append(symbol_table)
     abstract_state_list.append(abstract_state)
-    # print(f"finish ini")
-    # exit(0)
     return abstract_state_list
 
 

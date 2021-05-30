@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from gpu_DSE.modules import *
+from gpu_DiffAI.modules import *
 
 import os
 
@@ -20,26 +20,44 @@ if torch.cuda.is_available():
 
 
 # input order: h, i
-def initialization_abstract_state(component_list):
-    abstract_state_list = list()
-    # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
-    abstract_state = list()
-    for component in component_list:
-        center, width, p = component['center'], component['width'], component['p']
-        symbol_table = {
-            'x': domain.Box(var_list([center[0], 0.0]), var_list([width[0], 0.0])),
-            'probability': var(p),
-            'trajectory': list(),
-            'branch': '',
-        }
-        # print(symbol_table['x'].c, symbol_table['x'].delta)
+def initialization_nn(batched_center, batched_width):
+    B, D = batched_center.shape
+    padding = torch.zeros(B, 1)
+    if torch.cuda.is_available():
+        padding = padding.cuda()
+    
+    input_center, input_width = batched_center[:, :1], batched_width[:, :1]
+    # print(input_center.shape, input_width.shape)
+    # right = input_center + input_width 
+    # input_center = input_center[right > 4.799].unsqueeze(1)
+    # input_width = input_width[right > 4.799].unsqueeze(1)
+    # print(input_center.shape, input_width.shape)
+    # padding = torch.zeros(1, 1)
+    # if torch.cuda.is_available():
+    #     padding = padding.cuda()
 
-        abstract_state.append(symbol_table)
-    abstract_state_list.append(abstract_state)
-    # print(f"finish ini")
-    # exit(0)
-    return abstract_state_list
+    symbol_tables = {
+        'x': domain.Box(torch.cat((input_center, padding), 1), torch.cat((input_width, padding), 1)),
+        'trajectory_list': [[] for i in range(B)],
+        'idx_list': [i for i in range(B)], # marks which idx the tensor comes from in the input
+    }
 
+    return symbol_tables
+
+
+def initialization_point_nn(x):
+    point_symbol_table_list = list()
+    symbol_table = {
+        'x': domain.Box(var_list([x[0], 0.0]), var_list([0.0] * 2)),
+        'probability': var(1.0),
+        'trajectory': list(),
+        'branch': '',
+    }
+
+    point_symbol_table_list.append(symbol_table)
+
+    # to map to the execution of distribution, add one dimension
+    return [point_symbol_table_list]
 
 def f_test(x):
     return x
@@ -51,7 +69,10 @@ class LinearNN(nn.Module):
         self.linear1 = Linear(in_channels=1, out_channels=1)
     
     def forward(self, x):
+        # print(f"input x: {x.c}, {x.delta}")
+        # print(x.shape)
         res = self.linear1(x)
+        # print(f"res: {res.c}, {res.delta}")
         return res
 
 
@@ -121,10 +142,10 @@ class PathExplosion2(nn.Module):
     
     def forward(self, input, version=None):
         if version == "single_nn_learning":
-            B = input.shape[0]
-            count = torch.zeros(B, 1)
-            if torch.cuda.is_available():
-                count = count.cuda()
+            # B = input.shape[0]
+            # count = torch.zeros(B, 1)
+            # if torch.cuda.is_available():
+            #     count = count.cuda()
 
             # # print(input.shape)
             # print(f"input: {input.detach().cpu().numpy().tolist()[0]}")
