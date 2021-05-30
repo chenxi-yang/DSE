@@ -278,6 +278,8 @@ if __name__ == "__main__":
                                 m = PathExplosion(l=l, nn_mode=nn_mode)
                             if benchmark_name == "path_explosion_2":
                                 m = PathExplosion2(l=l, nn_mode=nn_mode)
+                        else:
+                            print(f"load from path")
                     
                     print(f"parameters: {count_parameters(m)}")
                     # try: 

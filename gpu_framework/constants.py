@@ -148,9 +148,9 @@ if benchmark_name == "mountain_car":
     # safe_range_start=0.2
     # safe_range_end=1.1
     # safe_range_step=0.1
-    safe_range_start=0.5
-    safe_range_end=1.0 # 1.1
-    safe_range_step=0.1
+    safe_range_start=1.4
+    safe_range_end=0.8 # 1.1
+    safe_range_step=-0.1
     safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
     analysis_name_list = ['acceleration', 'position']
 
@@ -375,8 +375,11 @@ else:
         MAXIMUM_ITERATION = 500
     else:
         MAXIMUM_ITERATION = 250
-    if benchmark_name == "mountain_car" and extract_one_trajectory:
-        MAXIMUM_ITERATION = 500
+    if benchmark_name == "mountain_car":
+        if extract_one_trajectory:
+            MAXIMUM_ITERATION = 500
+        else:
+            MAXIMUM_ITERATION = 300
 
 N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)

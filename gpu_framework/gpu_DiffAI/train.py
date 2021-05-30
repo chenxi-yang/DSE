@@ -98,7 +98,7 @@ def cal_data_loss(m, trajectory_list, criterion):
     if benchmark_name in ['thermostat']:
         X, y = batch_pair_endpoint(trajectory_list, data_bs=None)
     else:
-        X, y = batch_pair(trajectory_list, data_bs=None)
+        X, y = batch_pair(trajectory_list, data_bs=512)
     # print(f"after batch pair: {X.shape}, {y.shape}")
     X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
     # print(X.shape, y.shape)
@@ -490,7 +490,10 @@ def learning(
                 else:
                     data_loss = var(0.0)
                 print(f"in safe loss: {len(trajectory_list)}")
-                safe_loss = cal_safe_loss(m, real_trajectory_list, width, target)
+                if only_data_loss:
+                    safe_loss = 0.0
+                else:
+                    safe_loss = cal_safe_loss(m, real_trajectory_list, width, target)
 
                 real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
                 grad_data_loss, grad_safe_loss = data_loss, safe_loss
