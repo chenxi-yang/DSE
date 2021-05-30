@@ -207,7 +207,7 @@ def cal_data_loss(m, trajectory_list, criterion):
     if benchmark_name in ['thermostat']:
         X, y = batch_pair_endpoint(trajectory_list, data_bs=None)
     else:
-        X, y = batch_pair(trajectory_list, data_bs=None)
+        X, y = batch_pair(trajectory_list, data_bs=512)
     print(f"after batch pair: {X.shape}, {y.shape}")
 
     X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
@@ -418,6 +418,9 @@ def learning(
             
             Theta = extract_parameters(m) # extract the parameters now, and then sample around it
             # print(f"Theta before: {Theta}")
+            if only_data_loss and nn_separate:
+                use_smooth_kernel = False
+
             if use_smooth_kernel:
                 if use_safe_loss:
                     min_c_loss = 0.0

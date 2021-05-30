@@ -898,6 +898,68 @@ def extract_running_time(
     )
 
 
+def plot_mc_trajectory(
+        x_list_list,
+        y_list_list,
+        x_label,
+        y_label,
+        label_name_list,
+        figure_name,
+        figure_save_name=None,
+    ):
+    color_list = ['g', 'b']
+    fig, ax = plt.subplots(figsize=(6, 5))
+
+    for idx, y_list in enumerate(y_list_list):
+        sns.scatterplot(ax=ax, x=x_list_list[idx], y=y_list, label=label_name_list[idx], color=color_list[idx])
+
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(figure_name)
+    # plt.grid()
+    plt.savefig(f"all_figures/{figure_save_name}.png")
+    plt.close()
+
+
+
+def extract_mountain_car(
+        file_name_list,
+        method_name_list,
+        benchmark_name,
+    ):
+        p_list_list = list()
+        v_list_list = list()
+        label_name_list = list()
+
+        for idx, file_name in enumerate(file_name_list):
+            f = open(file_name, 'r')
+            f.readline()
+            f.readline()
+            f.readline()
+            p_list = list()
+            v_list = list()
+            for line in f:
+                data = line[:-1].split(';')
+                p = float(data[1].split(', ')[0])
+                v = float(data[2].split(', ')[0])
+                p_list.append(p)
+                v_list.append(v)
+            p_list_list.append(p_list)
+            v_list_list.append(v_list)
+            label_name_list.append(method_name_list[idx])
+        
+        plot_mc_trajectory(
+            x_list_list=p_list_list,
+            y_list_list=v_list_list,
+            x_label='Position',
+            y_label='Velocity',
+            label_name_list=label_name_list,
+            figure_name=f"{benchmark_name} Trajectory",
+            figure_save_name=f"{benchmark_name}_trajectory"
+        )
+
+
+
 if __name__ == "__main__":
     # plot_loss('loss/') # the q and c loss
     # plot_loss_2('loss/')
@@ -931,25 +993,39 @@ if __name__ == "__main__":
     #     name_idx=0,
     # )
 
-    extract_test_info(
-        file_name_list = [
-            'gpu_DiffAI/result/thermostat_[30]_DiffAI_0.001_2000_30_800_False_2000_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
-            'gpu_DiffAI/result/thermostat_[30]_DiffAI_0.01_10_30_800_False_10_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
-            'gpu_DSE/result/thermostat_[30]_DSE_0.01_1_30_800_True_1_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
-            'gpu_DSE/result/thermostat_[30]_DSE_0.01_10_30_800_True_10_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt'
-        ],
-        method_name_list = [
-            'DiffAI(2k)',
-            'DiffAI(10)',
-            'DSE(10)',
-            'DSE(1)',
-        ],
-        benchmark_name='Thermostat',
-    )
+    # plot test results,  unsafe probability, data loss
+    # extract_test_info(
+    #     file_name_list = [
+    #         'gpu_DiffAI/result/thermostat_[30]_DiffAI_0.001_2000_30_800_False_2000_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
+    #         'gpu_DiffAI/result/thermostat_[30]_DiffAI_0.01_10_30_800_False_10_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
+    #         'gpu_DSE/result/thermostat_[30]_DSE_0.01_1_30_800_True_1_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
+    #         'gpu_DSE/result/thermostat_[30]_DSE_0.01_10_30_800_True_10_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt'
+    #     ],
+    #     method_name_list = [
+    #         'DiffAI(2k)',
+    #         'DiffAI(10)',
+    #         'DSE(10)',
+    #         'DSE(1)',
+    #     ],
+    #     benchmark_name='Thermostat',
+    # )
 
     # extract_running_time(
     #     file_name = 'all_results/thermostat_running_time.txt',
     #     benchmark_name='Thermostat',
     # )
+
+    extract_mountain_car(
+        file_name_list = [
+            'gpu_DSE/result_test/trajectory/mountain_car_[30]_DSE_0.01_10_160_200_True_10_128_1000_all_linearrelu_no_act_5_False_1.4_0.8_-0.1_[0.0, 0.1]_True_False_40_0_6_1.0_1e-06_normal_-1.6_-0.0_True_2000_1_True_True__1.4_0_point.txt',
+            'gpu_DiffAI/result_test/trajectory/mountain_car_[30]_DiffAI_0.01_50_40_200_False_50_128_1000_all_linearrelu_no_act_5_False_1.4_0.8_-0.1_[0.0, 0.1]_True_False_40_0_6_1.0_1e-05_normal_-1.6_-0.0_True_2000_1_True_True__1.4_0_point.txt',
+        ]
+        method_name_list = [
+            'DSE',
+            'DiffAI',
+        ]
+        benchmark_name='Mountain-Car(1.4)'
+    )
+
 
 
