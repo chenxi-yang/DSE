@@ -287,7 +287,7 @@ if benchmark_name == "path_explosion":
     x_l = [2.0]
     x_r = [4.8]
 
-    safe_range_list = [[1.0, 5.0]]
+    safe_range_list = [[0.0, 5.0]]
     phi_list = [0.0, 0.1]
     phi_list[0] = ini_unsafe_probability
     if adaptive_weight:
