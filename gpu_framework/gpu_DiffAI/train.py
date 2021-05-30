@@ -19,6 +19,8 @@ if benchmark_name == "unsound_2_separate":
     from gpu_DiffAI.unsound_2_separate import *
 if benchmark_name == "unsound_2_overall":
     from gpu_DiffAI.unsound_2_overall import *
+if benchmark_name == "path_explosion_2":
+    from gpu_DiffAI.path_explosion_2 import *
 
 from utils import (
     generate_distribution,
@@ -230,6 +232,8 @@ def safe_distance(symbol_tables, target):
             target_loss += trajectory_loss
             if debug:
                 print(f"trajectory loss: {float(trajectory_loss)}")
+                if float(trajectory_loss) > 0:
+                    exit(0)
         print(f"len: {len(symbol_tables['trajectory_list'])}")
         target_loss = target_loss / (var(len(symbol_tables['trajectory_list'])).add(float(EPSILON)))
         if debug:

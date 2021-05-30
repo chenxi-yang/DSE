@@ -30,7 +30,7 @@ def dataset_arg(dataset):
     if dataset == "path_explosion":
         range_ = [2.0, 9.9]
     if dataset == "path_explosion_2":
-        range_ = [2.0, 4.9]
+        range_ = [2.0, 4.8]
     
     return range_
 
@@ -71,6 +71,8 @@ def write_dataset(res_list, path):
     f = open(path, 'w')
     f.write("trajectory_list\n")
     for trajectory_list in res_list:
+        if len(trajectory_list) == 0:
+            continue
         for state in trajectory_list:
             f.write(f"{state};")
         f.write(f"\n")

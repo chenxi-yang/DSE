@@ -25,6 +25,8 @@ if benchmark_name == "sampling_2":
     from gpu_DSE.sampling_2 import *
 if benchmark_name == "path_explosion":
     from gpu_DSE.path_explosion import *
+if benchmark_name == "path_explosion_2":
+    from gpu_DSE.path_explosion_2 import *
 
 
 from utils import (
@@ -385,7 +387,7 @@ def learning(
     if epochs_to_skip is None:
         epochs_to_skip = -1
     
-    if benchmark_name in ["mountain_car", "sampling_2", "path_explosion"]:
+    if benchmark_name in ["mountain_car", "sampling_2", "path_explosion", "path_explosion_2"]:
         nn_separate = True
     else:
         nn_separate = False
@@ -518,7 +520,12 @@ def learning(
                 else:
                     if shrink_sample_width(safe_loss_list):
                     # if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
-                        sample_width *= 0.5
+                        if benchmark_name == "path_explosion_2" and sample_width <= 0.01:
+                            pass
+                        elif sample_width < 2e-07:
+                            pass
+                        else:
+                            sample_width *= 0.5
             # if widen_sample_width(safe_loss_list):
             #     sample_width *= 2.0
             

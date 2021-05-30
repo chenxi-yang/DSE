@@ -300,9 +300,9 @@ class MountainCar(nn.Module):
 
     def forward(self, input, transition='interval', version=None):
         if version == "single_nn_learning":
-            print(input.detach().cpu().numpy().tolist()[:3])
+            # print(input.detach().cpu().numpy().tolist()[:3])
             res = self.nn(input)
-            print(res.detach().cpu().numpy().tolist()[:3])
+            # print(res.detach().cpu().numpy().tolist()[:3])
             # res *= 10
             # res[res <= self.min_acc] = float(self.min_acc)
             # res[res > self.max_acc] = float(self.max_acc)

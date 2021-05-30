@@ -78,7 +78,10 @@ assert((test_mode or test_with_training) == (sound_verify or unsound_verify))
 
 STATUS = 'Training' # a global status, if Training: use normal module, if Verifying: use sound module
 
-path_num_list = [30]
+if benchmark_name == "path_explosion_2":
+    path_num_list = [100]
+else:
+    path_num_list = [30]
 
 K_DISJUNCTS = 10000000
 SAMPLE_SIZE = 500
@@ -307,9 +310,9 @@ if benchmark_name == "path_explosion":
 
 if benchmark_name == "path_explosion_2":
     x_l = [2.0]
-    x_r = [4.9]
+    x_r = [4.8]
 
-    safe_range_list = [[0.0, 5.1]]
+    safe_range_list = [[1.0, 5.0]]
     phi_list = [0.0, 0.1]
     phi_list[0] = ini_unsafe_probability
     if adaptive_weight:
@@ -323,7 +326,7 @@ if benchmark_name == "path_explosion_2":
     component_bound_idx = 0
     bound_direction_idx = 1 # left or right
     # safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
-    safe_range_start=5.1
+    safe_range_start=5.0
     safe_range_end=5.2
     safe_range_step=1.0
     safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()

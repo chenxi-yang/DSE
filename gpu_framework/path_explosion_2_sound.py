@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from gpu_DSE.modules import *
+from modules_sound import *
 
 import os
 
@@ -24,6 +24,7 @@ def initialization_abstract_state(component_list):
     abstract_state_list = list()
     # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
     abstract_state = list()
+
     for component in component_list:
         center, width, p = component['center'], component['width'], component['p']
         symbol_table = {
@@ -32,12 +33,9 @@ def initialization_abstract_state(component_list):
             'trajectory': list(),
             'branch': '',
         }
-        # print(symbol_table['x'].c, symbol_table['x'].delta)
 
         abstract_state.append(symbol_table)
     abstract_state_list.append(abstract_state)
-    # print(f"finish ini")
-    # exit(0)
     return abstract_state_list
 
 
