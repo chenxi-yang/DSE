@@ -80,6 +80,8 @@ STATUS = 'Training' # a global status, if Training: use normal module, if Verify
 
 if benchmark_name in ["path_explosion_2", "path_explosion"]:
     path_num_list = [100]
+    if benchmark_name == "path_explosion":
+        path_num_list = [500]
 else:
     path_num_list = [30]
 

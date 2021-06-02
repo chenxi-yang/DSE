@@ -534,7 +534,7 @@ def learning(
         #         param_group["lr"] *= 0.5
         
         # f_loss = q_loss + lambda_ * c_loss
-        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
+        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1 - epochs_to_skip)}")
         print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}")
         # print(f"-----finish {i}-th epoch-----, the epoch loss: q: {q_loss/tmp_q_idx}, c: {c_loss}")
         # if debug:
