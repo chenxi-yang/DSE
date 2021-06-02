@@ -140,7 +140,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 unsafe_value = 1 - safe_portion
             # if float(unsafe_valåue) > 0:
             # print(f"X: {float(X.left)}, {float(X.right)}")
-            print(f"unsafe value: {float(unsafe_value)}")
+            # print(f"unsafe value: {float(unsafe_value)}")
             # print(f"p: {symbol_table['probability']}")
                 # print(f"point: {X.isPoint()}")
             # print(f"unsafe value: {float(unsafe_value)}")
@@ -369,6 +369,9 @@ def learning(
 
     TIME_OUT = False
 
+    # if benchmark_name == "mountain_car":
+    #     lambda_ *= 10
+
     # m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     # print(m)
     if torch.cuda.is_available():
@@ -522,7 +525,8 @@ def learning(
             
             # # print(m.parameters())
             if not only_data_loss:
-                if benchmark_name in ["mountain_car", "mountain_car_1"]:
+                # if benchmark_name in ["mountain_car", "mountain_car_1"]:
+                if benchmark_name in ["mountain_car_1"]:
                     pass
                 else:
                     if shrink_sample_width(safe_loss_list):
@@ -572,7 +576,7 @@ def learning(
         #         param_group["lr"] *= 0.5
         
         # f_loss = q_loss + lambda_ * c_loss
-        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
+        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1 - epochs_to_skip)}")
         print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}")
         if use_smooth_kernel:
             print(f"-----finish {i}-th epoch-----, q: {q_loss}, c: {c_loss}, sample-width: {sample_width}")
