@@ -194,10 +194,10 @@ class ThermostatNN(nn.Module):
         )
 
         if nn_mode == "single":
-            # curL = curL + 0.1(curL - lin) + 5.0
+            # curL = curL + 0.1(curL - lin) + 10.0
             self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_assign2_single)
         if nn_mode == "all":
-            # curL = curL + 10.0 * NN(curL, lin) + 5.0
+            # curL = curL + 10.0 * NN(curL, lin) + 10.0
             self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_up_nn(self.nn))
 
         self.ifelse_tOff_block1 = Skip()
