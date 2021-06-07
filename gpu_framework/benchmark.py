@@ -80,14 +80,6 @@ def mountain_car(p0, safe_bound):
             v = 0
         # update acceleration
         u = safe_acceleration(p, v, safe_bound)
-        # pre-filter of acceleration, to add unsoundness
-
-        if u <= min_u:
-            u = min_u
-        elif u <= max_u:
-            u = u
-        else:
-            u = max_u
         # update trajectory
         trajectory_list.append((p, v, u))
         
