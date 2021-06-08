@@ -198,6 +198,7 @@ def safe_distance(abstract_state_list, target):
         loss += target_loss
     # print(f"loss: {loss}")
     # exit(0)
+    # TODO: add the part for computation across target loss
 
     return loss
 

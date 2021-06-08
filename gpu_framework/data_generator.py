@@ -33,6 +33,8 @@ def dataset_arg(dataset):
         range_ = [2.0, 4.8]
     if dataset == "mountain_car_1":
         range_ =[-0.6, -0.4]
+    if dataset == "fairness_1":
+        range_ = [0.0, 10.0]
     
     return range_
 
@@ -108,6 +110,8 @@ def run(safe_bound):
         func = benchmark.path_explosion
     if dataset == "path_explosion_2":
         func = benchmark.path_explosion_2
+    if dataset == "fairness_1":
+        func = benchmark.fairness_1
     
     input_range = dataset_arg(dataset)
 
