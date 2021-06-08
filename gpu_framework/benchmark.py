@@ -304,7 +304,7 @@ def fairness_1(yExp, safe_bound):
     
     # extract the relative rank
     expRank = extract_expRank_fairness_1(yExp, colRank)
-    trajectory_list.append((yExp, colRank, expRank))
+    # trajectory_list.append((yExp, colRank, expRank))
 
     if colRank <= 0.5:
         hire = 1
@@ -313,6 +313,8 @@ def fairness_1(yExp, safe_bound):
     else:
         hire = 0.0
     
+    trajectory_list.append((yExp, colRank, gender, hire))
+
     m = 0
     n = 0
     g_f = 0
@@ -330,7 +332,7 @@ def fairness_1(yExp, safe_bound):
             m = 1
         else:
             n = 1
-            
+
     # safe area: m==0, g_f==0, n==0, g_m==0
     # assert(p(m==1)*p(g_f==1) >= p(n==1)*p(g_m==1))
     

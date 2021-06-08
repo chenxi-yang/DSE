@@ -185,7 +185,7 @@ def safe_distance(abstract_state_list, target):
     p_list = list()
     for idx, target_component in enumerate(target):
         target_loss = var_list([0.0])
-        print(f"len abstract_state_list: {len(abstract_state_list)}")
+        # print(f"len abstract_state_list: {len(abstract_state_list)}")
         for abstract_state in abstract_state_list:
             abstract_state_safe_loss = extract_abstract_state_safe_loss(
                 abstract_state, target_component, target_idx=idx, 
@@ -204,7 +204,7 @@ def safe_distance(abstract_state_list, target):
             loss += target_loss
     
     if 'fairness' in benchmark_name:
-        loss = p_list[0] * p_list[2] - p_list[1] * p_list[3]
+        loss = - (p_list[0] * p_list[2] - p_list[1] * p_list[3])
     # print(f"loss: {loss}")
     # exit(0)
     # TODO: add the part for computation across target loss
