@@ -84,7 +84,7 @@ if benchmark_name in ["path_explosion_2", "path_explosion"]:
         path_num_list = [500]
 else:
     if benchmark_name in ["fairness_1"]:
-        path_num_list = [30]
+        path_num_list = [50]
     else:
         path_num_list = [30]
 
@@ -292,7 +292,7 @@ if benchmark_name == "fairness_1":
     x_l = [0.0]
     x_r = [10.0]
 
-    safe_range_list = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+    safe_range_list = [[1.0, 1.0], [0.0, 0.0], [0.0, 0.0], [1.0, 1.0]]
     phi_list = [0.0] * 4
     phi_list[0] = ini_unsafe_probability
     if adaptive_weight:

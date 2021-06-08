@@ -334,10 +334,11 @@ def fairness_1(yExp, safe_bound):
             n = 1
 
     # safe area: m==0, g_f==0, n==0, g_m==0
-    # assert(p(m==1)*p(g_f==1) >= p(n==1)*p(g_m==1))
+    # assert(p(m==1)/p(g_f==1) >= p(n==1)/p(g_m==1))
+    # assert(p(m==1)*p(g_m==1) >= p(n==1)*p(g_f==1))
+    # (1 - p(m==0)) * (1 - p(g_m==0)) / (p(n==1) * p(g_f==1))
     
     return trajectory_list
-
 
 
 def extract_bound(h0):
