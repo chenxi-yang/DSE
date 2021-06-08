@@ -286,6 +286,55 @@ def sampling_2(yExp, safe_bound):
     return trajectory_list
 
 
+def extract_expRank_fairness_1(yExp, colRank):
+    y = 0.2 * (10 - yExp) + colRank
+    return y 
+
+
+def fairness_1(yExp, safe_bound):
+    p_gender = 0.5
+    p_colRank = 0.5
+    trajectory_list = list()
+
+    gender = np.random.binomial(1, p_gender, 1).tolist()[0]
+    # top, non-top: [0, 1]
+    colRank = np.random.binomial(1, p_colRank, 1).tolist()[0] 
+    if gender <= 0.5:
+        colRank = 1.0 # if gender is in a minor group, colRank is assigned to non-top
+    
+    # extract the relative rank
+    expRank = extract_expRank_fairness_1(yExp, colRank)
+    trajectory_list.append((yExp, colRank, expRank))
+
+    if colRank <= 0.5:
+        hire = 1
+    elif expRank <= 1.8:
+        hire = 1
+    else:
+        hire = 0.0
+    
+    m = 0
+    n = 0
+    g_f = 0
+    g_m = 0
+    if gender == 0:
+        g_f = 1
+    if gender == 1:
+        g_m = 1
+    
+    # for fairness
+    if gender == 0 and hire == 1: 
+        m = 1
+    elif gender == 1 and hire == 1:
+        n = 1
+    
+    # safe area: m==0, g_f==0, n==0, g_m==0
+    # assert(p(m==1)*p(g_f==1) >= p(n==1)*p(g_m==1))
+    
+    return trajectory_list
+
+
+
 def extract_bound(h0):
     y = 0.0001 * h0 + 5.49
     return y
