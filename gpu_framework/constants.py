@@ -296,13 +296,13 @@ if benchmark_name == "fairness_1":
         w_list = [0.01]
     else:
         # w_list = [0.4, 0.6]
-        w_list = [1.0]
+        w_list = [1.0] * 4
     method_list = ['all'] * 4
     name_list = ['test'] * 4
     component_bound_idx = 0
     bound_direction_idx = 1 # left or right
     # safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
-    
+
     # seems no relationship with this
     safe_range_start=0.0
     safe_range_end=0.1

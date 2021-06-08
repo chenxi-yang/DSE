@@ -247,6 +247,8 @@ if __name__ == "__main__":
                         m = PathExplosion(l=l, nn_mode=nn_mode)
                     if benchmark_name == "path_explosion_2":
                         m = PathExplosion2(l=l, nn_mode=nn_mode)
+                    if benchmark_name == "fairness_1":
+                        m = Fairness_1(l=l, nn_mode=nn_mode)
                     # print(m)
                     if test_mode:
                         # mainly for testing the verification part
@@ -294,6 +296,8 @@ if __name__ == "__main__":
                                 m = PathExplosion(l=l, nn_mode=nn_mode)
                             if benchmark_name == "path_explosion_2":
                                 m = PathExplosion2(l=l, nn_mode=nn_mode)
+                            if benchmark_name == "fairness_1":
+                                m = Fairness_1(l=l, nn_mode=nn_mode)
                         else:
                             print(f"load from path")
                     

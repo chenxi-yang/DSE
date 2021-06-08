@@ -383,9 +383,10 @@ def shrink_sample_width(safe_loss_list):
         l = safe_loss_list[int(length/2)]
         r = safe_loss_list[int(length/2) + 1]
     
-    # thermostat k = 0.6
-    # unsound_1 k = 0.8
-    k = 0.6
+    # thermostat, and else k = 0.6
+    # unsound_1, fairness_1 k = 0.8
+    k = 0.8
+    
     if l <= k * r:  # or (l < 1.0 * sum(safe_loss_list)/len(safe_loss_list) and safe_loss_list[0] <= 0.1 * safe_loss_list[-1]):
         return True
     else:

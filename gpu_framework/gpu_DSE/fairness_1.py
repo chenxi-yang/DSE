@@ -51,7 +51,7 @@ class LinearNN(nn.Module):
     
     def forward(self, x):
         res = self.linear1(x)
-        # res = self.sigmoid(res)
+        res = self.sigmoid(res)
         return res
 
 
@@ -67,7 +67,8 @@ class LinearNNComplex(nn.Module):
         res = self.linear1(x)
         res = self.relu(res)
         res = self.linear2(res)
-        # res = self.sigmoid(res)
+        res = self.sigmoid(res)
+        
         return res
 
 
@@ -149,12 +150,14 @@ class Fairness_1(nn.Module):
         self.assign_non_colRank = Assign(target_idx=[6], arg_idx=[6], f=f_assign_non_colRank)
         self.ifelse_gender = IfElse(target_idx=[3], test=self.gender_bar, f_test=f_test, body=self.assign_non_colRank, orelse=self.assign_skip)
 
-        self.assign_expRank = Assign(target_idx=[7], arg_idx=[0, 6], f=self.nn)
+        # self.assign_expRank = Assign(target_idx=[7], arg_idx=[0, 6], f=self.nn)
 
-        self.assign_real_hire = Assign(target_idx=[8], arg_idx=[8], f=f_assign_real_hire)
-        self.assign_false_hire = Assign(target_idx=[8], arg_idx=[8], f=f_assign_false_hire)
-        self.ifelse_expRank = IfElse(target_idx=[7], test=self.expRank_bar, f_test=f_test, body=self.assign_real_hire, orelse=self.assign_false_hire)
-        self.ifelse_colRank = IfElse(target_idx=[6], test=self.colRank_bar, f_test=f_test, body=self.assign_real_hire, orelse=self.ifelse_expRank)
+        # self.assign_real_hire = Assign(target_idx=[8], arg_idx=[8], f=f_assign_real_hire)
+        # self.assign_false_hire = Assign(target_idx=[8], arg_idx=[8], f=f_assign_false_hire)
+        # self.ifelse_expRank = IfElse(target_idx=[7], test=self.expRank_bar, f_test=f_test, body=self.assign_real_hire, orelse=self.assign_false_hire)
+        # self.ifelse_colRank = IfElse(target_idx=[6], test=self.colRank_bar, f_test=f_test, body=self.assign_real_hire, orelse=self.ifelse_expRank)
+
+        self.assign_hire = Assign(target_idx=[8], arg_idx=[0, 6, 3], f=self.nn)
 
         self.assign_g_f = Assign(target_idx=[11], arg_idx=[11], f=f_assign_g_f)
         self.assign_g_m = Assign(target_idx=[12], arg_idx=[12], f=f_assign_g_m)
@@ -180,8 +183,9 @@ class Fairness_1(nn.Module):
             self.assign_not_p_colRank,
             self.sample_colRank,
             self.ifelse_gender,
-            self.assign_expRank,
-            self.ifelse_colRank,
+            # self.assign_expRank,
+            # self.ifelse_colRank,
+            self.assign_hire,
             self.fairness_extract,
             self.trajectory_update,
         )
