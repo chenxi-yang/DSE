@@ -204,8 +204,15 @@ def safe_distance(abstract_state_list, target):
             loss += target_loss
     
     if 'fairness' in benchmark_name:
-        loss = - (p_list[0] / p_list[2] - p_list[1] / p_list[3])
+        # lower bound
+        p_h_f = 1 - p_list[0]
+        p_m = 1 - p_list[3]
+        # upper bound
+        p_h_m = p_list[1]
+        p_f = p_list[2]
+        
         print(p_list)
+        loss = 1 - (p_h_f * p_m) / (p_h_m * p_f)
     # print(f"loss: {loss}")
     # exit(0)
     # TODO: add the part for computation across target loss
@@ -470,7 +477,7 @@ def learning(
                         else:
                             safe_loss = 0.0
                         
-                        min_c_loss = max(min_c_loss, safe_loss)
+                        # min_c_loss = max(min_c_loss, safe_loss)
                         grad_safe_loss += float(safe_loss) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                         real_safe_loss += float(safe_loss)
                         safe_loss_list.append(float(safe_loss))
@@ -627,7 +634,7 @@ def learning(
                 if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
                     print(c_loss, min_c_loss)
                     c_loss_i += 1
-                    if c_loss_i >= 2:
+                    if c_loss_i >= 3:
                         if not debug:
                             log_file = open(file_dir, 'a')
                             log_file.write('c_loss is small enough. End. \n')

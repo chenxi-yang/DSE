@@ -159,6 +159,7 @@ def extract_unsafe(abstract_state, target_component, target_idx):
 
 
 def verify(abstract_state_list, target):
+    p_list = list()
     for idx, target_component in enumerate(target):
         target_name = target_component["name"]
         all_unsafe_probability = var_list([0.0])
@@ -169,23 +170,40 @@ def verify(abstract_state_list, target):
             #! make the aggregation_p make more sense
             aggregation_p = torch.min(var(1.0), aggregation_p)
             all_unsafe_probability += aggregation_p * unsafe_probability
+
+        if 'fairness' in benchmark_name:
+            pass
+        else:
+            if not debug:
+                log_file_evaluation = open(file_dir_evaluation, 'a')
+            if all_unsafe_probability.data.item() <= target_component['phi'].data.item():
+                print(colored(f"#{target_name}: Verified Safe!", "green"))
+                if not debug:
+                    log_file_evaluation.write(f"Verification of #{target_name}#: Verified Safe!\n")
+            else:
+                print(colored(f"#{target_name}: Not Verified Safe!", "red"))
+                if not debug:
+                    log_file_evaluation.write(f"Verification of #{target_name}#: Not Verified Safe!\n")
+            
+            print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}")
+            if not debug:
+                log_file_evaluation.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}\n")
+    
+    if 'fairness' in benchmark_name:
+        p_h_f = 1 - p_list[0]
+        p_m = 1 - p_list[3]
+        # upper bound
+        p_h_m = p_list[1]
+        p_f = p_list[2]
         
+        print(p_list)
+        lower_bound_ratio = (p_h_f * p_m) / (p_h_m * p_f)
+        print(f"learnt lower bound ratio: {lower_bound_ratio.data.item()}")
         if not debug:
             log_file_evaluation = open(file_dir_evaluation, 'a')
-        if all_unsafe_probability.data.item() <= target_component['phi'].data.item():
-            print(colored(f"#{target_name}: Verified Safe!", "green"))
-            if not debug:
-                log_file_evaluation.write(f"Verification of #{target_name}#: Verified Safe!\n")
-        else:
-            print(colored(f"#{target_name}: Not Verified Safe!", "red"))
-            if not debug:
-                log_file_evaluation.write(f"Verification of #{target_name}#: Not Verified Safe!\n")
-        
-        print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}")
-        if not debug:
-            log_file_evaluation.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}\n")
-    # if debug:
-    #     exit(0)
+            log_file_evaluation.write(f"Verification of Fairness.\n")
+            log_file_evaluation.write(f"Details#learnt unsafe_probability: {lower_bound_ratio.data.item()}\n")
+            
 
 
 def in_interval(x, y):
@@ -298,6 +316,8 @@ def verification(model_path, model_name, component_list, target, trajectory_path
         m = PathExplosion(l=l, nn_mode=nn_mode)
     if benchmark_name == "path_explosion_2":
         m = PathExplosion2(l=l, nn_mode=nn_mode)
+    if benchmark_name == "fairness_1":
+        m = Fairness_1(l=l, nn_mode=nn_mode)
     
     _, m = load_model(m, MODEL_PATH, name=model_name)
     if m is None:
