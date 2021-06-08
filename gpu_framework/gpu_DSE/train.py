@@ -29,6 +29,8 @@ if benchmark_name == "path_explosion":
     from gpu_DSE.path_explosion import *
 if benchmark_name == "path_explosion_2":
     from gpu_DSE.path_explosion_2 import *
+if benchmark_name == "fairness_1":
+    from gpu_DSE.fairness_1 import *
 
 
 from utils import (
@@ -180,6 +182,7 @@ def safe_distance(abstract_state_list, target):
     # limited number of abstract states, so count sequentially based on target is ok
     
     loss = var_list([0.0])
+    p_list = list()
     for idx, target_component in enumerate(target):
         target_loss = var_list([0.0])
         print(f"len abstract_state_list: {len(abstract_state_list)}")
@@ -195,7 +198,13 @@ def safe_distance(abstract_state_list, target):
         # print(f"refined target_loss: {float(target_loss)}")
         # TODO: max(loss - target, 0) change or not
         # target_loss = torch.max(target_loss, var(0.0))
-        loss += target_loss
+        if 'fairness' in benchmark_name:
+            p_list.append(target_loss)
+        else:
+            loss += target_loss
+    
+    if 'fairness' in benchmark_name:
+        loss = p_list[0] * p_list[2] - p_list[1] * p_list[3]
     # print(f"loss: {loss}")
     # exit(0)
     # TODO: add the part for computation across target loss

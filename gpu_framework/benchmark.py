@@ -317,17 +317,20 @@ def fairness_1(yExp, safe_bound):
     n = 0
     g_f = 0
     g_m = 0
-    if gender == 0:
+    if gender <= 0.5:
         g_f = 1
-    if gender == 1:
+    else:
         g_m = 1
     
     # for fairness
-    if gender == 0 and hire == 1: 
-        m = 1
-    elif gender == 1 and hire == 1:
-        n = 1
-    
+    if hire <= 0.5:
+        pass
+    else:
+        if gender <= 0.5:
+            m = 1
+        else:
+            n = 1
+            
     # safe area: m==0, g_f==0, n==0, g_m==0
     # assert(p(m==1)*p(g_f==1) >= p(n==1)*p(g_m==1))
     
