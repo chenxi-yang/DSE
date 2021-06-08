@@ -205,12 +205,14 @@ def safe_distance(abstract_state_list, target):
     
     if 'fairness' in benchmark_name:
         # lower bound
-        p_h_f = 1 - p_list[0]
-        p_m = 1 - p_list[3]
+        p_h_f = 1 - torch.max(p_list[0], 0.01)
+        p_m = 1 - torch.max(p_list[3], 0.01)
         # upper bound
-        p_h_m = p_list[1]
-        p_f = p_list[2]
-        
+        p_h_m = torch.max(p_list[1], 0.01)
+        p_f = torch.max(p_list[2], 0.01)
+
+        # >= 0.9
+        lower_bound_ratio = (p_h_f * p_m) / (p_h_m * p_f)
         print(p_list)
         loss = 1 - (p_h_f * p_m) / (p_h_m * p_f)
     # print(f"loss: {loss}")

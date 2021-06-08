@@ -190,6 +190,7 @@ def verify(abstract_state_list, target):
                 log_file_evaluation.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}\n")
     
     if 'fairness' in benchmark_name:
+        # lower bound
         p_h_f = 1 - p_list[0]
         p_m = 1 - p_list[3]
         # upper bound
