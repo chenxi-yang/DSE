@@ -83,7 +83,10 @@ if benchmark_name in ["path_explosion_2", "path_explosion"]:
     if benchmark_name == "path_explosion":
         path_num_list = [500]
 else:
-    path_num_list = [30]
+    if benchmark_name in ["fairness_1"]:
+        path_num_list = [30]
+    else:
+        path_num_list = [30]
 
 K_DISJUNCTS = 10000000
 SAMPLE_SIZE = 500
@@ -290,7 +293,7 @@ if benchmark_name == "fairness_1":
     x_r = [10.0]
 
     safe_range_list = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
-    phi_list = [1.0, 1.0, 1.0, 1.0]
+    phi_list = [0.0] * 4
     phi_list[0] = ini_unsafe_probability
     if adaptive_weight:
         w_list = [0.01]

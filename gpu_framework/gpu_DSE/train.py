@@ -140,7 +140,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
                 # print(f"not empty: {intersection_interval.getLength()}, {X.getLength()}")
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
-            # if float(unsafe_valåue) > 0:
+            # if float(unsafe_value) > 0:
             # print(f"X: {float(X.left)}, {float(X.right)}")
             # print(f"unsafe value: {float(unsafe_value)}")
             # print(f"p: {symbol_table['probability']}")
@@ -204,7 +204,8 @@ def safe_distance(abstract_state_list, target):
             loss += target_loss
     
     if 'fairness' in benchmark_name:
-        loss = - (p_list[0] * p_list[2] - p_list[1] * p_list[3])
+        loss = - (p_list[0] / p_list[2] - p_list[1] / p_list[3])
+        print(p_list)
     # print(f"loss: {loss}")
     # exit(0)
     # TODO: add the part for computation across target loss
@@ -468,6 +469,8 @@ def learning(
                             safe_loss = cal_safe_loss(m, abstract_states, target)
                         else:
                             safe_loss = 0.0
+                        
+                        min_c_loss = max(min_c_loss, safe_loss)
                         grad_safe_loss += float(safe_loss) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
                         real_safe_loss += float(safe_loss)
                         safe_loss_list.append(float(safe_loss))
@@ -622,6 +625,7 @@ def learning(
                 pass
             else:
                 if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
+                    print(c_loss, min_c_loss)
                     c_loss_i += 1
                     if c_loss_i >= 2:
                         if not debug:

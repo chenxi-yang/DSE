@@ -46,7 +46,7 @@ def f_test(x):
 class LinearNN(nn.Module):
     def __init__(self, l=1):
         super().__init__()
-        self.linear1 = Linear(in_channels=2, out_channels=1)
+        self.linear1 = Linear(in_channels=3, out_channels=1)
         self.sigmoid = Sigmoid()
     
     def forward(self, x):
@@ -58,7 +58,7 @@ class LinearNN(nn.Module):
 class LinearNNComplex(nn.Module):
     def __init__(self, l=4):
         super().__init__()
-        self.linear1 = Linear(in_channels=2, out_channels=l)
+        self.linear1 = Linear(in_channels=3, out_channels=l)
         self.linear2 = Linear(in_channels=l, out_channels=1)
         self.sigmoid = Sigmoid()
         self.relu = ReLU()
@@ -68,7 +68,7 @@ class LinearNNComplex(nn.Module):
         res = self.relu(res)
         res = self.linear2(res)
         res = self.sigmoid(res)
-        
+
         return res
 
 
