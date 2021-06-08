@@ -170,6 +170,18 @@ if __name__ == "__main__":
                             "name": name_list[idx], 
                         }
                     target.append(target_component)
+            if benchmark_name in ["fairness_1"]:
+                target = list()
+                for idx, safe_range in enumerate(safe_range_list):
+                    # only use the acceleration condition
+                    target_component = {
+                        "condition": domain.Interval(var(safe_range[0]), var(safe_range[1])),
+                        "phi": var(phi_list[idx]),
+                        "w": var(w_list[idx]), 
+                        "method": method_list[idx], 
+                        "name": name_list[idx], 
+                    }
+                    target.append(target_component)
 
 
             # data points generation
@@ -194,10 +206,10 @@ if __name__ == "__main__":
                 preprocessing_time = time.time()
                 # TODO: the data is one-dimension (x = a value)
                 if fixed_dataset:
-                    if benchmark_name in ["mountain_car", "mountain_car_1"]:
+                    if benchmark_name in ["mountain_car", "mountain_car_1", "fairness_1"]:
                         # Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
                         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
-                    if benchmark_name == "thermostat":
+                    if benchmark_name in ["thermostat"]:
                         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{86.0}.txt")
                     if benchmark_name in ["unsound_1", "unsound_2_separate", "unsound_2_overall", "sampling_1", "sampling_2", "path_explosion", "path_explosion_2"]:
                         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
