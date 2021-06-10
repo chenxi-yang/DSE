@@ -58,6 +58,13 @@ if benchmark_name == "path_explosion_2":
         save_model,
         initialization_abstract_state,
     )
+if benchmark_name == "fairness_1":
+    from fairness_1_batch import (
+        Fairness_1,
+        load_model,
+        save_model,
+        initialization_abstract_state,
+    )
 
 import domain
 
@@ -375,6 +382,8 @@ def verification_unsound(
         m = PathExplosion(l=l, nn_mode=nn_mode)
     if benchmark_name == "path_explosion_2":
         m = PathExplosion2(l=l, nn_mode=nn_mode)
+    if benchmark_name == "fairness_1":
+        m = Fairness_1(l=l, nn_mode=nn_mode)
 
     _, m = load_model(m, MODEL_PATH, name=model_name)
     if m is None:

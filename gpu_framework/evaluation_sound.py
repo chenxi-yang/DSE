@@ -55,6 +55,13 @@ if benchmark_name == "path_explosion_2":
         save_model,
         initialization_abstract_state,
     )
+if benchmark_name == "fairness_1":
+    from fairness_1_sound import (
+        Fairness_1,
+        load_model,
+        save_model,
+        initialization_abstract_state,
+    )
 
 import domain
 
@@ -170,10 +177,12 @@ def verify(abstract_state_list, target):
             #! make the aggregation_p make more sense
             aggregation_p = torch.min(var(1.0), aggregation_p)
             all_unsafe_probability += aggregation_p * unsafe_probability
+        
+        p_list.append(min(all_unsafe_probability.data.item(), 1.0))
 
         if 'fairness' in benchmark_name:
             pass
-        else:
+        else: 
             if not debug:
                 log_file_evaluation = open(file_dir_evaluation, 'a')
             if all_unsafe_probability.data.item() <= target_component['phi'].data.item():
@@ -195,15 +204,15 @@ def verify(abstract_state_list, target):
         p_m = 1 - p_list[3]
         # upper bound
         p_h_m = p_list[1]
-        p_f = p_list[2]
+        p_f = p_list[3]
         
         print(p_list)
-        lower_bound_ratio = (p_h_f * p_m) / (p_h_m * p_f)
-        print(f"learnt lower bound ratio: {lower_bound_ratio.data.item()}")
+        lower_bound_ratio = (p_h_f * p_m) / (max(p_h_m * p_f, 0.01))
+        print(f"learnt lower bound ratio: {lower_bound_ratio}")
         if not debug:
             log_file_evaluation = open(file_dir_evaluation, 'a')
             log_file_evaluation.write(f"Verification of Fairness.\n")
-            log_file_evaluation.write(f"Details#learnt unsafe_probability: {lower_bound_ratio.data.item()}\n")
+            log_file_evaluation.write(f"Details#learnt unsafe_probability: {lower_bound_ratio}\n")
             
 
 

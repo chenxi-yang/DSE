@@ -84,7 +84,7 @@ if benchmark_name in ["path_explosion_2", "path_explosion"]:
         path_num_list = [500]
 else:
     if benchmark_name in ["fairness_1"]:
-        path_num_list = [50]
+        path_num_list = [100]
     else:
         path_num_list = [30]
 
@@ -407,6 +407,8 @@ model_name_prefix = f"{benchmark_name}_{data_attr}_{path_num_list}_{phi_list}_{n
 model_name_prefix = f"{model_name_prefix}_{data_bs}"
 model_name_prefix = f"{model_name_prefix}_{bs}_{num_components}"
 if benchmark_name in ["sampling_1", "unsound_1", "sampling_2"]:
+    model_name_prefix = f"{model_name_prefix}_{l}"
+if benchmark_name in ["fairness_1"] and l > 32:
     model_name_prefix = f"{model_name_prefix}_{l}"
 if optimizer_method in ["SGD", "Adam-0"]:
     model_name_prefix += f"_{optimizer_method}"

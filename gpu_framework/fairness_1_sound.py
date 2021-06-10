@@ -64,10 +64,12 @@ class LinearNNComplex(nn.Module):
         self.relu = ReLU()
 
     def forward(self, x):
+        # print(f"[LinearNNComplex]: {x.c, x.delta}")
         res = self.linear1(x)
         res = self.relu(res)
         res = self.linear2(res)
         res = self.sigmoid(res)
+        # print(f"[LinearNNComplex, res]: {res.c, res.delta}")
 
         return res
 
@@ -167,7 +169,7 @@ class Fairness_1(nn.Module):
         self.assign_n = Assign(target_idx=[10], arg_idx=[10], f=f_assign_n)
         self.ifelse_fairness_gender_2 = IfElse(target_idx=[3], test=self.gender_bar, f_test=f_test, body=self.assign_m, orelse=self.assign_n)
 
-        self.ifelse_fairness_hire = IfElse(target_idx=[8], test=self.gender_bar, f_test=f_test, body=self.assign_skip, orelse=self.ifelse_fairness_gender_2)
+        self.ifelse_fairness_hire = IfElse(target_idx=[8], test=self.hire_bar, f_test=f_test, body=self.assign_skip, orelse=self.ifelse_fairness_gender_2)
         self.fairness_extract = nn.Sequential(
             self.ifelse_fairness_gender_1,
             self.ifelse_fairness_hire,
