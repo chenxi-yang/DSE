@@ -116,7 +116,7 @@ def f_assign_n(x):
 # 6:colRank, 
 # 7:expRank, 
 # 8:hire
-# 9: m (hire == 1, gender==0)
+# 9: m (hire == 1, gender==0) 
 # 10: n (hire == 1, gender==1)
 # 11: g_f (gender==0)
 # 12: g_m (gender==1)
@@ -167,7 +167,7 @@ class Fairness_1(nn.Module):
         self.assign_n = Assign(target_idx=[10], arg_idx=[10], f=f_assign_n)
         self.ifelse_fairness_gender_2 = IfElse(target_idx=[3], test=self.gender_bar, f_test=f_test, body=self.assign_m, orelse=self.assign_n)
 
-        self.ifelse_fairness_hire = IfElse(target_idx=[8], test=self.gender_bar, f_test=f_test, body=self.assign_skip, orelse=self.ifelse_fairness_gender_2)
+        self.ifelse_fairness_hire = IfElse(target_idx=[8], test=self.hire_bar, f_test=f_test, body=self.assign_skip, orelse=self.ifelse_fairness_gender_2)
         self.fairness_extract = nn.Sequential(
             self.ifelse_fairness_gender_1,
             self.ifelse_fairness_hire,

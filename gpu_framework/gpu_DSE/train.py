@@ -205,11 +205,11 @@ def safe_distance(abstract_state_list, target):
     
     if 'fairness' in benchmark_name:
         # lower bound
-        p_h_f = 1 - torch.max(p_list[0], 0.01)
-        p_m = 1 - torch.max(p_list[3], 0.01)
+        p_h_f = 1 - torch.max(p_list[0], var(0.01))
+        p_m = 1 - torch.max(p_list[3], var(0.01))
         # upper bound
-        p_h_m = torch.max(p_list[1], 0.01)
-        p_f = torch.max(p_list[2], 0.01)
+        p_h_m = torch.max(p_list[1], var(0.01))
+        p_f = torch.max(p_list[2], var(0.01))
 
         # >= 0.9
         lower_bound_ratio = (p_h_f * p_m) / (p_h_m * p_f)
@@ -642,6 +642,8 @@ def learning(
                             log_file.write('c_loss is small enough. End. \n')
                             log_file.close()
                         break
+                else:
+                    c_loss_i = 0 # continuous 3 times
         
         if (time.time() - start_time)/(i+1) > 6000 or TIME_OUT:
             if i <= 25: # give a chance for the first few epoch
