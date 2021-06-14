@@ -9,8 +9,6 @@ import torch
 from constants import benchmark_name
 from torch.autograd import Variable
 
-from gpu_DSE.modules import *
-
 if benchmark_name == "thermostat":
     from gpu_DSE.thermostat_nn import * 
 if benchmark_name == "mountain_car":

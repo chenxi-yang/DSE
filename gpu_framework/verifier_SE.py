@@ -310,23 +310,8 @@ def store_trajectory(abstract_state_list, trajectory_path, category=None):
     return 
 
 
-def verifier_AI(model_path, model_name, component_list, target, trajectory_path):
-    if benchmark_name == "thermostat":
-        m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-    if benchmark_name == "mountain_car":
-        m = MountainCar(l=l, nn_mode=nn_mode, module=module)
-    if benchmark_name == "unsound_1":
-        m = Unsound_1(l=l, nn_mode=nn_mode)
-    if benchmark_name == "sampling_1":
-        m = Sampling_1(l=l, nn_mode=nn_mode)
-    if benchmark_name == "sampling_2":
-        m = Sampling_2(l=l, nn_mode=nn_mode)
-    if benchmark_name == "path_explosion":
-        m = PathExplosion(l=l, nn_mode=nn_mode)
-    if benchmark_name == "path_explosion_2":
-        m = PathExplosion2(l=l, nn_mode=nn_mode)
-    if benchmark_name == "fairness_1":
-        m = Fairness_1(l=l, nn_mode=nn_mode)
+def verifier_SE(model_path, model_name, component_list, target, trajectory_path):
+    m = Program(l=l, nn_mode=nn_mode)
     
     _, m = load_model(m, MODEL_PATH, name=model_name)
     if m is None:
