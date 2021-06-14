@@ -27,7 +27,7 @@ if torch.cuda.is_available():
     index2 = index2.cuda()
     index3 = index3.cuda()
 
-# input order: position, velocity, u, u_p, reward
+# input order: position, velocity, u, reward
 def initialization_abstract_state(component_list):
     abstract_state_list = list()
     # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
@@ -35,8 +35,9 @@ def initialization_abstract_state(component_list):
     for component in component_list:
         center, width, p = component['center'], component['width'], component['p']
         symbol_table = {
-            'x': domain.Box(var_list([center[0], 0.0, 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0, 0.0])),
+            'x': domain.Box(var_list([center[0], 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0])),
             'probability': var(p),
+            'alpha': var(1.0),
             'trajectory': list(),
             'branch': '',
         }
@@ -47,13 +48,13 @@ def initialization_abstract_state(component_list):
 
 
 def initialization_one_point_nn(x):
-    return domain.Box(var_list([x[0], 0.0, 0.0, 0.0, 0.0]), var_list([0.0] * 5))
+    return domain.Box(var_list([x[0], 0.0, 0.0, 0.0]), var_list([0.0] * 4))
 
 
 def initialization_point_nn(x):
     point_symbol_table_list = list()
     symbol_table = {
-        'x': domain.Box(var_list([x[0], 0.0, 0.0, 0.0, 0.0]), var_list([0.0] *5)),
+        'x': domain.Box(var_list([x[0], 0.0, 0.0, 0.0]), var_list([0.0] * 4)),
         'probability': var(1.0),
         'trajectory': list(),
         'branch': '',
@@ -108,39 +109,13 @@ class LinearReLU(nn.Module):
         res = self.relu(res)
         res = self.linear2(res)
         # res = self.sigmoid(res)
-        # !!!!!!! between [-1.0, 1.0]
-        res = self.tanh(res)
-        
+        res = self.tanh()
         # print(f"time in LinearReLU: {time.time() - start_time}")
         return res
 
 
-class LinearReLUNoAct(nn.Module):
-    def __init__(self, l):
-        super().__init__()
-        self.linear1 = Linear(in_channels=2, out_channels=l)
-        self.linear2 = Linear(in_channels=l, out_channels=l)
-        self.linear3 = Linear(in_channels=l, out_channels=2)
-        self.linear_output = Linear(in_channels=2, out_channels=1)
-        self.relu = ReLU()
-        self.sigmoid = Sigmoid()
-        # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
-
-    def forward(self, x):
-        # final layer is not activation
-        res = self.linear1(x)
-        # res = self.relu(res)
-        # # res = self.Sigmoid()
-        # res = self.linear2(res)
-        
-        res = self.relu(res)
-        res = self.linear3(res)
-        res = self.relu(res)
-        res = self.linear_output(res)
-        res = self.sigmoid(res)
-
-        # print(f"time in LinearReLU: {time.time() - start_time}")
-        return res
+def reward_reach(x):
+    return x.add(var(100.0)) 
 
 def f_assign_min_p(x):
     return x.set_value(var(-1.2))
@@ -148,15 +123,17 @@ def f_assign_min_p(x):
 def f_assign_min_v(x):
     return x.set_value(var(0.0))
 
+def f_assign_min_speed(x):
+    return x.set_value(var(-0.07))
+
+def f_assign_max_speed(x):
+    return x.set_value(var(0.07))
+
 def f_assign_update_p(x):
     return x.select_from_index(0, index0).add(x.select_from_index(0, index1))
 
-def f_assign_left_u(x):
-    return x.set_value(var(-1.0))
-
-def f_assign_right_u(x):
-    return x.set_value(var(1.0))
-
+def f_assign_reward_update(x):
+    return x.select_from_index(0, index1).add(x.select_from_index(0, index0).mul(x.select_from_index(0, index0)).mul(var(-0.1)))
 
 def f_assign_v(x):
     # x: p, v, u
@@ -167,24 +144,19 @@ def f_assign_v(x):
     return v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
 
 
-class MountainCar1(nn.Module):
+class MountainCar(nn.Module):
     def __init__(self, l, sig_range=10, nn_mode='all', module='linearrelu'):
-        super(MountainCar1, self).__init__()
+        super(MountainCar, self).__init__()
         self.goal_position = var(0.5)
-        self.initial_speed = var(0.0)
         self.min_position = var(-1.2)
         self.min_speed = var(-0.07)
         self.max_speed = var(0.07)
-        self.change_acc = var(0.0)
-        self.u_p_var = var(0.5)
         
         if module == 'linearsig':
             self.nn = LinearSig(l=l)
         if module == 'linearrelu':
             self.nn = LinearReLU(l=l, sig_range=sig_range)
-        if module == 'linearrelu_no_act':
-            self.nn = LinearReLUNoAct(l=l)
-        
+
         ####
         self.assign_min_p = Assign(target_idx=[0], arg_idx=[0], f=f_assign_min_p)
         self.assign_min_v = Assign(target_idx=[1], arg_idx=[1], f=f_assign_min_v)
@@ -195,48 +167,55 @@ class MountainCar1(nn.Module):
         self.ifelse_p_block2 = Skip()
         self.ifelse_p = IfElse(target_idx=[0], test=self.min_position, f_test=f_test, body=self.ifelse_p_block1, orelse=self.ifelse_p_block2)
 
-        self.assign_acceleration_p = Assign(target_idx=[3], arg_idx=[0, 1], f=self.nn)
-
-        self.assign_left_u = Assign(target_idx=[2], arg_idx=[2], f=f_assign_left_u)
-        self.assign_right_u = Assign(target_idx=[2], arg_idx=[2], f=f_assign_right_u)
-        self.ifelse_acceleration = IfElse(target_idx=[3], test=self.u_p_var, f_test=f_test, body=self.assign_left_u, orelse=self.assign_right_u)
-
+        self.assign_acceleration = Assign(target_idx=[2], arg_idx=[0, 1], f=self.nn)
+        self.assign_reward_update = Assign(target_idx=[3], arg_idx=[2, 3], f=f_assign_reward_update)
         self.assign_v = Assign(target_idx=[1], arg_idx=[0, 1, 2], f=f_assign_v)
         self.assign_block = nn.Sequential(
-            self.assign_acceleration_p,
-            self.ifelse_acceleration,
+            self.assign_acceleration,
+            self.assign_reward_update,
             self.assign_v,
         )
 
+        self.ifelse_max_speed_block1 = Skip()
+        self.assign_max_speed = Assign(target_idx=[1], arg_idx=[1], f=f_assign_max_speed)
+        self.ifelse_max_speed = IfElse(target_idx=[1], test=self.max_speed, f_test=f_test, body=self.ifelse_max_speed_block1, orelse=self.assign_max_speed)
+        
+        self.assign_min_speed = Assign(target_idx=[1], arg_idx=[1], f=f_assign_min_speed)
+        self.ifelse_v = IfElse(target_idx=[1], test=self.min_speed, f_test=f_test, body=self.assign_min_speed, orelse=self.ifelse_max_speed)
+        
         self.assign_update_p = Assign(target_idx=[0], arg_idx=[0, 1], f=f_assign_update_p)
-        self.trajectory_update_1 = Trajectory(target_idx=[1, 0, 2])
+        self.trajectory_update_1 = Trajectory(target_idx=[2, 0])
         self.whileblock = nn.Sequential(
             self.ifelse_p,
             self.assign_block, 
+            self.ifelse_v,
             self.assign_update_p, 
             self.trajectory_update_1, 
         )
         self.while1 = While(target_idx=[0], test=self.goal_position, body=self.whileblock)
 
-        # self.check_non = Skip() # nothing changes
-        # self.check_reach = Assign(target_idx=[3], arg_idx=[3], f=reward_reach)
-        # self.check_position = IfElse(target_idx=[0], test=self.goal_position-var(1e-5), f_test=f_test, body=self.check_non, orelse=self.check_reach)
+        self.check_non = Skip() # nothing changes
+        self.check_reach = Assign(target_idx=[3], arg_idx=[3], f=reward_reach)
+        self.check_position = IfElse(target_idx=[0], test=self.goal_position-var(1e-5), f_test=f_test, body=self.check_non, orelse=self.check_reach)
         
+        self.trajectory_update_2 = Trajectory(target_idx=[2, 0])
         self.program = nn.Sequential(
             self.while1,
-            # self.check_position,
-            self.trajectory_update_1, # update trajectory
+            self.check_position,
+            self.trajectory_update_2, # only use the final reward
         )
 
 
     def forward(self, input, transition='interval', version=None):
+        # if transition == 'abstract':
+        # #     print(f"# of Partitions Before: {len(x_list)}")
+        #     for x in x_list:
+        #         print(f"x: {x['x'].c}, {x['x'].delta}")
         if version == "single_nn_learning":
-            # print(input.detach().cpu().numpy().tolist()[:3])
             res = self.nn(input)
-
         else:
             res = self.program(input)
-
+        
         return res
 
     def clip_norm(self):

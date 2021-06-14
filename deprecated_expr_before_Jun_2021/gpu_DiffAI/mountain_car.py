@@ -2,19 +2,9 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from helper import * 
-from constants import *
-import constants
-import domain
-
-from gpu_DSE.modules import *
+from gpu_DiffAI.modules import *
 
 import os
-
-# x_list
-# i, isOn, x, lin  = 0.0, 0.0, input, x
-# tOff = 62.0
-# tOn = 80.0
 
 index0 = torch.tensor(0)
 index1 = torch.tensor(1)
@@ -27,6 +17,23 @@ if torch.cuda.is_available():
     index2 = index2.cuda()
     index3 = index3.cuda()
 
+
+def initialization_nn(batched_center, batched_width):
+    B, D = batched_center.shape
+    padding = torch.zeros(B, 1)
+    if torch.cuda.is_available():
+        padding = padding.cuda()
+    
+    input_center, input_width = batched_center[:, :1], batched_width[:, :1]
+    symbol_tables = {
+        'x': domain.Box(torch.cat((input_center, padding, padding, padding), 1), torch.cat((input_width, padding, padding, padding), 1)),
+        'trajectory_list': [[] for i in range(B)],
+        'idx_list': [i for i in range(B)], # marks which idx the tensor comes from in the input
+    }
+
+    return symbol_tables
+
+
 # input order: position, velocity, u, reward
 def initialization_abstract_state(component_list):
     abstract_state_list = list()
@@ -37,7 +44,6 @@ def initialization_abstract_state(component_list):
         symbol_table = {
             'x': domain.Box(var_list([center[0], 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0])),
             'probability': var(p),
-            'alpha': var(1.0),
             'trajectory': list(),
             'branch': '',
         }
@@ -71,6 +77,7 @@ def f_self(x):
 
 def f_test(x):
     return x
+
 
 class LinearSig(nn.Module):
     def __init__(self, l):
@@ -108,10 +115,41 @@ class LinearReLU(nn.Module):
         res = self.linear1(x)
         res = self.relu(res)
         res = self.linear2(res)
-        # res = self.sigmoid(res)
         res = self.tanh()
+        # res = self.sigmoid(res)
         # print(f"time in LinearReLU: {time.time() - start_time}")
         return res
+
+
+class LinearReLUNoAct(nn.Module):
+    def __init__(self, l):
+        super().__init__()
+        self.linear1 = Linear(in_channels=2, out_channels=l)
+        self.linear2 = Linear(in_channels=l, out_channels=l)
+        self.linear3 = Linear(in_channels=l, out_channels=2)
+        self.linear_output = Linear(in_channels=2, out_channels=1)
+        self.relu = ReLU()
+        self.sigmoid = Sigmoid()
+        # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
+
+    def forward(self, x):
+        # final layer is not activation
+        res = self.linear1(x)
+        # res = self.relu(res)
+        # # res = self.Sigmoid()
+        # res = self.linear2(res)
+        
+        res = self.relu(res)
+        res = self.linear3(res)
+        res = self.relu(res)
+        res = self.linear_output(res)
+        # res = self.sigmoid(res)
+        # !!!!!!! between [-1.0, 1.0]
+        # print(f"in Linear")
+        # res = res.mul(var(10.0))
+        # print(f"time in LinearReLU: {time.time() - start_time}")
+        return res
+
 
 
 def reward_reach(x):
@@ -129,19 +167,59 @@ def f_assign_min_speed(x):
 def f_assign_max_speed(x):
     return x.set_value(var(0.07))
 
+def f_assign_max_acc(x):
+    return x.set_value(var(1.2))
+
+def f_assign_min_acc(x):
+    return x.set_value(var(-1.2))
+
+def f_assign_left_acc(x):
+    return x.set_value(var(-0.5))
+
+def f_assign_right_acc(x):
+    return x.set_value(var(0.5))
+
+def f_assign_reset_acc(x):
+    return x.set_value(var(0.0))
+    # return x.add(0.3)
+
 def f_assign_update_p(x):
-    return x.select_from_index(0, index0).add(x.select_from_index(0, index1))
+    return x.select_from_index(1, index0).add(x.select_from_index(1, index1))
 
 def f_assign_reward_update(x):
-    return x.select_from_index(0, index1).add(x.select_from_index(0, index0).mul(x.select_from_index(0, index0)).mul(var(-0.1)))
+    return x.select_from_index(1, index1).add(x.select_from_index(1, index0).mul(x.select_from_index(1, index0)).mul(var(-0.1)))
 
 def f_assign_v(x):
     # x: p, v, u
-    p = x.select_from_index(0, index0)
-    v = x.select_from_index(0, index1)
-    u = x.select_from_index(0, index2)
+    # if debug:
+    #     r1 = torch.cuda.memory_reserved(0) 
+    #     a1 = torch.cuda.memory_allocated(0)
+    # show_cuda_memory(f"(f_assign_v)ini")
+    p = x.select_from_index(1, index0)
+    v = x.select_from_index(1, index1)
+    u = x.select_from_index(1, index2)
+    # show_cuda_memory(f"(f_assign_v) select index")
+    # if debug:
+    #     r2 = torch.cuda.memory_reserved(0) 
+    #     a2 = torch.cuda.memory_allocated(0)
+    #     print(f"#f_assign_v: memory cost {a2 - a1}#")
     # TODO: cos
-    return v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
+    a1 = v.add(u.mul(var(0.0015)))
+    # show_cuda_memory(f"(f_assign_v)add, mul")
+    a2 = p.mul(var(3.0))
+    # show_cuda_memory(f"(f_assign_v)first mul")
+    a3 = a2.cos()
+    # show_cuda_memory(f"(f_assign_v)cos")
+    a4 = a3.mul(var(-0.0025))
+    # show_cuda_memory(f"(f_assign_v)second mul")
+    # print(a1.c.shape)
+    # print(a2.c.shape)
+    res = a1.add(a4)
+    # show_cuda_memory(f"(f_assign_v)final add")
+    # print(res.c.shape)
+    # print(f"[f_assign_v] after c: {res.c}, {res.delta}")
+    return res
+    # return v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
 
 
 class MountainCar(nn.Module):
@@ -151,11 +229,18 @@ class MountainCar(nn.Module):
         self.min_position = var(-1.2)
         self.min_speed = var(-0.07)
         self.max_speed = var(0.07)
+        self.min_acc = var(-1.2)
+        self.max_acc = var(1.2)
+        self.change_acc = var(0.0)
+        self.min_abs_acc = var(0.1)
+        self.neg_min_abs_acc = - self.min_abs_acc
         
         if module == 'linearsig':
             self.nn = LinearSig(l=l)
         if module == 'linearrelu':
             self.nn = LinearReLU(l=l, sig_range=sig_range)
+        if module == 'linearrelu_no_act':
+            self.nn = LinearReLUNoAct(l=l)
 
         ####
         self.assign_min_p = Assign(target_idx=[0], arg_idx=[0], f=f_assign_min_p)
@@ -168,10 +253,42 @@ class MountainCar(nn.Module):
         self.ifelse_p = IfElse(target_idx=[0], test=self.min_position, f_test=f_test, body=self.ifelse_p_block1, orelse=self.ifelse_p_block2)
 
         self.assign_acceleration = Assign(target_idx=[2], arg_idx=[0, 1], f=self.nn)
+
+        self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)       
+
+        # use continuous acc
+        self.ifelse_max_acc_block1 = Skip()
+
+        # use discrete acc
+        # self.assign_left_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_left_acc)
+        # self.assign_right_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_right_acc)
+        # self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.change_acc, f_test=f_test, body=self.assign_left_acc, orelse=self.assign_right_acc)
+
+        # filter abs lower acc
+        # self.assign_acc_self = Skip()
+        # self.ifelse_min_abs_acc = IfElse(target_idx=[2], test=self.neg_min_abs_acc, f_test=f_test, body=self.assign_acc_self, orelse=self.assign_min_acc)
+        # self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.min_abs_acc, f_test=f_test, body=self.ifelse_min_abs_acc, orelse=self.assign_acc_self)
+        
+        self.assign_max_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_max_acc)
+        self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.ifelse_max_acc_block1, orelse=self.assign_max_acc)
+
+        # self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)
+        self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
+
+        # self.assign_max_acc = Skip()
+        # self.assign_reset_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_reset_acc)
+        # self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.assign_reset_acc, orelse=self.assign_max_acc)
+        # self.assign_min_acc = Skip()
+        # self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
+
+        # self.l_neg_min_abs_acc = Skip()
+        # self.ifelse_acceleration = IfElse(target_idx=[2], test=self.neg_min_abs_acc, f_test=f_test, body=self.l_neg_min_abs_acc, orelse=self.ifelse_min_abs_acc)
+
         self.assign_reward_update = Assign(target_idx=[3], arg_idx=[2, 3], f=f_assign_reward_update)
         self.assign_v = Assign(target_idx=[1], arg_idx=[0, 1, 2], f=f_assign_v)
         self.assign_block = nn.Sequential(
             self.assign_acceleration,
+            self.ifelse_acceleration, # truncate acceleration
             self.assign_reward_update,
             self.assign_v,
         )
@@ -182,7 +299,7 @@ class MountainCar(nn.Module):
         
         self.assign_min_speed = Assign(target_idx=[1], arg_idx=[1], f=f_assign_min_speed)
         self.ifelse_v = IfElse(target_idx=[1], test=self.min_speed, f_test=f_test, body=self.assign_min_speed, orelse=self.ifelse_max_speed)
-        
+
         self.assign_update_p = Assign(target_idx=[0], arg_idx=[0, 1], f=f_assign_update_p)
         self.trajectory_update_1 = Trajectory(target_idx=[2, 0])
         self.whileblock = nn.Sequential(
@@ -201,7 +318,7 @@ class MountainCar(nn.Module):
         self.trajectory_update_2 = Trajectory(target_idx=[2, 0])
         self.program = nn.Sequential(
             self.while1,
-            self.check_position,
+            # self.check_position,
             self.trajectory_update_2, # only use the final reward
         )
 
@@ -212,10 +329,20 @@ class MountainCar(nn.Module):
         #     for x in x_list:
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
         if version == "single_nn_learning":
+            # print(f"input: {input}")
             res = self.nn(input)
+            # res[res <= self.min_acc] = float(self.min_acc)
+            # res[res > self.max_acc] = float(self.max_acc)
+            # print(f"res: {res}")
+            # res[torch.abs(res) <= self.min_abs_acc] = float(self.min_acc)
+            # res[torch.logical_and(res <= self.max_acc, res > self.min_acc)] = torch.sign(res[torch.logical_and(res <= self.max_acc, res > self.min_acc)]) *  0.5
+            # print(f"in data loss: {res}")
         else:
             res = self.program(input)
-        
+        # if transition == 'abstract':
+        #     print(f"# of Partitions After: {len(res_list)}")
+        #     # for x in res_list:
+        #     #     print(f"x: {x['x'].c}, {x['x'].delta}")
         return res
 
     def clip_norm(self):
@@ -251,7 +378,6 @@ def save_model(model, folder, name, epoch):
     except FileExistsError:
         pass
     torch.save(model.state_dict(), path)
-    
 
 
 

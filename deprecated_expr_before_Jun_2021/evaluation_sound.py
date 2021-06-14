@@ -215,6 +215,7 @@ def verify(abstract_state_list, target):
             log_file_evaluation.write(f"Details#learnt unsafe_probability: {lower_bound_ratio}\n")
             
 
+
 def in_interval(x, y):
     # check if x in y
     if x.left >= y.left and x.right <= y.right:
@@ -310,7 +311,7 @@ def store_trajectory(abstract_state_list, trajectory_path, category=None):
     return 
 
 
-def verifier_AI(model_path, model_name, component_list, target, trajectory_path):
+def verification(model_path, model_name, component_list, target, trajectory_path):
     if benchmark_name == "thermostat":
         m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     if benchmark_name == "mountain_car":

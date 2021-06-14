@@ -2,18 +2,18 @@
 from constants import *
 import constants
 
-if mode == 'DSE':
-    from gpu_DSE.train import *
-    from gpu_DSE.data_generator import load_data
-if mode == 'DiffAI':
-    from gpu_DiffAI.train import *
-    from gpu_DiffAI.data_generator import load_data
-if mode == 'SPS':
-    from gpu_SPS.train import *
-    from gpu_SPS.data_generator import load_data
-if mode == 'SPS-sound':
-    from gpu_SPS_sound.train import *
-    from gpu_SPS_sound.data_generator import load_data
+# if mode == 'DSE':
+#     from gpu_DSE.train import *
+#     from gpu_DSE.data_generator import load_data
+# if mode == 'DiffAI':
+#     from gpu_DiffAI.train import *
+#     from gpu_DiffAI.data_generator import load_data
+# if mode == 'SPS':
+#     from gpu_SPS.train import *
+#     from gpu_SPS.data_generator import load_data
+# if mode == 'SPS-sound':
+#     from gpu_SPS_sound.train import *
+#     from gpu_SPS_sound.data_generator import load_data
 
 from args import *
 from evaluation_sound import verification
@@ -27,11 +27,29 @@ from utils import (
     extract_abstract_representation,
     show_cuda_memory,
     count_parameters,
+    import_module,
+    append_log,
 )
+
+
+def import_module():
+    if mode == 'DSE':
+        from gpu_DSE.train import *
+        from gpu_DSE.data_generator import load_data
+    if mode == 'DiffAI':
+        from gpu_DiffAI.train import *
+        from gpu_DiffAI.data_generator import load_data
+    if mode == 'SPS':
+        from gpu_SPS.train import *
+        from gpu_SPS.data_generator import load_data
+    if mode == 'SPS-sound':
+        from gpu_SPS_sound.train import *
+        from gpu_SPS_sound.data_generator import load_data
 
 
 #TODO:  change arguments
 def best_lambda(X_train, y_train, m, target):
+    # TODO: m is only a path
     c = cal_c(X_train, y_train, m, target)
     q = cal_q(X_train, y_train, m)
 
@@ -62,246 +80,79 @@ def best_theta(component_list, lambda_, target):
     return m, loss, time_out
 
 
+def outer_loop(lambda_list, model_list, q):
+    m_t = random.choice(model_list)
+    lambda_t = var(0.0)
+    for i in lambda_list:
+        lambda_t = lambda_t.add(i)
+    lambda_t = lambda_t.div(var(len(lambda_list)))
+
+    _, l_max = best_lambda(X_train, y_train, m_t, target)
+    _, l_min, time_out = best_theta(X, Y, abstract_representation, lambda_t, target)
+
+    print('-------------------------------')
+    print('l_max, l_min', l_max, l_min)
+
+    if (torch.abs(l_max.sub(l_min))).data.item() < w:
+        return None, m_t
+    
+    q = q.add(var(lr).mul(cal_c(X_train, y_train, m_t, theta)))
+
+    return q, None
+
+
 if __name__ == "__main__":
-    # torch.autograd.set_detect_anomaly(True)
-    for path_sample_size in path_num_list:
-        for safe_range_bound_idx, safe_range_bound in enumerate(safe_range_bound_list):
-            if safe_range_bound_idx < bound_end and safe_range_bound_idx >= bound_start:
-                pass
-            else:
-                continue
-            # for temporary test only
-            # if safe_range_bound < 0.8:
-            #     continue
-            # if safe_range_bound < 1.1:
-            #     continue
-            # if not test_mode:
-            #     show_cuda_memory(f"ini safe bound ")
+    for safe_range_bound in enumerate(safe_range_bound_list):
+        if not debug:
+            append_log([file_dir, file_dir_evaluation], f"path_sample_size: {path_sample_size}, safa_range_bound: {safe_range_bound}\n")
+        print(f"Safe Range Bound: {safe_range_bound}")
 
-            time_out = False
-            constants.SAMPLE_SIZE = path_sample_size # show number of paths to sample
-            if not debug:
-                log_file = open(file_dir, 'a')
-                log_file.write(f"path_sample_size: {path_sample_size}, safa_range_bound: {safe_range_bound}\n")
-                log_file.close()
-                log_file_evaluation = open(file_dir_evaluation, 'a')
-                log_file_evaluation.write(f"path_sample_size: {path_sample_size}, safa_range_bound: {safe_range_bound}\n")
-                log_file_evaluation.close()
+        # update target, fix the left endpoint, varify the right endpoint
+        target = list()
+        for idx, safe_range in enumerate(safe_range_list):
+            target.append(
+                {   # constraint is in box domain
+                    "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)),
+                    "method": method_list[idx],
+                }
+            )
 
-            print(f"path_sample_size: {path_sample_size}, safa_range_bound: {safe_range_bound}")
-            
-            # if benchmark_name == "thermostat":
-            #     # TODO: adapt to other algorithms, as this is not a perfect benchmark, leave it alone
-            #     target = {
-            #         "condition": domain.Interval(var(SAFE_RANGE[0]), var(safe_range_upper_bound)),
-            #         "phi": var(PHI),
-            #     }
-            if benchmark_name in ["mountain_car", "mountain_car_1", "unsound_1"]:
-                target = list()
-                for idx, safe_range in enumerate(safe_range_list):
-                    # only use the acceleration condition
-                    if idx > 0:
-                        continue
-                    if idx == component_bound_idx:
-                        # TODO: only update the upper bound
-                        target_component = {
-                            "condition": domain.Interval(var(-safe_range_bound), var(safe_range_bound)),
-                            "phi": var(phi_list[idx]),
-                            "w": var(w_list[idx]), 
-                            "method": method_list[idx], 
-                            "name": name_list[idx], 
-                        }
-                    else:
-                        target_component = {
-                            "condition": domain.Interval(var(safe_range[0]), var(safe_range[1])),
-                            "phi": var(phi_list[idx]),
-                            "w": var(w_list[idx]), 
-                            "method": method_list[idx], 
-                            "name": name_list[idx], 
-                        }
-                    target.append(target_component)
-            if benchmark_name in ["unsound_2_separate", "unsound_2_overall", "sampling_1", "sampling_2"]:
-                target = list()
-                for idx, safe_range in enumerate(safe_range_list):
-                    # only use the acceleration condition
-                    if idx > 0:
-                        continue
-                    if idx == component_bound_idx:
-                        # TODO: only update the upper bound
-                        print(safe_range)
-                        target_component = {
-                            "condition": domain.Interval(var(safe_range_bound), var(safe_range[1])),
-                            "phi": var(phi_list[idx]),
-                            "w": var(w_list[idx]), 
-                            "method": method_list[idx], 
-                            "name": name_list[idx], 
-                        }
-                    else:
-                        target_component = {
-                            "condition": domain.Interval(var(safe_range[0]), var(safe_range[1])),
-                            "phi": var(phi_list[idx]),
-                            "w": var(w_list[idx]), 
-                            "method": method_list[idx], 
-                            "name": name_list[idx], 
-                        }
-                    target.append(target_component)
-            if benchmark_name in ["thermostat", "path_explosion", "path_explosion_2"]:
-                target = list()
-                for idx, safe_range in enumerate(safe_range_list):
-                    # only use the acceleration condition
-                    if idx > 0:
-                        continue
-                    if idx == component_bound_idx:
-                        # TODO: only update the upper bound
-                        print(safe_range)
-                        target_component = {
-                            "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)),
-                            "phi": var(phi_list[idx]),
-                            "w": var(w_list[idx]), 
-                            "method": method_list[idx], 
-                            "name": name_list[idx], 
-                        }
-                    else:
-                        target_component = {
-                            "condition": domain.Interval(var(safe_range[0]), var(safe_range[1])),
-                            "phi": var(phi_list[idx]),
-                            "w": var(w_list[idx]), 
-                            "method": method_list[idx], 
-                            "name": name_list[idx], 
-                        }
-                    target.append(target_component)
-            if benchmark_name in ["fairness_1"]:
-                target = list()
-                for idx, safe_range in enumerate(safe_range_list):
-                    # only use the acceleration condition
-                    target_component = {
-                        "condition": domain.Interval(var(safe_range[0]), var(safe_range[1])),
-                        "phi": var(phi_list[idx]),
-                        "w": var(w_list[idx]), 
-                        "method": method_list[idx], 
-                        "name": name_list[idx], 
-                    }
-                    target.append(target_component)
+            # Run 5 times
+            for i in range(5):
+                import_module()
 
-
-            # data points generation
-            # preprocessing_time = time.time()
-            # # TODO: the data is one-dimension (x = a value)
-            # if fixed_dataset:
-            #     if benchmark_name == "mountain_car":
-            #         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
-            #     if benchmark_name in ["unsound_1", "unsound_2_separate", "unsound_2_overall"]:
-            #         Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
-            # else:
-            #     Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
-            # component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components, w=perturbation_width)
-            # print(f"prepare data: {time.time() - preprocessing_time} sec.")
-            # Loss(theta, lambda) = Q(theta) + lambda * C(theta)
-
-            for i in range(expr_i_number):
-                # if not test_mode:
-                #     show_cuda_memory(f"ini safe bound {i} ")
-
-                # data points generation
                 preprocessing_time = time.time()
-                # TODO: the data is one-dimension (x = a value)
-                if fixed_dataset:
-                    if benchmark_name in ["mountain_car", "mountain_car_1", "fairness_1"]:
-                        # Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{0.5}.txt")
-                        Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
-                    if benchmark_name in ["thermostat"]:
-                        Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{86.0}.txt")
-                    if benchmark_name in ["unsound_1", "unsound_2_separate", "unsound_2_overall", "sampling_1", "sampling_2", "path_explosion", "path_explosion_2"]:
-                        Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
+                if benchmark_name in ["thermostat"]:
+                    dataset_path = f"{dataset_path_prefix}_{86.0}.txt"
                 else:
-                    Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=f"{dataset_path_prefix}_{safe_range_bound}.txt")
-                component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components, w=perturbation_width)
-                print(f"prepare data: {time.time() - preprocessing_time} sec.")
+                    dataset_path = f"{dataset_path_prefix}_{safe_range_bound}.txt"
+                Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=)
+                # TODO: update component
+                component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components)
+                print(f"Prepare data: {time.time() - preprocessing_time} sec.")
 
                 lambda_list = list()
                 model_list = list()
                 q = var(0.0)
 
                 for t in range(t_epoch):
+                    target_model_name = f"{model_name_prefix}_{safe_range_bound}_{i}_{t}"
                     new_lambda = B.mul(q.exp().div(var(1.0).add(q.exp())))
 
-                    # BEST_theta(lambda)
-                    if benchmark_name == "thermostat":
-                        m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-                    if benchmark_name == "mountain_car":
-                        m = MountainCar(l=l, nn_mode=nn_mode, module=module)
-                    if benchmark_name == "mountain_car_1":
-                        m = MountainCar1(l=l, nn_mode=nn_mode, module=module)
-                    if benchmark_name == "unsound_1":
-                        m = Unsound_1(l=l, nn_mode=nn_mode)
-                    if benchmark_name == "unsound_2_separate":
-                        m = Unsound_2_Separate()
-                    if benchmark_name == "unsound_2_overall":
-                        m = Unsound_2_Overall()
-                    if benchmark_name == "sampling_1":
-                        # print(nn_mode)
-                        m = Sampling_1(l=l, nn_mode=nn_mode)
-                    if benchmark_name == "sampling_2":
-                        m = Sampling_2(l=l, nn_mode=nn_mode)
-                    if benchmark_name == "path_explosion":
-                        m = PathExplosion(l=l, nn_mode=nn_mode)
-                    if benchmark_name == "path_explosion_2":
-                        m = PathExplosion2(l=l, nn_mode=nn_mode)
-                    if benchmark_name == "fairness_1":
-                        m = Fairness_1(l=l, nn_mode=nn_mode)
-                    # print(m)
+                    m = Program(l=l, nn_mode=nn_mode)
+                    epochs_to_skip, m = load_model(m, MODEL_PATH, name=target_model_name)
                     if test_mode:
-                        # mainly for testing the verification part
-                        if torch.cuda.is_available():
-                            pass
-                        else:
-                            break
-                        epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{model_name_prefix}_{safe_range_bound}_{i}")
-                        # TODO: for quick result
-                        if m is not None and epochs_to_skip is not None:
-                            print(f"Load Model.")
-                            break
-                        elif m is None:
-                            print(f"No model.")
-                            if not debug:
-                                log_file_evaluation = open(file_dir_evaluation, 'a')
-                                log_file_evaluation.write("No model.\n")
-                                log_file.close()
-                            continue
-                    else:
-                        epochs_to_skip, m = load_model(m, MODEL_PATH, name=f"{model_name_prefix}_{safe_range_bound}_{i}")
                         if m is None:
-                            if benchmark_name == "thermostat":
-                                m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-                                print(f"value linear1, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
-                                print(f"value linear2, weight: {m.nn.linear2.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear2.bias.detach().cpu().numpy().tolist()[0]}")
-                                print(f"value linear3, weight: {m.nn.linear3.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear3.bias.detach().cpu().numpy().tolist()[0]}")
-        
-                            if benchmark_name == "mountain_car":
-                                # torch.manual_seed(1)
-                                m = MountainCar(l=l, nn_mode=nn_mode, module=module)
-                            if benchmark_name == "mountain_car_1":
-                                m = MountainCar1(l=l, nn_mode=nn_mode, module=module)
-                            if benchmark_name == "unsound_1":
-                                m = Unsound_1(l=l, nn_mode=nn_mode)
-                            if benchmark_name == "unsound_2_separate":
-                                m = Unsound_2_Separate()
-                            if benchmark_name == "unsound_2_overall":
-                                m = Unsound_2_Overall()
-                            if benchmark_name == "sampling_1":
-                                m = Sampling_1(l=l, nn_mode=nn_mode)
-                            if benchmark_name == "sampling_2":
-                                m = Sampling_2(l=l, nn_mode=nn_mode)
-                            if benchmark_name == "path_explosion":
-                                m = PathExplosion(l=l, nn_mode=nn_mode)
-                            if benchmark_name == "path_explosion_2":
-                                m = PathExplosion2(l=l, nn_mode=nn_mode)
-                            if benchmark_name == "fairness_1":
-                                m = Fairness_1(l=l, nn_mode=nn_mode)
+                            print(f"No Model to test.")
+                            exit(0)
                         else:
-                            print(f"load from path")
+                            break
+                    else:
+                        if m is None:
+                            m = Program(l=l, nn_mode=nn_mode)
                     
                     print(f"parameters: {count_parameters(m)}")
+
                     # try: 
                     _, loss, loss_list, q, c, time_out = learning(
                         m, 
@@ -312,107 +163,83 @@ if __name__ == "__main__":
                         target=target,
                         lr=lr,
                         bs=bs,
-                        n=n,
                         nn_mode=nn_mode,
                         l=l,
                         module=module,
-                        use_smooth_kernel=use_smooth_kernel, 
                         save=save,
                         epochs_to_skip=epochs_to_skip,
-                        model_name=f"{model_name_prefix}_{safe_range_bound}_{i}",
+                        model_name=target_model_name,
                         only_data_loss=only_data_loss,
                         data_bs=data_bs,
-                        use_data_loss=use_data_loss,
-                        data_safe_consistent=data_safe_consistent, 
-                        sample_std=sample_std,
-                        sample_width=sample_width,
                         )
-                    # except RuntimeError:
-                    #     log_file = open(file_dir, 'a')
-                    #     log_file.write(f"RuntimeError: CUDA out of memory.\n")
-                    #     log_file.close()
-                    #     log_file_evaluation = open(file_dir_evaluation, 'a')
-                    #     log_file_evaluation.write(f"RuntimeError: CUDA out of memory.\n")
-                    #     log_file_evaluation.close()
-                    #     print(f"RuntimeError: CUDA out of memory.")
-                    #     exit(0)
-
-                    # m.eval()
-
-                    #TODO: reduce time, because there are some issues with the gap between cal_c and cal_q
-                    # m_t = m
-                    #TODO, keep or not?
-
-                    # if not test_mode:
-                    #     show_cuda_memory(f"end safe bound {i} ")
-                    if not use_hoang:
-                        break
                     
-                    lambda_list.append(new_lambda)
-                    model_list.append(model)
-
-                    # TODO: return a distribution
-                    m_t = random.choice(model_list)
-
-                    lambda_t = var(0.0)
-                    for i in lambda_list:
-                        lambda_t = lambda_t.add(i)
-                    lambda_t = lambda_t.div(var(len(lambda_list)))
-
-                    # TODO: change
-                    _, l_max = best_lambda(X_train, y_train, m_t, target)
-                    _, l_min, time_out = best_theta(X, Y, abstract_representation, lambda_t, target)
-
-                    print('-------------------------------')
-                    print('l_max, l_min', l_max, l_min)
-
-                    if "gd" in optimizer_name:
-                        if (torch.abs(l_max.sub(l_min))).data.item() < w:
-                        # return theta_t, lambda_t
+                    #TODO: reduce time, because the gap between cal_c and cal_q does not influence a lot on the performance
+                    # m_t = m
+                    
+                    if use_hoang:
+                        lambda_list.append(new_lambda)
+                        model_list.append(target_model_name)
+                        q, target_m = outer_loop(lambda_lost, model_list, q)
+                        if q is None:
                             break
                     else:
-                        if abs(l_max - l_min) < w:
-                        # return theta_t, lambda_t
-                            break
-                    
-                    q = q.add(var(lr).mul(cal_c(X_train, y_train, m_t, theta)))
-                # if not test_mode:
-                #     show_cuda_memory(f"end safe bound ")
-                
+                        break
+
                 if time_out == True:
                     continue
 
-                # verification: going through the program without sampling
-                # test: for the quantitative accuracy
-                if not test_mode and not test_with_training:
-                    print(f"skip verification")
-                    continue
+                AI_component_list = extract_abstract_representation(Trajectory_test, x_l, x_r, AI_verifier_num_components)
+                SE_component_list = extract_abstract_representation(Trajectory_test, x_l, x_r, 1)
+                # AI verification, SE verification, Test data loss
+                verify(
+                    model_path=MODEL_PATH,
+                    model_name=target_model_name,
+                    AI_component_list=AI_component_list,
+                    SE_component_list=SE_component_list,
+                    trajectory=Trajectory_test,
+                    target=target,
+                    trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}",
+                )
 
-                if sound_verify:
-                    print(f"------------start sound verification------------")
-                    print(f"to verify safe bound: {safe_range_bound}")
-                    verification_time = time.time()
-                    component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, verification_num_components, w=perturbation_width)
-                    verification(
-                        model_path=MODEL_PATH, 
-                        model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", 
-                        component_list=component_list, 
-                        target=target,
-                        trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}")
-                    print(f"---verification time: {time.time() - verification_time} sec---")
-                    
-                if (test_mode and unsound_verify) or test_with_training:
-                    # print(f"------------start unsound verification------------")
-                    # print(f"to verify safe bound(train dataset): {safe_range_bound}")
-                    # verification_time = time.time()
-                    # verification_unsound(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", trajectory_test=Trajectory_train, target=target)
-                    # print(f"---unsound verification(train dataset)time: {time.time() - verification_time} sec---")
+                # Verification
+                from verifier_AI import verifier_AI
+                from modules_AI import *
+                # TODO: check replacement?
+                print(f"------------start sound verification------------")
+                print(f"to verify safe bound: {safe_range_bound}")
 
-                    print(f"to verify safe bound(test dataset): {safe_range_bound}")
-                    verification_time = time.time()
-                    verification_unsound(model_path=MODEL_PATH, model_name=f"{model_name_prefix}_{safe_range_bound}_{i}", trajectory_test=Trajectory_test, target=target)
-                    print(f"---unsound verification(test dataset)time: {time.time() - verification_time} sec---")
+                verification_time = time.time()
+                # TODO: change extract_abstract_representation
+                
+                verifier_AI(
+                    model_path=MODEL_PATH, 
+                    model_name=target_model_name, 
+                    component_list=component_list, 
+                    target=target,
+                    trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}")
+                print(f"---verification time: {time.time() - verification_time} sec---")
+                
+                from verifier_SE import verifier_SE
+                from modules_SE import *
+                print(f"to verify safe bound(test dataset): {safe_range_bound}")
+                verification_time = time.time()
+                component_list = extract_abstract_representation(Trajectory_test, x_l, x_r, 1)
+                verification_SE(
+                    model_path=MODEL_PATH, 
+                    model_name=target_model_name, 
+                    trajectory_test=Trajectory_test, 
+                    component_list=component_list
+                    target=target
+                )
+                print(f"---unsound verification(test dataset)time: {time.time() - verification_time} sec---")
 
+                from tester import test_data_loss
+                test_data_loss(
+                    model_path=MODEL_PATH, 
+                    model_name=target_model_name, 
+                    trajectory_test=Trajectory_test, 
+                    target=target
+                )
 
 
 

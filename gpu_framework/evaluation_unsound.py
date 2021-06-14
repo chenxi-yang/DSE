@@ -361,7 +361,7 @@ def verify_unsound(m, trajectory_test, target, test_abstract_bs):
     measure_test_safety(all_safe_res, target)
 
 
-def verification_unsound(
+def test_data_loss(
     model_path, 
     model_name, 
     trajectory_test, 

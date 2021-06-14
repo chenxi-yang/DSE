@@ -7,7 +7,6 @@ from constants import *
 import constants
 import domain
 
-from gpu_DSE.modules import *
 
 import os
 
@@ -191,7 +190,7 @@ def f_assign_v(x):
 
 
 class MountainCar(nn.Module):
-    def __init__(self, l, sig_range=10, nn_mode='all', module='linearrelu'):
+    def __init__(self, l, nn_mode='all'):
         super(MountainCar, self).__init__()
         self.goal_position = var(0.5)
         self.min_position = var(-1.2)
@@ -206,12 +205,7 @@ class MountainCar(nn.Module):
         self.min_abs_acc = var(0.3)
         self.neg_min_abs_acc = - self.min_abs_acc
         
-        if module == 'linearsig':
-            self.nn = LinearSig(l=l)
-        if module == 'linearrelu':
-            self.nn = LinearReLU(l=l, sig_range=sig_range)
-        if module == 'linearrelu_no_act':
-            self.nn = LinearReLUNoAct(l=l)
+        self.nn = LinearReLUNoAct(l=l)
         
         ####
         self.assign_min_p = Assign(target_idx=[0], arg_idx=[0], f=f_assign_min_p)

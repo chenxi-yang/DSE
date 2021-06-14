@@ -5,41 +5,44 @@ from constants import *
 # from optimization import *
 
 if benchmark_name == "thermostat":
-    from thermostat_nn_sound import (
+    from thermostat_nn_batch import (
         ThermostatNN,
         load_model,
         save_model,
         initialization_abstract_state,
+        initialization_point_nn,
     )
 if benchmark_name == "mountain_car":
-    from mountain_car_sound import (
+    from mountain_car_batch import (
         MountainCar,
         load_model,
         save_model,
         initialization_abstract_state,
-        initialization_abstract_state_point,
+        initialization_point_nn,
     )
 if benchmark_name == "unsound_1":
-    from unsound_1_sound import (
+    from unsound_1_batch import (
         Unsound_1,
         load_model,
         save_model,
         initialization_abstract_state,
+        initialization_point_nn,
     )
 if benchmark_name == "sampling_1":
-    from sampling_1_sound import (
+    from sampling_1_batch import (
         Sampling_1,
         load_model,
         save_model,
         initialization_abstract_state,
+        # initialization_point_nn,
     )
-
 if benchmark_name == "sampling_2":
-    from sampling_2_sound import (
+    from sampling_2_batch import (
         Sampling_2,
         load_model,
         save_model,
         initialization_abstract_state,
+        # initialization_point_nn,
     )
 if benchmark_name == "path_explosion":
     from path_explosion_sound import (
@@ -56,7 +59,7 @@ if benchmark_name == "path_explosion_2":
         initialization_abstract_state,
     )
 if benchmark_name == "fairness_1":
-    from fairness_1_sound import (
+    from fairness_1_batch import (
         Fairness_1,
         load_model,
         save_model,
@@ -99,13 +102,12 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, tar
 
     for state in trajectory:
         X = state[target_idx]
-        if debug:
-            print(f"X:{X.left.data.item(), X.right.data.item()}")
+        # print(f"X:{X.left.data.item(), X.right.data.item()}")
         intersection_interval = get_intersection(X, safe_interval)
         if intersection_interval.isEmpty():
             unsafe_value = var_list([1.0])
         else:
-            safe_probability = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
+            safe_probability = intersection_interval.getLength().div(X.getLength())
             # TODO: remove this part
             # if safe_probability.data.item() > 1 - unsafe_probability_condition.data.item():
             #     unsafe_value = var_list([0.0])
@@ -118,17 +120,8 @@ def get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, tar
                     unsafe_value = var_list([0.0])
                 else:
                     unsafe_value = 1 - safe_probability
-        
-        # when verify
-        # in verification, for each component, if a part of it is unsafe, it's unsafe
-        if unsafe_value > 0.0:
-            unsafe_value = 1.0
-        else:
-            unsafe_value = 0.0
-
         if verify_outside_trajectory_loss:
-            if debug:
-                print("loss of one symbol table", unsafe_value, symbol_table["probability"])
+            # print("loss of one symbol table", unsafe_value, symbol_table["probability"])
             tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table["probability"])
         else:
             trajectory_loss = torch.max(trajectory_loss, unsafe_value)
@@ -144,11 +137,10 @@ def extract_unsafe(abstract_state, target_component, target_idx):
     abstract_state_unsafe_value = var_list([0.0])
     if verify_outside_trajectory_loss:
         symbol_table_wise_loss_list = list()
-        # print(f"Abstract_state: {len(abstract_state)}")
+        # print(f"Abstract_state")
         for symbol_table in abstract_state:
             # print('Symbol_Table')
             tmp_symbol_table_tra_loss = get_symbol_table_trajectory_unsafe_value(symbol_table, target_component, target_idx=target_idx)
-            # print(f"tmp_symbol_table_tra_loss: {[i.cpu().detach() for i in tmp_symbol_table_tra_loss]}, p: {symbol_table['probability'].data.item()}")
             symbol_table_wise_loss_list.append(tmp_symbol_table_tra_loss)
             aggregation_p += symbol_table['probability']
         abstract_state_wise_trajectory_loss = zip(*symbol_table_wise_loss_list)
@@ -166,11 +158,10 @@ def extract_unsafe(abstract_state, target_component, target_idx):
 
 
 def verify(abstract_state_list, target):
-    p_list = list()
     for idx, target_component in enumerate(target):
         target_name = target_component["name"]
         all_unsafe_probability = var_list([0.0])
-        # print(f"# of abstract state: {len(abstract_state_list)}")
+        print(f"# of abstract state: {len(abstract_state_list)}")
         for abstract_state in abstract_state_list:
             aggregation_p, unsafe_probability = extract_unsafe(abstract_state, target_component, target_idx=idx)
             print(f"aggregation_p: {aggregation_p.data.item()}, unsafe_probability: {unsafe_probability.data.item()}")
@@ -178,106 +169,23 @@ def verify(abstract_state_list, target):
             aggregation_p = torch.min(var(1.0), aggregation_p)
             all_unsafe_probability += aggregation_p * unsafe_probability
         
-        p_list.append(min(all_unsafe_probability.data.item(), 1.0))
-
-        if 'fairness' in benchmark_name:
-            pass
-        else: 
-            if not debug:
-                log_file_evaluation = open(file_dir_evaluation, 'a')
-            if all_unsafe_probability.data.item() <= target_component['phi'].data.item():
-                print(colored(f"#{target_name}: Verified Safe!", "green"))
-                if not debug:
-                    log_file_evaluation.write(f"Verification of #{target_name}#: Verified Safe!\n")
-            else:
-                print(colored(f"#{target_name}: Not Verified Safe!", "red"))
-                if not debug:
-                    log_file_evaluation.write(f"Verification of #{target_name}#: Not Verified Safe!\n")
-            
-            print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}")
-            if not debug:
-                log_file_evaluation.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}\n")
-    
-    if 'fairness' in benchmark_name:
-        # lower bound
-        p_h_f = 1 - p_list[0]
-        p_m = 1 - p_list[3]
-        # upper bound
-        p_h_m = p_list[1]
-        p_f = p_list[3]
-        
-        print(p_list)
-        lower_bound_ratio = (p_h_f * p_m) / (max(p_h_m * p_f, 0.01))
-        print(f"learnt lower bound ratio: {lower_bound_ratio}")
         if not debug:
             log_file_evaluation = open(file_dir_evaluation, 'a')
-            log_file_evaluation.write(f"Verification of Fairness.\n")
-            log_file_evaluation.write(f"Details#learnt unsafe_probability: {lower_bound_ratio}\n")
-            
-
-def in_interval(x, y):
-    # check if x in y
-    if x.left >= y.left and x.right <= y.right:
-        return True
-    else:
-        return False
-
-
-def extract_symbol_table_trajectory_worst_case(symbol_table, target_component, target_idx):
-    safe_interval = target_component["condition"]
-    method = target_component["method"]
-    if method == "last":
-        trajectory = [symbol_table['trajectory'][-1]]
-    elif method == "all":
-        trajectory = symbol_table['trajectory'][:]
-    
-    symbol_table_worst_case_safe = True
-    for state in trajectory:
-        X = state[target_idx]
-        # print(f"X: {X.left}, {X.right}")
-        if not in_interval(X, safe_interval):
-            return False
-
-    return symbol_table_worst_case_safe
-
-
-def extract_unsafe_worst_case(abstract_state, target_component, target_idx):
-    abstract_state_worst_case_safe = True
-    for symbol_table in abstract_state:
-        abstract_state_worst_case_safe = extract_symbol_table_trajectory_worst_case(symbol_table, target_component, target_idx)
-        if not abstract_state_worst_case_safe:
-            return abstract_state_worst_case_safe
-    return abstract_state_worst_case_safe
-
-
-def verify_worst_case(abstract_state_list, target):
-    for idx, target_component in enumerate(target):
-        target_name = target_component["name"]
-        all_unsafe_probability = var_list([0.0])
-        # print(f"# of abstract state: {len(abstract_state_list)}")
-        worst_case_safe = True
-        for abstract_state in abstract_state_list:
-            worst_case_safe = extract_unsafe_worst_case(abstract_state, target_component, target_idx=idx)
-            if not worst_case_safe:
-                break
-        
-        if not debug:
-            log_file_evaluation = open(file_dir_evaluation, 'a')
-        if worst_case_safe:
+        if all_unsafe_probability.data.item() <= target_component['phi'].data.item():
             print(colored(f"#{target_name}: Verified Safe!", "green"))
             if not debug:
                 log_file_evaluation.write(f"Verification of #{target_name}#: Verified Safe!\n")
-                log_file_evaluation.flush()
         else:
             print(colored(f"#{target_name}: Not Verified Safe!", "red"))
             if not debug:
                 log_file_evaluation.write(f"Verification of #{target_name}#: Not Verified Safe!\n")
-                log_file_evaluation.flush()
         
-        # print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}")
-        # if not debug:
-        #     log_file_evaluation.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}\n")
-    
+        print(f"learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}")
+        if not debug:
+            log_file_evaluation.write(f"Details#learnt unsafe_probability: {all_unsafe_probability.data.item()}, target unsafe_probability: {target_component['phi'].data.item()}\n")
+    if debug:
+        exit(0)
+
 
 def show_component_p(component_list):
     component_p_list = list()
@@ -289,28 +197,177 @@ def show_component_p(component_list):
     return 
 
 
-# def analysis_trajectories(abstract_state_list):
-#     return 
-def store_trajectory(abstract_state_list, trajectory_path, category=None):
-    if category is not None:
-        trajectory_path = trajectory_path + f"_{category}"
-    trajectory_path += ".txt"
-    trajectory_log_file = open(trajectory_path, 'w')
-    trajectory_log_file.write(f"{analysis_name_list}\n")
-    for abstract_state_idx, abstract_state in enumerate(abstract_state_list):
-        trajectory_log_file.write(f"abstract_state {abstract_state_idx}\n")
-        for symbol_table_idx, symbol_table in enumerate(abstract_state):
-            trajectory = symbol_table['trajectory']
-            trajectory_log_file.write(f"symbol_table {symbol_table_idx}\n")
-            for state in trajectory:
-                for x in state:
-                    trajectory_log_file.write(f"{float(x.left)}, {float(x.right)};")
-                trajectory_log_file.write(f"\n")
-    trajectory_log_file.close()
-    return 
+def verification(model_path, model_name, component_list, target):
+    if benchmark_name == "thermostat":
+        m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
+    if benchmark_name == "mountain_car":
+        m = MountainCar(l=l, nn_mode=nn_mode, module=module)
+    _, m = load_model(m, MODEL_PATH, name=model_name)
+    if m is None:
+        print(f"No model to Verify!!")
+        exit(0)
+    # m.cuda()
+    if torch.cuda.is_available():
+        m.cuda()
+    m.eval()
+
+    for param in m.parameters():
+        param.requires_grad = False
+    # print(m.nn.linear1.weight)
+    
+    abstract_state_list = initialization_abstract_state(component_list)
+    print(f"Ini # of abstract state: {len(abstract_state_list)}")
+    show_component_p(component_list)
+    # print(abstract_state_list[0][0]["x"].c)
+    abstract_state_list = m(abstract_state_list)
+    verify(abstract_state_list, target)
 
 
-def verifier_AI(model_path, model_name, component_list, target, trajectory_path):
+def trajectory2points(trajectory_list, bs):
+    states, actions = list(), list()
+    for trajectory in trajectory_list:
+        for (state, action) in trajectory:
+            states.append(state)
+            actions.append([action])
+    c = list(zip(states, actions))
+    random.shuffle(c)
+    states, actions = zip(*c)
+    states, actions = np.array(states), np.array(actions)
+
+    for i in range(0, len(states), bs):
+        if torch.cuda.is_available():
+            yield torch.from_numpy(states[i:i+bs]).float().cuda(), torch.from_numpy(actions[i:i+bs]).float().cuda()
+        else:
+            yield torch.from_numpy(states[i:i+bs]).float(), torch.from_numpy(actions[i:i+bs]).float()
+
+
+def test_objective(m, trajectory_test, criterion, test_bs):
+    data_loss = 0.0
+    count = 0
+    test_bs = 8
+    for x, y in trajectory2points(trajectory_test, test_bs):
+        yp = m(x, version="single_nn_learning")
+        batch_data_loss = criterion(yp, y)
+        if debug:
+            print(f"yp: {yp.squeeze()}, y: {y.squeeze()}")
+            print(f"batch data loss: {batch_data_loss}")
+
+        count += 1
+        data_loss += batch_data_loss
+        # update data_loss
+    # print/f.write()
+    test_data_loss = data_loss / count
+
+    if not debug:
+        log_file_evaluation = open(file_dir_evaluation, 'a')
+        log_file_evaluation.write(f"test data loss: {test_data_loss.data.item()}\n")
+    print(f"test data loss: {test_data_loss.data.item()}")
+    if debug:
+        exit(0)
+        pass
+
+
+def ini_state_batch(trajectory_test, test_abstract_bs):
+    # extract the initial state from trajectory_test
+    # batch initial state
+    # initial domain of each batch
+    # return domain
+    return True
+
+
+def ini_state_batch_tmp(trajectory_test):
+    for trajectory in trajectory_test:
+        x = trajectory[0][0] # state, (p, v)
+        yield x
+
+
+def point_test_tmp(res_list, target):
+    #! no batch
+    symbol_table = res_list[0][0]
+    target_safety = list()
+    for idx, target_component in enumerate(target):
+        safe_interval = target_component["condition"]
+        unsafe_probability_condition = target_component["phi"]
+        method = target_component["method"]
+        if method == "last":
+            trajectory = [symbol_table['trajectory'][-1]]
+        elif method == "all":
+            trajectory = symbol_table['trajectory'][:]
+        
+        if torch.cuda.is_available():
+            safe = torch.tensor([True], dtype=torch.bool).cuda()
+        else:
+            safe = torch.tensor([True], dtype=torch.bool)
+        for state in trajectory:
+            X = state[idx]
+            if debug:
+                print(f"X: {X.left.data.item(), X.right.data.item()}; safe interval: {safe_interval.left.data.item(), safe_interval.right.data.item()}")
+                print(f"In: {X.in_other(safe_interval)}")
+            safe = torch.cat((safe, X.in_other(safe_interval)), 0)
+        if debug:
+            print(f"safe: {safe}")
+        
+        # print(safe)
+        if torch.all(safe):
+            target_safety.append(True)
+        else:
+            target_safety.append(False)
+    
+    return target_safety
+
+
+def measure_test_safety(all_safe_res, target):
+    if not debug:
+        log_file_evaluation = open(file_dir_evaluation, 'a')
+    for target_idx, target_component in enumerate(target):
+        target_name = target_component["name"]
+        unsafe_probability = target_component['phi']
+        unsafe_count, all_count = 0.0, 0.0
+        for safe_res in all_safe_res:
+            if safe_res[target_idx]:
+                all_count += 1
+            else:
+                unsafe_count += 1
+                all_count += 1
+        test_unsafe_probability = unsafe_count * 1.0 / all_count
+        
+        if test_unsafe_probability <= unsafe_probability:
+            print(colored(f"#{target_name}: Unsound Verified Safe!", "green"))
+            if not debug:
+                log_file_evaluation.write(f"Unsound Verification of #{target_name}#: Verified Safe!\n")
+        else:
+            print(colored(f"#{target_name}: Unsound Verified Unafe!", "red"))
+            if not debug:
+                log_file_evaluation.write(f"Unsound Verification of #{target_name}#: Verified Unsafe!\n")
+        
+        print(f"test_unsafe_probability: {test_unsafe_probability}")
+        if not debug:
+            log_file_evaluation.write(f"test_unsafe_probability: {test_unsafe_probability}\n")
+
+        
+def verify_unsound(m, trajectory_test, target, test_abstract_bs):
+    # extract the initial state in trajectory
+    # batch initial state, points
+    # m(points)
+    # test trajectory out of m
+    # TODO: batch
+    all_safe_res = list()
+    for x in ini_state_batch_tmp(trajectory_test):
+        input_point = initialization_point_nn(x)
+        # print(input_point)
+        res_list = m(input_point)
+        batch_safe_res = point_test_tmp(res_list, target)
+        all_safe_res.append(batch_safe_res)
+    measure_test_safety(all_safe_res, target)
+
+
+def verification_unsound(
+    model_path, 
+    model_name, 
+    trajectory_test, 
+    target, 
+    test_bs=512,
+    test_abstract_bs=32):
     if benchmark_name == "thermostat":
         m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
     if benchmark_name == "mountain_car":
@@ -327,12 +384,11 @@ def verifier_AI(model_path, model_name, component_list, target, trajectory_path)
         m = PathExplosion2(l=l, nn_mode=nn_mode)
     if benchmark_name == "fairness_1":
         m = Fairness_1(l=l, nn_mode=nn_mode)
-    
+
     _, m = load_model(m, MODEL_PATH, name=model_name)
     if m is None:
-        print(f"No model to Verify!!")
-        # exit(0)
-        return
+        print(f"No model to Unsound Verify!!")
+        return 
     # m.cuda()
     if torch.cuda.is_available():
         m.cuda()
@@ -340,20 +396,15 @@ def verifier_AI(model_path, model_name, component_list, target, trajectory_path)
 
     for param in m.parameters():
         param.requires_grad = False
-    # print(m.nn.linear1.weight)
+
+    criterion = torch.nn.MSELoss()
+
+    # split batch
+    test_objective(m, trajectory_test, criterion, test_bs)
+    # verify_unsound(m, trajectory_test, target, test_abstract_bs)
+
     
-    if extract_one_trajectory:
-        abstract_state_list = initialization_abstract_state_point(component_list)
-        category = 'point'
-    else:
-        abstract_state_list = initialization_abstract_state(component_list)
-        category = None
-    print(f"Ini # of abstract state: {len(abstract_state_list)}")
-    show_component_p(component_list)
-    # print(abstract_state_list[0][0]["x"].c)
-    abstract_state_list = m(abstract_state_list)
-    store_trajectory(abstract_state_list, trajectory_path, category=category)
-    if verify_use_probability:
-        verify(abstract_state_list, target)
-    else:
-        verify_worst_case(abstract_state_list, target)
+
+
+
+
