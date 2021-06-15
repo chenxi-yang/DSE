@@ -1,5 +1,5 @@
-from helper import *
 from args import *
+from utils import *
 
 import numpy as np
 # import domain
@@ -19,7 +19,6 @@ width = args.width
 bs = args.bs
 l = args.l
 nn_mode = args.nn_mode
-# print(f"nn_mode: {nn_mode}")
 b = args.b
 num_components = args.num_components
 save = args.save
@@ -33,29 +32,18 @@ data_attr = args.data_attr
 mode = args.mode
 debug = args.debug
 
-real_unsafe_value = args.real_unsafe_value
-only_data_loss = args.only_data_loss
 data_bs = args.data_bs
 
-use_data_loss = args.use_data_loss
 use_hoang = args.use_hoang
 bound_start = args.bound_start
 bound_end = args.bound_end
-# analyze_trajectory = args.analyze_trajectory
-analysis = args.analysis
-use_abstract_components = args.use_abstract_components
-test_with_training = args.test_with_training
-optimizer_method = args.optimizer_method
+
 simple_debug = args.simple_debug
 
 extract_one_trajectory = args.extract_one_trajectory
 
 AI_verifier_num_components = args.AI_verifier_num_components
 SE_verifier_run_times = args.SE_verifier_run_times
-
-sound_verify = args.sound_verify
-unsound_verify = args.unsound_verify
-assert((test_mode or test_with_training) == (sound_verify or unsound_verify))
 
 # thermostat: 0.3
 # mountain_car: 0.01
@@ -70,7 +58,6 @@ if benchmark_name == "thermostat":
     x_l = [55.0]
     x_r = [70.0]
     safe_range_list = [[50.0, 82.0]]
-    phi_list = [ini_unsafe_probability]
     w_list = [1.0]
     method_list = ['all']
     name_list = ['x']
@@ -90,22 +77,15 @@ if benchmark_name == "mountain_car":
     # safe_range[-1.0, x]
     # u
     safe_range_list = [[-1.0, 0.8]]
-    phi_list = [ini_unsafe_probability]
     w_list = [1.0]
     method_list = ['all']
     name_list = ['acceleration']
-    # TODO: upper bound list:
-    component_bound_idx = 0
-    bound_direction_idx = 1 # left or right
-    
+
     safe_range_start=0.5
     safe_range_end=1.2 # 1.1
     safe_range_step=0.1
     safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
-    analysis_name_list = ['acceleration', 'position']
 
-
-data_attr = f"{dataset_distribution}_{x_l[0]}_{x_r[0]}"
 
 model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}"
 
