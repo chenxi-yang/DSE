@@ -22,8 +22,6 @@ from utils import (
     show_trajectory,
     )
 
-from gpu_DSE.data_generator import *
-
 random.seed(1)
 
 def distance_f_point(pred_y, y):
