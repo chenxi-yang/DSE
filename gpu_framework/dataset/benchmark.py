@@ -38,20 +38,10 @@ def thermostat(lin, safe_bound):
     return trajectory_list
 
 
-
-def acceleration(p, v):
-    u = 0.0
-    if v <= 0.0:
-        u = - 1.0
-    else:
-        u = 1.0
-    return u
-
-
 def safe_acceleration(p, v, safe_bound):
     u = 0.0
     if v <= 0.0:
-        u = - safe_bound
+        u = - 1.0
     else:
         u = safe_bound
     
@@ -156,7 +146,7 @@ def linear_nn(x, a, b):
     return y
 
 
-def unsound_1(x, safe_bound):
+def unsmooth_1(x, safe_bound):
     # x in [-5, 5]
     a = 2.0
     b = 20.0
@@ -175,7 +165,7 @@ def unsound_1(x, safe_bound):
     return trajectory_list
 
 
-def unsound_2_separate(x, safe_bound):
+def unsmooth_2_separate(x, safe_bound):
     # x in [-5, 5]
     a = 0.1
     b = 2.0
@@ -194,7 +184,7 @@ def unsound_2_separate(x, safe_bound):
     return trajectory_list
 
 
-def unsound_2_overall(x, safe_bound):
+def unsmooth_2_overall(x, safe_bound):
     # x in [-5, 5]
     a = 0.1
     b = 2.0
@@ -211,10 +201,6 @@ def unsound_2_overall(x, safe_bound):
 
     return trajectory_list
 
-
-# torch.manual_seed(1)
-# torch.cuda.manual_seed(1)
-# nn = SampleNN()
 
 def generate_p(x, y):
     sigmoid = nn.Sigmoid()
@@ -346,42 +332,34 @@ def extract_bound(h0):
     return y
 
 
-# not work
-def path_explosion(h0, safe_bound):
-    # h0: [3.0, 9.9]
-    # safe area of h: [4.0, 26.48]
-    
-    trajectory_list = list()
-    count = 0
-
-    # bound = 5.49
-
-    h = h0
-
-    bound = extract_bound(h0)
-    # trajectory_list.append((h0, bound))
-
-    while h < 10.0:
-        h = h + 0.1
-        if (h <= bound):
-            if (h <= bound - 0.01):
-                h = 2 * h
-            else:
-                h = 3 * h
-        count += 1
-
-    if (h <= 3*bound - 0.01):
-        h = h
-    else:
-        h = 10 * h
-    
-    trajectory_list.append((h0, count))
-    
-    return trajectory_list
-
-
 def extract_h(h):
     return h * 2 - 4.9
+
+
+def path_explosion(h0, safe_bound):
+    # h0: [2.0, 4.8]
+    # safe area: h: [0.0, 5.0]
+
+    trajectory_list = list()
+
+    bar1 = 3.0
+    bar2 = 5.0
+    bar3 = 2.5
+
+    h = h0
+    for i in range(50):
+        h += 0.2
+        if h <= bar1:
+            h += 0.2
+        elif h <= bar2:
+            h_pre = h
+            h = extract_h(h_pre)
+            if h_pre > 4.8:
+                pass
+            else:
+                trajectory_list.append((h_pre, h))
+
+    return trajectory_list
 
 
 def path_explosion_2(h0, safe_bound):
@@ -411,112 +389,5 @@ def path_explosion_2(h0, safe_bound):
 
     return trajectory_list
         
-
-'''
-Conceptual Benchmarks
-'''
-
-# Linear, ReLu, Linear, Sigmoid
-class SampleNN(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.linear1 = nn.Linear(2, 4)
-        self.linear2 = nn.Linear(4, 1)
-        self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
-    
-    def forward(self, x):
-        res = self.linear1(x)
-        res = self.relu(res)
-        res = self.linear2(res)
-        res = self.sigmoid(res)
-
-        return res
-
-def mountain_car_algo(p, v):
-    # p: [goal_position, infinity], 0.1
-    # u: [-0.9, 0.9], 0.1
-    while p <= goal_position:
-        if p <= min_position: p, v = Reset(p, v)
-        u = DNN(p, v)
-        v = Update(v, p, u)
-        if v <= min_speed or v >= max_speed: 
-            v = Reset(v)
-        p = p + v
-
-        reward = reward + (-0.1) * u  * u
-
-        i += 1
-        if i > 1000:
-            break
-    
-    if p >= goal_position:
-        reward += 100
-    
-    return reward
-
-
-def mountain_car_concept(p, v):
-    trajectory = list()
-    while p <= goal_position:
-        if p <= min_position: p, v = Reset(p, v)
-
-        u = acceleration(p, v)
-        trajectory.append((p, v, u))
-
-        v = Update(v, p, u)
-        if v <= min_speed or v >= max_speed: 
-            v = Reset(v)
-
-        p = p + v
-    
-    return trajectory
-
-
-
-# def sampling_1(x, safe_bound):
-#     trajectory_list = list()
-#     bar = 0.5
-
-#     # create a very small p0 by faking nn
-#     p0 = generate_p(x)
-#     p1 = 1 - p0
-
-#     # v is a new variable, with new probability
-#     v = random.choices(
-#             population=[0, 1],
-#             weights=[p0, p1], # the p0 is a distribution, p1 is also a distribution
-#             k=1,
-#         )[0]
-    
-#     # DiffAI version: if p0 > p1: y=10 else: y=1; if intersection: both
-#     if v <= bar:
-#         y = 10
-#     else:
-#         y = 1
-    
-#     trajectory_list.append((x, y))
-#     return trajectory_list
-
-# def p1(r, g, b):
-#     win = -1
-#     # extract the probability for deciding the color
-#     output_layer = NN(r, g, b)
-#     # for a three-class classifier
-#     # output_layer is [p1, p2, p3], pi is the probability to be in class i
-#     index = sample_index(output_layer) 
-#     if index == 1:
-#         win = 1
-#     else:
-#         win = 0
-#     return win
-
-
-# def p2(coin, color):
-#     if coin == "head" and color == "red":
-#         win = 1
-#     else:
-#         win = 0
-#     return win
 
     

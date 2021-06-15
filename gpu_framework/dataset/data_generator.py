@@ -8,32 +8,27 @@ from constants import *
 
 
 def dataset_arg(dataset):
-    if dataset == "thermostat":
-        # range_ = [55.0, 62.0]
+    if benchmark_name == "thermostat":
         range_ = [55.0, 70.0]
-    if dataset == "mountain_car":
-        # range_ = [-0.6, -0.4]
-        # range_ = [-1.2, -0.4]
-        # range_ = [-0.6, 0.0]
-        range_ = [-1.6, -0.0]
-        # range_ = [-16.0, 0.0]
-    if dataset == "unsound_1":
+    elif benchmark_name == "mountain_car":
+        range_ = [-0.6, -0.4]
+    elif benchmark_name == "unsound_1":
         range_ = [-5.0, 5.0]
-    if dataset == "unsound_2_separate":
+    elif benchmark_name == "unsmooth_2_separate":
         range_ = [-5.0, 5.0]
-    if dataset == "unsound_2_overall":
+    elif benchmark_name == "unsmooth_2_overall":
         range_ = [-5.0, 5.0]
-    if dataset == "sampling_1":
+    elif benchmark_name == "sampling_1":
         range_ = [-1.0, 1.0]
-    if dataset == "sampling_2":
+    elif benchmark_name == "sampling_2":
         range_ = [0.0, 10.0]
-    if dataset == "path_explosion":
+    elif benchmark_name == "path_explosion":
         range_ = [2.0, 9.9]
-    if dataset == "path_explosion_2":
+    elif benchmark_name == "path_explosion_2":
         range_ = [2.0, 4.8]
-    if dataset == "mountain_car_1":
+    elif benchmark_name == "mountain_car_1":
         range_ =[-0.6, -0.4]
-    if dataset == "fairness_1":
+    elif benchmark_name == "fairness_1":
         range_ = [0.0, 10.0]
     
     return range_
@@ -87,7 +82,7 @@ def write_dataset(res_list, path):
 
 def run(safe_bound):
     args = get_args()
-    dataset = args.dataset
+    benchmark_name = args.benchmark_name
     distribution = args.dataset_distribution
 
     if dataset == "thermostat":
@@ -96,12 +91,12 @@ def run(safe_bound):
         func = benchmark.mountain_car
     if dataset == "mountain_car_1":
         func = benchmark.mountain_car_1
-    if dataset == "unsound_1":
-        func = benchmark.unsound_1
-    if dataset == "unsound_2_separate":
-        func = benchmark.unsound_2_separate
-    if dataset == "unsound_2_overall":
-        func = benchmark.unsound_2_overall
+    if dataset == "unsmooth_1":
+        func = benchmark.unsmooth_1
+    if dataset == "unsmooth_2_separate":
+        func = benchmark.unsmooth_2_separate
+    if dataset == "unsmooth_2_overall":
+        func = benchmark.unsmooth_2_overall
     if dataset == "sampling_1":
         func = benchmark.sampling_1
     if dataset == "sampling_2":

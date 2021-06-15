@@ -5,7 +5,7 @@ import numpy as np
 # import domain
 
 args = get_args()
-generate_all_dataset = args.generate_all_dataset
+generate_dataset = args.generate_dataset
 dataset_distribution = args.dataset_distribution
 lr = args.lr
 stop_val = args.stop_val
@@ -64,7 +64,6 @@ K_DISJUNCTS = 10000000
 SAMPLE_SIZE = 30
 DOMAIN = "interval" # [interval, zonotope]
 
-DATASET_PATH = f"dataset/{benchmark_name}_{data_attr}.txt"
 MODEL_PATH = f"gpu_{mode}/models"
 
 if benchmark_name == "thermostat":
@@ -82,6 +81,7 @@ if benchmark_name == "thermostat":
 
     safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
 
 if benchmark_name == "mountain_car":
     x_l = [-0.6]
@@ -109,7 +109,7 @@ data_attr = f"{dataset_distribution}_{x_l[0]}_{x_r[0]}"
 
 model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}"
 
-dataset_path_prefix = f"dataset/{benchmark_name}_{data_attr}"
+dataset_path_prefix = f"dataset/{benchmark_name}"
 
 # args
 dataset_size = 50
@@ -156,7 +156,7 @@ else:
 trajectory_log_prefix = f"gpu_{mode}/result_test/trajectory/{result_prefix}_"
 
 
-if not debug and not generate_all_dataset:
+if not debug and not generate_dataset:
     if os.path.exists(file_dir):
         log_file = open(file_dir, 'a')
     else:
@@ -177,7 +177,7 @@ if not debug and not generate_all_dataset:
 # below are other benchmarks
 
 
-if benchmark_name == "unsound_1":
+if benchmark_name == "unsmooth_1":
     x_l = [-5.0]
     x_r = [5.0]
 
@@ -202,7 +202,7 @@ if benchmark_name == "unsound_1":
     analysis_name_list = ['test']
 
 
-if benchmark_name == "unsound_2_separate":
+if benchmark_name == "unsmooth_2_separate":
     x_l = [-5.0]
     x_r = [5.0]
 
@@ -227,7 +227,7 @@ if benchmark_name == "unsound_2_separate":
     analysis_name_list = ['test']
 
 
-if benchmark_name == "unsound_2_overall":
+if benchmark_name == "unsmooth_2_overall":
     x_l = [-5.0]
     x_r = [5.0]
 
@@ -252,7 +252,7 @@ if benchmark_name == "unsound_2_overall":
     analysis_name_list = ['test']
 
 
-if benchmark_name == "sampling_1":
+if benchmark_name == "unsmooth_1":
     x_l = [-1.0]
     x_r = [1.0]
 

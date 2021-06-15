@@ -69,9 +69,9 @@ def f_assign_min_y(x):
     return x.set_value(var(1.0))
 
 
-class Sampling_1(nn.Module):
+class Program(nn.Module):
     def __init__(self, l=1):
-        super(Sampling_1, self).__init__()
+        super(Program, self).__init__()
         self.bar = var(0.5)
         self.max_y = var(10.0)
         self.min_y = var(1.0)

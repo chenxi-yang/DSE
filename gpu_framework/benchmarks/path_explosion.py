@@ -81,9 +81,9 @@ def f_assign_h_increase(x):
     return x.mul(var(2.0)).add(var(1.0))
 
 # input order: 0:h0, 1:bound, 2:count, 3:tmp_h_1, 4:tmp_h_2
-class PathExplosion(nn.Module):
+class Program(nn.Module):
     def __init__(self, l=1, nn_mode="complex"):
-        super(PathExplosion, self).__init__()
+        super(Program, self).__init__()
         self.goal_iteration = var(50.0)
         self.bar1 = var(3.0)
         self.bar2 = var(5.0)
@@ -123,32 +123,7 @@ class PathExplosion(nn.Module):
     
     def forward(self, input, version=None):
         if version == "single_nn_learning":
-            # B = input.shape[0]
-            # count = torch.zeros(B, 1)
-            # if torch.cuda.is_available():
-            #     count = count.cuda()
-
-            # # print(input.shape)
-            # print(f"input: {input.detach().cpu().numpy().tolist()[0]}")
             res = self.nn(input)
-            # print(f"res: {res.detach().cpu().numpy().tolist()[0]}")
-            # print(input.shape)
-            # for i in range(50):
-            #     input += 0.2
-            #     b1_idx = (input <= self.bar1)
-            #     b2_idx = (torch.logical_and(input > self.bar1, input <= self.bar2))
-            #     b3_idx = (input > self.bar2)
-
-            #     b1 = input[b1_idx].unsqueeze(1)
-            #     b2 = input[b2_idx].unsqueeze(1)
-            #     b3 = input[b3_idx].unsqueeze(1)
-
-            #     b1 = b1 + 0.2
-            #     b2 = self.nn(b2)
-            #     b3 = b3
-            #     input = torch.cat((b1, b2, b3), 0)
-
-            # res = input
         else:
             res = self.program(input)
         return res

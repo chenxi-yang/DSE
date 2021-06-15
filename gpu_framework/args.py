@@ -42,7 +42,7 @@ def get_parser():
     p.add_argument("--data_attr", default="normal_52.0_59.0", help="dataset_attr")
     p.add_argument("--train_size", default=200, type=int, help="training size")
     p.add_argument("--test_size", default=20000, type=int, help="test size")
-    p.add_argument("--generate_all_dataset", default=False, type=str2bool, help="generate the data set")
+    p.add_argument("--generate_dataset", default=False, type=str2bool, help="generate the data set")
     p.add_argument("--fixed_dataset", default=False, type=str2bool, help="whether to use the same dataset")
 
     # constraint
@@ -81,7 +81,7 @@ def get_parser():
     )
     p.add_argument("--use_hoang", default=False, type=str2bool, help="whether use the outest optimization")
     p.add_argument("--bound_start", default=0, type=int, help=f"the index to start with in safe bound list")
-    p.add_argument("--bound_end", default=3, type=int, help=f"the index to end within safe bound list")
+    p.add_argument("--bound_end", default=20, type=int, help=f"the index to end within safe bound list")
     p.add_argument(
         "--use_abstract_components", 
         default=True, 

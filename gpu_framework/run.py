@@ -127,7 +127,7 @@ if __name__ == "__main__":
                     dataset_path = f"{dataset_path_prefix}_{86.0}.txt"
                 else:
                     dataset_path = f"{dataset_path_prefix}_{safe_range_bound}.txt"
-                Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=)
+                Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=dataset_path)
                 # TODO: update component
                 component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components)
                 print(f"Prepare data: {time.time() - preprocessing_time} sec.")

@@ -94,9 +94,9 @@ def f_assign_max_z(x):
     return x.set_value(max_v)
 
 
-class Unsound_1(nn.Module):
+class Program(nn.Module):
     def __init__(self, l=1, nn_mode="simple"):
-        super(Unsound_1, self).__init__()
+        super(Program, self).__init__()
         self.bar = var(1.0)
         if nn_mode == "simple":
             self.nn = LinearNN(l=l)
