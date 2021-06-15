@@ -129,4 +129,57 @@ def append_log(f_list, log_txt):
         f.close()
 
 
+def create_components(x_min, x_max, num_components):
+    component_length = (x_max - x_min) / num_components
+    components = list()
+    for i in range(num_components):
+        l = x_min + i * component_length
+        r = x_min + (i + 1) * component_length
+        center = [(r + l) / 2.0]
+        width = [(r - l) / 2.0]
+        component_group = {
+            'center': center,
+            'width': width,
+        }
+        components.append(component_group)
+    return components
+
+
+def in_component(X, component):
+    center = component['center']
+    width = component['width']
+    for i, x in enumerate(X):
+        if x >= center[i] - width[i] and x < center[i] + width[i]:
+            pass
+        else:
+            return False
+    return True
+
+
+# Current Support: partition one dimension
+def extract_abstract_representation(trajectories, x_l, x_r, num_components):
+    # extract components
+    # interval
+    # and all the trajectories starting from that interval
+    x_min, x_max = x_l[0], x_r[0]
+    components = create_components(x_min, x_max, num_components)
+    for idx, component in enumerate(components):
+        component.update(
+            {
+                'trajectories': list(),
+            }
+        )
+        for trajectory in trajectories:
+            state, _ = ini_trajectory(trajectory)
+            if in_component([state[0]], component):
+                component['trajectories'].append(trajectory)
+        components[idx] = component
+    
+    return components
+
+
+
+
+
+
 
