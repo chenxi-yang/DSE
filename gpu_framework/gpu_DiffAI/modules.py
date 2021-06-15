@@ -358,10 +358,10 @@ def sound_join(symbol_tables_1, symbol_tables_2):
             #     del symbol_tables_1[key]
             # exit(0)
     
-    for key in list(symbol_tables_1.keys()):
-        del symbol_tables_1[key]
-    for key in list(symbol_tables_2.keys()):
-        del symbol_tables_2[key]
+    # for key in list(symbol_tables_1.keys()):
+    #     del symbol_tables_1[key]
+    # for key in list(symbol_tables_2.keys()):
+    #     del symbol_tables_2[key]
 
     return res_symbol_tables
 

@@ -50,6 +50,23 @@ def initialize_components(abstract_states):
     return states
 
 
+# def initialization_components_point(abstract_states):
+#     abstract_state_list = list()
+#     # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
+#     abstract_state = list()
+#     symbol_table = {
+#         'x': domain.Box(var_list([-0.5, 0.0, 0.0, 0.0]), var_list([0.0, 0.0, 0.0, 0.0])),
+#         'probability': var(1.0),
+#         'trajectory': list(),
+#         'branch': '',
+#         'idx': 0, 
+#     }
+
+#     abstract_state.append(symbol_table)
+#     abstract_state_list.append(abstract_state)
+#     return abstract_state_list
+
+
 def f_self(x):
     return x
 
