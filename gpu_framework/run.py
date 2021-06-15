@@ -36,16 +36,14 @@ from utils import (
 def import_module():
     if mode == 'DSE':
         from gpu_DSE.train import *
-        from gpu_DSE.data_generator import load_data
     if mode == 'DiffAI':
         from gpu_DiffAI.train import *
-        from gpu_DiffAI.data_generator import load_data
     if mode == 'SPS':
         from gpu_SPS.train import *
-        from gpu_SPS.data_generator import load_data
     if mode == 'SPS-sound':
         from gpu_SPS_sound.train import *
-        from gpu_SPS_sound.data_generator import load_data
+    if mode == 'only_data':
+        from gpu_only_data.train import *
 
 
 #TODO:  change arguments
