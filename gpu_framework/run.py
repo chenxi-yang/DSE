@@ -3,26 +3,21 @@ from constants import *
 import constants
 from args import *
 
-if benchmark_name == "thermostat":
-    from benchmarks.thermostat import *
-elif benchmark_name == "mountain_car":
-    from benchmarks.mountain_car import *
-elif benchmark_name == "unsmooth_1":
-    from benchmarks.unsmooth import *
-elif benchmark_name == "unsmooth_2_separate":
-    from benchmarks.unsmooth_2_separate import *
-elif benchmark_name == "unsmooth_2_overall":
-    from benchmarks.unsmooth_2_overall import *
-elif benchmark_name == "path_explosion":
-    from benchmarks.path_explosion import *
-elif benchmark_name == "path_explosion_2":
-    from benchmarks.path_explosion_2 import *
-
 from data_loader import *
 import domain
 
 import random
 import time
+
+if mode == 'DSE':
+    from gpu_DSE.train import *
+if mode == 'DiffAI':
+    from gpu_DiffAI.train import *
+if mode == 'only_data':
+    from gpu_only_data.train import *
+
+from verifier_AI import verifier_AI
+from verifier_SE import verifier_SE
 
 from utils import (
     extract_abstract_representation,
@@ -30,19 +25,6 @@ from utils import (
     count_parameters,
     append_log,
 )
-
-
-# def import_module():
-#     if mode == 'DSE':
-#         from gpu_DSE.train import *
-#     if mode == 'DiffAI':
-#         from gpu_DiffAI.train import *
-#     if mode == 'SPS':
-#         from gpu_SPS.train import *
-#     if mode == 'SPS-sound':
-#         from gpu_SPS_sound.train import *
-#     if mode == 'only_data':
-#         from gpu_only_data.train import *
 
 
 #TODO:  change arguments
@@ -117,12 +99,21 @@ if __name__ == "__main__":
 
             # Run 5 times
             for i in range(5):
-                if mode == 'DSE':
-                    from gpu_DSE.train import *
-                if mode == 'DiffAI':
-                    from gpu_DiffAI.train import *
-                if mode == 'only_data':
-                    from gpu_only_data.train import *
+                constants.status = 'train'
+                if benchmark_name == "thermostat":
+                    from benchmarks.thermostat import *
+                elif benchmark_name == "mountain_car":
+                    from benchmarks.mountain_car import *
+                elif benchmark_name == "unsmooth_1":
+                    from benchmarks.unsmooth import *
+                elif benchmark_name == "unsmooth_2_separate":
+                    from benchmarks.unsmooth_2_separate import *
+                elif benchmark_name == "unsmooth_2_overall":
+                    from benchmarks.unsmooth_2_overall import *
+                elif benchmark_name == "path_explosion":
+                    from benchmarks.path_explosion import *
+                elif benchmark_name == "path_explosion_2":
+                    from benchmarks.path_explosion_2 import *
 
                 preprocessing_time = time.time()
                 if benchmark_name in ["thermostat"]:
@@ -205,8 +196,22 @@ if __name__ == "__main__":
                 )
 
                 # Verification
-                from verifier_AI import verifier_AI
-                from modules_AI import *
+                constants.status = 'verify_AI'
+                if benchmark_name == "thermostat":
+                    from benchmarks.thermostat import *
+                elif benchmark_name == "mountain_car":
+                    from benchmarks.mountain_car import *
+                elif benchmark_name == "unsmooth_1":
+                    from benchmarks.unsmooth import *
+                elif benchmark_name == "unsmooth_2_separate":
+                    from benchmarks.unsmooth_2_separate import *
+                elif benchmark_name == "unsmooth_2_overall":
+                    from benchmarks.unsmooth_2_overall import *
+                elif benchmark_name == "path_explosion":
+                    from benchmarks.path_explosion import *
+                elif benchmark_name == "path_explosion_2":
+                    from benchmarks.path_explosion_2 import *
+                
                 # TODO: check replacement?
                 print(f"------------start sound verification------------")
                 print(f"to verify safe bound: {safe_range_bound}")
@@ -221,9 +226,24 @@ if __name__ == "__main__":
                     target=target,
                     trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}")
                 print(f"---verification time: {time.time() - verification_time} sec---")
-                
-                from verifier_SE import verifier_SE
                 from modules_SE import *
+
+                constants.status = 'verify_SE'
+                if benchmark_name == "thermostat":
+                    from benchmarks.thermostat import *
+                elif benchmark_name == "mountain_car":
+                    from benchmarks.mountain_car import *
+                elif benchmark_name == "unsmooth_1":
+                    from benchmarks.unsmooth import *
+                elif benchmark_name == "unsmooth_2_separate":
+                    from benchmarks.unsmooth_2_separate import *
+                elif benchmark_name == "unsmooth_2_overall":
+                    from benchmarks.unsmooth_2_overall import *
+                elif benchmark_name == "path_explosion":
+                    from benchmarks.path_explosion import *
+                elif benchmark_name == "path_explosion_2":
+                    from benchmarks.path_explosion_2 import *
+                
                 print(f"to verify safe bound(test dataset): {safe_range_bound}")
                 verification_time = time.time()
                 component_list = extract_abstract_representation(Trajectory_test, x_l, x_r, 1)

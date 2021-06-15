@@ -9,9 +9,6 @@ import torch
 from constants import benchmark_name
 from torch.autograd import Variable
 
-# define the model by the same structure
-from gpu_DSE.modules import *
-
 from utils import (
     batch_pair,
     batch_pair_endpoint,

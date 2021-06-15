@@ -54,6 +54,8 @@ DOMAIN = "interval" # [interval, zonotope]
 
 MODEL_PATH = f"gpu_{mode}/models"
 
+status = ''
+
 if benchmark_name == "thermostat":
     x_l = [55.0]
     x_r = [70.0]
