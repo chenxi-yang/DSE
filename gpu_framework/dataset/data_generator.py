@@ -1,9 +1,11 @@
-from args import get_args
+import sys
+sys.path.append("../")
 
 import numpy as np
 from scipy.stats import truncnorm
 
 import benchmark
+from args import get_args
 from constants import *
 
 
@@ -43,7 +45,7 @@ def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
 def generate_dataset(func, distribution, input_range, safe_bound, data_size=50000):
     res_list = list()
     min_tra, max_tra = 100000, -100000
-    print(f"genetate")
+    print(f"Start generation.")
 
     if distribution == "normal":
         l, r = input_range[0], input_range[1]
@@ -85,36 +87,36 @@ def run(safe_bound):
     benchmark_name = args.benchmark_name
     distribution = args.dataset_distribution
 
-    if dataset == "thermostat":
+    if benchmark_name == "thermostat":
         func = benchmark.thermostat
-    if dataset == "mountain_car":
+    elif benchmark_name == "mountain_car":
         func = benchmark.mountain_car
-    if dataset == "mountain_car_1":
+    elif benchmark_name == "mountain_car_1":
         func = benchmark.mountain_car_1
-    if dataset == "unsmooth_1":
+    elif benchmark_name == "unsmooth_1":
         func = benchmark.unsmooth_1
-    if dataset == "unsmooth_2_separate":
+    elif benchmark_name == "unsmooth_2_separate":
         func = benchmark.unsmooth_2_separate
-    if dataset == "unsmooth_2_overall":
+    elif benchmark_name == "unsmooth_2_overall":
         func = benchmark.unsmooth_2_overall
-    if dataset == "sampling_1":
+    elif benchmark_name == "sampling_1":
         func = benchmark.sampling_1
-    if dataset == "sampling_2":
+    elif benchmark_name == "sampling_2":
         func = benchmark.sampling_2
-    if dataset == "path_explosion":
+    elif benchmark_name == "path_explosion":
         func = benchmark.path_explosion
-    if dataset == "path_explosion_2":
+    elif benchmark_name == "path_explosion_2":
         func = benchmark.path_explosion_2
-    if dataset == "fairness_1":
+    elif benchmark_name == "fairness_1":
         func = benchmark.fairness_1
     
-    input_range = dataset_arg(dataset)
+    input_range = dataset_arg(benchmark_name)
 
     res_list = generate_dataset(func=func, distribution=distribution, input_range=input_range, safe_bound=safe_bound)
     write_dataset(
         res_list,
         # path=f"dataset/{dataset}_{distribution}_{input_range[0]}_{input_range[1]}_{safe_bound}.txt",
-        path=f"{dataset_path_prefix}_{safe_bound}.txt"
+        path=f"{benchmark_name}_{safe_bound}.txt"
         )
 
 if __name__ == "__main__":
