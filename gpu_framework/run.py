@@ -11,6 +11,7 @@ import time
 
 from verifier_AI import verifier_AI
 from verifier_SE import verifier_SE
+from tester import test_data_loss
 
 from utils import (
     extract_abstract_representation,
@@ -183,17 +184,7 @@ if __name__ == "__main__":
                 # SE verification use one initial components
                 SE_components = extract_abstract_representation(Trajectory_test, x_l, x_r, 1)
                 # AI verification, SE verification, Test data loss
-                verify(
-                    model_path=MODEL_PATH,
-                    model_name=target_model_name,
-                    AI_component_list=AI_component_list,
-                    SE_component_list=SE_component_list,
-                    trajectory=Trajectory_test,
-                    target=target,
-                    trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}",
-                )
 
-                # Verification
                 constants.status = 'verify_AI'
                 if benchmark_name == "thermostat":
                     from benchmarks.thermostat import *
@@ -220,11 +211,10 @@ if __name__ == "__main__":
                 verifier_AI(
                     model_path=MODEL_PATH, 
                     model_name=target_model_name, 
-                    component_list=component_list, 
+                    components=AI_components, 
                     target=target,
                     trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}")
-                print(f"---verification time: {time.time() - verification_time} sec---")
-                from modules_SE import *
+                print(f"---verification AI time: {time.time() - verification_time} sec---")
 
                 constants.status = 'verify_SE'
                 if benchmark_name == "thermostat":
@@ -242,25 +232,25 @@ if __name__ == "__main__":
                 elif benchmark_name == "path_explosion_2":
                     from benchmarks.path_explosion_2 import *
                 
-                print(f"to verify safe bound(test dataset): {safe_range_bound}")
                 verification_time = time.time()
-                component_list = extract_abstract_representation(Trajectory_test, x_l, x_r, 1)
-                verification_SE(
+                verifier_SE(
                     model_path=MODEL_PATH, 
                     model_name=target_model_name, 
                     trajectory_test=Trajectory_test, 
-                    component_list=component_list,
+                    components=SE_components,
                     target=target,
                 )
-                print(f"---unsound verification(test dataset)time: {time.time() - verification_time} sec---")
+                print(f"---verification SE time: {time.time() - verification_time} sec---")
 
                 from tester import test_data_loss
+                test_time = time.time()
                 test_data_loss(
                     model_path=MODEL_PATH, 
                     model_name=target_model_name, 
                     trajectory_test=Trajectory_test, 
                     target=target
                 )
+                print(f"---test data loss time: {time.time() - test_time} sec---")
 
 
 
