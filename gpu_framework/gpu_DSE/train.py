@@ -149,6 +149,7 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
     return abstract_loss
     
 
+# TODO: to change
 def safe_distance(abstract_state_list, target):
     # measure safe distance in DSE
     # I am using sampling, and many samples the eventual average will be the same as the expectation
@@ -195,16 +196,14 @@ def safe_distance(abstract_state_list, target):
     return loss
 
 
-def cal_data_loss(m, trajectory_list, criterion):
+def cal_data_loss(m, trajectories, criterion):
     # for the point in the same batch
     # calculate the data loss of each point
     # add the point data loss together
-    if len(trajectory_list) == 0:
+    if len(trajectories) == 0:
         return var_list([0.0])
-    if benchmark_name in ['thermostat']:
-        X, y = batch_pair_endpoint(trajectory_list, data_bs=None)
-    else:
-        X, y = batch_pair(trajectory_list, data_bs=512)
+
+    X, y = batch_pair(trajectory_list, data_bs=512)
     print(f"after batch pair: {X.shape}, {y.shape}")
 
     X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
@@ -212,78 +211,43 @@ def cal_data_loss(m, trajectory_list, criterion):
         X = X.cuda()
         y = y.cuda()
     
-    # print(X.shape, y.shape)s
     yp = m(X, version="single_nn_learning")
     if debug:
         yp_list = yp.squeeze().detach().cpu().numpy().tolist()
         y_list = y.squeeze().detach().cpu().numpy().tolist()
-        # print(f"yp: {min(yp_list)}, {max(yp_list)}")
         print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
-        # print(f"y: {y_list[:5]}")
     
     # print(f"x: {X}")
     yp_list = yp.squeeze().detach().cpu().numpy().tolist()
     y_list = y.squeeze().detach().cpu().numpy().tolist()
-    # print(yp_list)
-    # print(y_list)
+
     print(f"yp: {min(yp_list)}, {max(yp_list)}")
     print(f"y: {min(y_list)}, {max(y_list)}")
     data_loss = criterion(yp, y)
-    if benchmark_name == "thermostat":
-        data_loss /= X.shape[0]
-    # print(f"data_loss: {datas_loss}")
+    
     return data_loss
 
 
-def cal_safe_loss(m, abstract_state, target):
+def cal_safe_loss(m, abstract_states, target):
     '''
     DSE: sample paths
     abstract_state = list<{
         'center': vector, 
         'width': vector, 
-        'p': var
     }>
     '''
     # show_component(abstract_state)
-    ini_abstract_state_list = initialization_abstract_state(abstract_state)
+    ini_states = initialize_components(abstract_states)
     assert(len(ini_abstract_state_list) == 1)
-    res_abstract_state_list = list()
+    res_states = list()
 
+    # TODO: sample simultanuously
     for i in range(constants.SAMPLE_SIZE):
-        # sample one path each time
-        # sample_time = time.time()
-        # print(f"DSE: in M")
-        abstract_list = m(ini_abstract_state_list, 'abstract')
-        # show_trajectory(abstract_list)
-        # print(f"---------------")
-        res_abstract_state_list.append(abstract_list[0]) # only one abstract state returned
-    # print(f"length: {len(y_abstract_list)}")
-        # print(f"result: {abstract_list[0][0]['x'].c, abstract_list[0][0]['x'].delta}")
-        # print(f"run one time")
-    
-    # TODO: the new safe loss function
-    safe_loss = safe_distance(res_abstract_state_list, target)
+        output_states = m(ini_states, 'abstract')
+        res_states.append(output_states)
+
+    safe_loss = safe_distance(res_states, target)
     return safe_loss
-
-
-def update_model_parameter(m, theta):
-    # for a given parameter module: theta
-    # update the parameters in m with theta
-    # no grad required
-    # TODO: use theta to actually update the element in m.parameters
-    with torch.no_grad():
-        for idx, p in enumerate(list(m.parameters())):
-            p.copy_(theta[idx])
-    return m
-
-
-def extract_parameters(m):
-    # extract the parameters in m into the Theta
-    # this is for future sampling and derivative extraction
-    Theta = list()
-    for value in enumerate(m.parameters()):
-        Theta.append(value[1].clone())
-    return Theta
 
 
 def learning(

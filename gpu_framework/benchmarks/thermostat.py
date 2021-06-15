@@ -26,46 +26,44 @@ if torch.cuda.is_available():
     index3 = index3.cuda()
 
 
-def initialize_components(component_list):
+def initialize_components(abstract_states):
     #TODO: add batched components to replace the following two 
-    return states
-    
-
-def initialization_abstract_state(component_list):
-    abstract_state_list = list()
-    # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
-    abstract_state = list()
-    for component in component_list:
-        center, width, p = component['center'], component['width'], component['p']
-        print(component['p'])
-        symbol_table = {
-            'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
-            'probability': var(p),
-            'trajectory': list(),
-            'branch': '',
-        }
-        abstract_state.append(symbol_table)
-    print(f"end of initialization_abstract_state")
-    abstract_state_list.append(abstract_state)
-    return abstract_state_list
-
-
-# i, isOn, x, lin
-def initialization_nn(batched_center, batched_width):
-    B, D = batched_center.shape
+    center, width = abstract_states['center'], abstract_states['width']
+    B, D = center.shape
     padding = torch.zeros(B, 1)
     if torch.cuda.is_available():
         padding = padding.cuda()
     
-    input_center, input_width = batched_center[:, :1], batched_width[:, :1]
-    symbol_tables = {
+    input_center, input_width = center[:, :1], width[:, :1]
+    states = {
         'x': domain.Box(torch.cat((padding, padding, input_center, input_center), 1), torch.cat((padding, padding, input_width, input_width), 1)),
-        'trajectory_list': [[] for i in range(B)],
-        'idx_list': [i for i in range(B)], # marks which idx the tensor comes from in the input
+        'trajectories': [[] for i in range(B)],
+        'idx_list': [i for i in range(B)],
+        'p_list': [var(1.0) for i in range(B)], # might be changed to batch
     }
 
-    return symbol_tables
+    return states
+    
 
+# def initialization_old(abstract_states):
+#     center, width = abstract_states['center'], abstract_states['width']
+#     B, D = center.shape
+#     padding = torch.zeros(B, 1)
+    
+#     abstract_state = list()
+#     for component in component_list:
+#         center, width, p = component['center'], component['width'], component['p']
+#         print(component['p'])
+#         symbol_table = {
+#             'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
+#             'probability': var(p),
+#             'trajectory': list(),
+#             'branch': '',
+#         }
+#         abstract_state.append(symbol_table)
+#     print(f"end of initialization_abstract_state")
+#     abstract_state_list.append(abstract_state)
+#     return abstract_state_list
 
 
 def f_isOn(x):
