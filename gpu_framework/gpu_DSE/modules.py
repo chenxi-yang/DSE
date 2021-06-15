@@ -5,7 +5,6 @@ import torch.nn as nn
 from random import shuffle
 
 import domain
-from helper import * 
 from constants import *
 import constants
 

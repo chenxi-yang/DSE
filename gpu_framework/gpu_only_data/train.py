@@ -69,12 +69,11 @@ def learning(
         l=10,
         save=save,
         epochs_to_skip=None,
-        model_name=None, 
-        only_data_loss=only_data_loss,
+        model_name=None,
         data_bs=data_bs,
         ):
     print("--------------------------------------------------------------")
-    print('====Start Training DSE====')
+    print('====Start Training only data====')
 
     TIME_OUT = False
 

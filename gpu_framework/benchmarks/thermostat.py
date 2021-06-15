@@ -2,7 +2,6 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from helper import * 
 from constants import *
 import constants
 import domain
