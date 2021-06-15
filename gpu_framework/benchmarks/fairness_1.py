@@ -123,9 +123,9 @@ def f_assign_n(x):
 # 11: g_f (gender==0)
 # 12: g_m (gender==1)
 # assert(p(m==1)*p(g_f==1) >= p(n==1)*p(g_m==1))
-class Fairness_1(nn.Module):
+class Program(nn.Module):
     def __init__(self, l=1, nn_mode="simple"):
-        super(Fairness_1, self).__init__()
+        super(Program, self).__init__()
         self.p_gender = var(0.5)
         self.not_p_gender = 1 - self.p_gender
         self.p_colRank = var(0.5)

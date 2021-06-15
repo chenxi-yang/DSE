@@ -192,9 +192,9 @@ def f_assign_v(x):
     return v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
 
 
-class MountainCar(nn.Module):
+class Program(nn.Module):
     def __init__(self, l, nn_mode='all'):
-        super(MountainCar, self).__init__()
+        super(Program, self).__init__()
         self.goal_position = var(0.5)
         self.min_position = var(-1.2)
         self.min_speed = var(-0.07)

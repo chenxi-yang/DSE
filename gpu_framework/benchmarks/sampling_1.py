@@ -87,9 +87,9 @@ def f_assign_min_y(x):
     return x.set_value(var(1.0))
 
 
-class Sampling_1(nn.Module):
+class Program(nn.Module):
     def __init__(self, l=1, nn_mode="complex"):
-        super(Sampling_1, self).__init__()
+        super(Program, self).__init__()
         self.bar = var(0.5)
         self.max_z = var(10.0)
         self.min_z = var(1.0)

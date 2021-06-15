@@ -78,9 +78,9 @@ def f_assign_max_z(x):
     return x.set_value(var(10.0))
 
 
-class Unsound_2_Overall(nn.Module):
-    def __init__(self, l=1):
-        super(Unsound_2_Overall, self).__init__()
+class Program(nn.Module):
+    def __init__(self, l=1, nn_mode=None):
+        super(Program, self).__init__()
         self.bar = var(1.0)
         self.nn = LinearAssign(l=l)
 
