@@ -1,23 +1,23 @@
 
 from constants import *
 import constants
-
-# if mode == 'DSE':
-#     from gpu_DSE.train import *
-#     from gpu_DSE.data_generator import load_data
-# if mode == 'DiffAI':
-#     from gpu_DiffAI.train import *
-#     from gpu_DiffAI.data_generator import load_data
-# if mode == 'SPS':
-#     from gpu_SPS.train import *
-#     from gpu_SPS.data_generator import load_data
-# if mode == 'SPS-sound':
-#     from gpu_SPS_sound.train import *
-#     from gpu_SPS_sound.data_generator import load_data
-
 from args import *
-from evaluation_sound import verification
-from evaluation_unsound import verification_unsound
+
+if benchmark_name == "thermostat":
+    from benchmarks.thermostat import *
+elif benchmark_name == "mountain_car":
+    from benchmarks.mountain_car import *
+elif benchmark_name == "unsound_1":
+    from benchmarks.unsound_1 import *
+elif benchmark_name == "unsound_2_separate":
+    from benchmarks.unsound_2_separate import *
+elif benchmark_name == "unsound_2_overall":
+    from benchmarks.unsound2_overall import *
+elif benchmark_name == "path_explosion":
+    from benchmarks.path_explosion import *
+elif benchmark_name == "path_explosion_2":
+    from benchmarks.path_explosion_2 import *
+
 import domain
 
 import random

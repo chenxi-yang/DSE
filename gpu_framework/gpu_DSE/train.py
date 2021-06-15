@@ -11,30 +11,6 @@ from torch.autograd import Variable
 
 from gpu_DSE.modules import *
 
-if benchmark_name == "thermostat":
-    from gpu_DSE.thermostat_nn import * 
-if benchmark_name == "mountain_car":
-    from gpu_DSE.mountain_car import *
-if benchmark_name == "mountain_car_1":
-    from gpu_DSE.mountain_car_1 import *
-if benchmark_name == "unsound_1":
-    from gpu_DSE.unsound_1 import *
-if benchmark_name == "unsound_2_separate":
-    from gpu_DSE.unsound_2_separate import *
-if benchmark_name == "unsound_2_overall":
-    from gpu_DSE.unsound_2_overall import *
-if benchmark_name == "sampling_1":
-    from gpu_DSE.sampling_1 import *
-if benchmark_name == "sampling_2":
-    from gpu_DSE.sampling_2 import *
-if benchmark_name == "path_explosion":
-    from gpu_DSE.path_explosion import *
-if benchmark_name == "path_explosion_2":
-    from gpu_DSE.path_explosion_2 import *
-if benchmark_name == "fairness_1":
-    from gpu_DSE.fairness_1 import *
-
-
 from utils import (
     batch_pair,
     batch_pair_endpoint,
@@ -44,8 +20,6 @@ from utils import (
     show_component, 
     show_cuda_memory,
     show_trajectory,
-    shrink_sample_width,
-    widen_sample_width,
     )
 
 from gpu_DSE.data_generator import *
