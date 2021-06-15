@@ -18,6 +18,7 @@ from utils import (
     show_component, 
     show_cuda_memory,
     show_trajectory,
+    divide_chunks,
     )
 
 random.seed(1)
@@ -265,44 +266,6 @@ def cal_safe_loss(m, abstract_state, target):
     return safe_loss
 
 
-def divide_chunks(components, bs=1, data_bs=2):
-    '''
-    component: {
-        'center': 
-        'width':
-        'trajectories':
-    }
-    bs: number of components in a batch
-    data_bs: number of trajectories to aggregate the training points
-
-    # components, bs, data_bs
-    # whenever a components end, return the components, otherwise 
-
-    return: refined trajectores, return abstract_states
-    
-    abstract_states: {
-        'center': batched center,
-        'width': batched width,
-    }
-    '''
-    for i in range(0, len(components), bs):
-        components = component_list[i:i + bs]
-        abstract_states = dict()
-        trajectories = list()
-        center_list, width_list = list()
-        for component_idx, component in enumerate(components):
-            center_list.append(component['center'])
-            width_list.append(component['width'])
-            for trajectory_idx, trajectory in enumerate(component['trajectories']):
-                trajectories.append(trajectory)
-
-        batched_center, batched_width = batch_points(center_list), batch_points(width_list)
-        abstract_states['center'] = batched_center
-        abstract_states['width'] = batched_width
-
-        yield trajectories, abstract_states
-
-
 def update_model_parameter(m, theta):
     # for a given parameter module: theta
     # update the parameters in m with theta
@@ -365,7 +328,7 @@ def learning(
         count = 0
         tmp_q_idx = 0
 
-        for trajectory_list, abstract_states in divide_chunks(components, bs=bs, data_bs=data_bs):
+        for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
 
             # TODO: update the following
             batch_time = time.time()
