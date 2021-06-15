@@ -129,7 +129,7 @@ if __name__ == "__main__":
                     dataset_path = f"{dataset_path_prefix}_{safe_range_bound}.txt"
                 Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=dataset_path)
                 # TODO: update component
-                component_list = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components)
+                components = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components)
                 print(f"Prepare data: {time.time() - preprocessing_time} sec.")
 
                 lambda_list = list()
@@ -157,9 +157,8 @@ if __name__ == "__main__":
                     # try: 
                     _, loss, loss_list, q, c, time_out = learning(
                         m, 
-                        component_list,
-                        lambda_=new_lambda, 
-                        stop_val=stop_val, 
+                        components,
+                        lambda_=new_lambda,
                         epoch=num_epoch, 
                         target=target,
                         lr=lr,
@@ -189,8 +188,10 @@ if __name__ == "__main__":
                 if time_out == True:
                     continue
 
-                AI_component_list = extract_abstract_representation(Trajectory_test, x_l, x_r, AI_verifier_num_components)
-                SE_component_list = extract_abstract_representation(Trajectory_test, x_l, x_r, 1)
+                # AI verification use many initial components, as more as possible
+                AI_components = extract_abstract_representation(Trajectory_test, x_l, x_r, AI_verifier_num_components)
+                # SE verification use one initial components
+                SE_components = extract_abstract_representation(Trajectory_test, x_l, x_r, 1)
                 # AI verification, SE verification, Test data loss
                 verify(
                     model_path=MODEL_PATH,

@@ -14,9 +14,7 @@ from gpu_DSE.modules import *
 from utils import (
     batch_pair,
     batch_pair_endpoint,
-    generate_distribution, 
     ini_trajectory,
-    sample_parameters, 
     show_component, 
     show_cuda_memory,
     show_trajectory,
@@ -267,13 +265,12 @@ def cal_safe_loss(m, abstract_state, target):
     return safe_loss
 
 
-def divide_chunks(component_list, data_safe_consistent, bs=1, data_bs=2):
+def divide_chunks(components, bs=1, data_bs=2):
     '''
     component: {
         'center': 
         'width':
-        'p':
-        'trajectory_list':
+        'trajectories':
     }
     bs: number of components in a batch
     data_bs: number of trajectories to aggregate the training points
@@ -281,35 +278,29 @@ def divide_chunks(component_list, data_safe_consistent, bs=1, data_bs=2):
     # components, bs, data_bs
     # whenever a components end, return the components, otherwise 
 
-    return: refineed trajectory_list, return abstract states
+    return: refined trajectores, return abstract_states
+    
+    abstract_states: {
+        'center': batched center,
+        'width': batched width,
+    }
     '''
-    for i in range(0, len(component_list), bs):
+    for i in range(0, len(components), bs):
         components = component_list[i:i + bs]
-        abstract_states = list()
-        trajectory_list, y_list = list(), list()
+        abstract_states = dict()
+        trajectories = list()
+        center_list, width_list = list()
         for component_idx, component in enumerate(components):
-            abstract_state = {
-                'center': component['center'],
-                'width': component['width'],
-                'p': component['p'],
-            }
-            abstract_states.append(abstract_state)
-            for trajectory_idx, trajectory in enumerate(component['trajectory_list']):
-                # print(f"before: {len(trajectory)}")
-                trajectory_list.append(trajectory)
-                # print(f"after: {len(trajectory_list)}")
-                if data_safe_consistent:
-                    continue
-                if (trajectory_idx + data_bs > len(component['trajectory_list']) - 1) and component_idx == len(components) - 1:
-                    pass
-                elif len(trajectory_list) == data_bs:
-                    # print(trajectory_list)
-                    yield trajectory_list, [], False
-                    trajectory_list = list()
-            # print(f"component probability: {component['p']}")
+            center_list.append(component['center'])
+            width_list.append(component['width'])
+            for trajectory_idx, trajectory in enumerate(component['trajectories']):
+                trajectories.append(trajectory)
 
-        # print(f"out: {trajectory_list}")
-        yield trajectory_list, abstract_states, True # use safe loss
+        batched_center, batched_width = batch_points(center_list), batch_points(width_list)
+        abstract_states['center'] = batched_center
+        abstract_states['width'] = batched_width
+
+        yield trajectories, abstract_states
 
 
 def update_model_parameter(m, theta):
@@ -334,65 +325,34 @@ def extract_parameters(m):
 
 def learning(
         m, 
-        component_list,
-        lambda_=lambda_,
-        stop_val=0.01, 
+        components,
+        lambda_=lambda_, 
         epoch=1000,
         target=None, 
         lr=0.00001,
-        bs=10, 
-        n=5,
+        bs=10,
         nn_mode='all',
         l=10,
-        module='linearrelu',
-        use_smooth_kernel=use_smooth_kernel,
         save=save,
         epochs_to_skip=None,
         model_name=None, 
         only_data_loss=only_data_loss,
         data_bs=data_bs,
-        use_data_loss=use_data_loss,
-        data_safe_consistent=None,
-        sample_std=0.01,
-        sample_width=None,
-        weight_decay=None,
         ):
     print("--------------------------------------------------------------")
-    print('====Start Training====')
-    print(f"Optimizer: {optimizer_method}")
+    print('====Start Training DSE====')
 
     TIME_OUT = False
 
-    # if benchmark_name == "mountain_car":
-    #     lambda_ *= 10
-
-    # m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-    # print(m)
     if torch.cuda.is_available():
         m.cuda()
 
     criterion = torch.nn.MSELoss()
-    if optimizer_method  == "SGD":
-        optimizer = torch.optim.SGD(m.parameters(), lr=lr, momentum=0.9)
-    if optimizer_method  == "Adam-0":
-        optimizer = torch.optim.Adam(m.parameters(), lr=lr) #, weight_decay=1e-05)
-    if optimizer_method  == "Adam":
-        if benchmark_name == "mountain_car":
-            weight_decay = 1e-05
-        if weight_decay is None:
-            optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-05)
-        else:
-            optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=weight_decay)
-    print(weight_decay)
+    optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-06)
 
     if epochs_to_skip is None:
         epochs_to_skip = -1
-    
-    if benchmark_name in ["mountain_car", "mountain_car_1", "sampling_2", "path_explosion", "path_explosion_2"]:
-        nn_separate = True
-    else:
-        nn_separate = False
-    
+
     start_time = time.time()
     last_update_i = 0
     c_loss_i = 0
@@ -405,14 +365,9 @@ def learning(
         count = 0
         tmp_q_idx = 0
 
-        for trajectory_list, abstract_states, use_safe_loss in divide_chunks(component_list, data_safe_consistent=data_safe_consistent, bs=bs, data_bs=data_bs):
-            # print(f"x lengsth: {len(x)}")
-            # if len(trajectory_list) == 0:
-            #     continue
-            # show_cuda_memory(f"ini batch free")
-            if not use_safe_loss and not use_data_loss:
-                continue
+        for trajectory_list, abstract_states in divide_chunks(components, bs=bs, data_bs=data_bs):
 
+            # TODO: update the following
             batch_time = time.time()
             grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
             real_data_loss, real_safe_loss = 0.0, 0.0
