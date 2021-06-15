@@ -54,27 +54,6 @@ def initialize_components(abstract_states):
     }
 
     return states
-    
-
-# def initialization_old(abstract_states):
-#     center, width = abstract_states['center'], abstract_states['width']
-#     B, D = center.shape
-#     padding = torch.zeros(B, 1)
-    
-#     abstract_state = list()
-#     for component in component_list:
-#         center, width, p = component['center'], component['width'], component['p']
-#         print(component['p'])
-#         symbol_table = {
-#             'x': domain.Box(var_list([0.0, 0.0, center[0], center[0]]), var_list([0.0, 0.0, width[0], width[0]])),
-#             'probability': var(p),
-#             'trajectory': list(),
-#             'branch': '',
-#         }
-#         abstract_state.append(symbol_table)
-#     print(f"end of initialization_abstract_state")
-#     abstract_state_list.append(abstract_state)
-#     return abstract_state_list
 
 
 def f_isOn(x):
@@ -129,21 +108,12 @@ class LinearReLU(nn.Module):
         # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
 
     def forward(self, x):
-        # start_time = time.time()
-        # print(f"LinearSig, before: {x.c, x.delta}")
         res = self.linear1(x)
-        # print(f"LinearSig, after linear1: {res.c, res.delta}")
         res = self.relu(res)
-        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         res = self.linear2(res)
         res = self.relu(res)
         res = self.linear3(res)
-        # print(f"LinearSig, after linear2: {res.c, res.delta}")
-        # res, q2 = self.sigmoid_linear(res)
-        # res = self.tanh(res)
-        # print(f"LinearSig, after: {res.c, res.delta}")
-        # exit(0)
-        # print(f"time in LinearReLU: {time.time() - start_time}")
+        res = self.sigmoid(res)
         return res
 
 
@@ -242,7 +212,7 @@ class Program(nn.Module):
             x = input[:, 1].unsqueeze(1)
             state = input
             # print(lin.shape, x.shape, isOn.shape)
-            for i in range(40):
+            for i in range(1):
                 off_idx = (isOn <= 0.5)
                 on_idx = (isOn > 0.5)
                 # print(f"off_idx: {off_idx.shape}, x: {x.shape}")
@@ -255,12 +225,12 @@ class Program(nn.Module):
                 isOn_on = isOn[on_idx].unsqueeze(1)
 
                 # if isOn <= 0.5: off
-                off_x = off_x - self.nn(off_state) * 0.01
+                off_x = off_x - self.nn(off_state) * 10.0
                 # print(f"off shape: {isOn_off.shape}, {off_x.shape}")
                 isOn_off[off_x <= float(self.tOn)] = float(1.0)
 
                 # else  isOn > 0.5: on
-                on_x = on_x - self.nn(on_state) * 0.01 + 10.0
+                on_x = on_x - self.nn(on_state) * 10.0 + 10.0
                 isOn_on[on_x > float(self.tOff)] = float(0.0)
 
                 x = torch.cat((off_x, on_x), 0)
@@ -285,29 +255,7 @@ class Program(nn.Module):
                 nn.utils.weight_norm(self)
 
 
-def load_model(m, folder, name, epoch=None):
-    if os.path.isfile(folder):
-        m.load_state_dict(torch.load(folder))
-        return None, m
-    model_dir = os.path.join(folder, f"model_{name}")
-    if not os.path.exists(model_dir):
-        return None, None
-    if epoch is None and os.listdir(model_dir):
-        epoch = max(os.listdir(model_dir), key=int)
-    path = os.path.join(model_dir, str(epoch))
-    if not os.path.exists(path):
-        return None, None
-    m.load_state_dict(torch.load(path))
-    return int(epoch), m
 
-
-def save_model(model, folder, name, epoch):
-    path = os.path.join(folder, f"model_{name}", str(epoch))
-    try:
-        os.makedirs(os.path.dirname(path))
-    except FileExistsError:
-        pass
-    torch.save(model.state_dict(), path)
     
 
 

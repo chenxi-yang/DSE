@@ -8,9 +8,11 @@ import math
 import time
 import torch
 from torch.autograd import Variable
+import os
 
 np.random.seed(seed=1)
 random.seed(1)
+
 
 def var(i, requires_grad=False):
     if torch.cuda.is_available():
@@ -25,6 +27,11 @@ def var_list(i_list, requires_grad=False):
     else:
         res = torch.tensor(i_list, dtype=torch.float, requires_grad=requires_grad)
     return res
+
+
+PI = var((3373259426.0 + 273688.0 / (1 << 21)) / (1 << 30))
+PI_TWICE = PI.mul(var(2.0))
+PI_HALF = PI.div(var(2.0))
 
 
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
@@ -178,7 +185,7 @@ def extract_abstract_representation(trajectories, x_l, x_r, num_components):
     return components
 
 
-def divide_chunks(components, bs=1, data_bs=None):
+def divide_chunks(components_list, bs=1, data_bs=None):
     '''
     component: {
         'center': 
@@ -198,11 +205,11 @@ def divide_chunks(components, bs=1, data_bs=None):
         'width': batched width,
     }
     '''
-    for i in range(0, len(components), bs):
-        components = component_list[i:i + bs]
+    for i in range(0, len(components_list), bs):
+        components = components_list[i:i + bs]
         abstract_states = dict()
         trajectories = list()
-        center_list, width_list = list()
+        center_list, width_list = list(), list()
         for component_idx, component in enumerate(components):
             center_list.append(component['center'])
             width_list.append(component['width'])
@@ -216,7 +223,74 @@ def divide_chunks(components, bs=1, data_bs=None):
         yield trajectories, abstract_states
 
 
+def load_model(m, folder, name, epoch=None):
+    if os.path.isfile(folder):
+        m.load_state_dict(torch.load(folder))
+        return None, m
+    model_dir = os.path.join(folder, f"model_{name}")
+    if not os.path.exists(model_dir):
+        return None, None
+    if epoch is None and os.listdir(model_dir):
+        epoch = max(os.listdir(model_dir), key=int)
+    path = os.path.join(model_dir, str(epoch))
+    if not os.path.exists(path):
+        return None, None
+    m.load_state_dict(torch.load(path))
+    return int(epoch), m
 
 
+def save_model(model, folder, name, epoch):
+    path = os.path.join(folder, f"model_{name}", str(epoch))
+    try:
+        os.makedirs(os.path.dirname(path))
+    except FileExistsError:
+        pass
+    torch.save(model.state_dict(), path)
 
 
+def import_benchmarks(benchmark_name):
+    if benchmark_name == "thermostat":
+        from benchmarks.thermostat import (
+            initialize_components,
+            Program,
+        )
+    elif benchmark_name == "mountain_car":
+        from benchmarks.mountain_car import (
+            initialize_components,
+            Program,
+        )
+    elif benchmark_name == "unsmooth_1":
+        from benchmarks.unsmooth import (
+            initialize_components,
+            Program,
+        )
+    elif benchmark_name == "unsmooth_2_separate":
+        from benchmarks.unsmooth_2_separate import (
+            initialize_components,
+            Program,
+        )
+    elif benchmark_name == "unsmooth_2_overall":
+        from benchmarks.unsmooth_2_overall import (
+            initialize_components,
+            Program,
+        )
+    elif benchmark_name == "path_explosion":
+        from benchmarks.path_explosion import (
+            initialize_components,
+            Program,
+        )
+    elif benchmark_name == "path_explosion_2":
+        from benchmarks.path_explosion_2 import (
+            initialize_components,
+            Program,
+        )
+
+
+def product(it):
+    if isinstance(it, int):
+        return it
+    product = 1
+    for x in it:
+        if x >= 0:
+            product *= x
+    return product

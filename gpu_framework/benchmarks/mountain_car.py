@@ -6,14 +6,22 @@ from helper import *
 from constants import *
 import constants
 import domain
-
-
 import os
 
-# x_list
-# i, isOn, x, lin  = 0.0, 0.0, input, x
-# tOff = 62.0
-# tOn = 80.0
+
+if constants.status == 'train':
+    if mode == 'DSE':
+        from gpu_DSE.modules import *
+    elif mode == 'only_data':
+        from gpu_DSE.modules import *
+    elif mode == 'DiffAI':
+        from gpu_DiffAI.modules import *
+elif constants.status == 'verify_AI':
+    from modules_AI import *
+elif constants.status == 'verify_SE':
+    from modules_SE import *
+
+
 
 index0 = torch.tensor(0)
 index1 = torch.tensor(1)
@@ -27,44 +35,23 @@ if torch.cuda.is_available():
     index3 = index3.cuda()
 
 
-def initialize_components(component_list):
+def initialize_components(abstract_states):
     #TODO: add batched components to replace the following two 
-    return states
-
-
-# input order: position, velocity, u, reward
-def initialization_abstract_state(component_list):
-    abstract_state_list = list()
-    # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
-    abstract_state = list()
-    for component in component_list:
-        center, width, p = component['center'], component['width'], component['p']
-        symbol_table = {
-            'x': domain.Box(var_list([center[0], 0.0, 0.0, 0.0]), var_list([width[0], 0.0, 0.0, 0.0])),
-            'probability': var(p),
-            'trajectory': list(),
-            'branch': '',
-        }
-
-        abstract_state.append(symbol_table)
-    abstract_state_list.append(abstract_state)
-    return abstract_state_list
-
-def initialization_nn(batched_center, batched_width):
-    B, D = batched_center.shape
+    center, width = abstract_states['center'], abstract_states['width']
+    B, D = center.shape
     padding = torch.zeros(B, 1)
     if torch.cuda.is_available():
         padding = padding.cuda()
     
-    input_center, input_width = batched_center[:, :1], batched_width[:, :1]
-    symbol_tables = {
+    input_center, input_width = center[:, :1], width[:, :1]
+    states = {
         'x': domain.Box(torch.cat((input_center, padding, padding, padding), 1), torch.cat((input_width, padding, padding, padding), 1)),
-        'trajectory_list': [[] for i in range(B)],
-        'idx_list': [i for i in range(B)], # marks which idx the tensor comes from in the input
+        'trajectories': [[] for i in range(B)],
+        'idx_list': [i for i in range(B)],
+        'p_list': [var(1.0) for i in range(B)], # might be changed to batch
     }
 
-    return symbol_tables
-
+    return states
 
 
 def f_self(x):
@@ -226,31 +213,12 @@ class Program(nn.Module):
 
         # use continuous acc
         self.ifelse_max_acc_block1 = Skip()
-
-        # use discrete acc
-        # self.assign_left_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_left_acc)
-        # self.assign_right_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_right_acc)
-        # self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.change_acc, f_test=f_test, body=self.assign_left_acc, orelse=self.assign_right_acc)
-
-        # filter abs lower acc
-        # self.assign_acc_self = Skip()
-        # self.ifelse_min_abs_acc = IfElse(target_idx=[2], test=self.neg_min_abs_acc, f_test=f_test, body=self.assign_acc_self, orelse=self.assign_min_acc)
-        # self.ifelse_max_acc_block1 = IfElse(target_idx=[2], test=self.min_abs_acc, f_test=f_test, body=self.ifelse_min_abs_acc, orelse=self.assign_acc_self)
-        
+       
         self.assign_max_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_max_acc)
         self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.ifelse_max_acc_block1, orelse=self.assign_max_acc)
 
         # self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)
         self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
-
-        # self.assign_max_acc = Skip()
-        # self.assign_reset_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_reset_acc)
-        # self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.assign_reset_acc, orelse=self.assign_max_acc)
-        # self.assign_min_acc = Skip()
-        # self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
-
-        # self.l_neg_min_abs_acc = Skip()
-        # self.ifelse_acceleration = IfElse(target_idx=[2], test=self.neg_min_abs_acc, f_test=f_test, body=self.l_neg_min_abs_acc, orelse=self.ifelse_min_abs_acc)
 
         self.assign_reward_update = Assign(target_idx=[3], arg_idx=[2, 3], f=f_assign_reward_update)
         self.assign_v = Assign(target_idx=[1], arg_idx=[0, 1, 2], f=f_assign_v)
@@ -293,9 +261,9 @@ class Program(nn.Module):
 
     def forward(self, input, transition='interval', version=None):
         if version == "single_nn_learning":
-            print(input.detach().cpu().numpy().tolist()[:3])
+            # print(input.detach().cpu().numpy().tolist()[:3])
             res = self.nn(input)
-            print(res.detach().cpu().numpy().tolist()[:3])
+            # print(res.detach().cpu().numpy().tolist()[:3])
             # res *= 10
             # res[res <= self.min_acc] = float(self.min_acc)
             # res[res > self.max_acc] = float(self.max_acc)
