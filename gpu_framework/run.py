@@ -9,13 +9,6 @@ import domain
 import random
 import time
 
-if mode == 'DSE':
-    from gpu_DSE.train import *
-if mode == 'DiffAI':
-    from gpu_DiffAI.train import *
-if mode == 'only_data':
-    from gpu_only_data.train import *
-
 from verifier_AI import verifier_AI
 from verifier_SE import verifier_SE
 
@@ -82,7 +75,7 @@ def outer_loop(lambda_list, model_list, q):
 
 
 if __name__ == "__main__":
-    for safe_range_bound in enumerate(safe_range_bound_list):
+    for safe_range_bound in safe_range_bound_list:
         if not debug:
             append_log([file_dir, file_dir_evaluation], f"path_sample_size: {SAMPLE_SIZE}, safa_range_bound: {safe_range_bound}\n")
         print(f"Safe Range Bound: {safe_range_bound}")
@@ -114,6 +107,12 @@ if __name__ == "__main__":
                     from benchmarks.path_explosion import *
                 elif benchmark_name == "path_explosion_2":
                     from benchmarks.path_explosion_2 import *
+                if mode == 'DSE':
+                    from gpu_DSE.train import *
+                if mode == 'DiffAI':
+                    from gpu_DiffAI.train import *
+                if mode == 'only_data':
+                    from gpu_only_data.train import *
 
                 preprocessing_time = time.time()
                 if benchmark_name in ["thermostat"]:
@@ -158,7 +157,6 @@ if __name__ == "__main__":
                         bs=bs,
                         nn_mode=nn_mode,
                         l=l,
-                        module=module,
                         save=save,
                         epochs_to_skip=epochs_to_skip,
                         model_name=target_model_name,

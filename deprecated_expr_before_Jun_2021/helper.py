@@ -32,9 +32,6 @@ def var_list(i_list, requires_grad=False):
     return res
 
 
-PI = var((3373259426.0 + 273688.0 / (1 << 21)) / (1 << 30))
-PI_TWICE = PI.mul(var(2.0))
-PI_HALF = PI.div(var(2.0))
 
 # print(PI)
 # print(torch.sin(PI))

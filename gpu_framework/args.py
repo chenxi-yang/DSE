@@ -21,7 +21,7 @@ def get_parser():
     p.add_argument("--dataset_distribution", default="normal", help="define the distribution the dataset should follow")
 
     # other parameters
-    p.add_argument("--lr", default=0.000001, type=float, help="learning rate")
+    p.add_argument("--lr", default=0.01, type=float, help="learning rate")
     p.add_argument("--stop_val", default=0.05, type=float, help="error for stoping")
     p.add_argument("--t_epoch", default=1, type=int, help="epoch for lambda")
 
