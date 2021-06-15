@@ -7,8 +7,6 @@ from constants import *
 import constants
 import domain
 
-from gpu_DSE.modules import *
-
 import os
 
 # x_list
@@ -27,6 +25,11 @@ if torch.cuda.is_available():
     index2 = index2.cuda()
     index3 = index3.cuda()
 
+
+def initialize_components(component_list):
+    #TODO: add batched components to replace the following two 
+    return states
+    
 
 def initialization_abstract_state(component_list):
     abstract_state_list = list()
@@ -47,23 +50,22 @@ def initialization_abstract_state(component_list):
     return abstract_state_list
 
 
-def initialization_one_point_nn(x):
-    return domain.Box(var_list([0.0, 0.0, x[0], x[0]]), var_list([0.0] * 4))
-
-
-def initialization_point_nn(x):
-    point_symbol_table_list = list()
-    symbol_table = {
-        'x': domain.Box(var_list([0.0, 0.0, x[0], x[0]]), var_list([0.0] * 4)),
-        'probability': var(1.0),
-        'trajectory': list(),
-        'branch': '',
+# i, isOn, x, lin
+def initialization_nn(batched_center, batched_width):
+    B, D = batched_center.shape
+    padding = torch.zeros(B, 1)
+    if torch.cuda.is_available():
+        padding = padding.cuda()
+    
+    input_center, input_width = batched_center[:, :1], batched_width[:, :1]
+    symbol_tables = {
+        'x': domain.Box(torch.cat((padding, padding, input_center, input_center), 1), torch.cat((padding, padding, input_width, input_width), 1)),
+        'trajectory_list': [[] for i in range(B)],
+        'idx_list': [i for i in range(B)], # marks which idx the tensor comes from in the input
     }
 
-    point_symbol_table_list.append(symbol_table)
+    return symbol_tables
 
-    # to map to the execution of distribution, add one dimension
-    return [point_symbol_table_list]
 
 
 def f_isOn(x):
@@ -171,9 +173,9 @@ def assign_update(x):
     return x.add(var(1.0))
 
 
-class ThermostatNN(nn.Module):
+class Program(nn.Module):
     def __init__(self, l, sig_range=10, nn_mode='all', module='linearrelu'):
-        super(ThermostatNN, self).__init__()
+        super(Program, self).__init__()
         self.tOff = var(78.0)
         self.tOn = var(66.0)
         if module == 'linearsig':
@@ -219,7 +221,7 @@ class ThermostatNN(nn.Module):
         )
         self.program = While(target_idx=[0], test=var(40.0), body=self.whileblock)
     
-    def forward(self, input, transition='interval', version=None):
+    def forward(self, input, version=None):
         # if transition == 'abstract':
         # #     print(f"# of Partitions Before: {len(x_list)}")
         #     for x in x_list:

@@ -2,69 +2,6 @@ import numpy as np
 from termcolor import colored
 
 from constants import *
-# from optimization import *
-
-if benchmark_name == "thermostat":
-    from thermostat_nn_batch import (
-        ThermostatNN,
-        load_model,
-        save_model,
-        initialization_abstract_state,
-        initialization_point_nn,
-    )
-if benchmark_name == "mountain_car":
-    from mountain_car_batch import (
-        MountainCar,
-        load_model,
-        save_model,
-        initialization_abstract_state,
-        initialization_point_nn,
-    )
-if benchmark_name == "unsound_1":
-    from unsound_1_batch import (
-        Unsound_1,
-        load_model,
-        save_model,
-        initialization_abstract_state,
-        initialization_point_nn,
-    )
-if benchmark_name == "sampling_1":
-    from sampling_1_batch import (
-        Sampling_1,
-        load_model,
-        save_model,
-        initialization_abstract_state,
-        # initialization_point_nn,
-    )
-if benchmark_name == "sampling_2":
-    from sampling_2_batch import (
-        Sampling_2,
-        load_model,
-        save_model,
-        initialization_abstract_state,
-        # initialization_point_nn,
-    )
-if benchmark_name == "path_explosion":
-    from path_explosion_sound import (
-        PathExplosion,
-        load_model,
-        save_model,
-        initialization_abstract_state,
-    )
-if benchmark_name == "path_explosion_2":
-    from path_explosion_2_sound import (
-        PathExplosion2,
-        load_model,
-        save_model,
-        initialization_abstract_state,
-    )
-if benchmark_name == "fairness_1":
-    from fairness_1_batch import (
-        Fairness_1,
-        load_model,
-        save_model,
-        initialization_abstract_state,
-    )
 
 import domain
 

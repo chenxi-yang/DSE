@@ -9,22 +9,7 @@ import copy
 
 from constants import benchmark_name
 
-if benchmark_name == "thermostat":
-    from gpu_DiffAI.thermostat_nn import * 
-if benchmark_name == "mountain_car":
-    from gpu_DiffAI.mountain_car import *
-if benchmark_name == "mountain_car_1":
-    from gpu_DiffAI.mountain_car_1 import *
-if benchmark_name == "unsound_1":
-    from gpu_DiffAI.unsound_1 import *
-if benchmark_name == "unsound_2_separate":
-    from gpu_DiffAI.unsound_2_separate import *
-if benchmark_name == "unsound_2_overall":
-    from gpu_DiffAI.unsound_2_overall import *
-if benchmark_name == "path_explosion_2":
-    from gpu_DiffAI.path_explosion_2 import *
-if benchmark_name == "path_explosion":
-    from gpu_DiffAI.path_explosion import *
+from gpu_DiffAI.modules import *
 
 from utils import (
     generate_distribution,
