@@ -317,147 +317,20 @@ def learning(
         epochs_to_skip = -1
 
     start_time = time.time()
-    last_update_i = 0
-    c_loss_i = 0
-    min_data_loss_fixed_c = 1000
 
     for i in range(epoch):
         if i <= epochs_to_skip:
             continue
-        q_loss, c_loss = 0.0, 0.0
-        count = 0
-        tmp_q_idx = 0
 
         for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
 
-            # TODO: update the following
-            batch_time = time.time()
-            grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
-            real_data_loss, real_safe_loss = 0.0, 0.0
+            data_loss = cal_data_loss(m, trajectories, criterion)
+            safe_loss = cal_safe_loss(m, abstract_states, target)
+
+            print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}")
             
-            Theta = extract_parameters(m) # extract the parameters now, and then sample around it
-            # print(f"Theta before: {Theta}")
-            if only_data_loss and nn_separate:
-                use_smooth_kernel = False
+            loss = (data_loss + lambda_ * safe_loss) / lambda_
 
-            if use_smooth_kernel:
-                if use_safe_loss:
-                    min_c_loss = 0.0
-                    data_loss_list, safe_loss_list = list(), list()
-                    for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n, sample_std=sample_std, sample_width=sample_width):
-                        # show_cuda_memory(f"ini update model(sampled theta) ")
-                        # print(f"sample theta: {sample_theta}")
-                        m = update_model_parameter(m, sample_theta)
-
-                        # show_cuda_memory(f"end update model(sampled theta) ")
-                        
-                        sample_time = time.time()
-
-                        if use_data_loss:
-                            if not nn_separate:
-                                data_loss = cal_data_loss(m, trajectory_list, criterion)
-                            else:
-                                data_loss = 0.0
-                            # data_loss = 0.0
-                            print(f"sample theta p: {float(sample_theta_p)}")
-                            grad_data_loss += float(data_loss) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
-                            real_data_loss += float(data_loss)
-                            data_loss_list.append(float(data_loss))
-
-                        # show_cuda_memory(f"end sampled data loss")
-                        
-                        if not only_data_loss:
-                            safe_loss = cal_safe_loss(m, abstract_states, target)
-                        else:
-                            safe_loss = 0.0
-                        
-                        # min_c_loss = max(min_c_loss, safe_loss)
-                        grad_safe_loss += float(safe_loss) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
-                        real_safe_loss += float(safe_loss)
-                        safe_loss_list.append(float(safe_loss))
-
-                        print(f"data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}, grad data loss: {float(grad_data_loss)}, grad safe loss: {float(grad_safe_loss)}")
-                        # print(f"{'#' * 15}")
-                        # print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
-
-                    # To maintain the real theta
-                    # show_cuda_memory(f"ini update model(Theta)")
-                    m = update_model_parameter(m, Theta)
-                    # show_cuda_memory(f"end update model(Theta)")
-
-                    if nn_separate:
-                        data_loss = cal_data_loss(m, trajectory_list, criterion)
-                        real_data_loss = float(data_loss)
-                        grad_data_loss = data_loss
-                    else:
-                        grad_data_loss /= n
-                        real_data_loss /= n
-
-                    grad_safe_loss /= n
-                    real_safe_loss /= n
-
-                    print(f"In short, data_loss: {float(data_loss)}, safe_loss: {float(safe_loss)}, Loss TIME: {time.time() - sample_time}, grad data loss: {float(grad_data_loss)}, grad safe loss: {float(grad_safe_loss)}")
-
-                    # max_data_loss, min_data_loss = max(data_loss_list), min(data_loss_list)
-                    # max_safe_loss, min_safe_loss = max(safe_loss_list), min(safe_loss_list)
-
-                else:
-                    if len(trajectory_list) == 0:
-                        continue
-                    tmp_q_idx += 1
-                    data_loss = cal_data_loss(m, trajectory_list, criterion)
-                    safe_loss = var_list([0.0])
-                    real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
-                    grad_data_loss, grad_safe_loss = data_loss, safe_loss
-                
-                min_c_loss = max(min_c_loss, real_safe_loss)
-            else:
-                if len(trajectory_list) == 0:
-                    continue
-                tmp_q_idx += 1
-                data_loss = cal_data_loss(m, trajectory_list, criterion)
-                safe_loss = var_list([0.0])
-                # if not only_data_loss:
-                #     safe_loss = cal_safe_loss(m, abstract_states, target)
-                real_data_loss, real_safe_loss = float(data_loss), float(safe_loss)
-                grad_data_loss, grad_safe_loss = data_loss, safe_loss
-
-            print(f"use safe loss: {use_safe_loss}, real data_loss: {real_data_loss}, real safe_loss: {real_safe_loss}, TIME: {time.time() - batch_time}")
-            print(f"grad data loss: {float(grad_data_loss)}, grad safe loss: {float(grad_safe_loss)}")
-            
-            q_loss += real_data_loss
-            c_loss += real_safe_loss
-
-            # show_cuda_memory(f"end batch")
-
-            # if time.time() - batch_time > 3600/(len(component_list)/bs):
-            #     TIME_OUT = True
-            #     if i <= 2: # a chance for the first three epoches
-            #         pass
-            #     else:
-            #         break
-            
-            # # print(m.parameters())
-            if not only_data_loss:
-                # if benchmark_name in ["mountain_car", "mountain_car_1"]:
-                if benchmark_name in ["mountain_car_1"]:
-                    pass
-                else:
-                    if shrink_sample_width(safe_loss_list):
-                    # if safe_loss_list.count(0.0) > int(len(safe_loss_list) / 2):
-                        if benchmark_name in ["path_explosion_2",  "path_explosion"] and sample_width <= 0.01:
-                            pass
-                        elif sample_width < 2e-07:
-                            pass
-                        else:
-                            sample_width *= 0.5
-            # if widen_sample_width(safe_loss_list):
-            #     sample_width *= 2.0
-            
-
-            loss = (grad_data_loss + lambda_ * grad_safe_loss) / lambda_
-            # loss = lambda_ * grad_safe_loss
-            # loss = grad_safe_loss
             loss.backward()
             print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
@@ -465,101 +338,34 @@ def learning(
             optimizer.step()
             print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
-            # new_theta = extract_parameters(m)
-            # print(f"Theta after step: {new_theta}")
-
-            count += 1
-            # if count >= 10:
-            #     exit(0)
         
         if save:
-            if not debug:
-                if real_safe_loss == 0.0:
-                    if real_data_loss < min_data_loss_fixed_c:
-                        min_data_loss_fixed_c = min(min_data_loss_fixed_c, min_data_loss_fixed_c)
-                        save_model(m, MODEL_PATH, name=model_name, epoch=i)
-                        print(f"save model")
-                else:
-                    save_model(m, MODEL_PATH, name=model_name, epoch=i)
-                    print(f"save model")
+            save_model(m, MODEL_PATH, name=model_name, epoch=i)
+            print(f"save model")
                 
-                # return [], 0.0, [], 0.0, 0.0, TIME_OUT
-            
-        # if i >= 5 and i%2 == 0:
-        #     for param_group in optimizer.param_groups:
-        #         param_group["lr"] *= 0.5
-        
-        # f_loss = q_loss + lambda_ * c_loss
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1 - epochs_to_skip)}")
-        print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}")
-        if use_smooth_kernel:
-            print(f"-----finish {i}-th epoch-----, q: {q_loss}, c: {c_loss}, sample-width: {sample_width}")
-        else:
-            print(f"-----finish {i}-th epoch-----, q: {q_loss/tmp_q_idx}, c: {c_loss}, sample-width: {sample_width}")
+        print(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}")
         if not debug:
             log_file = open(file_dir, 'a')
             log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
-            log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss}, c: {real_safe_loss}\n")
-            log_file.write(f"-----finish {i}-th epoch-----, q: {q_loss}, c: {c_loss}\n")
+            log_file.write(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}\n")
             log_file.flush()
-        # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
-        # if torch.abs(f_loss.data) < var(stop_val):
-        #     break
-        # c_loss = 100.0
-        # if sample_width is not None and float(c_loss) < 1.0:
-        #     if i - last_update_i > 20:
-        #         print(f"before divide: {sample_width}")
-        #         sample_width *= 0.1
-        #         last_update_i = i
-        #         print(f"after divide: {sample_width}")
-        # if i > 0 and i % 100 == 0:
-        #     print(f"before divide: {sample_width}")
-        #     sample_width *= 0.5
-        #     print(f"after divide: {sample_width}")
-        
-        # help converge
 
-        if benchmark_name in ["mountain_car", "mountain_car_1"]:
-            pass # no early stop
-        else:
-            if only_data_loss:
-                pass
-            else:
-                if float(c_loss) <= 0.0 and float(min_c_loss) <= 0.0:
-                    print(c_loss, min_c_loss)
-                    c_loss_i += 1
-                    if c_loss_i >= 3:
-                        if not debug:
-                            log_file = open(file_dir, 'a')
-                            log_file.write('c_loss is small enough. End. \n')
-                            log_file.close()
-                        break
-                else:
-                    c_loss_i = 0 # continuous 3 times
-        
-        if (time.time() - start_time)/(i+1) > 6000 or TIME_OUT:
-            if i <= 25: # give a chance for the first few epoch
-                pass
-            else:
-                if not debug:
-                    log_file = open(file_dir, 'a')
-                    log_file.write('TIMEOUT: avg epoch time > 3600sec \n')
-                    log_file.close()
-                TIME_OUT = True
-                break
-    
-    res = 0.0 # real_data_loss + float(lambda_) * real_safe_loss# loss # f_loss.div(len(X_train))
+        if (time.time() - start_time)/(i+1) > 900 or TIME_OUT:
+            if not debug:
+                log_file = open(file_dir, 'a')
+                log_file.write('TIMEOUT: avg epoch time > 3600sec \n')
+                log_file.close()
+            TIME_OUT = True
+            break
 
     if not debug:
         log_file = open(file_dir, 'a')
         spend_time = time.time() - start_time
-        log_file.write('One train: Optimization--' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
+        log_file.write(f"One train: Optimization-- ' + total time: {spend_time}, total epochs: {i + 1}, avg time: {spend_time/(i + 1)}\n")
         log_file.close()
-    if debug:
-        exit(0)
     
-    # TODO: good for now
-    return [], res, [], 0.0, 0.0, TIME_OUT
+    return [], 0.0, [], 0.0, 0.0, TIME_OUT
 
 
 def cal_c(X_train, y_train, m, target):
