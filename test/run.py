@@ -1,14 +1,17 @@
 
-from program import *
 import sys
-
-
+import constants
 
 if __name__ == "__main__":
-    from modules1 import *
-    print(test(1))
+    
+    constants.status = 1
+    from program import *
 
-    from modules2 import *
-    print(test(2))
+    print(outer_test(1))
+
+    constants.status = 1
+    from program import *
+
+    print(outer_test(2))
 
 

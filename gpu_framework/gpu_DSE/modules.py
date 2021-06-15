@@ -11,7 +11,6 @@ import constants
 import math
 import time
 
-
 '''
 Module used as functions
 '''

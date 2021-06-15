@@ -8,6 +8,18 @@ import domain
 
 import os
 
+if constants.status == 'train':
+    if mode == 'DSE':
+        from gpu_DSE.modules import *
+    elif mode == 'only_data':
+        from gpu_DSE.modules import *
+    elif mode == 'DiffAI':
+        from gpu_DiffAI.modules import *
+elif constants.status == 'verify_AI':
+    from modules_AI import *
+elif constants.status == 'verify_SE':
+    from modules_SE import *
+
 # x_list
 # i, isOn, x, lin  = 0.0, 0.0, input, x
 # tOff = 62.0
@@ -106,7 +118,7 @@ class LinearSig(nn.Module):
 
 
 class LinearReLU(nn.Module):
-    def __init__(self, l, sig_range):
+    def __init__(self, l):
         super().__init__()
         self.linear1 = Linear(in_channels=2, out_channels=l)
         self.linear2 = Linear(in_channels=l, out_channels=l)
@@ -171,14 +183,12 @@ def assign_update(x):
 
 
 class Program(nn.Module):
-    def __init__(self, l, sig_range=10, nn_mode='all', module='linearrelu'):
+    def __init__(self, l, sig_range=10, nn_mode='all'):
         super(Program, self).__init__()
         self.tOff = var(78.0)
         self.tOn = var(66.0)
-        if module == 'linearsig':
-            self.nn = LinearSig(l=l)
-        if module == 'linearrelu':
-            self.nn = LinearReLU(l=l, sig_range=sig_range)
+
+        self.nn = LinearReLU(l=l)
 
         # curL = curL + 10.0 * NN(curL, lin)
         self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_down_nn(self.nn))

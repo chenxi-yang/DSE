@@ -9,8 +9,6 @@ import copy
 
 from constants import benchmark_name
 
-from gpu_DiffAI.modules import *
-
 from utils import (
     generate_distribution,
     ini_trajectory,
