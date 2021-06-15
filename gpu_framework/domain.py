@@ -7,7 +7,6 @@ Definition of different domains
 5. polyhedra
 
 """
-from helper import *
 from constants import *
 
 import torch

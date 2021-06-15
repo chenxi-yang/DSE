@@ -5,14 +5,13 @@ import numpy as np
 import time
 from timeit import default_timer as timer
 
-from helper import *
 from constants import *
 
 
 def load_data(
     train_size,
     test_size,
-    dataset_path=DATASET_PATH,
+    dataset_path,
     ):
     start_t = time.time()
     f = open(dataset_path, 'r')

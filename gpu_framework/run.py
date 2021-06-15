@@ -28,22 +28,21 @@ from utils import (
     extract_abstract_representation,
     show_cuda_memory,
     count_parameters,
-    import_module,
     append_log,
 )
 
 
-def import_module():
-    if mode == 'DSE':
-        from gpu_DSE.train import *
-    if mode == 'DiffAI':
-        from gpu_DiffAI.train import *
-    if mode == 'SPS':
-        from gpu_SPS.train import *
-    if mode == 'SPS-sound':
-        from gpu_SPS_sound.train import *
-    if mode == 'only_data':
-        from gpu_only_data.train import *
+# def import_module():
+#     if mode == 'DSE':
+#         from gpu_DSE.train import *
+#     if mode == 'DiffAI':
+#         from gpu_DiffAI.train import *
+#     if mode == 'SPS':
+#         from gpu_SPS.train import *
+#     if mode == 'SPS-sound':
+#         from gpu_SPS_sound.train import *
+#     if mode == 'only_data':
+#         from gpu_only_data.train import *
 
 
 #TODO:  change arguments
@@ -103,7 +102,7 @@ def outer_loop(lambda_list, model_list, q):
 if __name__ == "__main__":
     for safe_range_bound in enumerate(safe_range_bound_list):
         if not debug:
-            append_log([file_dir, file_dir_evaluation], f"path_sample_size: {path_sample_size}, safa_range_bound: {safe_range_bound}\n")
+            append_log([file_dir, file_dir_evaluation], f"path_sample_size: {SAMPLE_SIZE}, safa_range_bound: {safe_range_bound}\n")
         print(f"Safe Range Bound: {safe_range_bound}")
 
         # update target, fix the left endpoint, varify the right endpoint
@@ -118,7 +117,12 @@ if __name__ == "__main__":
 
             # Run 5 times
             for i in range(5):
-                import_module()
+                if mode == 'DSE':
+                    from gpu_DSE.train import *
+                if mode == 'DiffAI':
+                    from gpu_DiffAI.train import *
+                if mode == 'only_data':
+                    from gpu_only_data.train import *
 
                 preprocessing_time = time.time()
                 if benchmark_name in ["thermostat"]:
@@ -167,7 +171,6 @@ if __name__ == "__main__":
                         save=save,
                         epochs_to_skip=epochs_to_skip,
                         model_name=target_model_name,
-                        only_data_loss=only_data_loss,
                         data_bs=data_bs,
                         )
                     
@@ -228,8 +231,8 @@ if __name__ == "__main__":
                     model_path=MODEL_PATH, 
                     model_name=target_model_name, 
                     trajectory_test=Trajectory_test, 
-                    component_list=component_list
-                    target=target
+                    component_list=component_list,
+                    target=target,
                 )
                 print(f"---unsound verification(test dataset)time: {time.time() - verification_time} sec---")
 

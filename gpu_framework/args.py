@@ -30,7 +30,7 @@ def get_parser():
     p.add_argument("--benchmark_name", default="benchmark", help="represent the benchmark")
     p.add_argument("--data_size", default=10000, type=int, help="size of dataset, both for training and testing")
     
-    p.add_argument("--num_epoch", default=10, type=int, help="number of epochs for training")
+    p.add_argument("--num_epoch", default=100, type=int, help="number of epochs for training")
     p.add_argument("--width", default=0.1, type=float, help="width of perturbation") # for DiffAI
     
     p.add_argument("--nn_mode", default='all', help="how many NN used in model, 'single' means only used in the first one")
