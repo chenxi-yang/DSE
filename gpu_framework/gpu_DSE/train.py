@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import nlopt
 import numpy as np
 import torch
-from constants import benchmark_name
+from constants 
 from torch.autograd import Variable
 
 from utils import (
@@ -17,7 +17,13 @@ from utils import (
     show_cuda_memory,
     show_trajectory,
     divide_chunks,
+    save_model,
+    load_model,
+    import_benchmarks,
     )
+
+import_benchmarks(constants.benchmark_name)
+
 
 random.seed(1)
 
@@ -201,7 +207,10 @@ def cal_data_loss(m, trajectories, criterion):
     if len(trajectories) == 0:
         return var_list([0.0])
 
-    X, y = batch_pair(trajectory_list, data_bs=512)
+    if constants.benchmark_name == 'thermostat':
+        X, y = batch_pair_endpoint(trajectories, data_bs=None)
+    else:
+        X, y = batch_pair(trajectories, data_bs=512)
     print(f"after batch pair: {X.shape}, {y.shape}")
 
     X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
@@ -251,17 +260,17 @@ def cal_safe_loss(m, abstract_states, target):
 def learning(
         m, 
         components,
-        lambda_=lambda_, 
+        lambda_=None, 
         epoch=1000,
         target=None, 
         lr=0.00001,
         bs=10,
         nn_mode='all',
         l=10,
-        save=save,
+        save=None,
         epochs_to_skip=None,
         model_name=None,
-        data_bs=data_bs,
+        data_bs=None,
         ):
     print("--------------------------------------------------------------")
     print('====Start Training DSE====')
@@ -301,27 +310,27 @@ def learning(
             optimizer.zero_grad()
         
         if save:
-            save_model(m, MODEL_PATH, name=model_name, epoch=i)
+            save_model(m, constants.MODEL_PATH, name=model_name, epoch=i)
             print(f"save model")
                 
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1 - epochs_to_skip)}")
         print(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}")
-        if not debug:
-            log_file = open(file_dir, 'a')
+        if not constants.debug:
+            log_file = open(constants.file_dir, 'a')
             log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
             log_file.write(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}\n")
             log_file.flush()
 
         if (time.time() - start_time)/(i+1) > 900 or TIME_OUT:
-            if not debug:
+            if not constants.debug:
                 log_file = open(file_dir, 'a')
                 log_file.write('TIMEOUT: avg epoch time > 3600sec \n')
                 log_file.close()
             TIME_OUT = True
             break
 
-    if not debug:
-        log_file = open(file_dir, 'a')
+    if not constants.debug:
+        log_file = open(constants.file_dir, 'a')
         spend_time = time.time() - start_time
         log_file.write(f"One train: Optimization-- ' + total time: {spend_time}, total epochs: {i + 1}, avg time: {spend_time/(i + 1)}\n")
         log_file.close()

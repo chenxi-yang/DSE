@@ -2,12 +2,10 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from helper import * 
 from constants import *
 import constants
 import domain
 import os
-
 
 if constants.status == 'train':
     if mode == 'DSE':
@@ -20,8 +18,6 @@ elif constants.status == 'verify_AI':
     from modules_AI import *
 elif constants.status == 'verify_SE':
     from modules_SE import *
-
-
 
 index0 = torch.tensor(0)
 index1 = torch.tensor(1)
