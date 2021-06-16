@@ -199,8 +199,6 @@ class Program(nn.Module):
         self.ifelse_p = IfElse(target_idx=[0], test=self.min_position, f_test=f_test, body=self.ifelse_p_block1, orelse=self.ifelse_p_block2)
 
         self.assign_acceleration = Assign(target_idx=[2], arg_idx=[0, 1], f=self.nn)
-        self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)  
-
         # use continuous acc
         self.assign_v = Assign(target_idx=[1], arg_idx=[0, 1, 2], f=f_assign_v)
         self.assign_block = nn.Sequential(
