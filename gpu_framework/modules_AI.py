@@ -182,14 +182,14 @@ def sound_join(states1, states2):
 
 def calculate_states(target_idx, arg_idx, f, states):
     x = states['x']
-    print(x.c.shape, x.delta.shape)
     input = x.select_from_index(1, arg_idx)
-    print(input.c.shape, input.delta.shape)
     res = f(input)
     # TODO: check
-    print(f"f: {f}")
+    print(f'cal')
+    print(f)
+    print(x.c.shape, x.delta.shape)
     print(target_idx)
-    print(res.c.shape, res.delta.shape)
+    print(res.c.shape, res.c.shape)
     x.c[:, target_idx] = res.c 
     x.delta[:, target_idx] = res.delta
     states['x'] = x
