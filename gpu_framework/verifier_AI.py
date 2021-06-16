@@ -30,6 +30,7 @@ elif benchmark_name == "path_explosion":
 elif benchmark_name == "path_explosion_2":
     from benchmarks.path_explosion_2 import *
 
+
 def in_interval(x, y):
     # check if x in y
     if x.left >= y.left and x.right <= y.right:
