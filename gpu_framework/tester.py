@@ -2,6 +2,7 @@ import numpy as np
 from termcolor import colored
 
 from constants import *
+import constants
 import importlib
 
 import domain
@@ -62,12 +63,9 @@ def test_objective(m, trajectory_test, criterion, test_bs):
     test_data_loss = data_loss / count
 
     if not debug:
-        log_file_evaluation = open(file_dir_evaluation, 'a')
-        log_file_evaluation.write(f"test data loss: {test_data_loss.data.item()}\n")
-    print(f"test data loss: {test_data_loss.data.item()}")
-    if debug:
-        exit(0)
-        pass
+        log_file_evaluation = open(constants.file_dir_evaluation, 'a')
+        log_file_evaluation.write(f"test data loss: {float(test_data_loss)}\n")
+    print(f"test data loss: {float(test_data_loss)}")
 
 
 def test_data_loss(

@@ -207,6 +207,10 @@ def calculate_branch(target_idx, test, states):
     # split the other
 
     left = target.getLeft() <= test
+    right = target.getRight() > test
+
+    
+
     if True in left: # split to left
         left_idx = left.nonzero(as_tuple=True)[0].tolist()
         x_left = domain.Box(x.c[left.squeeze(1)], x.delta[left.squeeze(1)])
@@ -222,7 +226,6 @@ def calculate_branch(target_idx, test, states):
         body_states['idx_list'] = [states['idx_list'][i] for i in left_idx]
         body_states['p_list'] = [states['p_list'][i] for i in left_idx]
     
-    right = target.getRight() > test
     if True in right: # split to right
         right_idx = right.nonzero(as_tuple=True)[0].tolist()
         x_right = domain.Box(x.c[right.squeeze(1)], x.delta[right.squeeze(1)])
@@ -307,7 +310,7 @@ class While(nn.Module):
         res_states = list()
         while(len(states) > 0):
             body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
-            # TODO: update
+            # TODO: sound append
             res_states = sound_join(res_states, orelse_states)
             if len(body_states) == 0:
                 return res_states
