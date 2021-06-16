@@ -273,7 +273,7 @@ class IfElse(nn.Module):
     
     def forward(self, states):
         test = self.f_test(self.test)
-        body_states, from benchmarks.mountain_car import * = calculate_branch(self.target_idx, self.test, states)
+        body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
         if len(body_states) > 0:
             body_states = self.body(body_states)
         if len(orelse_states) > 0:
@@ -283,7 +283,7 @@ class IfElse(nn.Module):
         # TODO: update sound join
         res_states = sound_join(body_states, orelse_states)
 
-        return res_list
+        return res_states
 
 
 class While(nn.Module):
