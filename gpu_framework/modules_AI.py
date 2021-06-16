@@ -185,11 +185,11 @@ def calculate_states(target_idx, arg_idx, f, states):
     input = x.select_from_index(1, arg_idx)
     res = f(input)
     # TODO: check
-    print(f'cal')
-    print(f)
-    print(x.c.shape, x.delta.shape)
-    print(target_idx)
-    print(res.c.shape, res.c.shape)
+    # print(f'cal')
+    # print(f)
+    # print(x.c.shape, x.delta.shape)
+    # print(target_idx)
+    # print(res.c.shape, res.c.shape)
     x.c[:, target_idx] = res.c 
     x.delta[:, target_idx] = res.delta
     states['x'] = x
