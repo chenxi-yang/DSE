@@ -145,76 +145,39 @@ def sound_join(states1, states2):
     res_states = dict()
     idx1, idx2 = 0, 0
     idx_list_1, idx_list_2 = states1['idx_list'], states2['idx_list']
+    p_list_1, p_list_2 = states1['p_list'], states2['p_list']
 
-    same = False
     while idx1 <= len(idx_list_1) - 1 or idx2 <= len(idx_list_2) - 1:
         if idx1 > len(idx_list_1) - 1 or (idx2 <= len(idx_list_2) - 1 and idx_list_1[idx1] > idx_list_2[idx2]):
             new_c = states2['x'].c[idx2:idx2+1].clone()
             new_delta = states2['x'].delta[idx2:idx2+1].clone()
-            new_trajectory = states2['trajectory_list'][idx2]
+            new_trajectory = states2['trajectories'][idx2]
             new_idx = states2['idx_list'][idx2]
-            # show_cuda_memory(f"single idx1")
-            # print(f"before sound join tra [table2]")
-            # for key in symbol_tables_2:
-            #     del symbol_tables_2[key]
-            # exit(0)
-            res_symbol_tables = update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx)
-            # show_cuda_memory(f"single idx1 after join")
+            new_p = states2['p_list'][idx2]
+            res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p)
             idx2 += 1
         elif idx2 > len(idx_list_2) - 1 or (idx1 <= len(idx_list_1) - 1 and idx_list_1[idx1] < idx_list_2[idx2]):
-            new_c = symbol_tables_1['x'].c[idx1:idx1+1].clone()
-            new_delta = symbol_tables_1['x'].delta[idx1:idx1+1].clone()
-            new_trajectory = symbol_tables_1['trajectory_list'][idx1]
-            new_idx = symbol_tables_1['idx_list'][idx1]
-            # show_cuda_memory(f"single idx2")
-            # print(f"before sound join tra [table1]")
-            # for key in symbol_tables_1:
-            #     del symbol_tables_1[key]
-            # exit(0)
-            res_symbol_tables = update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx)
-            # show_cuda_memory(f"single idx2 after join")
+            new_c = states1['x'].c[idx1:idx1+1].clone()
+            new_delta = states1['x'].delta[idx1:idx1+1].clone()
+            new_trajectory = states1['trajectories'][idx1]
+            new_idx = states1['idx_list'][idx1]
+            new_p = states1['p_list'][idx1]
+            res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p)
             idx1 += 1
         else: # idx_list_1[idx_1] == idx_list_2[idx_2], need to join
             assert(idx_list_1[idx1] == idx_list_2[idx2])
-            new_left = torch.min(symbol_tables_1['x'].c[idx1:idx1+1] - symbol_tables_1['x'].delta[idx1:idx1+1], symbol_tables_2['x'].c[idx2:idx2+1] - symbol_tables_2['x'].delta[idx2:idx2+1])
-            new_right = torch.max(symbol_tables_1['x'].c[idx1:idx1+1] + symbol_tables_1['x'].delta[idx1:idx1+1], symbol_tables_2['x'].c[idx2:idx2+1] + symbol_tables_2['x'].delta[idx2:idx2+1])
+            new_left = torch.min(states1['x'].c[idx1:idx1+1] - states1['x'].delta[idx1:idx1+1], states2['x'].c[idx2:idx2+1] - states2['x'].delta[idx2:idx2+1])
+            new_right = torch.max(states1['x'].c[idx1:idx1+1] + states1['x'].delta[idx1:idx1+1], states2['x'].c[idx2:idx2+1] + states2['x'].delta[idx2:idx2+1])
             new_c = (new_left + new_right) / 2.0
             new_delta = (new_right - new_left) / 2.0
-            # show_cuda_memory(f"idx1 and idx2 before trajectory")
-            # print(len(symbol_tables_1['trajectory_list'][idx1]), len(symbol_tables_2['trajectory_list'][idx2]))
-            # print(f"before sound join tra")
-            # for key in symbol_tables_1:
-            #     del symbol_tables_1[key]
-            # exit(0)
-            # print(f"extract trajectory: {idx1}, {idx2}")
-            # for state in symbol_tables_1["trajectory_list"][idx1]:
-            #     print(state)
-            # print(f"symbol_table2")
-            # for state in symbol_tables_2["trajectory_list"][idx2]:
-            #     print(state)
-            new_trajectory = sound_join_trajectory(symbol_tables_1['trajectory_list'][idx1], symbol_tables_2['trajectory_list'][idx2])
+            new_trajectory = sound_join_trajectory(states1['trajectory_list'][idx1], states2['trajectory_list'][idx2])
             new_idx = idx_list_1[idx1]
-            # show_cuda_memory(f"idx1 and idx2 after trajectory")
-            res_symbol_tables = update_joined_tables(res_symbol_tables, new_c, new_delta, new_trajectory, new_idx)
-            # show_cuda_memory(f"idx1 and idx2 after join tables")
+            new_p = p_list_1[idx1]
+            res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p)
             idx2 += 1
             idx1 += 1
-            # del new_leftp
-            # del new_right
-            # del new_c
-            # del new_delta
-            same = True
-            # print(sys.getsizeof(symbol_tables_1))
-            # for key in symbol_tables_1:
-            #     del symbol_tables_1[key]
-            # exit(0)
-    
-    # for key in list(symbol_tables_1.keys()):
-    #     del symbol_tables_1[key]
-    # for key in list(symbol_tables_2.keys()):
-    #     del symbol_tables_2[key]
 
-    return res_symbol_tables
+    return res_states
 
 
 def calculate_states(target_idx, arg_idx, f, states):
@@ -351,34 +314,6 @@ class While(nn.Module):
 
         return res_states
 
-# TODO: update the trajectories
-def update_trajectory(symbol_table, target_idx):
-    # trajectory: list of states
-    # states: list of intervals
-    input_interval_list = list()
-    for idx in target_idx:
-        input = symbol_table['x'].select_from_index(0, idx)
-        input_interval = input.getInterval()
-        # print(f"input: {input.c, input.delta}")
-        # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
-        assert input_interval.left.data.item() <= input_interval.right.data.item()
-        input_interval_list.append(input_interval)
-    # print(f"In update trajectory")
-    symbol_table['trajectory'].append(input_interval_list)
-    # print(f"Finish update trajectory")
-
-    return symbol_table
-
-
-def update_abstract_state_trajectory(abstract_state, target_idx):
-    for idx, symbol_table in enumerate(abstract_state):
-        if len(symbol_table) == 0:
-            pass
-        else:
-            symbol_table = update_trajectory(symbol_table, target_idx)
-        abstract_state[idx] = symbol_table
-    return abstract_state
-
 
 class Trajectory(nn.Module):
     # TODO: update, add state in trajectory list
@@ -388,11 +323,24 @@ class Trajectory(nn.Module):
         if torch.cuda.is_available():
             self.target_idx = self.target_idx.cuda()
     
-    def forward(self, abstract_state_list, cur_sample_size=0):
-        for idx, abstract_state in enumerate(abstract_state_list):
-            abstract_state = update_abstract_state_trajectory(abstract_state, self.target_idx)
-            abstract_state_list[idx] = abstract_state
-        return abstract_state_list
+    def forward(self, states):
+        x = states['x']
+        trajectories = states['trajectories']
+        B, D = x.c.shape
+        for x_idx in range(B):
+            cur_x_c, cur_x_delta = x.c[x_idx], x.delta[x_idx]
+            input_interval_list = list()
+            for idx in self.target_idx:
+                input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
+                input_interval = input.getInterval()
+
+                assert input_interval.left.data.item() <= input_interval.right.data.item()
+                input_interval_list.append(input_interval)
+            trajectories[x_idx].append(input_interval_list)
+        
+        states['trajectories'] = trajectories
+
+        return states
 
 
 
