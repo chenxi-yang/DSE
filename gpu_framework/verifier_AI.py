@@ -3,13 +3,32 @@ from termcolor import colored
 
 from constants import *
 import constants
+import importlib
 
 import domain
 from utils import (
-    load_model
+    load_model,
+    create_abstract_states_from_components,
 )
 
-import_benchmarks(constants.benchmark_name)
+if benchmark_name == "thermostat":
+    import benchmarks.thermostat as tm
+    importlib.reload(tm)
+    from benchmarks.thermostat import *
+elif benchmark_name == "mountain_car":
+    import benchmarks.mountain_car as mc
+    importlib.reload(mc)
+    from benchmarks.mountain_car import *
+elif benchmark_name == "unsmooth_1":
+    from benchmarks.unsmooth import *
+elif benchmark_name == "unsmooth_2_separate":
+    from benchmarks.unsmooth_2_separate import *
+elif benchmark_name == "unsmooth_2_overall":
+    from benchmarks.unsmooth_2_overall import *
+elif benchmark_name == "path_explosion":
+    from benchmarks.path_explosion import *
+elif benchmark_name == "path_explosion_2":
+    from benchmarks.path_explosion_2 import *
 
 def in_interval(x, y):
     # check if x in y
@@ -98,13 +117,14 @@ def verifier_AI(model_path, model_name, components, target, trajectory_path):
     
     if extract_one_trajectory:
         # TODO: change the initialization
-        ini_states = initialization_abstract_state_point(component_list)
+        ini_states = initialize_components_points(components)
         category = 'point'
     else:
-        ini_states = initialization_abstract_state(component_list)
+        abstract_states = create_abstract_states_from_components(components)
+        ini_states = initialize_components(abstract_states)
         category = None
     
-    show_component_p(components)
+    # show_component_p(components)
     # print(abstract_state_list[0][0]["x"].c)
 
     output_states = m(ini_states)

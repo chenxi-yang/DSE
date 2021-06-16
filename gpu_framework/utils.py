@@ -223,6 +223,18 @@ def divide_chunks(components_list, bs=1, data_bs=None):
         yield trajectories, abstract_states
 
 
+def create_abstract_states_from_components(components):
+    center_list, width_list = list(), list()
+    abstract_states = dict()
+    for component_idx, component in enumerate(components):
+        center_list.append(component['center'])
+        width_list.append(component['width'])
+    batched_center, batched_width = batch_points(center_list), batch_points(width_list)
+    abstract_states['center'] = batched_center
+    abstract_states['width'] = batched_width
+
+    return abstract_states
+
 def load_model(m, folder, name, epoch=None):
     if os.path.isfile(folder):
         m.load_state_dict(torch.load(folder))

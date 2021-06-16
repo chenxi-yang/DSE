@@ -9,9 +9,9 @@ if __name__ == "__main__":
 
     print(outer_test(1))
 
-    constants.status = 1
+    constants.status = 2
     from program import *
 
-    print(outer_test(2))
+    print(outer_test(1))
 
 

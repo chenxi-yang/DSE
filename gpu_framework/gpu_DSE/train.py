@@ -22,8 +22,20 @@ from utils import (
     import_benchmarks,
     )
 
-import_benchmarks(constants.benchmark_name)
-
+if constants.benchmark_name == "thermostat":
+    from benchmarks.thermostat import *
+elif constants.benchmark_name == "mountain_car":
+    from benchmarks.mountain_car import *
+elif constants.benchmark_name == "unsmooth_1":
+    from benchmarks.unsmooth import *
+elif constants.benchmark_name == "unsmooth_2_separate":
+    from benchmarks.unsmooth_2_separate import *
+elif constants.benchmark_name == "unsmooth_2_overall":
+    from benchmarks.unsmooth_2_overall import *
+elif constants.benchmark_name == "path_explosion":
+    from benchmarks.path_explosion import *
+elif constants.benchmark_name == "path_explosion_2":
+    from benchmarks.path_explosion_2 import *
 
 random.seed(1)
 
