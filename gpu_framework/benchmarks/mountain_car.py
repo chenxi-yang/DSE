@@ -150,9 +150,6 @@ class LinearReLUNoAct(nn.Module):
         return res
 
 
-def reward_reach(x):
-    return x.add(var(100.0)) 
-
 def f_assign_min_p(x):
     return x.set_value(var(-1.2))
 
@@ -165,26 +162,12 @@ def f_assign_min_speed(x):
 def f_assign_max_speed(x):
     return x.set_value(var(0.07))
 
-def f_assign_max_acc(x):
-    return x.set_value(var(1.2))
-
-def f_assign_min_acc(x):
-    return x.set_value(var(-1.2))
-
-def f_assign_left_acc(x):
-    return x.set_value(var(-0.5))
-
-def f_assign_right_acc(x):
-    return x.set_value(var(0.5))
-
 def f_assign_reset_acc(x):
     return x.set_value(var(0.0))
 
 def f_assign_update_p(x):
     return x.select_from_index(0, index0).add(x.select_from_index(0, index1))
 
-def f_assign_reward_update(x):
-    return x.select_from_index(0, index1).add(x.select_from_index(0, index0).mul(x.select_from_index(0, index0)).mul(var(-0.1)))
 
 def f_assign_v(x):
     # x: p, v, u
@@ -201,15 +184,7 @@ class Program(nn.Module):
         self.goal_position = var(0.5)
         self.min_position = var(-1.2)
         self.min_speed = var(-0.07)
-        self.initial_speed = var(0.0)
         self.max_speed = var(0.07)
-        self.min_acc = var(-1.2)
-        self.max_acc = var(1.2)
-        self.change_acc = var(0.0)
-
-        self.add_value = var(0.3)
-        self.min_abs_acc = var(0.3)
-        self.neg_min_abs_acc = - self.min_abs_acc
         
         self.nn = LinearReLUNoAct(l=l)
         
@@ -224,24 +199,12 @@ class Program(nn.Module):
         self.ifelse_p = IfElse(target_idx=[0], test=self.min_position, f_test=f_test, body=self.ifelse_p_block1, orelse=self.ifelse_p_block2)
 
         self.assign_acceleration = Assign(target_idx=[2], arg_idx=[0, 1], f=self.nn)
-        
         self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)  
 
         # use continuous acc
-        self.ifelse_max_acc_block1 = Skip()
-       
-        self.assign_max_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_max_acc)
-        self.ifelse_max_acc = IfElse(target_idx=[2], test=self.max_acc, f_test=f_test, body=self.ifelse_max_acc_block1, orelse=self.assign_max_acc)
-
-        # self.assign_min_acc = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_acc)
-        self.ifelse_acceleration = IfElse(target_idx=[2], test=self.min_acc, f_test=f_test, body=self.assign_min_acc, orelse=self.ifelse_max_acc)
-
-        self.assign_reward_update = Assign(target_idx=[3], arg_idx=[2, 3], f=f_assign_reward_update)
         self.assign_v = Assign(target_idx=[1], arg_idx=[0, 1, 2], f=f_assign_v)
         self.assign_block = nn.Sequential(
             self.assign_acceleration,
-            self.ifelse_acceleration, # truncate acceleration
-            self.assign_reward_update,
             self.assign_v,
         )
 
@@ -263,29 +226,16 @@ class Program(nn.Module):
         )
         self.while1 = While(target_idx=[0], test=self.goal_position, body=self.whileblock)
 
-        self.check_non = Skip() # nothing changes
-        self.check_reach = Assign(target_idx=[3], arg_idx=[3], f=reward_reach)
-        self.check_position = IfElse(target_idx=[0], test=self.goal_position-var(1e-5), f_test=f_test, body=self.check_non, orelse=self.check_reach)
-        
         self.trajectory_update_2 = Trajectory(target_idx=[2, 0])
         self.program = nn.Sequential(
             self.while1,
-            self.check_position,
             self.trajectory_update_2, # only use the final reward
         )
 
 
     def forward(self, input, transition='interval', version=None):
         if version == "single_nn_learning":
-            # print(input.detach().cpu().numpy().tolist()[:3])
             res = self.nn(input)
-            # print(res.detach().cpu().numpy().tolist()[:3])
-            # res *= 10
-            # res[res <= self.min_acc] = float(self.min_acc)
-            # res[res > self.max_acc] = float(self.max_acc)
-
-            # res[torch.abs(res) <= self.min_abs_acc] = float(self.min_acc)
-            # res[torch.logical_and(res <= self.max_acc, res > self.min_acc)] = torch.sign(res[torch.logical_and(res <= self.max_acc, res > self.min_acc)]) *  0.5
         else:
             res = self.program(input)
 
