@@ -551,15 +551,10 @@ class Box():
     
     def cos(self):
         #TODO: only for box, not for zonotope
-        # if debug:
-        #     r1 = torch.cuda.memory_reserved(0) 
-        #     a1 = torch.cuda.memory_allocated(0)
-        #     print(f"#cos ini# : memory cost {a1}")
+        # todo: batch this
         # For batch:
         B = self.c.shape[0]
-        # print(self.c.shape)
-        # print(self.c)
-        if B > 1:
+        if len(self.c.shape) > 1:
             c, delta = torch.tensor([]), torch.tensor([])
             # show_cuda_memory(f"before B")
             for i in range(B):
@@ -575,17 +570,9 @@ class Box():
                 if c.shape[0] == 0:
                     c, delta = get_box.c, get_box.delta
                 else:
-                    # print(c.shape, get_box.c.shape, delta.shape, get_box.delta.shape)
-                    #TODO
-                    # print('be', get_box.c.shape, c.shape)
                     if len(get_box.c.shape) != len(c.shape) and len(c.shape) >= 1:
                         get_box.c, get_box.delta = get_box.c.unsqueeze(0), get_box.delta.unsqueeze(0)
-                    # print('mid', get_box.c.shape, c.shape)
                     c, delta = torch.cat((c, get_box.c), 0), torch.cat((delta, get_box.delta), 0)
-                    # print('after', get_box.c.shape, c.shape)
-                # show_cuda_memory(f"----update B")
-
-            # print(f"cos, {c.shape}")
             if len(c.shape) == 1:
                 c, delta = c.unsqueeze(1), delta.unsqueeze(1)
             del self.c
@@ -597,15 +584,6 @@ class Box():
             res_interval = interval.cos()
             res = res_interval.getBox()
             return res
-        # if debug:
-        #     r2 = torch.cuda.memory_reserved(0) 
-        #     a2 = torch.cuda.memory_allocated(0)
-        #     print(f"#cos# : memory cost {a2}, {a2 - a1}")
-        #     del res_interval
-        #     del interval
-        #     a3 = torch.cuda.memory_allocated(0)
-        #     print(f"after del in cos: {a3}, {a3 - a1}")
-        # return res
     
     def exp(self):
         a = self.delta.exp()

@@ -84,16 +84,10 @@ class LinearSig(nn.Module):
         self.sigmoid = Sigmoid()
 
     def forward(self, x):
-        # print(f"LinearSig, before: {x.c, x.delta}")
         res = self.linear1(x)
-        # print(f"LinearSig, after linear1: {res.c, res.delta}")
         res = self.sigmoid(res)
-        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
         res = self.linear2(res)
-        # print(f"LinearSig, after linear2: {res.c, res.delta}")
         res = self.sigmoid(res)
-        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
-        # exit(0)
         return res
 
 
@@ -134,19 +128,11 @@ class LinearReLUNoAct(nn.Module):
     def forward(self, x):
         # final layer is not activation
         res = self.linear1(x)
-        # res = self.relu(res)
-        # # res = self.Sigmoid()
-        # res = self.linear2(res)
-        
         res = self.relu(res)
         res = self.linear3(res)
         res = self.relu(res)
         res = self.linear_output(res)
         # res = self.sigmoid(res)
-        # !!!!!!! between [-1.0, 1.0]
-        # print(f"in Linear")
-        # res = res.mul(var(10.0))
-        # print(f"time in LinearReLU: {time.time() - start_time}")
         return res
 
 
@@ -166,14 +152,13 @@ def f_assign_reset_acc(x):
     return x.set_value(var(0.0))
 
 def f_assign_update_p(x):
-    return x.select_from_index(0, index0).add(x.select_from_index(0, index1))
-
+    return x.select_from_index(1, index0).add(x.select_from_index(1, index1))
 
 def f_assign_v(x):
     # x: p, v, u
-    p = x.select_from_index(0, index0)
-    v = x.select_from_index(0, index1)
-    u = x.select_from_index(0, index2)
+    p = x.select_from_index(1, index0)
+    v = x.select_from_index(1, index1)
+    u = x.select_from_index(1, index2)
     # TODO: cos
     return v.add(u.mul(var(0.0015))).add(p.mul(var(3.0)).cos().mul(var(-0.0025)))
 
@@ -187,8 +172,6 @@ class Program(nn.Module):
         self.max_speed = var(0.07)
         
         self.nn = LinearReLUNoAct(l=l)
-        
-        ####
         self.assign_min_p = Assign(target_idx=[0], arg_idx=[0], f=f_assign_min_p)
         self.assign_min_v = Assign(target_idx=[1], arg_idx=[1], f=f_assign_min_v)
         self.ifelse_p_block1 = nn.Sequential(
