@@ -9,7 +9,6 @@ import domain
 
 import random
 import time
-import sys
 
 from utils import (
     extract_abstract_representation,
@@ -91,7 +90,6 @@ if __name__ == "__main__":
 
             # Run 5 times
             for i in range(5):
-                print(f"benchmark_name: {benchmark_name}")
                 constants.status = 'train'
                 if benchmark_name == "thermostat":
                     import benchmarks.thermostat as tm
@@ -202,7 +200,7 @@ if __name__ == "__main__":
                 # print(f"sys.modules.keys: {sys.modules.keys()}")
                 constants.status = 'verify_AI'
                 import verifier_AI as vA
-                importlit.reload(vA)
+                importlib.reload(vA)
                 from verifier_AI import *
 
                 verification_time = time.time()
@@ -218,7 +216,7 @@ if __name__ == "__main__":
 
                 constants.status = 'verify_SE'
                 import verifier_SE as vS
-                importlit.reload(vS)
+                importlib.reload(vS)
                 from verifier_SE import *
                 
                 verification_time = time.time()

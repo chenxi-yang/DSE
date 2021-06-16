@@ -6,6 +6,7 @@ import nlopt
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
+import importlib
 
 from constants import benchmark_name
 
@@ -20,8 +21,12 @@ from utils import (
 )
 
 if constants.benchmark_name == "thermostat":
+    import benchmarks.thermostat as tm
+    importlib.reload(tm)
     from benchmarks.thermostat import *
 elif constants.benchmark_name == "mountain_car":
+    import benchmarks.mountain_car as mc
+    importlib.reload(mc)
     from benchmarks.mountain_car import *
 elif constants.benchmark_name == "unsmooth_1":
     from benchmarks.unsmooth import *

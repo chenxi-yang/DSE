@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from constants 
 from torch.autograd import Variable
+import importlib
 
 from utils import (
     batch_pair,
@@ -23,8 +24,12 @@ from utils import (
     )
 
 if constants.benchmark_name == "thermostat":
+    import benchmarks.thermostat as tm
+    importlib.reload(tm)
     from benchmarks.thermostat import *
 elif constants.benchmark_name == "mountain_car":
+    import benchmarks.mountain_car as mc
+    importlib.reload(mc)
     from benchmarks.mountain_car import *
 elif constants.benchmark_name == "unsmooth_1":
     from benchmarks.unsmooth import *
