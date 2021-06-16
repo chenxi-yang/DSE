@@ -2,16 +2,14 @@
 from constants import *
 import constants
 from args import *
+import importlib
 
 from data_loader import *
 import domain
 
 import random
 import time
-
-from verifier_AI import verifier_AI
-from verifier_SE import verifier_SE
-from tester import test_data_loss
+import sys
 
 from utils import (
     extract_abstract_representation,
@@ -93,10 +91,15 @@ if __name__ == "__main__":
 
             # Run 5 times
             for i in range(5):
+                print(f"benchmark_name: {benchmark_name}")
                 constants.status = 'train'
                 if benchmark_name == "thermostat":
+                    import benchmarks.thermostat as tm
+                    importlib.reload(tm)
                     from benchmarks.thermostat import *
                 elif benchmark_name == "mountain_car":
+                    import benchmarks.mountain_car as mc
+                    importlib.reload(mc)
                     from benchmarks.mountain_car import *
                 elif benchmark_name == "unsmooth_1":
                     from benchmarks.unsmooth import *
@@ -108,13 +111,20 @@ if __name__ == "__main__":
                     from benchmarks.path_explosion import *
                 elif benchmark_name == "path_explosion_2":
                     from benchmarks.path_explosion_2 import *
+
                 if mode == 'DSE':
+                    import gpu_DSE.train as gt
+                    importlib.reload(gt)
                     from gpu_DSE.train import *
                 if mode == 'DiffAI':
+                    import gpu_DiffAI.train as gt
+                    importlib.reload(gt)
                     from gpu_DiffAI.train import *
                 if mode == 'only_data':
+                    import gpu_only_data.train as gt
+                    importlib.reload(gt)
                     from gpu_only_data.train import *
-
+                
                 preprocessing_time = time.time()
                 if benchmark_name in ["thermostat"]:
                     dataset_path = f"{dataset_path_prefix}_{86.0}.txt"
@@ -184,26 +194,16 @@ if __name__ == "__main__":
                 # SE verification use one initial components
                 SE_components = extract_abstract_representation(Trajectory_test, x_l, x_r, 1)
                 # AI verification, SE verification, Test data loss
-
-                constants.status = 'verify_AI'
-                if benchmark_name == "thermostat":
-                    from benchmarks.thermostat import *
-                elif benchmark_name == "mountain_car":
-                    from benchmarks.mountain_car import *
-                elif benchmark_name == "unsmooth_1":
-                    from benchmarks.unsmooth import *
-                elif benchmark_name == "unsmooth_2_separate":
-                    from benchmarks.unsmooth_2_separate import *
-                elif benchmark_name == "unsmooth_2_overall":
-                    from benchmarks.unsmooth_2_overall import *
-                elif benchmark_name == "path_explosion":
-                    from benchmarks.path_explosion import *
-                elif benchmark_name == "path_explosion_2":
-                    from benchmarks.path_explosion_2 import *
                 
                 # TODO: check replacement?
-                print(f"------------start sound verification------------")
+                print(f"------------start verification------------")
                 print(f"to verify safe bound: {safe_range_bound}")
+
+                # print(f"sys.modules.keys: {sys.modules.keys()}")
+                constants.status = 'verify_AI'
+                import verifier_AI as vA
+                importlit.reload(vA)
+                from verifier_AI import *
 
                 verification_time = time.time()
                 # TODO: change extract_abstract_representation
@@ -217,20 +217,9 @@ if __name__ == "__main__":
                 print(f"---verification AI time: {time.time() - verification_time} sec---")
 
                 constants.status = 'verify_SE'
-                if benchmark_name == "thermostat":
-                    from benchmarks.thermostat import *
-                elif benchmark_name == "mountain_car":
-                    from benchmarks.mountain_car import *
-                elif benchmark_name == "unsmooth_1":
-                    from benchmarks.unsmooth import *
-                elif benchmark_name == "unsmooth_2_separate":
-                    from benchmarks.unsmooth_2_separate import *
-                elif benchmark_name == "unsmooth_2_overall":
-                    from benchmarks.unsmooth_2_overall import *
-                elif benchmark_name == "path_explosion":
-                    from benchmarks.path_explosion import *
-                elif benchmark_name == "path_explosion_2":
-                    from benchmarks.path_explosion_2 import *
+                import verifier_SE as vS
+                importlit.reload(vS)
+                from verifier_SE import *
                 
                 verification_time = time.time()
                 verifier_SE(
@@ -242,7 +231,10 @@ if __name__ == "__main__":
                 )
                 print(f"---verification SE time: {time.time() - verification_time} sec---")
 
+                import tester as t
+                importlit.reload(t)
                 from tester import test_data_loss
+                
                 test_time = time.time()
                 test_data_loss(
                     model_path=MODEL_PATH, 

@@ -5,6 +5,26 @@ from constants import *
 
 import domain
 
+print(constants.status)
+if benchmark_name == "thermostat":
+    import benchmarks.thermostat as tm
+    importlib.reload(tm)
+    from benchmarks.thermostat import *
+elif benchmark_name == "mountain_car":
+    import benchmarks.mountain_car as mc
+    importlib.reload(mc)
+    from benchmarks.mountain_car import *
+elif benchmark_name == "unsmooth_1":
+    from benchmarks.unsmooth import *
+elif benchmark_name == "unsmooth_2_separate":
+    from benchmarks.unsmooth_2_separate import *
+elif benchmark_name == "unsmooth_2_overall":
+    from benchmarks.unsmooth_2_overall import *
+elif benchmark_name == "path_explosion":
+    from benchmarks.path_explosion import *
+elif benchmark_name == "path_explosion_2":
+    from benchmarks.path_explosion_2 import *
+
 
 def in_interval(x, y):
     # check if x in y

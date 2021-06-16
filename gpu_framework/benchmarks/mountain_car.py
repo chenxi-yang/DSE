@@ -7,16 +7,21 @@ import constants
 import domain
 import os
 
+print(constants.status, mode)
+
 if constants.status == 'train':
     if mode == 'DSE':
         from gpu_DSE.modules import *
     elif mode == 'only_data':
+        print(f"in only data: import DSE_modules")
         from gpu_DSE.modules import *
     elif mode == 'DiffAI':
         from gpu_DiffAI.modules import *
 elif constants.status == 'verify_AI':
+    print(f"in verify_AI: modules_AI")
     from modules_AI import *
 elif constants.status == 'verify_SE':
+    print(f"in verify_SE: modules_SE")
     from modules_SE import *
 
 index0 = torch.tensor(0)

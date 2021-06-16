@@ -1,6 +1,7 @@
 import sys
 import constants
 
+print(constants.status)
 if constants.status == 1:
     from modules1 import *
 elif constants.status == 2:
