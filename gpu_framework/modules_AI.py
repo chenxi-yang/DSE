@@ -124,12 +124,12 @@ def update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, 
         res_states['x'].delta = torch.cat((res_states['x'].delta, new_delta), 0)
         res_states['trajectories'].append(new_trajectory)
         res_states['idx_list'].append(new_idx)
-        res_states['p_list'].append(p)
+        res_states['p_list'].append(new_p)
     else:
         res_states['x'] = domain.Box(new_c, new_delta)
         res_states['trajectories'] = [new_trajectory]
         res_states['idx_list'] = [new_idx]
-        res_states['p_list'] = [p]
+        res_states['p_list'] = [new_p]
 
     return res_states
 
