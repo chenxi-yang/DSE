@@ -170,7 +170,7 @@ def sound_join(states1, states2):
             new_right = torch.max(states1['x'].c[idx1:idx1+1] + states1['x'].delta[idx1:idx1+1], states2['x'].c[idx2:idx2+1] + states2['x'].delta[idx2:idx2+1])
             new_c = (new_left + new_right) / 2.0
             new_delta = (new_right - new_left) / 2.0
-            new_trajectory = sound_join_trajectory(states1['trajectory_list'][idx1], states2['trajectory_list'][idx2])
+            new_trajectory = sound_join_trajectory(states1['trajectories'][idx1], states2['trajectories'][idx2])
             new_idx = idx_list_1[idx1]
             new_p = p_list_1[idx1]
             res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p)
