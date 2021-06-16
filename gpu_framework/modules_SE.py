@@ -196,6 +196,15 @@ def calculate_states(target_idx, arg_idx, f, states):
     return states
 
 
+def extract_branch_probability(target, test):
+    return p_left, p_right
+
+
+def sample_from_p(p_left, p_right):
+    
+    return left, right
+
+
 def calculate_branch(target_idx, test, states):
     body_states, orelse_states = dict(), dict()
     x = states['x']
@@ -209,7 +218,9 @@ def calculate_branch(target_idx, test, states):
     left = target.getLeft() <= test
     right = target.getRight() > test
 
-    
+    # TODO:list or tensor
+    p_left, p_right = extract_branch_probability(target, test)
+    left, right = sample_from_p(p_left, p_right)
 
     if True in left: # split to left
         left_idx = left.nonzero(as_tuple=True)[0].tolist()
@@ -224,7 +235,8 @@ def calculate_branch(target_idx, test, states):
         body_states['x'] = x_left
         body_states['trajectories'] = [states['trajectories'][i] for i in left_idx]
         body_states['idx_list'] = [states['idx_list'][i] for i in left_idx]
-        body_states['p_list'] = [states['p_list'][i] for i in left_idx]
+        # TODO: update p
+        body_states['p_list'] = [states['p_list'][i].mul(p_left[i]) for i in left_idx]
     
     if True in right: # split to right
         right_idx = right.nonzero(as_tuple=True)[0].tolist()
@@ -239,7 +251,8 @@ def calculate_branch(target_idx, test, states):
         orelse_states['x'] = x_right
         orelse_states['trajectories'] = [states['trajectories'][i] for i in right_idx]
         orelse_states['idx_list'] = [states['idx_list'][i] for i in right_idx]
-        orelse_states['p_list'] = [states['p_list'][i] for i in right_idx]
+        # TODO: update p
+        orelse_states['p_list'] = [states['p_list'][i].mul(p_right[i]) for i in right_idx]
     
     return body_states, orelse_states
 

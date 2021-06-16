@@ -1,4 +1,7 @@
-
+'''
+TODO:
+# use a way to smooth data loss
+'''
 from constants import *
 import constants
 from args import *
@@ -85,6 +88,7 @@ if __name__ == "__main__":
                 {   # constraint is in box domain
                     "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)),
                     "method": method_list[idx],
+                    "name": name_list[idx],
                 }
             )
 
