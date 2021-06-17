@@ -215,7 +215,8 @@ if __name__ == "__main__":
                     model_name=target_model_name, 
                     components=AI_components, 
                     target=target,
-                    trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}")
+                    trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
+                )
                 print(f"---verification AI time: {time.time() - verification_time} sec---")
 
                 constants.status = 'verify_SE'
@@ -226,10 +227,10 @@ if __name__ == "__main__":
                 verification_time = time.time()
                 verifier_SE(
                     model_path=MODEL_PATH, 
-                    model_name=target_model_name, 
-                    trajectory_test=Trajectory_test, 
+                    model_name=target_model_name,
                     components=SE_components,
                     target=target,
+                    trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
                 )
                 print(f"---verification SE time: {time.time() - verification_time} sec---")
 
