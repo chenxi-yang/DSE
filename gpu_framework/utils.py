@@ -14,14 +14,14 @@ np.random.seed(seed=1)
 random.seed(1)
 
 
-def var(i, requires_grad=False):
+def var(i, requires_grad=True):
     if torch.cuda.is_available():
         return Variable(torch.tensor(i, dtype=torch.float).cuda(), requires_grad=requires_grad)
     else:
         return Variable(torch.tensor(i, dtype=torch.float), requires_grad=requires_grad)
 
 
-def var_list(i_list, requires_grad=False):
+def var_list(i_list, requires_grad=True):
     if torch.cuda.is_available():
         res = torch.tensor(i_list, dtype=torch.float, requires_grad=requires_grad).cuda()
     else:
