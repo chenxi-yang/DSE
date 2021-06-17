@@ -41,7 +41,7 @@ def in_interval(x, y):
 
 def trajectory_worst_case(trajectory, target_component, target_idx):
     safe_interval = target_component['condition']
-    method = target_componnet['method']
+    method = target_component['method']
     if method == 'last':
         trajectory = [trajectory[-1]]
     elif method == 'all':

@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 
 from random import shuffle
+from torch.distributions.bernoulli import Bernoulli
 
 import domain
 from constants import *
@@ -180,16 +181,27 @@ def sound_join(states1, states2):
     return res_states
 
 
+def concatenate_states(states1, states2):
+    if len(states1) == 0:
+        return states2
+    if len(states2) == 0:
+        return states1
+    
+    # x, trajectories, idx_list, p_list
+    res_c, res_delta = torch.cat((states1['x'].c, states2['x'].c), 0), torch.cat((state1['x'].delta, states2['x'].delta), 0)
+    res_states = {
+        'x': domain.Box(res_c, res_delta),
+        'trajectories': states1['trajectories'] + states2['trajectories'],
+        'idx_list': states1['idx_list'] + states2['idx_list'],
+        'p_list': states1['p_list'] + states2['p_list'],
+    }
+    return res_states
+
+
 def calculate_states(target_idx, arg_idx, f, states):
     x = states['x']
     input = x.select_from_index(1, arg_idx)
     res = f(input)
-    # TODO: check
-    # print(f'cal')
-    # print(f)
-    # print(x.c.shape, x.delta.shape)
-    # print(target_idx)
-    # print(res.c.shape, res.c.shape)
     x.c[:, target_idx] = res.c 
     x.delta[:, target_idx] = res.delta
     states['x'] = x
@@ -197,11 +209,18 @@ def calculate_states(target_idx, arg_idx, f, states):
 
 
 def extract_branch_probability(target, test):
-    return p_left, p_right
+    p_test = (test - target.getLeft()) / (target.getRight() - target.getLeft())
+    p_test[p_test < 0.0] = 0.0
+    p_test[p_test > 1.0] = 1.0
+
+    return p_test, 1 - p_test
 
 
 def sample_from_p(p_left, p_right):
-    
+    m = Bermoulli(p_left)
+    res = m.sample()
+    left = res > 0
+    right = (1 - res) > 0
     return left, right
 
 
@@ -215,10 +234,6 @@ def calculate_branch(target_idx, test, states):
     # select the idx accordingly
     # split the other
 
-    left = target.getLeft() <= test
-    right = target.getRight() > test
-
-    # TODO:list or tensor
     p_left, p_right = extract_branch_probability(target, test)
     left, right = sample_from_p(p_left, p_right)
 
@@ -235,7 +250,6 @@ def calculate_branch(target_idx, test, states):
         body_states['x'] = x_left
         body_states['trajectories'] = [states['trajectories'][i] for i in left_idx]
         body_states['idx_list'] = [states['idx_list'][i] for i in left_idx]
-        # TODO: update p
         body_states['p_list'] = [states['p_list'][i].mul(p_left[i]) for i in left_idx]
     
     if True in right: # split to right
@@ -251,7 +265,6 @@ def calculate_branch(target_idx, test, states):
         orelse_states['x'] = x_right
         orelse_states['trajectories'] = [states['trajectories'][i] for i in right_idx]
         orelse_states['idx_list'] = [states['idx_list'][i] for i in right_idx]
-        # TODO: update p
         orelse_states['p_list'] = [states['p_list'][i].mul(p_right[i]) for i in right_idx]
     
     return body_states, orelse_states
@@ -302,8 +315,7 @@ class IfElse(nn.Module):
             orelse_states = self.orelse(orelse_states)
         
         # maintain the same number of components as the initial ones
-        # TODO: update sound join
-        res_states = sound_join(body_states, orelse_states)
+        res_states = concatenate_states(body_states, orelse_states)
 
         return res_states
 
@@ -320,19 +332,19 @@ class While(nn.Module):
     
     def forward(self, states):
         i = 0
-        res_states = list()
+        res_states = dict()
         while(len(states) > 0):
             body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
             # TODO: sound append
-            res_states = sound_join(res_states, orelse_states)
+            res_states = concatenate_states(res_states, orelse_states)
             if len(body_states) == 0:
                 return res_states
             states = self.body(body_states)
             i += 1
             if i > MAXIMUM_ITERATION:
                 break
-        res_states = sound_join(res_states, orelse_states)
-        res_states = sound_join(res_states, body_states)
+        res_states = concatenate_states(res_states, orelse_states)
+        res_states = concatenate_states(res_states, body_states)
 
         return res_states
 

@@ -71,7 +71,6 @@ if benchmark_name == "thermostat":
     safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
-
 if benchmark_name == "mountain_car":
     x_l = [-0.6]
     x_r = [-0.4]
@@ -87,7 +86,7 @@ if benchmark_name == "mountain_car":
     safe_range_end=1.2 # 1.1
     safe_range_step=0.1
     safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
-
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}"
 
