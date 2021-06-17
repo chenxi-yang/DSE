@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import nlopt
 import numpy as np
 import torch
-from constants 
+import constants 
 from torch.autograd import Variable
 import importlib
 
@@ -64,6 +64,7 @@ def extract_safe_loss(component, target_component, target_idx):
     component_loss = var_list([0.0])
 
     for trajectory, p in zip(component['trajectories'], component['p_list']):
+        print(f"p: {p}")
         if method == "last":
             trajectory = [trajectory[-1]]
         elif method == "all":
@@ -210,6 +211,8 @@ def learning(
         epochs_to_skip = -1
 
     start_time = time.time()
+
+    print(f"epochs_to_skip: {epochs_to_skip}")
 
     for i in range(epoch):
         if i <= epochs_to_skip:

@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 
 from random import shuffle
+from torch.distributions.bernoulli import Bernoulli
 
 import domain
 from constants import *
