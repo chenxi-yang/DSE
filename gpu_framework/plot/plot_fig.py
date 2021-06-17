@@ -8,7 +8,7 @@ import pandas as pd
 
 import seaborn as sns
 
-from args import *
+# from args import *
 # from constants import *
 
 import numpy as np
@@ -19,12 +19,15 @@ def read_loss(loss_path):
     c_list = list()
     with open(loss_path, 'r') as loss_f:
         loss_f.readline()
+        loss_f.readline()
+        loss_f.readline()
         i = 0
         for line in loss_f:
-            if i % 3 == 1:
+            if i % 2 == 1:
                 content = line.split(",")
+                # print(content)
                 q = float(content[1].split(":")[1])
-                c = float(content[2].split(":")[1])
+                c = abs(float(content[2].split(":")[1]))
                 q_list.append(q)
                 c_list.append(c)
             i += 1
@@ -175,7 +178,7 @@ def plot_constraint(x_list, safe_l_list, safe_r_list, p1_list, p2_list, title,  
 def plot_loss(loss_dir):
     for loss_file in os.listdir(loss_dir):
         loss_name = os.path.splitext(loss_file)[0]
-        q_list, c_list = read_loss(loss_dir + loss_name + '.txt')
+        q_list, c_list = read_loss(loss_dir + '.txt')
         x_list = list(range(len(q_list)))
 
         plot_line(x_list, q_list, title=loss_name + ' data loss', x_label='epoch', y_label='loss', label='data loss', fig_title=f"figures/loss/{loss_name}_data_loss.png", c='C0')
@@ -474,7 +477,7 @@ def extract_verify_result():
     plot_verify(verify_result, fig_name=f"{result_prefix}")
 
 
-def plot_line(
+def plot_line_2(
     x_list, 
     y_list_list, 
     label_name_list, 
@@ -508,7 +511,7 @@ def plot_line(
     plt.grid()
     if figure_save_name is None:
         figure_save_name = figure_name
-    plt.savefig(f"all_figures/{figure_save_name}.png")
+    plt.savefig(f"figures/{figure_save_name}.png")
     plt.close()
 
 
@@ -754,7 +757,44 @@ def extract_test_info(
 #     plt.savefig(f"all_figures/{figure_save_name}.png")
 #     plt.close()
 #     return 
-            
+def plot_single_loss(loss_dir):
+    loss_name = 'mc'
+    q_list, c_list = read_loss(loss_dir)
+    x_list = list(range(len(q_list)))
+
+    plot_line(x_list, q_list, title=loss_name + ' data loss', x_label='epoch', y_label='loss', label='data loss', fig_title=f"figures/loss/{loss_name}_data_loss.png", c='C0')
+    plot_line(x_list, c_list, title=loss_name + ' safe loss', x_label='epoch', y_label='loss', label='safe loss', fig_title=f"figures/loss/{loss_name}_safe_loss.png", c='C1')
+
+
+def read_log(path):
+    q_list = list()
+    c_list = list()
+    with open(path, 'r') as loss_f:
+        i = 0
+        for line in loss_f:
+            if i % 9 == 0:
+                content = line[:-1].split(":")
+                print(content)
+                q = float(content[1].split(",")[0])
+                c = abs(float(content[1].split(",")[1]))
+                q_list.append(q)
+                c_list.append(c)
+            i += 1
+    return q_list, c_list
+
+
+def plot_log(path):
+    yl_list, yr_list = read_log(path)
+    x_list = list(range(len(yl_list)))
+    plot_line_2(
+        x_list, 
+        [yl_list, yr_list], 
+        label_name_list=['yp_left', 'yp_right'],
+        figure_name='mc_y',
+        x_label='epoch',
+        y_label='loss'
+        )
+    
 
 def extract_running_time(
         file_name='all_results/thermostat_running_time.txt',
@@ -842,8 +882,9 @@ def extract_mountain_car(
 
 
 if __name__ == "__main__":
-    # plot_loss('loss/') # the q and c loss
-    # plot_loss_2('loss/')
+    # plot_single_loss('../gpu_DSE/result/mountain_car_all_10_2_1_200_[0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1]_500_500.txt') # the q and c loss
+    plot_log('../gpu_DSE/result/mc_log.txt')
+    #  plot_loss_2('loss/')
     # plot_sample('data/sample_time.txt')
     # lr_bs_epoch_samplesize
     # plot_training_loss('gpu_DSE/result/mountain_car_DSE_0.001_2_10_400_True_10_100_1000_all_linearrelu_5_True_100.0_[80.0, 85.0, 90.0, 95.0]_0.1.txt', benchmark='mountain_car_DSE_0.001_2_10_400_True_10_100_1000_all_linearrelu_5_True_100.0_[80.0, 85.0, 90.0, 95.0]_0.1', method_name='DSE', log=False)
@@ -875,21 +916,21 @@ if __name__ == "__main__":
     # )
 
     # plot test results,  unsafe probability, data loss
-    extract_test_info(
-        file_name_list = [
-            'gpu_DiffAI/result/thermostat_[30]_DiffAI_0.001_2000_30_800_False_2000_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
-            'gpu_DiffAI/result/thermostat_[30]_DiffAI_0.01_10_30_800_False_10_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
-            'gpu_DSE/result/thermostat_[30]_DSE_0.01_1_30_800_True_1_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
-            'gpu_DSE/result/thermostat_[30]_DSE_0.01_10_30_800_True_10_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt'
-        ],
-        method_name_list = [
-            'DiffAI(2k)',
-            'DiffAI(10)',
-            'DSE(1)',
-            'DSE(10)',
-        ],
-        benchmark_name='Thermostat',
-    )
+    # extract_test_info(
+    #     file_name_list = [
+    #         'gpu_DiffAI/result/thermostat_[30]_DiffAI_0.001_2000_30_800_False_2000_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
+    #         'gpu_DiffAI/result/thermostat_[30]_DiffAI_0.01_10_30_800_False_10_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
+    #         'gpu_DSE/result/thermostat_[30]_DSE_0.01_1_30_800_True_1_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt',
+    #         'gpu_DSE/result/thermostat_[30]_DSE_0.01_10_30_800_True_10_128_1000_all_linearrelu_5_True_83.5_92.0_0.5_[0.0]_True_False_40_0_15_1.0_1e-06_normal_55.0_70.0_True_True_evaluation.txt'
+    #     ],
+    #     method_name_list = [
+    #         'DiffAI(2k)',
+    #         'DiffAI(10)',
+    #         'DSE(1)',
+    #         'DSE(10)',
+    #     ],
+    #     benchmark_name='Thermostat',
+    # )
 
     # extract_running_time(
     #     file_name = 'all_results/thermostat_running_time.txt',
