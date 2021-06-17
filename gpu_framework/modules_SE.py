@@ -203,7 +203,7 @@ def extract_branch_probability(target, test):
 
 
 def sample_from_p(p_left, p_right):
-    m = Bermoulli(p_left)
+    m = Bernoulli(p_left)
     res = m.sample()
     left = res > 0
     right = (1 - res) > 0
