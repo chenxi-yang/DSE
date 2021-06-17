@@ -374,19 +374,7 @@ def cal_c(X_train, y_train, m, target):
 
 def cal_q(X_train, y_train, m):
     root_point = construct_syntax_tree_point(theta)
-    # q = var(0.0)
-
     data_loss = cal_data_loss(m, X_train, y_train)
-
-    # for idx, x in enumerate(X_train):
-    #     x, y = x, y_train[idx]
-    #     symbol_table_point = initialization_point(x)
-    #     symbol_table_point = root_point['entry'].execute(symbol_table_point)
-
-    #     # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
-    #     q = q.add(distance_f_point(symbol_table_point['res'], var(y)))
-
-    # q = q.div(var(len(X_train)))
     print(f"cal_q, {data_loss}")
     
     return q
