@@ -11,9 +11,6 @@ import constants
 
 import math
 import time
-from utils import (
-    concatenate_states,
-)
 
 
 def show_tra_l(l):
@@ -98,89 +95,20 @@ class SigmoidLinear(nn.Module):
 '''
 Program Statement
 '''
-
-def sound_join_trajectory(trajectory_1, trajectory_2):
-    l1, l2 = len(trajectory_1), len(trajectory_2)
-    trajectory = list()
-    K = min(l1, l2)
-    for idx in range(K):
-        states_1, states_2 = trajectory_1[0], trajectory_2[0]
-        l_s = len(states_1)
-        state_list = list()
-        for state_idx in range(l_s):
-            state_1, state_2 = states_1[0], states_2[0]
-            a = state_1.soundJoin(state_2)
-            state_list.append(a)
-        trajectory.append(state_list)
-    
-    if l1 < l2:
-        trajectory.extend(trajectory_2[l2 - 1:])
-    elif l1 > l2:
-        trajectory.extend(trajectory_1[l1 - 1:])
-    assert(len(trajectory) == max(l1, l2))
-
-    return trajectory
-
-
-def update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p):
-    if 'x' in res_states:
-        res_states['x'].c = torch.cat((res_states['x'].c, new_c), 0)
-        res_states['x'].delta = torch.cat((res_states['x'].delta, new_delta), 0)
-        res_states['trajectories'].append(new_trajectory)
-        res_states['idx_list'].append(new_idx)
-        res_states['p_list'].append(p)
-    else:
-        res_states['x'] = domain.Box(new_c, new_delta)
-        res_states['trajectories'] = [new_trajectory]
-        res_states['idx_list'] = [new_idx]
-        res_states['p_list'] = [p]
-
-    return res_states
-
-
-def sound_join(states1, states2):
-    # symbol_tables
-    # 'x': B*D, 'trajectories': trajectory of each B, 'idx_list': idx of B in order
+def concatenate_states(states1, states2):
     if len(states1) == 0:
         return states2
     if len(states2) == 0:
         return states1
-
-    res_states = dict()
-    idx1, idx2 = 0, 0
-    idx_list_1, idx_list_2 = states1['idx_list'], states2['idx_list']
-    p_list_1, p_list_2 = states1['p_list'], states2['p_list']
-
-    while idx1 <= len(idx_list_1) - 1 or idx2 <= len(idx_list_2) - 1:
-        if idx1 > len(idx_list_1) - 1 or (idx2 <= len(idx_list_2) - 1 and idx_list_1[idx1] > idx_list_2[idx2]):
-            new_c = states2['x'].c[idx2:idx2+1].clone()
-            new_delta = states2['x'].delta[idx2:idx2+1].clone()
-            new_trajectory = states2['trajectories'][idx2]
-            new_idx = states2['idx_list'][idx2]
-            new_p = states2['p_list'][idx2]
-            res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p)
-            idx2 += 1
-        elif idx2 > len(idx_list_2) - 1 or (idx1 <= len(idx_list_1) - 1 and idx_list_1[idx1] < idx_list_2[idx2]):
-            new_c = states1['x'].c[idx1:idx1+1].clone()
-            new_delta = states1['x'].delta[idx1:idx1+1].clone()
-            new_trajectory = states1['trajectories'][idx1]
-            new_idx = states1['idx_list'][idx1]
-            new_p = states1['p_list'][idx1]
-            res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p)
-            idx1 += 1
-        else: # idx_list_1[idx_1] == idx_list_2[idx_2], need to join
-            assert(idx_list_1[idx1] == idx_list_2[idx2])
-            new_left = torch.min(states1['x'].c[idx1:idx1+1] - states1['x'].delta[idx1:idx1+1], states2['x'].c[idx2:idx2+1] - states2['x'].delta[idx2:idx2+1])
-            new_right = torch.max(states1['x'].c[idx1:idx1+1] + states1['x'].delta[idx1:idx1+1], states2['x'].c[idx2:idx2+1] + states2['x'].delta[idx2:idx2+1])
-            new_c = (new_left + new_right) / 2.0
-            new_delta = (new_right - new_left) / 2.0
-            new_trajectory = sound_join_trajectory(states1['trajectory_list'][idx1], states2['trajectory_list'][idx2])
-            new_idx = idx_list_1[idx1]
-            new_p = p_list_1[idx1]
-            res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p)
-            idx2 += 1
-            idx1 += 1
-
+    
+    # x, trajectories, idx_list, p_list
+    res_c, res_delta = torch.cat((states1['x'].c, states2['x'].c), 0), torch.cat((states1['x'].delta, states2['x'].delta), 0)
+    res_states = {
+        'x': domain.Box(res_c, res_delta),
+        'trajectories': states1['trajectories'] + states2['trajectories'],
+        'idx_list': states1['idx_list'] + states2['idx_list'],
+        'p_list': states1['p_list'] + states2['p_list'],
+    }
     return res_states
 
 
