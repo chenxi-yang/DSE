@@ -44,7 +44,7 @@ def in_interval(x, y):
 
 def trajectory_worst_case(trajectory, target_component, target_idx):
     safe_interval = target_component['condition']
-    method = target_componnet['method']
+    method = target_component['method']
     if method == 'last':
         trajectory = [trajectory[-1]]
     elif method == 'all':
@@ -136,6 +136,6 @@ def verifier_SE(model_path, model_name, components, target, trajectory_path):
         output_states = m(ini_states)
         res_states = concatenate_states(res_states, output_states)
     # TODO: to update the trajectory
-    store_trajectory(output_states, trajectory_path, category=category)
+    store_trajectory(res_states, trajectory_path, category=category)
     
-    verify_worst_case(m, output_states, target)
+    verify_worst_case(res_states, target)
