@@ -47,49 +47,12 @@ elif constants.benchmark_name == "path_explosion_2":
 
 random.seed(1)
 
-def distance_f_point(pred_y, y):
-    return torch.abs(pred_y.sub(y)) # l1-distance
-    # return torch.square(pred_y.sub(y)) # l2-distance
-
 
 def get_intersection(interval_1, interval_2):
     res_interval = domain.Interval()
     res_interval.left = torch.max(interval_1.left, interval_2.left)
     res_interval.right = torch.min(interval_1.right, interval_2.right)
     return res_interval
-
-
-def distance_f_interval(symbol_table_list, target):
-    if len(symbol_table_list) == 0:
-        return var(1.0)
-    res = var(0.0)
-
-    for symbol_table in symbol_table_list:
-        X = symbol_table['safe_range']
-        p = symbol_table['probability']
-
-        # print(f"X: {X.left.data.item(), X.right.data.item()}, p: {p}")
-        # print(f"target: {target.left, target.right}")
-        intersection_interval = get_intersection(X, target)
-        
-        #  calculate the reward of each partition
-        if intersection_interval.isEmpty():
-            # print(f"in empty")
-            reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
-        else:
-            # print(f"not empty")
-            # print(f"intersection interval get length: {intersection_interval.getLength()}")
-            # print(f"X get length: {X.getLength()}")
-            reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
-        # print(f"reward for one partition: {reward}")
-    
-        tmp_res = reward.mul(p)
-        res = res.add(tmp_res)
-    res = res.div(var(len(symbol_table_list)).add(EPSILON))
-
-    # print(f"safe loss, res: {res}")
-    # res = res_up.div(res_basse)
-    return res
 
 
 def extract_safe_loss(component, target_component, target_idx):
@@ -121,76 +84,10 @@ def extract_safe_loss(component, target_component, target_idx):
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
             unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
-        component_loss += torch.log
-
-
-
-    for symbol_table in abstract_state:
-        if method == "last":
-            trajectory = [symbol_table['trajectory'][-1]]
-        elif method == "all":
-            trajectory = symbol_table['trajectory'][:]
-        else:
-            raise NotImplementedError("Error: No trajectory method detected!")
-        symbol_table['trajectory_loss'] = list()
-        tmp_symbol_table_tra_loss = list()
-
-        trajectory_loss = var_list([0.0])
-        # print(f"symbol table p: {float(symbol_table['probability'])}")
-        # print(f"start trajectory: ")
-        for state in trajectory:
-            # print(f"state: {state}")
-            X = state[target_idx] # select the variable to measure
-            if benchmark_name == "mountain_car_1":
-                print(f"v: {float(state[0].left)}, {float(state[0].right)}; p: {float(state[1].left)}, {float(state[1].right)}; u: {float(state[2].left)}, {float(state[2].right)};")
-            intersection_interval = get_intersection(X, safe_interval)
-            if intersection_interval.isEmpty():
-                # print(f"point: {X.isPoint()}")
-                # print(f"empty")
-                if X.isPoint():
-                    # min point to interval
-                    unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
-                else:
-                    unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength() + eps)
-                # unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(EPSILON))
-            else:
-                # print(f"not empty: {intersection_interval.getLength()}, {X.getLength()}")
-                safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
-                unsafe_value = 1 - safe_portion
-            # if float(unsafe_value) > 0:
-            # print(f"X: {float(X.left)}, {float(X.right)}")
-            # print(f"unsafe value: {float(unsafe_value)}")
-            # print(f"p: {symbol_table['probability']}")
-                # print(f"point: {X.isPoint()}")
-            # print(f"unsafe value: {float(unsafe_value)}")
-            if outside_trajectory_loss:
-                if benchmark_name in ["thermostat"]:
-                    tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table['probability'])
-                else:
-                    tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table['probability']  / abstract_state_p)
-            else:
-                trajectory_loss = torch.max(trajectory_loss, unsafe_value)
-
-        if outside_trajectory_loss:
-            symbol_table_wise_loss_list.append(tmp_symbol_table_tra_loss)
-
-        # print(f"add part: {trajectory_loss, symbol_table['probability']}")
-        if not outside_trajectory_loss:
-            if benchmark_name in ["thermostat"]:
-                abstract_loss += trajectory_loss * symbol_table['probability']
-            else:
-                abstract_loss += trajectory_loss * symbol_table['probability'] / abstract_state_p
-        # print(f"abstract_loss: {abstract_loss}")
-    if outside_trajectory_loss:
-        abstract_state_wise_trajectory_loss = zip(*symbol_table_wise_loss_list)
-        abstract_loss = var_list([0.0])
-        for l in abstract_state_wise_trajectory_loss:
-            # print(l)
-            abstract_loss = torch.max(abstract_loss, torch.sum(torch.stack(l)))
-        # if debug:
-        #     print(f"abstract_loss: {abstract_loss}")
-
-    return abstract_loss
+        component_loss += p * float(unsafe_penalty) + unsafe_penalty
+    
+    component_loss /= len(component['p_list'])
+    return component_loss
     
 
 def safe_distance(component_result_list, target):
