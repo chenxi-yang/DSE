@@ -306,3 +306,4 @@ def product(it):
         if x >= 0:
             product *= x
     return product
+
