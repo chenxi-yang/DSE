@@ -92,19 +92,39 @@ def distance_f_interval(symbol_table_list, target):
     return res
 
 
-def extract_abstract_state_safe_loss(abstract_state, target_component, target_idx):
-    # weighted sum of symbol_table loss in one abstract_state
-    unsafe_probability_condition = target_component["phi"]
+def extract_safe_loss(component, target_component, target_idx):
+    # component: {'trajectories', 'p_list'}
+
     safe_interval = target_component["condition"]
     # print(f"safe interval: {float(safe_interval.left)}, {float(safe_interval.right)}")
     method = target_component["method"]
-    abstract_loss = var_list([0.0])
-    symbol_table_wise_loss_list = list()
-    abstract_state_p = var_list([0.0])
-    for symbol_table in abstract_state:
-        abstract_state_p += symbol_table['probability']
+    component_loss = var_list([0.0])
 
-    # print(f"in each abstract state: {len(abstract_state)}")
+    for trajectory, p in zip(component['trajectories'], component['p_list']):
+        if method == "last":
+            trajectory = [trajectory[-1]]
+        elif method == "all":
+            trajectory = trajectory
+        else:
+            raise NotImplementedError("Error: No trajectory method detected!")
+
+        unsafe_penalty = var_list([0.0])
+        for state in trajectory:
+            X = state[target_idx]
+            intersection_interval = get_intersection(X, safe_interval)
+            if intersection_interval.isEmpty():
+                if X.isPoint():
+                    unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
+                else:
+                    unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength() + constants.eps)
+            else:
+                safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
+                unsafe_value = 1 - safe_portion
+            unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
+        component_loss += torch.log
+
+
+
     for symbol_table in abstract_state:
         if method == "last":
             trajectory = [symbol_table['trajectory'][-1]]
@@ -173,50 +193,22 @@ def extract_abstract_state_safe_loss(abstract_state, target_component, target_id
     return abstract_loss
     
 
-# TODO: to change
-def safe_distance(abstract_state_list, target):
+def safe_distance(component_result_list, target):
     # measure safe distance in DSE
-    # I am using sampling, and many samples the eventual average will be the same as the expectation
-    # limited number of abstract states, so count sequentially based on target is ok
+    # take the average over components
     
     loss = var_list([0.0])
     p_list = list()
     for idx, target_component in enumerate(target):
         target_loss = var_list([0.0])
         # print(f"len abstract_state_list: {len(abstract_state_list)}")
-        for abstract_state in abstract_state_list:
-            abstract_state_safe_loss = extract_abstract_state_safe_loss(
-                abstract_state, target_component, target_idx=idx, 
+        for component in component_result_list:
+            component_safe_loss = extract_safe_loss(
+                component, target_component, target_idx=idx, 
             )
-            target_loss += abstract_state_safe_loss
-        target_loss = target_loss / (len(abstract_state_list) + eps)
-        # Weighted loss of different state variables
-        # print(f"target_loss: {float(target_loss)}")
-        target_loss = target_component["w"] * (target_loss - target_component['phi'])
-        # print(f"refined target_loss: {float(target_loss)}")
-        # TODO: max(loss - target, 0) change or not
-        # target_loss = torch.max(target_loss, var(0.0))
-        if 'fairness' in benchmark_name:
-            p_list.append(target_loss)
-        else:
-            loss += target_loss
-    
-    if 'fairness' in benchmark_name:
-        # lower bound
-        p_h_f = 1 - torch.max(p_list[0], var(0.01))
-        p_m = 1 - torch.max(p_list[3], var(0.01))
-        # upper bound
-        p_h_m = torch.max(p_list[1], var(0.01))
-        p_f = torch.max(p_list[2], var(0.01))
-
-        # >= 0.9
-        lower_bound_ratio = (p_h_f * p_m) / (p_h_m * p_f)
-        print(p_list)
-        loss = 1 - (p_h_f * p_m) / (p_h_m * p_f)
-    # print(f"loss: {loss}")
-    # exit(0)
-    # TODO: add the part for computation across target loss
-
+            target_loss += component_safe_loss
+        target_loss = target_loss / len(component_result_list)
+        loss += target_loss
     return loss
 
 
@@ -231,7 +223,7 @@ def cal_data_loss(m, trajectories, criterion):
         X, y = batch_pair_endpoint(trajectories, data_bs=None)
     else:
         X, y = batch_pair(trajectories, data_bs=512)
-    print(f"after batch pair: {X.shape}, {y.shape}")
+    # print(f"after batch pair: {X.shape}, {y.shape}")
 
     X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
     if torch.cuda.is_available():
@@ -265,15 +257,29 @@ def cal_safe_loss(m, abstract_states, target):
     '''
     # show_component(abstract_state)
     ini_states = initialize_components(abstract_states)
-    assert(len(ini_abstract_state_list) == 1)
-    res_states = list()
+    component_result_list = list()
+    for i in range(len(ini_states['idx_list'])):
+        component = {
+            'trajectories': list(),
+            'p_list': list(),
+        }
+        component_result_list.append(component)
 
     # TODO: sample simultanuously
+    # list of trajectories, p_list
     for i in range(constants.SAMPLE_SIZE):
         output_states = m(ini_states, 'abstract')
-        res_states.append(output_states)
+        trajectories = output_states['trajectories']
+        idx_list = output_states['idx_list']
+        p_list = output_states['p_list']
 
-    safe_loss = safe_distance(res_states, target)
+        ziped_result = zip(idx_list, trajectories, p_list)
+        sample_result = [(x, y, z) for x, y, z in sorted(ziped_result, key=lambda tuple: tuple[0])]
+        for idx, trajectory, p in sample_result:
+            component_result_list[idx]['trajectories'].append(trajectory)
+            component_result_list[idx]['p_list'].append(p)
+
+    safe_loss = safe_distance(component_result_list, target)
     return safe_loss
 
 

@@ -31,7 +31,6 @@ def show_tra_l(l):
         print(f"end abstract state")
         break
 
-
 '''
 Module used as functions
 '''

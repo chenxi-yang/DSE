@@ -235,7 +235,7 @@ if __name__ == "__main__":
                 print(f"---verification SE time: {time.time() - verification_time} sec---")
 
                 import tester as t
-                importlit.reload(t)
+                importlib.reload(t)
                 from tester import test_data_loss
                 
                 test_time = time.time()
