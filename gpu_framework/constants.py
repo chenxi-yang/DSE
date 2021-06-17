@@ -44,12 +44,13 @@ extract_one_trajectory = args.extract_one_trajectory
 
 AI_verifier_num_components = args.AI_verifier_num_components
 SE_verifier_run_times = args.SE_verifier_run_times
+train_sample_size = args.train_sample_size
 
 # thermostat: 0.3
 # mountain_car: 0.01
 
 K_DISJUNCTS = 10000000
-SAMPLE_SIZE = 30
+SAMPLE_SIZE = train_sample_size
 DOMAIN = "interval" # [interval, zonotope]
 
 MODEL_PATH = f"gpu_{mode}/models"

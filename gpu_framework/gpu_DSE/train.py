@@ -64,7 +64,6 @@ def extract_safe_loss(component, target_component, target_idx):
     component_loss = var_list([0.0])
 
     for trajectory, p in zip(component['trajectories'], component['p_list']):
-        print(f"p: {p}")
         if method == "last":
             trajectory = [trajectory[-1]]
         elif method == "all":
@@ -75,6 +74,7 @@ def extract_safe_loss(component, target_component, target_idx):
         unsafe_penalty = var_list([0.0])
         for state in trajectory:
             X = state[target_idx]
+            # print(f"X: {float(X.left), float(X.right)}")
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 if X.isPoint():
@@ -85,6 +85,7 @@ def extract_safe_loss(component, target_component, target_idx):
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
             unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
+        # print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
         component_loss += p * float(unsafe_penalty) + unsafe_penalty
     
     component_loss /= len(component['p_list'])
@@ -203,6 +204,7 @@ def learning(
 
     if torch.cuda.is_available():
         m.cuda()
+    
 
     criterion = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-06)
@@ -227,7 +229,7 @@ def learning(
             
             loss = (data_loss + lambda_ * safe_loss) / lambda_
 
-            loss.backward()
+            loss.backward(retain_graph=True)
             print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
             print(f"grad before step, weight: {m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.grad.detach().cpu().numpy().tolist()[0]}")
