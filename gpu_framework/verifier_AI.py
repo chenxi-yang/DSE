@@ -66,10 +66,10 @@ def verify_worst_case(output_states, target):
                 worst_case_unsafe_num += 1
 
         worst_case_unsafe_num = worst_case_unsafe_num * 1.0 / len(output_states['trajectories'])
-        print(f"#{target_name}, worst case unsafe num: {worst_case_unsafe_num}")
+        print(f"verify AI: #{target_name}, worst case unsafe num: {worst_case_unsafe_num}")
         if not constants.debug:
             log_file_evaluation = open(constants.file_dir_evaluation, 'a')
-            log_file_evaluation.write(f"#{target_name}, worst case unsafe num: {worst_case_unsafe_num}\n")
+            log_file_evaluation.write(f"verify AI: #{target_name}, worst case unsafe num: {worst_case_unsafe_num}\n")
             log_file_evaluation.flush()
         
 
@@ -87,7 +87,7 @@ def show_component_p(component_list):
 #     return 
 def store_trajectory(output_states, trajectory_path, category=None):
     if category is not None:
-        trajectory_path = trajectory_path + f"_{category}"
+        trajectory_path = trajectory_path + f"_{category}_AI"
     trajectory_path += ".txt"
     trajectory_log_file = open(trajectory_path, 'w')
     trajectory_log_file.write(f"{constants.name_list}\n")
