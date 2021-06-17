@@ -205,7 +205,6 @@ def learning(
     if torch.cuda.is_available():
         m.cuda()
     
-
     criterion = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-06)
 
