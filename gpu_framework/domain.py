@@ -18,10 +18,6 @@ import time
 
 import sys
 
-from utils import (
-    show_cuda_memory, 
-)
-
 # for check
 def show_value(x):
     if not TEST:

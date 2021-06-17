@@ -430,36 +430,6 @@ class While(nn.Module):
         return res_abstract_state_list
 
 
-def update_trajectory(symbol_table, target_idx):
-    # trajectory: list of states
-    # states: list of intervals
-    input_interval_list = list()
-    # print(f"all symbol_table: {symbol_table['x'].c, symbol_table['x'].delta}")
-    for idx in target_idx:
-        input = symbol_table['x'].select_from_index(0, idx)
-        input_interval = input.getInterval()
-        # print(f"idx:{idx}, input: {input.c, input.delta}")
-        # print(f"input_interval: {input_interval.left.data.item(), input_interval.right.data.item()}")
-        assert float(input_interval.left) <= float(input_interval.right)
-        # if float(input_interval.left) == float(input_interval.right):
-        #     print('find point:', float(input_interval.left), float(input_interval.right))
-        #     exit(0)
-        input_interval_list.append(input_interval)
-    # print(f"In update trajectory")
-    symbol_table['trajectory'].append(input_interval_list)
-    # exit(0)
-    # print(f"Finish update trajectory")
-
-    return symbol_table
-
-
-def update_abstract_state_trajectory(abstract_state, target_idx):
-    for idx, symbol_table in enumerate(abstract_state):
-        symbol_table = update_trajectory(symbol_table, target_idx)
-        abstract_state[idx] = symbol_table
-    return abstract_state
-
-
 class Trajectory(nn.Module):
     # TODO: update, add state in trajectory list
     def __init__(self, target_idx):
@@ -468,11 +438,24 @@ class Trajectory(nn.Module):
         if torch.cuda.is_available():
             self.target_idx = self.target_idx.cuda()
     
-    def forward(self, abstract_state_list, cur_sample_size=0):
-        for idx, abstract_state in enumerate(abstract_state_list):
-            abstract_state = update_abstract_state_trajectory(abstract_state, self.target_idx)
-            abstract_state_list[idx] = abstract_state
-        return abstract_state_list
+    def forward(self, states):
+        x = states['x']
+        trajectories = states['trajectories']
+        B, D = x.c.shape
+        for x_idx in range(B):
+            cur_x_c, cur_x_delta = x.c[x_idx], x.delta[x_idx]
+            input_interval_list = list()
+            for idx in self.target_idx:
+                input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
+                input_interval = input.getInterval()
+
+                assert input_interval.left.data.item() <= input_interval.right.data.item()
+                input_interval_list.append(input_interval)
+            trajectories[x_idx].append(input_interval_list)
+        
+        states['trajectories'] = trajectories
+
+        return states
 
 
 

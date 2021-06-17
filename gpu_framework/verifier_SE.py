@@ -9,6 +9,8 @@ import domain
 from utils import (
     load_model,
     create_abstract_states_from_components,
+)
+from domain_utils import (
     concatenate_states,
 )
 
@@ -90,7 +92,7 @@ def store_trajectory(output_states, trajectory_path, category=None):
     if category is not None:
         trajectory_path = trajectory_path + f"_{category}_SE"
     trajectory_path += ".txt"
-    trajectory_log_file = open(constants.trajectory_path, 'w')
+    trajectory_log_file = open(trajectory_path, 'w')
     trajectory_log_file.write(f"{constants.name_list}\n")
     for trajectory_idx, trajectory in enumerate(output_states['trajectories']):
         trajectory_log_file.write(f"trajectory_idx {trajectory_idx}\n")

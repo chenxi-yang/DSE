@@ -22,6 +22,9 @@ from utils import (
     load_model,
     import_benchmarks,
     )
+from domain_utils import (
+    concatenate_states,
+)
 
 if constants.benchmark_name == "thermostat":
     import benchmarks.thermostat as tm
