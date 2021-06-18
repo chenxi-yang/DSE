@@ -21,7 +21,7 @@ def get_parser():
     p.add_argument("--dataset_distribution", default="normal", help="define the distribution the dataset should follow")
 
     # other parameters
-    p.add_argument("--lr", default=0.01, type=float, help="learning rate")
+    p.add_argument("--lr", default=1e-03, type=float, help="learning rate")
     p.add_argument("--stop_val", default=0.05, type=float, help="error for stoping")
     p.add_argument("--t_epoch", default=1, type=int, help="epoch for lambda")
 
@@ -105,7 +105,6 @@ def get_parser():
         default=30,
         help="how many paths to sample in DSE during training"
     )
-
 
     # smooth kernel in training
     p.add_argument("--sample_std", default=1.0, type=float, help=f"std to sample theta")
