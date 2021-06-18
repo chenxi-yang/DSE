@@ -74,7 +74,7 @@ def extract_safe_loss(component, target_component, target_idx):
         unsafe_penalty = var_list([0.0])
         for state in trajectory:
             X = state[target_idx]
-            # print(f"X: {float(X.left), float(X.right)}")
+            print(f"X: {float(X.left), float(X.right)}")
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 if X.isPoint():
@@ -85,7 +85,7 @@ def extract_safe_loss(component, target_component, target_idx):
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
             unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
-        # print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
+        print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
         component_loss += p * float(unsafe_penalty) + unsafe_penalty
     
     component_loss /= len(component['p_list'])
