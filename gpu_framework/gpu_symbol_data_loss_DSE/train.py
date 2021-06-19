@@ -55,7 +55,7 @@ def get_intersection(interval_1, interval_2):
     return res_interval
 
 
-def extract_safe_loss(component, target_component, target_idx):
+def extract_safe_loss(component, target_component, target_idx, lambda_=lambda_):
     # component: {'trajectories', 'p_list'}
 
     safe_interval = target_component["condition"]
@@ -88,14 +88,20 @@ def extract_safe_loss(component, target_component, target_idx):
             unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
             # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
+        if constants.benchmark_name == "mountain_car":
+            position = trajectory[-1][1] # select the one represent the last position
+            goal_position = var(0.5)
+            data_loss = goal_position - position.left
         # print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
-        component_loss += p * float(unsafe_penalty) + unsafe_penalty
+        loss = (data_loss + lambda_ * unsafe_penalty) / lambda_
+
+        component_loss += p * float(loss) + loss
     
     component_loss /= len(component['p_list'])
     return component_loss, (min_l, max_r)
     
 
-def safe_distance(component_result_list, target):
+def safe_distance(component_result_list, target, lambda_):
     # measure safe distance in DSE
     # take the average over components
     
@@ -107,7 +113,7 @@ def safe_distance(component_result_list, target):
         # print(f"len abstract_state_list: {len(abstract_state_list)}")
         for component in component_result_list:
             component_safe_loss, (tmp_min_l, tmp_max_r) = extract_safe_loss(
-                component, target_component, target_idx=idx, 
+                component, target_component, target_idx=idx, lambda_=lambda_,
             )
             target_loss += component_safe_loss
             min_l, max_r = min(min_l, tmp_min_l), max(max_r, tmp_max_r)
@@ -156,7 +162,7 @@ def cal_data_loss(m, trajectories, criterion):
     return data_loss
 
 
-def cal_safe_loss(m, abstract_states, target):
+def cal_safe_loss(m, abstract_states, target, lambda_):
     '''
     DSE: sample paths
     abstract_state = list<{
@@ -188,7 +194,7 @@ def cal_safe_loss(m, abstract_states, target):
             component_result_list[idx]['trajectories'].append(trajectory)
             component_result_list[idx]['p_list'].append(p)
 
-    safe_loss = safe_distance(component_result_list, target)
+    safe_loss = safe_distance(component_result_list, target, lambda_)
     return safe_loss
 
 
@@ -232,13 +238,13 @@ def learning(
         for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
             if constants.run_time_debug:
                 data_loss_time = time.time()
-            data_loss = cal_data_loss(m, trajectories, criterion)
+            # data_loss = cal_data_loss(m, trajectories, criterion)
+            safe_loss = cal_safe_loss(m, abstract_states, target, lambda_)
 
-            safe_loss = cal_safe_loss(m, abstract_states, target)
-
-            print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}")
+            print(f"safe loss: {float(safe_loss)}")
             
-            loss = (data_loss + lambda_ * safe_loss) / lambda_
+            # loss = (data_loss + lambda_ * safe_loss) / lambda_
+            loss = safe_loss
 
             loss.backward(retain_graph=True)
             # print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")

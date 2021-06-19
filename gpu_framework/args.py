@@ -120,6 +120,7 @@ def get_parser():
     p.add_argument("--debug", default=False, type=str2bool, help="decide whether debug")
     p.add_argument("--cuda_debug", default=False, type=str2bool,  help="decide whether de cuda memory bug")
     p.add_argument("--simple_debug", default=False, type=str2bool, help="change max iteration")
+    p.add_argument("--run_time_debug", default=False, type=str2bool, help="whether print sub time")
     return p
 
 

@@ -31,6 +31,7 @@ data_attr = args.data_attr
 
 mode = args.mode
 debug = args.debug
+run_time_debug = args.run_time_debug
 
 data_bs = args.data_bs
 
