@@ -33,7 +33,7 @@ if torch.cuda.is_available():
     index2 = index2.cuda()
     index3 = index3.cuda()
 
-
+# p, v, u
 def initialize_components(abstract_states):
     #TODO: add batched components to replace the following two 
     center, width = abstract_states['center'], abstract_states['width']

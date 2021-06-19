@@ -64,7 +64,7 @@ def extract_safe_loss(component, target_component, target_idx):
     component_loss = var_list([0.0])
     min_l, max_r = 100000, -100000
 
-    for trajectory, p in zip(component['trajectories'], component['p_list']):
+    for trajectory in component['trajectories']:
         if method == "last":
             trajectory = [trajectory[-1]]
         elif method == "all":
@@ -89,9 +89,9 @@ def extract_safe_loss(component, target_component, target_idx):
             # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
         # print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
-        component_loss += p * float(unsafe_penalty) + unsafe_penalty
+        component_loss += unsafe_penalty
     
-    component_loss /= len(component['p_list'])
+    component_loss /= len(component['trajectories'])
     return component_loss, (min_l, max_r)
     
 
@@ -167,28 +167,12 @@ def cal_safe_loss(m, abstract_states, target):
     # show_component(abstract_state)
     ini_states = initialize_components(abstract_states)
     component_result_list = list()
-    for i in range(len(ini_states['idx_list'])):
-        component = {
-            'trajectories': list(),
-            'p_list': list(),
-        }
-        component_result_list.append(component)
 
     # TODO: sample simultanuously
     # list of trajectories, p_list
-    for i in range(constants.SAMPLE_SIZE):
-        output_states = m(ini_states, 'abstract')
-        trajectories = output_states['trajectories']
-        idx_list = output_states['idx_list']
-        p_list = output_states['p_list']
+    output_states = m(ini_states, 'abstract')
 
-        ziped_result = zip(idx_list, trajectories, p_list)
-        sample_result = [(x, y, z) for x, y, z in sorted(ziped_result, key=lambda tuple: tuple[0])]
-        for idx, trajectory, p in sample_result:
-            component_result_list[idx]['trajectories'].append(trajectory)
-            component_result_list[idx]['p_list'].append(p)
-
-    safe_loss = safe_distance(component_result_list, target)
+    safe_loss = safe_distance([output_states], target)
     return safe_loss
 
 
@@ -230,10 +214,8 @@ def learning(
             continue
 
         for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
-            if constants.run_time_debug:
-                data_loss_time = time.time()
-            data_loss = cal_data_loss(m, trajectories, criterion)
 
+            data_loss = cal_data_loss(m, trajectories, criterion)
             safe_loss = cal_safe_loss(m, abstract_states, target)
 
             print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}")
