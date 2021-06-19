@@ -77,7 +77,7 @@ def outer_loop(lambda_list, model_list, q):
 
 if __name__ == "__main__":
     torch.autograd.set_detect_anomaly(True)
-    
+
     for safe_range_bound in safe_range_bound_list:
         if not debug:
             append_log([file_dir, file_dir_evaluation], f"path_sample_size: {SAMPLE_SIZE}, safa_range_bound: {safe_range_bound}\n")
@@ -128,6 +128,10 @@ if __name__ == "__main__":
                     import gpu_only_data.train as gt
                     importlib.reload(gt)
                     from gpu_only_data.train import *
+                if mode == 'symbol_data_loss_DSE':
+                    import gpu_symbol_data_loss_DSE.train as gt
+                    importlib.reload(gt)
+                    from gpu_symbol_data_loss_DSE.train import *
                 
                 preprocessing_time = time.time()
                 if benchmark_name in ["thermostat"]:
