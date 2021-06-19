@@ -127,41 +127,6 @@ def safe_distance(component_result_list, target, lambda_):
     return loss
 
 
-def cal_data_loss(m, trajectories, criterion):
-    # for the point in the same batch
-    # calculate the data loss of each point
-    # add the point data loss together
-    if len(trajectories) == 0:
-        return var_list([0.0])
-
-    if constants.benchmark_name == 'thermostat':
-        X, y = batch_pair_endpoint(trajectories, data_bs=None)
-    else:
-        X, y = batch_pair(trajectories, data_bs=512)
-    # print(f"after batch pair: {X.shape}, {y.shape}")
-
-    X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
-    if torch.cuda.is_available():
-        X = X.cuda()
-        y = y.cuda()
-    
-    yp = m(X, version="single_nn_learning")
-    if debug:
-        yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-        y_list = y.squeeze().detach().cpu().numpy().tolist()
-        print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
-    
-    # print(f"x: {X}")
-    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-    y_list = y.squeeze().detach().cpu().numpy().tolist()
-
-    # print(f"yp: {min(yp_list)}, {max(yp_list)}")
-    # print(f"y: {min(y_list)}, {max(y_list)}")
-    data_loss = criterion(yp, y)
-    
-    return data_loss
-
-
 def cal_safe_loss(m, abstract_states, target, lambda_):
     '''
     DSE: sample paths
@@ -236,9 +201,6 @@ def learning(
             continue
 
         for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
-            if constants.run_time_debug:
-                data_loss_time = time.time()
-            # data_loss = cal_data_loss(m, trajectories, criterion)
             safe_loss = cal_safe_loss(m, abstract_states, target, lambda_)
 
             print(f"safe loss: {float(safe_loss)}")
