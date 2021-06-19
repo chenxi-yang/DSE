@@ -62,6 +62,7 @@ def extract_safe_loss(component, target_component, target_idx):
     # print(f"safe interval: {float(safe_interval.left)}, {float(safe_interval.right)}")
     method = target_component["method"]
     component_loss = var_list([0.0])
+    min_l, max_r = 100000, -100000
 
     for trajectory, p in zip(component['trajectories'], component['p_list']):
         if method == "last":
@@ -83,13 +84,15 @@ def extract_safe_loss(component, target_component, target_idx):
             else:
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
-            unsafe_penalty = unsafe_penalty + unsafe_value
-            print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
-        print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
+            # unsafe_penalty = unsafe_penalty + unsafe_value
+            unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
+            # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
+            min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
+        # print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
         component_loss += p * float(unsafe_penalty) + unsafe_penalty
     
     component_loss /= len(component['p_list'])
-    return component_loss
+    return component_loss, (min_l, max_r)
     
 
 def safe_distance(component_result_list, target):
@@ -98,16 +101,23 @@ def safe_distance(component_result_list, target):
     
     loss = var_list([0.0])
     p_list = list()
+    min_l, max_r = 100000, -100000
     for idx, target_component in enumerate(target):
         target_loss = var_list([0.0])
         # print(f"len abstract_state_list: {len(abstract_state_list)}")
         for component in component_result_list:
-            component_safe_loss = extract_safe_loss(
+            component_safe_loss, (tmp_min_l, tmp_max_r) = extract_safe_loss(
                 component, target_component, target_idx=idx, 
             )
             target_loss += component_safe_loss
+            min_l, max_r = min(min_l, tmp_min_l), max(max_r, tmp_max_r)
         target_loss = target_loss / len(component_result_list)
         loss += target_loss
+    print(f"range of trajectory: {min_l, max_r}")
+    if not constants.debug:
+        log_file = open(constants.file_dir, 'a')
+        log_file.write(f"range of trajectory: {min_l, max_r}\n")
+        log_file.flush()
     return loss
 
 
@@ -139,8 +149,8 @@ def cal_data_loss(m, trajectories, criterion):
     yp_list = yp.squeeze().detach().cpu().numpy().tolist()
     y_list = y.squeeze().detach().cpu().numpy().tolist()
 
-    print(f"yp: {min(yp_list)}, {max(yp_list)}")
-    print(f"y: {min(y_list)}, {max(y_list)}")
+    # print(f"yp: {min(yp_list)}, {max(yp_list)}")
+    # print(f"y: {min(y_list)}, {max(y_list)}")
     data_loss = criterion(yp, y)
     
     return data_loss
@@ -229,11 +239,11 @@ def learning(
             loss = (data_loss + lambda_ * safe_loss) / lambda_
 
             loss.backward(retain_graph=True)
-            print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
+            # print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
-            print(f"grad before step, weight: {m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.grad.detach().cpu().numpy().tolist()[0]}")
+            # print(f"grad before step, weight: {m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.grad.detach().cpu().numpy().tolist()[0]}")
             optimizer.step()
-            print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
+            # print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
         
         if save:
@@ -248,7 +258,7 @@ def learning(
             log_file.write(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}\n")
             log_file.flush()
 
-        if (time.time() - start_time)/(i+1) > 900 or TIME_OUT:
+        if (time.time() - start_time)/(i+1) > 3600 or TIME_OUT:
             if not constants.debug:
                 log_file = open(file_dir, 'a')
                 log_file.write('TIMEOUT: avg epoch time > 3600sec \n')
