@@ -108,7 +108,7 @@ MAXIMUM_ITERATION = 300
 N_INFINITY = var(-10000.0)
 P_INFINITY = var(10000.0)
 
-INTERVAL_BETA = var(1.0) # 2.0
+INTERVAL_BETA = var(0.5) # var(1.0) # 2.0
 POINT_BETA = var(5.0) # var(50.0) # var(100.0) # 10.0s
 PARTIAL_BETA = var(2.0) # 1.0
 EPSILON = var(1e-10)

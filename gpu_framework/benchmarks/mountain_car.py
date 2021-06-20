@@ -16,7 +16,9 @@ if constants.status == 'train':
     elif mode == 'DiffAI':
         from gpu_DiffAI.modules import *
     elif mode == 'symbol_data_loss_DSE':
-        from gpu_symbol_data_loss_DSE import *
+        from gpu_symbol_data_loss_DSE.modules import *
+    elif mode == 'DiffAI_sps':
+        from gpu_DiffAI_sps import *
 elif constants.status == 'verify_AI':
     # print(f"in verify_AI: modules_AI")
     from modules_AI import *
@@ -50,6 +52,7 @@ def initialize_components(abstract_states):
         'trajectories': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
         'p_list': [var(0.0) for i in range(B)], # might be changed to batch
+        'alpha_list': [var(1.0) for i in range(B)],
     }
 
     return states
