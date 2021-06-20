@@ -221,11 +221,11 @@ def learning(
             print(f"save model")
                 
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1 - epochs_to_skip)}")
-        print(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}")
+        print(f"-----finish {i}-th epoch-----, c: {float(safe_loss)}")
         if not constants.debug:
             log_file = open(constants.file_dir, 'a')
             log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
-            log_file.write(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}\n")
+            log_file.write(f"-----finish {i}-th epoch-----,  c: {float(safe_loss)}\n")
             log_file.flush()
 
         if (time.time() - start_time)/(i+1) > 3600 or TIME_OUT:

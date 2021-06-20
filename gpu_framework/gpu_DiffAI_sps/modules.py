@@ -89,7 +89,7 @@ class SigmoidLinear(nn.Module):
 Program Statement
 '''
 
-def sound_join_trajectory(trajectory_1, trajectory_2):
+def smooth_join_trajectory(trajectory_1, trajectory_2, alpha_prime_1, alpha_prime_2, alpha_1, alpha_2):
     l1, l2 = len(trajectory_1), len(trajectory_2)
     trajectory = list()
     K = min(l1, l2)
@@ -99,7 +99,7 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
         state_list = list()
         for state_idx in range(l_s):
             state_1, state_2 = states_1[0], states_2[0]
-            a = state_1.soundJoin(state_2)
+            a = state_1.smoothJoin(state_2, alpha_prime_1, alpha_prime_2, alpha_1, alpha_2)
             state_list.append(a)
         trajectory.append(state_list)
     
@@ -112,23 +112,25 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
     return trajectory
 
 
-def update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p):
+def update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p, new_alpha):
     if 'x' in res_states:
         res_states['x'].c = torch.cat((res_states['x'].c, new_c), 0)
         res_states['x'].delta = torch.cat((res_states['x'].delta, new_delta), 0)
         res_states['trajectories'].append(new_trajectory)
         res_states['idx_list'].append(new_idx)
         res_states['p_list'].append(new_p)
+        res_states['alpha_list'].append(new_alpha)
     else:
         res_states['x'] = domain.Box(new_c, new_delta)
         res_states['trajectories'] = [new_trajectory]
         res_states['idx_list'] = [new_idx]
         res_states['p_list'] = [new_p]
+        res_states['alpha_list'] = [new_alpha]
 
     return res_states
 
 
-def sound_join(states1, states2):
+def smooth_join(states1, states2):
     # symbol_tables
     # 'x': B*D, 'trajectories': trajectory of each B, 'idx_list': idx of B in order
     if len(states1) == 0:
@@ -140,6 +142,7 @@ def sound_join(states1, states2):
     idx1, idx2 = 0, 0
     idx_list_1, idx_list_2 = states1['idx_list'], states2['idx_list']
     p_list_1, p_list_2 = states1['p_list'], states2['p_list']
+    alpha_list_1, alpha_list_2 = states1['alpha_list'], states2['alpha_list']
 
     while idx1 <= len(idx_list_1) - 1 or idx2 <= len(idx_list_2) - 1:
         if idx1 > len(idx_list_1) - 1 or (idx2 <= len(idx_list_2) - 1 and idx_list_1[idx1] > idx_list_2[idx2]):
@@ -148,7 +151,8 @@ def sound_join(states1, states2):
             new_trajectory = states2['trajectories'][idx2]
             new_idx = states2['idx_list'][idx2]
             new_p = states2['p_list'][idx2]
-            res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p)
+            new_alpha = states2['alpha_list'][idx2]
+            res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p, new_alpha)
             idx2 += 1
         elif idx2 > len(idx_list_2) - 1 or (idx1 <= len(idx_list_1) - 1 and idx_list_1[idx1] < idx_list_2[idx2]):
             new_c = states1['x'].c[idx1:idx1+1].clone()
@@ -156,18 +160,27 @@ def sound_join(states1, states2):
             new_trajectory = states1['trajectories'][idx1]
             new_idx = states1['idx_list'][idx1]
             new_p = states1['p_list'][idx1]
-            res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p)
+            new_alpha = states1['alpha_list'][idx1]
+            res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p, new_alpha)
             idx1 += 1
         else: # idx_list_1[idx_1] == idx_list_2[idx_2], need to join
             assert(idx_list_1[idx1] == idx_list_2[idx2])
-            new_left = torch.min(states1['x'].c[idx1:idx1+1] - states1['x'].delta[idx1:idx1+1], states2['x'].c[idx2:idx2+1] - states2['x'].delta[idx2:idx2+1])
-            new_right = torch.max(states1['x'].c[idx1:idx1+1] + states1['x'].delta[idx1:idx1+1], states2['x'].c[idx2:idx2+1] + states2['x'].delta[idx2:idx2+1])
+            # if 1 and 2 have the same idx, do the join
+            # convert to domain-prime
+            alpha_max = torch.max(states1['alpha_list'][idx1], states2['alpha_list'][idx2])
+            alpha_prime_1, alpha_prime_2 = states1['alpha_list'][idx1] / alpha_max, states2['alpha_list'][idx2] / alpha_max
+            c_out = (states1['alpha_list'][idx1] * states1['x'].c[idx1:idx1+1] + states2['alpha_list'][idx2] * states2['x'].c[idx2:idx2+1]) / (states1['alpha_list'][idx1] + states2['alpha_list'][idx2])
+            new_c_1, new_c_2 = alpha_prime_1 * states1['x'].c[idx1:idx1+1] + (1 - alpha_prime_1) * c_out, alpha_prime_2 * states2['x'].c[idx2:idx2+1] + (1 - alpha_prime_2) * c_out
+            new_delta_1, new_delta_2 = alpha_prime_1 * states1['x'].delta[idx1:idx1+1], alpha_prime_2 * states2['x'].c[idx2:idx2+1]
+            
+            new_left = torch.min(new_c_1 - new_delta_1, new_c_2 - new_delta_2)
+            new_right = torch.max(new_c_1 + new_delta_1, new_c_2 + new_delta_2)
             new_c = (new_left + new_right) / 2.0
             new_delta = (new_right - new_left) / 2.0
-            new_trajectory = sound_join_trajectory(states1['trajectories'][idx1], states2['trajectories'][idx2])
+            new_trajectory = smooth_join_trajectory(states1['trajectories'][idx1], states2['trajectories'][idx2], alpha_prime_1, alpha_prime_2, alpha_1=states1['alpha_list'][idx1], alpha_2=states2['alpha_list'][idx2])
             new_idx = idx_list_1[idx1]
             new_p = p_list_1[idx1]
-            res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p)
+            res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p, new_alpha)
             idx2 += 1
             idx1 += 1
 
@@ -190,15 +203,30 @@ def calculate_states(target_idx, arg_idx, f, states):
     return states
 
 
+def extract_branch_alpha(target, test):
+    alpha_test = torch.zeros(target.getLeft().shape).cuda()
+    alpha_test[target.getRight() <= test] = 1.0
+    alpha_test[target.getLeft() > test] = 0.0
+    cross_idx = torch.logical_and(target.getRight() > test, target.getLeft() <= test)
+
+    # update with a smooth coefficient
+    alpha_test[cross_idx] = (test - target.getLeft()[cross_idx]) / ((target.getRight()[cross_idx] - target.getLeft()[cross_idx]).mul(constants.INTERVAL_BETA))
+
+    return alpha_test, 1 - alpha_test
+
+
 def calculate_branch(target_idx, test, states):
     body_states, orelse_states = dict(), dict()
     x = states['x']
     target = x.select_from_index(1, target_idx) # select the batch target from x
 
     # select the idx of left = target.left < test,  right = target.right >= test
+    # update alpha based on the volume
     # select the trajectory accordingly
     # select the idx accordingly
     # split the other
+    alpha_left, alpha_right = extract_branch_probability(target, test)
+    left, right = alpha_left > 0, alpha_right > 0
 
     left = target.getLeft() <= test
     if True in left: # split to left
@@ -215,6 +243,7 @@ def calculate_branch(target_idx, test, states):
         body_states['trajectories'] = [states['trajectories'][i] for i in left_idx]
         body_states['idx_list'] = [states['idx_list'][i] for i in left_idx]
         body_states['p_list'] = [states['p_list'][i] for i in left_idx]
+        body_states['alpha_list'] = [states['alpha_list'][i].mul(alpha_left[i]) for i in left_idx]
     
     right = target.getRight() > test
     if True in right: # split to right
@@ -231,6 +260,7 @@ def calculate_branch(target_idx, test, states):
         orelse_states['trajectories'] = [states['trajectories'][i] for i in right_idx]
         orelse_states['idx_list'] = [states['idx_list'][i] for i in right_idx]
         orelse_states['p_list'] = [states['p_list'][i] for i in right_idx]
+        orelse_states['alpha_list'] = [states['alpha_list'][i].mul(alpha_right[i]) for i in right_idx]
     
     return body_states, orelse_states
 
@@ -281,7 +311,7 @@ class IfElse(nn.Module):
         
         # maintain the same number of components as the initial ones
         # TODO: update sound join
-        res_states = sound_join(body_states, orelse_states)
+        res_states = smooth_join(body_states, orelse_states)
 
         return res_states
 
@@ -302,15 +332,15 @@ class While(nn.Module):
         while(len(states) > 0):
             body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
             # TODO: update
-            res_states = sound_join(res_states, orelse_states)
+            res_states = smooth_join(res_states, orelse_states)
             if len(body_states) == 0:
                 return res_states
             states = self.body(body_states)
             i += 1
             if i > MAXIMUM_ITERATION:
                 break
-        res_states = sound_join(res_states, orelse_states)
-        res_states = sound_join(res_states, body_states)
+        res_states = smooth_join(res_states, orelse_states)
+        res_states = smooth_join(res_states, body_states)
 
         return res_states
 

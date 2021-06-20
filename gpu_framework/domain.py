@@ -8,6 +8,7 @@ Definition of different domains
 
 """
 from constants import *
+import constants
 
 import torch
 import random
@@ -161,6 +162,20 @@ class Interval:
         #     a = torch.cuda.memory_allocated(0)
         #     print(f"soundJoin, after cuda memory reserved: {r}, allocated: {a}")
         return res
+    
+    def smoothJoin(self, other, alpha_prime_1, alpha_prime_2, alpha_1, alpha_2):
+        c1, c2 = self.getCenter(), other.getCenter()
+        delta1, delta2 = self.getDelta(), other.getDelta()
+        c_out = (alpha_1 * c1 + alpha_2 * c2) / (alpha_1 + alpha_2)
+        new_c1, new_c2 = alpha_prime_1 * c1 + (1 - alpha_prime_1) * c_out, alpha_prime_2 * c2 + (1 - alpha_prime_2) * c_out
+        new_delta1, new_delta2 = alpha_prime_1 * delta1, alpha_prime_2 * delta2
+        new_left = torch.min(new_c1 - new_delta1, new_c2 - new_delta2)
+        new_right = torch.max(new_c1 + new_delta1, new_c1 + new_delta2)
+        res = self.new(new_left, new_right)
+
+        return res
+
+
     
     def getZonotope(self):
         res = Zonotope()

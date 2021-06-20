@@ -120,18 +120,22 @@ if __name__ == "__main__":
                     import gpu_DSE.train as gt
                     importlib.reload(gt)
                     from gpu_DSE.train import *
-                if mode == 'DiffAI':
+                elif mode == 'DiffAI':
                     import gpu_DiffAI.train as gt
                     importlib.reload(gt)
                     from gpu_DiffAI.train import *
-                if mode == 'only_data':
+                elif mode == 'only_data':
                     import gpu_only_data.train as gt
                     importlib.reload(gt)
                     from gpu_only_data.train import *
-                if mode == 'symbol_data_loss_DSE':
+                elif mode == 'symbol_data_loss_DSE':
                     import gpu_symbol_data_loss_DSE.train as gt
                     importlib.reload(gt)
                     from gpu_symbol_data_loss_DSE.train import *
+                elif mode == 'DiffAI_sps':
+                    import gpu_DiffAI_sps.train as gt
+                    importlib.reload(gt)
+                    from gpu_DiffAI_sps.train import *
                 
                 preprocessing_time = time.time()
                 if benchmark_name in ["thermostat"]:
