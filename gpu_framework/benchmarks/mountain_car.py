@@ -18,7 +18,7 @@ if constants.status == 'train':
     elif mode == 'symbol_data_loss_DSE':
         from gpu_symbol_data_loss_DSE.modules import *
     elif mode == 'DiffAI_sps':
-        from gpu_DiffAI_sps import *
+        from gpu_DiffAI_sps.modules import *
 elif constants.status == 'verify_AI':
     # print(f"in verify_AI: modules_AI")
     from modules_AI import *
