@@ -102,17 +102,20 @@ def smooth_join_trajectory(trajectory_1, trajectory_2, alpha_prime_1, alpha_prim
             a = state_1.smoothJoin(state_2, alpha_prime_1, alpha_prime_2, alpha_1, alpha_2)
             state_list.append(a)
         trajectory.append(state_list)
+    print(f"middle: {len(trajectory), l1, l2}")
     
     if l1 < l2:
-        trajectory.extend(trajectory_2[l2 - 1:])
+        trajectory.extend(trajectory_2[l1:])
     elif l1 > l2:
-        trajectory.extend(trajectory_1[l1 - 1:])
+        trajectory.extend(trajectory_1[l2:])
+    print(len(trajectory), l1, l2)
     assert(len(trajectory) == max(l1, l2))
 
     return trajectory
 
 
 def update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p, new_alpha):
+    print(f"smooth join, c:{new_c}, delta: {new_delta}")
     if 'x' in res_states:
         res_states['x'].c = torch.cat((res_states['x'].c, new_c), 0)
         res_states['x'].delta = torch.cat((res_states['x'].delta, new_delta), 0)
@@ -167,8 +170,11 @@ def smooth_join(states1, states2):
             assert(idx_list_1[idx1] == idx_list_2[idx2])
             # if 1 and 2 have the same idx, do the join
             # convert to domain-prime
+            
             alpha_max = torch.max(states1['alpha_list'][idx1], states2['alpha_list'][idx2])
             alpha_prime_1, alpha_prime_2 = states1['alpha_list'][idx1] / alpha_max, states2['alpha_list'][idx2] / alpha_max
+            print(f"alpha_max: {float(alpha_max)}, alpha_prime_1: {float(alpha_prime_1)}, alpha_prime_2: {float(alpha_prime_2)}")
+
             c_out = (states1['alpha_list'][idx1] * states1['x'].c[idx1:idx1+1] + states2['alpha_list'][idx2] * states2['x'].c[idx2:idx2+1]) / (states1['alpha_list'][idx1] + states2['alpha_list'][idx2])
             new_c_1, new_c_2 = alpha_prime_1 * states1['x'].c[idx1:idx1+1] + (1 - alpha_prime_1) * c_out, alpha_prime_2 * states2['x'].c[idx2:idx2+1] + (1 - alpha_prime_2) * c_out
             new_delta_1, new_delta_2 = alpha_prime_1 * states1['x'].delta[idx1:idx1+1], alpha_prime_2 * states2['x'].c[idx2:idx2+1]
@@ -190,8 +196,11 @@ def smooth_join(states1, states2):
 
 def calculate_states(target_idx, arg_idx, f, states):
     x = states['x']
+    # print(f"x: {x.c, x.delta}")
     input = x.select_from_index(1, arg_idx)
     res = f(input)
+    # print(f)
+    # print(f"calculate, input: {input.c, input.delta}, res: {res.c, res.delta}")
     # TODO: check
     # print(f'cal')
     # print(f)
@@ -211,8 +220,8 @@ def extract_branch_alpha(target, test):
     cross_idx = torch.logical_and(target.getRight() > test, target.getLeft() <= test)
 
     # update with a smooth coefficient
-    alpha_test[cross_idx] = (test - target.getLeft()[cross_idx]) / ((target.getRight()[cross_idx] - target.getLeft()[cross_idx]).mul(constants.INTERVAL_BETA))
-
+    alpha_test[cross_idx] = torch.min(var(1.0), (test - target.getLeft()[cross_idx]) / ((target.getRight()[cross_idx] - target.getLeft()[cross_idx]).mul(constants.INTERVAL_BETA)))
+    print(f"alpha_test: {alpha_test}")
     return alpha_test, 1 - alpha_test
 
 
@@ -364,8 +373,8 @@ class Trajectory(nn.Module):
             for idx in self.target_idx:
                 input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
                 input_interval = input.getInterval()
-
-                assert input_interval.left.data.item() <= input_interval.right.data.item()
+                print(f"interval: {float(input_interval.left), float(input_interval.right)}")
+                assert float(input_interval.left) <= float(input_interval.right)
                 input_interval_list.append(input_interval)
             trajectories[x_idx].append(input_interval_list)
         

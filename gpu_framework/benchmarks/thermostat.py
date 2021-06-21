@@ -212,7 +212,8 @@ class Program(nn.Module):
             x = input[:, 1].unsqueeze(1)
             state = input
             # print(lin.shape, x.shape, isOn.shape)
-            for i in range(1):
+            trajectory_list = list()
+            for i in range(40):
                 off_idx = (isOn <= 0.5)
                 on_idx = (isOn > 0.5)
                 # print(f"off_idx: {off_idx.shape}, x: {x.shape}")
@@ -235,8 +236,9 @@ class Program(nn.Module):
 
                 x = torch.cat((off_x, on_x), 0)
                 isOn = torch.cat((isOn_off, isOn_on), 0)
+                trajectory_list.append(x)
             
-            res = x
+            res = trajectory_list
         else:
             res = self.program(input)
         # if transition == 'abstract':
