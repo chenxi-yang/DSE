@@ -180,6 +180,7 @@ def smooth_join(states1, states2):
             new_trajectory = smooth_join_trajectory(states1['trajectories'][idx1], states2['trajectories'][idx2], alpha_prime_1, alpha_prime_2, alpha_1=states1['alpha_list'][idx1], alpha_2=states2['alpha_list'][idx2])
             new_idx = idx_list_1[idx1]
             new_p = p_list_1[idx1]
+            new_alpha = torch.min(var(1.0), states1['alpha_list'][idx1] + states2['alpha_list'][idx2])
             res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p, new_alpha)
             idx2 += 1
             idx1 += 1
@@ -225,7 +226,7 @@ def calculate_branch(target_idx, test, states):
     # select the trajectory accordingly
     # select the idx accordingly
     # split the other
-    alpha_left, alpha_right = extract_branch_probability(target, test)
+    alpha_left, alpha_right = extract_branch_alpha(target, test)
     left, right = alpha_left > 0, alpha_right > 0
 
     left = target.getLeft() <= test
