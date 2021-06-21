@@ -172,8 +172,8 @@ def smooth_join(states1, states2):
             # convert to domain-prime
             
             alpha_max = torch.max(states1['alpha_list'][idx1], states2['alpha_list'][idx2])
+            assert(float(alpha_max) > 0.0)
             alpha_prime_1, alpha_prime_2 = states1['alpha_list'][idx1] / alpha_max, states2['alpha_list'][idx2] / alpha_max
-            # print(f"alpha_max: {float(alpha_max)}, alpha_prime_1: {float(alpha_prime_1)}, alpha_prime_2: {float(alpha_prime_2)}")
 
             c_out = (states1['alpha_list'][idx1] * states1['x'].c[idx1:idx1+1] + states2['alpha_list'][idx2] * states2['x'].c[idx2:idx2+1]) / (states1['alpha_list'][idx1] + states2['alpha_list'][idx2])
             new_c_1, new_c_2 = alpha_prime_1 * states1['x'].c[idx1:idx1+1] + (1 - alpha_prime_1) * c_out, alpha_prime_2 * states2['x'].c[idx2:idx2+1] + (1 - alpha_prime_2) * c_out
@@ -187,6 +187,7 @@ def smooth_join(states1, states2):
             new_idx = idx_list_1[idx1]
             new_p = p_list_1[idx1]
             new_alpha = torch.min(var(1.0), states1['alpha_list'][idx1] + states2['alpha_list'][idx2])
+
             res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p, new_alpha)
             idx2 += 1
             idx1 += 1
@@ -237,8 +238,8 @@ def calculate_branch(target_idx, test, states):
     # split the other
     alpha_left, alpha_right = extract_branch_alpha(target, test)
     left, right = alpha_left > 0, alpha_right > 0
+    # print(f"left: {left.tolist()}, right: {right.tolist()}")
 
-    left = target.getLeft() <= test
     if True in left: # split to left
         left_idx = left.nonzero(as_tuple=True)[0].tolist()
         x_left = domain.Box(x.c[left.squeeze(1)], x.delta[left.squeeze(1)])
@@ -254,8 +255,9 @@ def calculate_branch(target_idx, test, states):
         body_states['idx_list'] = [states['idx_list'][i] for i in left_idx]
         body_states['p_list'] = [states['p_list'][i] for i in left_idx]
         body_states['alpha_list'] = [states['alpha_list'][i].mul(alpha_left[i]) for i in left_idx]
+        # print(f"body idx: {body_states['idx_list']}")
+        # print(f"body_states: {body_states['alpha_list'].tolist()}")
     
-    right = target.getRight() > test
     if True in right: # split to right
         right_idx = right.nonzero(as_tuple=True)[0].tolist()
         x_right = domain.Box(x.c[right.squeeze(1)], x.delta[right.squeeze(1)])
