@@ -11,6 +11,7 @@ import constants
 import math
 import time
 
+torch.autograd.set_detect_anomaly(True)
 
 def show_tra_l(l):
     for abstract_state in l:

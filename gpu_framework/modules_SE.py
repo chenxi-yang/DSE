@@ -109,9 +109,12 @@ def calculate_states(target_idx, arg_idx, f, states):
 
 
 def extract_branch_probability(target, test):
-    p_test = (test - target.getLeft()) / (target.getRight() - target.getLeft())
-    p_test[p_test < 0.0] = 0.0
-    p_test[p_test > 1.0] = 1.0
+    p_test = torch.zeros(target.getLeft().shape).cuda()
+    p_test[target.getRight() <= test] = 1.0
+    p_test[target.getLeft() > test] = 0.0
+    cross_idx = torch.logical_and(target.getRight() > test, target.getLeft() <= test)
+
+    p_test[cross_idx] = (test - target.getLeft()[cross_idx]) / (target.getRight()[cross_idx] - target.getLeft()[cross_idx])
 
     return p_test, 1 - p_test
 
@@ -136,6 +139,7 @@ def calculate_branch(target_idx, test, states):
 
     p_left, p_right = extract_branch_probability(target, test)
     left, right = sample_from_p(p_left, p_right)
+    # print(left, right)
 
     if True in left: # split to left
         left_idx = left.nonzero(as_tuple=True)[0].tolist()
