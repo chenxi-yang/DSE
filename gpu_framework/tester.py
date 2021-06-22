@@ -6,7 +6,9 @@ import constants
 import importlib
 
 import domain
-from utils import batch_pair_trajectory
+from utils import (
+    batch_pair_trajectory
+    )
 
 if benchmark_name == "thermostat":
     import benchmarks.thermostat as tm
@@ -51,7 +53,7 @@ def test_objective(m, trajectory_test, criterion, test_bs):
     count = 0
     test_bs = 8
     if constants.benchmark_name in ['thermostat']:
-        X, y_trajectory = batch_pair_trajectory(trajectories, data_bs=None, standard_value=70.0)
+        X, y_trajectory = batch_pair_trajectory(trajectory_test, data_bs=None, standard_value=70.0)
         X, y_trajectory = torch.from_numpy(X).float(), [torch.from_numpy(y).float() for y in y_trajectory]
         if torch.cuda.is_available():
             X, y_trajectory = X.cuda(), [y.cuda() for y in y_trajectory]

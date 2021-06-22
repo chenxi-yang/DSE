@@ -21,6 +21,7 @@ from utils import (
     save_model,
     load_model,
     import_benchmarks,
+    batch_pair_trajectory,
     )
 
 if constants.benchmark_name == "thermostat":
