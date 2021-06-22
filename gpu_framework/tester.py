@@ -6,6 +6,7 @@ import constants
 import importlib
 
 import domain
+from utils import batch_pair_trajectory
 
 if benchmark_name == "thermostat":
     import benchmarks.thermostat as tm
@@ -49,18 +50,29 @@ def test_objective(m, trajectory_test, criterion, test_bs):
     data_loss = 0.0
     count = 0
     test_bs = 8
-    for x, y in trajectory2points(trajectory_test, test_bs):
-        yp = m(x, version="single_nn_learning")
-        batch_data_loss = criterion(yp, y)
-        if debug:
-            print(f"yp: {yp.squeeze()}, y: {y.squeeze()}")
-            print(f"batch data loss: {batch_data_loss}")
+    if constants.benchmark_name in ['thermostat']:
+        X, y_trajectory = batch_pair_trajectory(trajectories, data_bs=None, standard_value=70.0)
+        X, y_trajectory = torch.from_numpy(X).float(), [torch.from_numpy(y).float() for y in y_trajectory]
+        if torch.cuda.is_available():
+            X, y_trajectory = X.cuda(), [y.cuda() for y in y_trajectory]
+        yp_trajectory = m(X, version="single_nn_learning")
+        data_loss = var(0.0)
+        for idx, yp in enumerate(yp_trajectory):
+            data_loss = data_loss + criterion(yp, y_trajectory[idx])
+            data_loss /= len(yp_trajectory)
+    else:
+        for x, y in trajectory2points(trajectory_test, test_bs):
+            yp = m(x, version="single_nn_learning")
+            batch_data_loss = criterion(yp, y)
+            if debug:
+                print(f"yp: {yp.squeeze()}, y: {y.squeeze()}")
+                print(f"batch data loss: {batch_data_loss}")
 
-        count += 1
-        data_loss += batch_data_loss
-        # update data_loss
-    # print/f.write()
-    test_data_loss = data_loss / count
+            count += 1
+            data_loss += batch_data_loss
+            # update data_loss
+        # print/f.write()
+        test_data_loss = data_loss / count
 
     if not debug:
         log_file_evaluation = open(constants.file_dir_evaluation, 'a')
