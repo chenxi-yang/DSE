@@ -58,10 +58,10 @@ def test_objective(m, trajectory_test, criterion, test_bs):
         if torch.cuda.is_available():
             X, y_trajectory = X.cuda(), [y.cuda() for y in y_trajectory]
         yp_trajectory = m(X, version="single_nn_learning")
-        data_loss = var(0.0)
+        test_data_loss = var(0.0)
         for idx, yp in enumerate(yp_trajectory):
-            data_loss = data_loss + criterion(yp, y_trajectory[idx])
-            data_loss /= len(yp_trajectory)
+            test_data_loss = test_data_loss + criterion(yp, y_trajectory[idx])
+            test_data_loss /= len(yp_trajectory)
     else:
         for x, y in trajectory2points(trajectory_test, test_bs):
             yp = m(x, version="single_nn_learning")
