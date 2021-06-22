@@ -86,9 +86,9 @@ def extract_safe_loss(component, target_component, target_idx):
                 unsafe_value = 1 - safe_portion
             # unsafe_penalty = unsafe_penalty + unsafe_value
             unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
-            # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
+            print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
-        # print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
+        print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
         component_loss += p * float(unsafe_penalty) + unsafe_penalty
     
     component_loss /= len(component['p_list'])

@@ -128,7 +128,7 @@ class LinearReLU(nn.Module):
 def f_wrap_up_tmp_down_nn(nn):
     def f_tmp_down_nn(x):
         # print(f"nn, before: {x.c, x.delta}")
-        plant = nn(x).mul(var(0.01))
+        plant = nn(x).mul(var(10.0))
         # print(f"nn, after: {plant.c, plant.delta}")
         return x.select_from_index(1, index0).sub_l(plant)
     return f_tmp_down_nn
@@ -137,7 +137,7 @@ def f_wrap_up_tmp_down_nn(nn):
 def f_wrap_up_tmp_up_nn(nn):
     def f_tmp_up_nn(x):
         # print(f"nn, before: {x.c, x.delta}")
-        plant = nn(x).mul(var(0.01))
+        plant = nn(x).mul(var(10.0))
         # print(f"nn, after: {plant.c, plant.delta}")
         return x.select_from_index(1, index0).sub_l(plant).add(var(10.0))
     return f_tmp_up_nn
@@ -180,12 +180,7 @@ class Program(nn.Module):
             self.ifelse_tOn, # if x <= tOn: isOn=1.0 else: skip
         )
 
-        if nn_mode == "single":
-            # curL = curL + 0.1(curL - lin) + 10.0
-            self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_assign2_single)
-        if nn_mode == "all":
-            # curL = curL + 10.0 * NN(curL, lin) + 10.0
-            self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_up_nn(self.nn))
+        self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_up_nn(self.nn))
 
         self.ifelse_tOff_block1 = Skip()
         self.ifelse_tOff_block2 = Assign(target_idx=[1], arg_idx=[], f=f_ifelse_tOff_block2)# f=lambda x: (x.set_value(var(0.0)), var(1.0)))
