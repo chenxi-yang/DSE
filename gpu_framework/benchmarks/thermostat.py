@@ -83,26 +83,6 @@ def f_update_i(x):
 def f_self(x):
     return x
 
-class LinearSig(nn.Module):
-    def __init__(self, l):
-        super().__init__()
-        self.linear1 = Linear(in_channels=2, out_channels=l)
-        self.linear2 = Linear(in_channels=l, out_channels=1)
-        self.sigmoid = Sigmoid()
-
-    def forward(self, x):
-        # print(f"LinearSig, before: {x.c, x.delta}")
-        res = self.linear1(x)
-        # print(f"LinearSig, after linear1: {res.c, res.delta}")
-        res = self.sigmoid(res)
-        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
-        res = self.linear2(res)
-        # print(f"LinearSig, after linear2: {res.c, res.delta}")
-        res = self.sigmoid(res)
-        # print(f"LinearSig, after sigmoid: {res.c, res.delta}")
-        # exit(0)
-        return res
-
 
 class LinearReLU(nn.Module):
     def __init__(self, l):
@@ -121,14 +101,14 @@ class LinearReLU(nn.Module):
         res = self.linear2(res)
         res = self.relu(res)
         res = self.linear3(res)
-        res = self.sigmoid(res)
+        # res = self.sigmoid(res)
         return res
 
 
 def f_wrap_up_tmp_down_nn(nn):
     def f_tmp_down_nn(x):
         # print(f"nn, before: {x.c, x.delta}")
-        plant = nn(x).mul(var(10.0))
+        plant = nn(x).mul(var(1.0))
         # print(f"nn, after: {plant.c, plant.delta}")
         return x.select_from_index(1, index0).sub_l(plant)
     return f_tmp_down_nn
@@ -137,7 +117,7 @@ def f_wrap_up_tmp_down_nn(nn):
 def f_wrap_up_tmp_up_nn(nn):
     def f_tmp_up_nn(x):
         # print(f"nn, before: {x.c, x.delta}")
-        plant = nn(x).mul(var(10.0))
+        plant = nn(x).mul(var(1.0))
         # print(f"nn, after: {plant.c, plant.delta}")
         return x.select_from_index(1, index0).sub_l(plant).add(var(10.0))
     return f_tmp_up_nn
