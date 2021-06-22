@@ -66,7 +66,7 @@ if benchmark_name == "thermostat":
     method_list = ['all']
     name_list = ['x']
 
-    safe_range_start=84.0
+    safe_range_start=85.0
     safe_range_end=91.0
     safe_range_step=0.5
 
