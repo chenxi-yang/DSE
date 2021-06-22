@@ -58,6 +58,7 @@ def initialize_components(abstract_states):
         'trajectories': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
         'p_list': [var(1.0) for i in range(B)], # might be changed to batch
+        'alpha_list': [var(1.0) for i in range(B)],
     }
 
     return states
