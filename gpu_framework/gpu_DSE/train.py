@@ -241,8 +241,8 @@ def learning(
         for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
             if constants.run_time_debug:
                 data_loss_time = time.time()
-            data_loss = cal_data_loss(m, trajectories, criterion)
-
+            # data_loss = cal_data_loss(m, trajectories, criterion)
+            data_loss = var(0.0)
             safe_loss = cal_safe_loss(m, abstract_states, target)
 
             print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}")
