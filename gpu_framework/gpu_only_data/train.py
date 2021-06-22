@@ -44,7 +44,6 @@ elif constants.benchmark_name == "path_explosion_2":
 
 random.seed(1)
 
-
 def cal_data_loss(m, trajectories, criterion):
     # for the point in the same batch
     # calculate the data loss of each point
@@ -52,18 +51,27 @@ def cal_data_loss(m, trajectories, criterion):
     if len(trajectories) == 0:
         return var_list([0.0])
 
-    if constants.benchmark_name == 'thermostat':
-        X, y = batch_pair_endpoint(trajectories, data_bs=None)
+    if constants.benchmark_name in ['thermostat']:
+        X, y_trajectory = batch_pair_trajectory(trajectories, data_bs=None)
+        X, y_trajectory = torch.from_numpy(X).float(), [torch.from_numpy(y).float() for y in y_trajectory]
+        print(f"after batch pair: {X.shape}")
+        if torch.cuda.is_available():
+            X, y_trajectory = X.cuda(), [y.cuda() for y in y_trajectory]
+        yp_trajectory = m(X, version="single_nn_learning")
+        data_loss = var(0.0)
+        for idx, yp in enumerate(yp_trajectory):
+            data_loss += criterion(yp, y_trajectory[idx])
+            data_loss /= len(yp_trajectory)
     else:
         X, y = batch_pair(trajectories, data_bs=512)
-    print(f"after batch pair: {X.shape}, {y.shape}")
-
-    X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
-    if torch.cuda.is_available():
-        X = X.cuda()
-        y = y.cuda()
+        X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
+        print(f"after batch pair: {X.shape}")
+        if torch.cuda.is_available():
+            X = X.cuda()
+            y = y.cuda()
+        yp = m(X, version="single_nn_learning")
+        data_loss = criterion(yp, y)
     
-    yp = m(X, version="single_nn_learning")
     if constants.debug:
         yp_list = yp.squeeze().detach().cpu().numpy().tolist()
         y_list = y.squeeze().detach().cpu().numpy().tolist()
@@ -75,7 +83,6 @@ def cal_data_loss(m, trajectories, criterion):
 
         print(f"yp: {min(yp_list)}, {max(yp_list)}")
         print(f"y: {min(y_list)}, {max(y_list)}")
-    data_loss = criterion(yp, y)
     
     return data_loss
 
