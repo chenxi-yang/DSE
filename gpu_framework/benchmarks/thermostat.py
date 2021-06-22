@@ -209,12 +209,12 @@ class Program(nn.Module):
                 isOn_on = isOn[on_idx].unsqueeze(1)
 
                 # if isOn <= 0.5: off
-                off_x = off_x - self.nn(off_state) * 10.0
+                off_x = off_x - self.nn(off_state) # * 10.0
                 # print(f"off shape: {isOn_off.shape}, {off_x.shape}")
                 isOn_off[off_x <= float(self.tOn)] = float(1.0)
 
                 # else  isOn > 0.5: on
-                on_x = on_x - self.nn(on_state) * 10.0 + 10.0
+                on_x = on_x - self.nn(on_state) + 10.0 # * 10.0 + 10.0
                 isOn_on[on_x > float(self.tOff)] = float(0.0)
 
                 x = torch.cat((off_x, on_x), 0)
