@@ -179,7 +179,7 @@ def learning(
         data_bs=None,
         ):
     print("--------------------------------------------------------------")
-    print('====Start Training DSE====')
+    print('====Start Training DSE(symbolic data)====')
 
     TIME_OUT = False
 
