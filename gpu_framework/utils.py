@@ -82,6 +82,7 @@ def batch_pair_trajectory(trajectory_list, data_bs=None, standard_value=0.0):
     for trajectory in trajectory_list:
         max_len = max(len(trajectory), max_len)
     ini_states, data_trajectories = list(), list()
+    # print(f"max len: {max_len}, len tra: {len(trajectory_list)}")
     for trajectory in trajectory_list:
         for idx, (state, action) in enumerate(trajectory):
             if idx == 0:
@@ -95,8 +96,11 @@ def batch_pair_trajectory(trajectory_list, data_bs=None, standard_value=0.0):
                 data_trajectories.append([[standard_value]])
             else:
                 data_trajectories[idx].append([standard_value])
+            idx += 1
+    print(f"finish trajectory update")
     c = list(zip(ini_states, data_trajectories))
     random.shuffle(c)
+    print(f"finish shuffle")
     ini_states, data_trajectories = zip(*c)
     ini_states = np.array(ini_states)
     trajectories = list()

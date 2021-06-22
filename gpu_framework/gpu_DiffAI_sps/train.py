@@ -192,7 +192,7 @@ def learning(
         data_bs=None,
         ):
     print("--------------------------------------------------------------")
-    print('====Start Training DSE====')
+    print('====Start Training DiffAI SPS====')
 
     TIME_OUT = False
 

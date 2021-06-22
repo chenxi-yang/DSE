@@ -50,7 +50,7 @@ def cal_data_loss(m, trajectories, criterion):
     # add the point data loss together
     if len(trajectories) == 0:
         return var_list([0.0])
-
+    print('only data')
     if constants.benchmark_name in ['thermostat']:
         X, y_trajectory = batch_pair_trajectory(trajectories, data_bs=None)
         X, y_trajectory = torch.from_numpy(X).float(), [torch.from_numpy(y).float() for y in y_trajectory]
