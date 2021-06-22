@@ -78,6 +78,7 @@ def batch_pair_endpoint(trajectory_list, data_bs=None):
 
 def batch_pair_trajectory(trajectory_list, data_bs=None, standard_value=0.0):
     # thermostat has the same length for all, for empty location, use the distance to 70.0
+    random.shuffle(trajectory_list)
     max_len = 0
     for trajectory in trajectory_list:
         max_len = max(len(trajectory), max_len)
@@ -87,25 +88,28 @@ def batch_pair_trajectory(trajectory_list, data_bs=None, standard_value=0.0):
         for idx, (state, action) in enumerate(trajectory):
             if idx == 0:
                 ini_states.append(state)
+                # print(len(ini_states))
             if idx >= len(data_trajectories):
                 data_trajectories.append([[action]])
             else:
                 data_trajectories[idx].append([action])
-        while(idx < max_len):
+        while(idx < max_len - 1):
             if idx >= len(data_trajectories):
                 data_trajectories.append([[standard_value]])
             else:
                 data_trajectories[idx].append([standard_value])
             idx += 1
-    print(f"finish trajectory update")
-    c = list(zip(ini_states, data_trajectories))
-    random.shuffle(c)
-    print(f"finish shuffle")
-    ini_states, data_trajectories = zip(*c)
+    # c = list(zip(ini_states, data_trajectories))
+    # print(len(ini_states), len(data_trajectories))
+    # random.shuffle(c)
+    # ini_states, data_trajectories = zip(*c)
     ini_states = np.array(ini_states)
     trajectories = list()
     for step in data_trajectories:
         trajectories.append(np.array(step))
+    # print(f"states: {ini_states.shape}")
+    # print(f"test: {trajectories[0].shape}")
+    # exit(0)
     
     return ini_states, trajectories
 

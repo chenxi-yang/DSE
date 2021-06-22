@@ -12,12 +12,19 @@ if constants.status == 'train':
     if mode == 'DSE':
         from gpu_DSE.modules import *
     elif mode == 'only_data':
+        # print(f"in only data: import DSE_modules")
         from gpu_DSE.modules import *
     elif mode == 'DiffAI':
         from gpu_DiffAI.modules import *
+    elif mode == 'symbol_data_loss_DSE':
+        from gpu_symbol_data_loss_DSE.modules import *
+    elif mode == 'DiffAI_sps':
+        from gpu_DiffAI_sps.modules import *
 elif constants.status == 'verify_AI':
+    # print(f"in verify_AI: modules_AI")
     from modules_AI import *
 elif constants.status == 'verify_SE':
+    # print(f"in verify_SE: modules_SE")
     from modules_SE import *
 
 # x_list
@@ -122,7 +129,7 @@ def f_wrap_up_tmp_down_nn(nn):
         # print(f"nn, before: {x.c, x.delta}")
         plant = nn(x).mul(var(0.01))
         # print(f"nn, after: {plant.c, plant.delta}")
-        return x.select_from_index(0, index0).sub_l(plant)
+        return x.select_from_index(1, index0).sub_l(plant)
     return f_tmp_down_nn
         
 
@@ -131,7 +138,7 @@ def f_wrap_up_tmp_up_nn(nn):
         # print(f"nn, before: {x.c, x.delta}")
         plant = nn(x).mul(var(0.01))
         # print(f"nn, after: {plant.c, plant.delta}")
-        return x.select_from_index(0, index0).sub_l(plant).add(var(10.0))
+        return x.select_from_index(1, index0).sub_l(plant).add(var(10.0))
     return f_tmp_up_nn
 
 
