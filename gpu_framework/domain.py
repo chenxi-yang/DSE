@@ -175,8 +175,6 @@ class Interval:
 
         return res
 
-
-    
     def getZonotope(self):
         res = Zonotope()
         res.center = (self.left.add(self.right)).div(var(2.0))

@@ -65,7 +65,7 @@ def batch_pair_endpoint(trajectory_list, data_bs=None):
     random.shuffle(trajectory_list)
     for trajectory in trajectory_list:
         ini_state, ini_action = trajectory[0]
-        last_state, last_action =trajectory[-1]
+        last_state, last_action = trajectory[-1]
         states.append(ini_state)
         actions.append([last_action])
     c = list(zip(states, actions))
@@ -74,6 +74,36 @@ def batch_pair_endpoint(trajectory_list, data_bs=None):
     states, actions = np.array(states), np.array(actions)
 
     return states[:data_bs], actions[:data_bs]
+
+
+def batch_pair_trajectory(trajectory_list, data_bs=None, standard_value=0.0):
+    # thermostat has the same length for all, for empty location, use the distance to 70.0
+    max_len = 0
+    for trajectory in trajectory_list:
+        max_len = max(len(trajectory), max_len)
+    ini_states, data_trajectories = list(), list()
+    for trajectory in trajectory_list:
+        for idx, (state, action) in enumerate(trajectory):
+            if idx == 0:
+                ini_states.append(state)
+            if idx >= len(data_trajectories):
+                data_trajectories.append([[action]])
+            else:
+                data_trajectories[idx].append([action])
+        while(idx < max_len):
+            if idx >= len(data_trajectories):
+                data_trajectories.append([[standard_value]])
+            else:
+                data_trajectories[idx].append([standard_value])
+    c = list(zip(ini_states, data_trajectories))
+    random.shuffle(c)
+    ini_states, data_trajectories = zip(*c)
+    ini_states = np.array(ini_states)
+    trajectories = list()
+    for step in data_trajectories:
+        trajectories.append(np.array(step))
+    
+    return ini_states, trajectories
 
 
 def batch_points(l):
