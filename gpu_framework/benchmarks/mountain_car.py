@@ -140,7 +140,6 @@ class LinearReLUNoAct(nn.Module):
         # res = self.sigmoid(res)
         return res
 
-
 def f_assign_min_p(x):
     return x.set_value(var(-1.2))
 

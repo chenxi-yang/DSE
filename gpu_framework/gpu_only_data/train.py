@@ -107,6 +107,7 @@ def learning(
     print('====Start Training only data====')
 
     TIME_OUT = False
+    torch.autograd.set_detect_anomaly(True)
 
     if torch.cuda.is_available():
         m.cuda()
