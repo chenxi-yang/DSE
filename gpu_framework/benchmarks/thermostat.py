@@ -92,8 +92,6 @@ class LinearReLU(nn.Module):
         self.linear3 = Linear(in_channels=l, out_channels=1)
         self.relu = ReLU()
         self.sigmoid = Sigmoid()
-        self.tanh = Tanh()
-        # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
 
     def forward(self, x):
         res = self.linear1(x)
@@ -109,8 +107,11 @@ def f_wrap_up_tmp_down_nn(nn):
     def f_tmp_down_nn(x):
         # print(f"nn, before: {x.c, x.delta}")
         x_input = x.div(var(70.0))
+        # print(f"nn, before: {x_input.c, x_input.delta}")
         plant = nn(x_input).mul(var(1.0))
         # print(f"nn, after: {plant.c, plant.delta}")
+        assert(not torch.any(torch.isnan(x_input.c)))
+        assert(not torch.any(torch.isnan(plant.c)))
         return x.select_from_index(1, index0).sub_l(plant)
     return f_tmp_down_nn
         
@@ -155,7 +156,7 @@ class Program(nn.Module):
         self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_down_nn(self.nn))
 
         # TODO: empty select index works?
-        self.ifelse_tOn_block1 = Assign(target_idx=[1], arg_idx=[], f=f_ifelse_tOn_block1)# f=lambda x: (x.set_value(var(1.0)), var(1.0)))
+        self.ifelse_tOn_block1 = Assign(target_idx=[1], arg_idx=[1], f=f_ifelse_tOn_block1)# f=lambda x: (x.set_value(var(1.0)), var(1.0)))
         self.ifelse_tOn_block2 = Skip()
         self.ifelse_tOn = IfElse(target_idx=[2], test=self.tOn, f_test=f_test, body=self.ifelse_tOn_block1, orelse=self.ifelse_tOn_block2)
         self.ifblock1 = nn.Sequential(
@@ -166,7 +167,7 @@ class Program(nn.Module):
         self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_up_nn(self.nn))
 
         self.ifelse_tOff_block1 = Skip()
-        self.ifelse_tOff_block2 = Assign(target_idx=[1], arg_idx=[], f=f_ifelse_tOff_block2)# f=lambda x: (x.set_value(var(0.0)), var(1.0)))
+        self.ifelse_tOff_block2 = Assign(target_idx=[1], arg_idx=[1], f=f_ifelse_tOff_block2)# f=lambda x: (x.set_value(var(0.0)), var(1.0)))
         self.ifelse_tOff = IfElse(target_idx=[2], test=self.tOff, f_test=f_test, body=self.ifelse_tOff_block1, orelse=self.ifelse_tOff_block2)
 
         self.ifblock2 = nn.Sequential(
