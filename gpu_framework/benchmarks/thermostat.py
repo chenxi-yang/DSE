@@ -101,14 +101,15 @@ class LinearReLU(nn.Module):
         res = self.linear2(res)
         res = self.relu(res)
         res = self.linear3(res)
-        # res = self.sigmoid(res)
+        res = self.sigmoid(res)
         return res
 
 
 def f_wrap_up_tmp_down_nn(nn):
     def f_tmp_down_nn(x):
         # print(f"nn, before: {x.c, x.delta}")
-        plant = nn(x).mul(var(1.0))
+        x_input = x.div(var(70.0))
+        plant = nn(x_input).mul(var(1.0))
         # print(f"nn, after: {plant.c, plant.delta}")
         return x.select_from_index(1, index0).sub_l(plant)
     return f_tmp_down_nn
@@ -117,7 +118,8 @@ def f_wrap_up_tmp_down_nn(nn):
 def f_wrap_up_tmp_up_nn(nn):
     def f_tmp_up_nn(x):
         # print(f"nn, before: {x.c, x.delta}")
-        plant = nn(x).mul(var(1.0))
+        x_input = x.div(var(70.0))
+        plant = nn(x_input).mul(var(1.0))
         # print(f"nn, after: {plant.c, plant.delta}")
         return x.select_from_index(1, index0).sub_l(plant).add(var(10.0))
     return f_tmp_up_nn
@@ -145,6 +147,7 @@ class Program(nn.Module):
         super(Program, self).__init__()
         self.tOff = var(78.0)
         self.tOn = var(66.0)
+        # balance temperature: 70.0
 
         self.nn = LinearReLU(l=l)
 
@@ -209,12 +212,12 @@ class Program(nn.Module):
                 isOn_on = isOn[on_idx].unsqueeze(1)
 
                 # if isOn <= 0.5: off
-                off_x = off_x - self.nn(off_state) # * 10.0
+                off_x = off_x - self.nn(off_state/70.0) # * 10.0
                 # print(f"off shape: {isOn_off.shape}, {off_x.shape}")
                 isOn_off[off_x <= float(self.tOn)] = float(1.0)
 
                 # else  isOn > 0.5: on
-                on_x = on_x - self.nn(on_state) + 10.0 # * 10.0 + 10.0
+                on_x = on_x - self.nn(on_state/70.0) + 10.0 # * 10.0 + 10.0
                 isOn_on[on_x > float(self.tOff)] = float(0.0)
 
                 x = torch.cat((off_x, on_x), 0)
@@ -224,6 +227,7 @@ class Program(nn.Module):
             res = trajectory_list
         else:
             res = self.program(input)
+            # exit(0)
         # if transition == 'abstract':
         #     print(f"# of Partitions After: {len(res_list)}")
         #     # for x in res_list:
