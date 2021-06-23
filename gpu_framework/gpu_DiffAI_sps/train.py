@@ -204,6 +204,7 @@ def learning(
     print('====Start Training DiffAI SPS====')
 
     TIME_OUT = False
+    end_count= 0
 
     if torch.cuda.is_available():
         m.cuda()
@@ -250,6 +251,17 @@ def learning(
             log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
             log_file.write(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}\n")
             log_file.flush()
+        
+        if float(safe_loss) == 0.0:
+            end_count += 1
+        else:
+            end_count = 0
+        if end_count >= 3:
+            if not constants.debug:
+                log_file = open(file_dir, 'a')
+                log_file.write('EARLY STOP: Get safe results \n')
+                log_file.close()
+            break
 
         if (time.time() - start_time)/(i+1) > 3600 or TIME_OUT:
             if not constants.debug:
