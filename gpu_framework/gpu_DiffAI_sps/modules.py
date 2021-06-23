@@ -174,10 +174,12 @@ def smooth_join(states1, states2):
             alpha_max = torch.max(states1['alpha_list'][idx1], states2['alpha_list'][idx2])
             assert(float(alpha_max) > 0.0)
             alpha_prime_1, alpha_prime_2 = states1['alpha_list'][idx1] / alpha_max, states2['alpha_list'][idx2] / alpha_max
-
+            # print(float(alpha_prime_1), float(alpha_prime_2))
             c_out = (states1['alpha_list'][idx1] * states1['x'].c[idx1:idx1+1] + states2['alpha_list'][idx2] * states2['x'].c[idx2:idx2+1]) / (states1['alpha_list'][idx1] + states2['alpha_list'][idx2])
             new_c_1, new_c_2 = alpha_prime_1 * states1['x'].c[idx1:idx1+1] + (1 - alpha_prime_1) * c_out, alpha_prime_2 * states2['x'].c[idx2:idx2+1] + (1 - alpha_prime_2) * c_out
-            new_delta_1, new_delta_2 = alpha_prime_1 * states1['x'].delta[idx1:idx1+1], alpha_prime_2 * states2['x'].c[idx2:idx2+1]
+            new_delta_1, new_delta_2 = alpha_prime_1 * states1['x'].delta[idx1:idx1+1], alpha_prime_2 * states2['x'].delta[idx2:idx2+1]
+            # print(f"c_1: {states1['x'].c[idx1:idx1+1]}, delta_1: {states1['x'].delta[idx1:idx1+1]}")
+            # print(f"c_2: {states2['x'].c[idx2:idx2+1]}, delta_2: {states2['x'].delta[idx2:idx2+1]}")
             
             new_left = torch.min(new_c_1 - new_delta_1, new_c_2 - new_delta_2)
             new_right = torch.max(new_c_1 + new_delta_1, new_c_2 + new_delta_2)
@@ -187,6 +189,7 @@ def smooth_join(states1, states2):
             new_idx = idx_list_1[idx1]
             new_p = p_list_1[idx1]
             new_alpha = torch.min(var(1.0), states1['alpha_list'][idx1] + states2['alpha_list'][idx2])
+            # print(f"new_c: {new_c}: new_delta: {new_delta}")
 
             res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory, new_idx, new_p, new_alpha)
             idx2 += 1
@@ -199,9 +202,13 @@ def calculate_states(target_idx, arg_idx, f, states):
     x = states['x']
     # print(f"x: {x.c, x.delta}")
     input = x.select_from_index(1, arg_idx)
+    assert(not torch.any(torch.isnan(input.c)))
+    assert(not torch.any(torch.isnan(input.delta)))
     res = f(input)
     # print(f)
     # print(f"calculate, input: {input.c, input.delta}, res: {res.c, res.delta}")
+    assert(not torch.any(torch.isnan(res.c)))
+    assert(not torch.any(torch.isnan(res.delta)))
     # TODO: check
     # print(f'cal')
     # print(f)
@@ -371,6 +378,7 @@ class Trajectory(nn.Module):
         B, D = x.c.shape
         for x_idx in range(B):
             cur_x_c, cur_x_delta = x.c[x_idx], x.delta[x_idx]
+            # print(f"trajectory, c: {cur_x_c}, delta: {cur_x_delta}")
             input_interval_list = list()
             for idx in self.target_idx:
                 input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
