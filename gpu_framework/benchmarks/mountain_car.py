@@ -39,7 +39,6 @@ if torch.cuda.is_available():
 
 # p, v, u
 def initialize_components(abstract_states):
-    #TODO: add batched components to replace the following two 
     center, width = abstract_states['center'], abstract_states['width']
     B, D = center.shape
     padding = torch.zeros(B, 1)
@@ -58,21 +57,22 @@ def initialize_components(abstract_states):
     return states
 
 
-# def initialization_components_point(abstract_states):
-#     abstract_state_list = list()
-#     # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
-#     abstract_state = list()
-#     symbol_table = {
-#         'x': domain.Box(var_list([-0.5, 0.0, 0.0, 0.0]), var_list([0.0, 0.0, 0.0, 0.0])),
-#         'probability': var(1.0),
-#         'trajectory': list(),
-#         'branch': '',
-#         'idx': 0, 
-#     }
+def initialization_components_point():
+    B = 1
+    padding = torch.zeros(B, 1)
+    if torch.cuda.is_available():
+        padding = padding.cuda()
+    
+    input_center, input_width = -0.5, 0.0
+    states = {
+        'x': domain.Box(torch.cat((input_center, padding, padding, padding), 1), torch.cat((input_width, padding, padding, padding), 1)),
+        'trajectories': [[] for i in range(B)],
+        'idx_list': [i for i in range(B)],
+        'p_list': [var(0.0) for i in range(B)], # might be changed to batch
+        'alpha_list': [var(1.0) for i in range(B)],
+    }
 
-#     abstract_state.append(symbol_table)
-#     abstract_state_list.append(abstract_state)
-#     return abstract_state_list
+    return states
 
 
 def f_self(x):
