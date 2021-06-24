@@ -86,8 +86,7 @@ def show_component_p(component_list):
 # def analysis_trajectories(abstract_state_list):
 #     return 
 def store_trajectory(output_states, trajectory_path, category=None):
-    if category is not None:
-        trajectory_path = trajectory_path + f"_{category}_AI"
+    trajectory_path = trajectory_path + f"_AI"
     trajectory_path += ".txt"
     trajectory_log_file = open(trajectory_path, 'w')
     trajectory_log_file.write(f"{constants.name_list}\n")
