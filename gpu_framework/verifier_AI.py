@@ -116,20 +116,11 @@ def verifier_AI(model_path, model_name, components, target, trajectory_path):
     for param in m.parameters():
         param.requires_grad = False
     
-    if extract_one_trajectory:
-        # TODO: change the initialization
-        ini_states = initialize_components_points(components)
-        category = 'point'
-    else:
-        abstract_states = create_abstract_states_from_components(components)
-        ini_states = initialize_components(abstract_states)
-        category = None
-    
-    # show_component_p(components)
-    # print(abstract_state_list[0][0]["x"].c)
+    abstract_states = create_abstract_states_from_components(components)
+    ini_states = initialize_components(abstract_states)
 
     output_states = m(ini_states)
     # TODO: to update the trajectory
-    store_trajectory(output_states, trajectory_path, category=category)
+    store_trajectory(output_states, trajectory_path, category=None)
     
     verify_worst_case(output_states, target)

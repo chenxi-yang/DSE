@@ -253,7 +253,7 @@ if __name__ == "__main__":
                     model_path=MODEL_PATH, 
                     model_name=target_model_name, 
                     trajectory_test=Trajectory_test, 
-                    target=target
+                    target=target,
                 )
                 print(f"---test data loss time: {time.time() - test_time} sec---")
 

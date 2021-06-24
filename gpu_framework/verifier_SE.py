@@ -119,23 +119,14 @@ def verifier_SE(model_path, model_name, components, target, trajectory_path):
     for param in m.parameters():
         param.requires_grad = False
     
-    if extract_one_trajectory:
-        # TODO: change the initialization
-        ini_states = initialize_components_points(components)
-        category = 'point'
-    else:
-        abstract_states = create_abstract_states_from_components(components)
-        ini_states = initialize_components(abstract_states)
-        category = None
-    
-    # show_component_p(components)
-    # print(abstract_state_list[0][0]["x"].c)
+    abstract_states = create_abstract_states_from_components(components)
+    ini_states = initialize_components(abstract_states)
 
     res_states = dict()
     for i in range(constants.SE_verifier_run_times):
         output_states = m(ini_states)
         res_states = concatenate_states(res_states, output_states)
     # TODO: to update the trajectory
-    store_trajectory(res_states, trajectory_path, category=category)
+    store_trajectory(res_states, trajectory_path, category=None)
     
     verify_worst_case(res_states, target)
