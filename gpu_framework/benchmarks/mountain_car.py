@@ -59,7 +59,7 @@ def initialize_components(abstract_states):
 
 def initialization_components_point():
     B = 500
-    input_center, input_width, padding = torch.randn(B, 1), torch.zeros(B, 1), torch.zeros(B, 1)
+    input_center, input_width, padding = torch.rand(B, 1), torch.zeros(B, 1), torch.zeros(B, 1)
     if torch.cuda.is_available():
         padding = padding.cuda()
         input_center = input_center.cuda()
@@ -203,7 +203,7 @@ class Program(nn.Module):
         self.ifelse_v = IfElse(target_idx=[1], test=self.min_speed, f_test=f_test, body=self.assign_min_speed, orelse=self.ifelse_max_speed)
         
         self.assign_update_p = Assign(target_idx=[0], arg_idx=[0, 1], f=f_assign_update_p)
-        self.trajectory_update_1 = Trajectory(target_idx=[2, 0])
+        self.trajectory_update_1 = Trajectory(target_idx=[2, 0, 1])
         self.whileblock = nn.Sequential(
             self.ifelse_p,
             self.assign_block, 
@@ -213,7 +213,7 @@ class Program(nn.Module):
         )
         self.while1 = While(target_idx=[0], test=self.goal_position, body=self.whileblock)
 
-        self.trajectory_update_2 = Trajectory(target_idx=[2, 0])
+        self.trajectory_update_2 = Trajectory(target_idx=[2, 0, 1])
         self.program = nn.Sequential(
             self.while1,
             self.trajectory_update_2, # only use the final reward
