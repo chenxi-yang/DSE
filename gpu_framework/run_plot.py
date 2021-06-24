@@ -11,8 +11,20 @@ import domain
 import random
 import time
 
-from utils import (
-)
+def store_trajectory(output_states, trajectory_path, category=None):
+    if category is not None:
+        trajectory_path = trajectory_path + f"_{category}"
+    trajectory_path += ".txt"
+    trajectory_log_file = open(trajectory_path, 'w')
+    trajectory_log_file.write(f"{constants.name_list}\n")
+    for trajectory_idx, trajectory in enumerate(output_states['trajectories']):
+        trajectory_log_file.write(f"trajectory_idx {trajectory_idx}\n")
+        for state in trajectory:
+            for x in state:
+                trajectory_log_file.write(f"{float(x.left)}, {float(x.right)};")
+            trajectory_log_file.write(f"\n")
+    trajectory_log_file.close()
+    return 
 
 
 if __name__ == "__main__":
@@ -47,9 +59,21 @@ if __name__ == "__main__":
                 m = Program(l=l, nn_mode=nn_mode)
                 epochs_to_skip, m = load_model(m, MODEL_PATH, name=target_model_name)
                 if m is None:
-                    print(f"no model.")
+                    print(f"no model: {target_model_name}")
+                    continue
+                if torch.cuda.is_available():
+                    m.cuda()
 
-                ini_states = initialize_components()
+                ini_states = initialization_components_point()
+                output_states = m(ini_states)
+
+                store_trajectory(
+                    output_states, 
+                    trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}", 
+                    category='point',
+                    )
+
+
 
 
 

@@ -58,12 +58,14 @@ def initialize_components(abstract_states):
 
 
 def initialization_components_point():
-    B = 1
-    padding = torch.zeros(B, 1)
+    B = 500
+    input_center, input_width, padding = torch.randn(B, 1), torch.zeros(B, 1), torch.zeros(B, 1)
     if torch.cuda.is_available():
         padding = padding.cuda()
+        input_center = input_center.cuda()
+        input_width = input_width.cuda()
     
-    input_center, input_width = -0.5, 0.0
+    input_center = input_center * (-0.4 - -0.6) + (-0.6)
     states = {
         'x': domain.Box(torch.cat((input_center, padding, padding, padding), 1), torch.cat((input_width, padding, padding, padding), 1)),
         'trajectories': [[] for i in range(B)],
