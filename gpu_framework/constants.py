@@ -32,6 +32,7 @@ data_attr = args.data_attr
 mode = args.mode
 debug = args.debug
 run_time_debug = args.run_time_debug
+plot = args.plot
 
 data_bs = args.data_bs
 
@@ -139,7 +140,7 @@ else:
 trajectory_log_prefix = f"gpu_{mode}/result_test/trajectory/{result_prefix}_"
 
 
-if not debug and not generate_dataset:
+if not debug and not generate_dataset and not plot:
     if os.path.exists(file_dir):
         log_file = open(file_dir, 'a')
     else:
