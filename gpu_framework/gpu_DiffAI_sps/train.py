@@ -263,7 +263,7 @@ def learning(
                 log_file.close()
             break
 
-        if (time.time() - start_time)/(i+1) > 3600 or TIME_OUT:
+        if (time.time() - start_time)/(i+1) > 5*3600 or TIME_OUT:
             if not constants.debug:
                 log_file = open(file_dir, 'a')
                 log_file.write('TIMEOUT: avg epoch time > 3600sec \n')
