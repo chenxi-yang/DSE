@@ -58,7 +58,7 @@ def initialize_components(abstract_states):
 
 
 def initialization_components_point():
-    B = 500
+    B = 10
     input_center, input_width, padding = torch.rand(B, 1), torch.zeros(B, 1), torch.zeros(B, 1)
     if torch.cuda.is_available():
         padding = padding.cuda()
@@ -142,6 +142,28 @@ class LinearReLUNoAct(nn.Module):
         # res = self.sigmoid(res)
         return res
 
+
+class LinearComplex(nn.Module):
+    def __init__(self, l):
+        super().__init__()
+        self.linear1 = Linear(in_channels=2, out_channels=l)
+        self.linear2 = Linear(in_channels=l, out_channels=l)
+        self.linear3 = Linear(in_channels=l, out_channels=2)
+        self.linear_output = Linear(in_channels=2, out_channels=1)
+        self.relu = ReLU()
+        # self.sigmoid_linear = SigmoidLinear(sig_range=sig_range)
+
+    def forward(self, x):
+        # final layer is not activation
+        res = self.linear1(x)
+        res = self.relu(res)
+        res = self.linear2(res)
+        res = self.relu(res)
+        res = self.linear3(res)
+        res = self.relu(res)
+        res = self.linear_output(res)
+        return res
+
 def f_assign_min_p(x):
     return x.set_value(var(-1.2))
 
@@ -177,7 +199,10 @@ class Program(nn.Module):
         self.min_speed = var(-0.07)
         self.max_speed = var(0.07)
         
-        self.nn = LinearReLUNoAct(l=l)
+        if nn_mode == 'complex':
+            self.nn = LinearReLUNoAct(l=l)
+        else:
+            self.nn = LinearComplex(l=l)
         self.assign_min_p = Assign(target_idx=[0], arg_idx=[0], f=f_assign_min_p)
         self.assign_min_v = Assign(target_idx=[1], arg_idx=[1], f=f_assign_min_v)
         self.ifelse_p_block1 = nn.Sequential(
