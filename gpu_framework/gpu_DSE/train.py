@@ -77,18 +77,23 @@ def extract_safe_loss(component, target_component, target_idx):
             X = state[target_idx]
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
-                if X.isPoint():
-                    unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
-                else:
-                    unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength() + constants.eps)
+                # update safe loss
+                unsafe_value = torch.max(X.left.sub(safe_interval.right), safe_interval.left.sub(X.right))
+                unsafe_value = unsafe_value + 1.0
+                # if X.isPoint():
+                #     unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
+                # else:
+                #     unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength() + constants.eps)
             else:
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
             # unsafe_penalty = unsafe_penalty + unsafe_value
             unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
+            # print(f"position: {float(state[1].left), float(state[1].right)}, velocity: {float(state[2].left), float(state[2].right)}")
             # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
         # print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
+        # exit(0)
         component_loss += p * float(unsafe_penalty) + unsafe_penalty
     
     component_loss /= len(component['p_list'])
