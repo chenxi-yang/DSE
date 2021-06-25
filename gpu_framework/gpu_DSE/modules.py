@@ -84,6 +84,7 @@ def calculate_states(target_idx, arg_idx, f, states):
     # print(f"x, c: {x.c}, delta: {x.delta}")
     input = x.select_from_index(1, arg_idx)
     res = f(input)
+    # print(f"input, c: {input.c}, delta: {input.delta}; res, c: {res.c}, delta: {res.delta}")
     x.c[:, target_idx] = res.c 
     x.delta[:, target_idx] = res.delta
     states['x'] = x
