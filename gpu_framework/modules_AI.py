@@ -101,11 +101,11 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
     trajectory = list()
     K = min(l1, l2)
     for idx in range(K):
-        states_1, states_2 = trajectory_1[0], trajectory_2[0]
+        states_1, states_2 = trajectory_1[idx], trajectory_2[idx]
         l_s = len(states_1)
         state_list = list()
         for state_idx in range(l_s):
-            state_1, state_2 = states_1[0], states_2[0]
+            state_1, state_2 = states_1[idx], states_2[idx]
             a = state_1.soundJoin(state_2)
             state_list.append(a)
         trajectory.append(state_list)
