@@ -139,17 +139,17 @@ def sound_join(states1, states2):
     if len(states2) == 0:
         return states1
     
-    for tra in states1['trajectories']:
-        print(f"states1 new trajectory")
-        for states in tra:
-            print(f"{float(states[0].left), float(states[0].right)}")
-    for tra in states2['trajectories']:
-        print(f"states2 new trajectory")
-        for states in tra:
-            print(f"{float(states[0].left), float(states[0].right)}")
+    # for tra in states1['trajectories']:
+    #     print(f"states1 new trajectory")
+    #     for states in tra:
+    #         print(f"{float(states[0].left), float(states[0].right)}")
+    # for tra in states2['trajectories']:
+    #     print(f"states2 new trajectory")
+    #     for states in tra:
+    #         print(f"{float(states[0].left), float(states[0].right)}")
     
-    print(f"states1 idx: {states1['idx_list']}")
-    print(f"states2 idx: {states2['idx_list']}")
+    # print(f"states1 idx: {states1['idx_list']}")
+    # print(f"states2 idx: {states2['idx_list']}")
     # pdb.set_trace()
     res_states = dict()
     idx1, idx2 = 0, 0
@@ -187,11 +187,11 @@ def sound_join(states1, states2):
             idx2 += 1
             idx1 += 1
 
-    for tra in res_states['trajectories']:
-        print(f"res_states new trajectory")
-        for states in tra:
-            print(f"{float(states[0].left), float(states[0].right)}")
-    print(f"******* end sound join *******")
+    # for tra in res_states['trajectories']:
+    #     print(f"res_states new trajectory")
+    #     for states in tra:
+    #         print(f"{float(states[0].left), float(states[0].right)}")
+    # print(f"******* end sound join *******")
     # pdb.set_trace()
 
     return res_states
@@ -304,27 +304,27 @@ class IfElse(nn.Module):
             body_states = self.body(body_states)
         if len(orelse_states) > 0:
             orelse_states = self.orelse(orelse_states)
-        if len(body_states) > 0:
-            print(f"[ifelse]body: x.c: {body_states['x'].c}, x.delta: {body_states['x'].delta}")
-            for tra in body_states['trajectories']:
-                print(f"new trajectory")
-                for states in tra:
-                    print(f"{float(states[0].left), float(states[0].right)}")
-        if len(orelse_states) > 0:
-            print(f"[ifelse]orelse: x.c: {orelse_states['x'].c}, x.delta: {orelse_states['x'].delta}")
-            for tra in orelse_states['trajectories']:
-                print(f"new trajectory")
-                for states in tra:
-                    print(f"{float(states[0].left), float(states[0].right)}")
+        # if len(body_states) > 0:
+        #     print(f"[ifelse]body: x.c: {body_states['x'].c}, x.delta: {body_states['x'].delta}")
+        #     for tra in body_states['trajectories']:
+        #         print(f"new trajectory")
+        #         for states in tra:
+        #             print(f"{float(states[0].left), float(states[0].right)}")
+        # if len(orelse_states) > 0:
+        #     print(f"[ifelse]orelse: x.c: {orelse_states['x'].c}, x.delta: {orelse_states['x'].delta}")
+        #     for tra in orelse_states['trajectories']:
+        #         print(f"new trajectory")
+        #         for states in tra:
+        #             print(f"{float(states[0].left), float(states[0].right)}")
         
         # maintain the same number of components as the initial ones
         # TODO: update sound join
         res_states = sound_join(body_states, orelse_states)
-        print(f"[ifelse]res: x.c: {res_states['x'].c}, x.delta: {res_states['x'].delta}")
-        for tra in res_states['trajectories']:
-            print(f"new trajectory")
-            for states in tra:
-                print(f"{float(states[0].left), float(states[0].right)}")
+        # print(f"[ifelse]res: x.c: {res_states['x'].c}, x.delta: {res_states['x'].delta}")
+        # for tra in res_states['trajectories']:
+        #     print(f"new trajectory")
+        #     for states in tra:
+        #         print(f"{float(states[0].left), float(states[0].right)}")
 
         return res_states
 
@@ -344,18 +344,17 @@ class While(nn.Module):
         res_states = list()
         while(len(states) > 0):
             body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
-            # TODO: update
-            if len(body_states) > 0:
-                print(f"body: x.c: {body_states['x'].c}, x.delta: {body_states['x'].delta}")
-                for tra in body_states['trajectories']:
-                    print(f"new trajectory")
-                    for states in tra:
-                        print(f"{float(states[0].left), float(states[0].right)}")
-            if len(orelse_states) > 0:
-                print(f"orelse: x.c: {orelse_states['x'].c}, x.delta: {orelse_states['x'].delta}")
+            # if len(body_states) > 0:
+            #     print(f"body: x.c: {body_states['x'].c}, x.delta: {body_states['x'].delta}")
+            #     for tra in body_states['trajectories']:
+            #         print(f"new trajectory")
+            #         for states in tra:
+            #             print(f"{float(states[0].left), float(states[0].right)}")
+            # if len(orelse_states) > 0:
+            #     print(f"orelse: x.c: {orelse_states['x'].c}, x.delta: {orelse_states['x'].delta}")
             
-            if i > 2:
-                exit(0)
+            # if i > 2:
+            #     exit(0)
             res_states = sound_join(res_states, orelse_states)
             if len(body_states) == 0:
                 return res_states
@@ -363,11 +362,11 @@ class While(nn.Module):
             i += 1
             if i > MAXIMUM_ITERATION:
                 break
-        print(f"end while loop, res states")
-        for tra in res_states['trajectories']:
-            print(f"new trajectory")
-            for states in tra:
-                print(f"{float(states[0].left), float(states[0].right)}")
+        # print(f"end while loop, res states")
+        # for tra in res_states['trajectories']:
+        #     print(f"new trajectory")
+        #     for states in tra:
+        #         print(f"{float(states[0].left), float(states[0].right)}")
         res_states = sound_join(res_states, orelse_states)
         res_states = sound_join(res_states, body_states)
 
@@ -392,7 +391,7 @@ class Trajectory(nn.Module):
             for idx in self.target_idx:
                 input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
                 input_interval = input.getInterval()
-                print(f"into trajectory, x: {float(input_interval.left), float(input_interval.right)}")
+                # print(f"into trajectory, x: {float(input_interval.left), float(input_interval.right)}")
                 assert input_interval.left.data.item() <= input_interval.right.data.item()
                 input_interval_list.append(input_interval)
             trajectories[x_idx].append(input_interval_list)
