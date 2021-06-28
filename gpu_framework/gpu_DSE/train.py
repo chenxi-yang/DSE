@@ -279,7 +279,7 @@ def learning(
             end_count += 1
         else:
             end_count = 0
-        if end_count >= 3:
+        if end_count >= 5:
             if not constants.debug:
                 log_file = open(file_dir, 'a')
                 log_file.write('EARLY STOP: Get safe results \n')
