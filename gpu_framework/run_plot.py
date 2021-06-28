@@ -58,7 +58,7 @@ if __name__ == "__main__":
                 print(target_model_name)
                 m = Program(l=l, nn_mode=nn_mode)
                 epochs_to_skip, m = load_model(m, MODEL_PATH, name=target_model_name)
-                if m is None:
+                if m is None: 
                     print(f"no model.")
                 if torch.cuda.is_available():
                     m.cuda()
@@ -71,14 +71,4 @@ if __name__ == "__main__":
                     trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}", 
                     category='point',
                     )
-
-
-
-
-
-
-
-
-
-
 

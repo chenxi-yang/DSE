@@ -94,11 +94,11 @@ def smooth_join_trajectory(trajectory_1, trajectory_2, alpha_prime_1, alpha_prim
     trajectory = list()
     K = min(l1, l2)
     for idx in range(K):
-        states_1, states_2 = trajectory_1[0], trajectory_2[0]
+        states_1, states_2 = trajectory_1[idx], trajectory_2[idx]
         l_s = len(states_1)
         state_list = list()
         for state_idx in range(l_s):
-            state_1, state_2 = states_1[0], states_2[0]
+            state_1, state_2 = states_1[state_idx], states_2[state_idx]
             a = state_1.smoothJoin(state_2, alpha_prime_1, alpha_prime_2, alpha_1, alpha_2)
             state_list.append(a)
         trajectory.append(state_list)
