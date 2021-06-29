@@ -105,7 +105,7 @@ def sound_join_trajectory(trajectory_1, trajectory_2):
         l_s = len(states_1)
         state_list = list()
         for state_idx in range(l_s):
-            state_1, state_2 = states_1[idx], states_2[idx]
+            state_1, state_2 = states_1[state_idx], states_2[state_idx]
             a = state_1.soundJoin(state_2)
             state_list.append(a)
         trajectory.append(state_list)
