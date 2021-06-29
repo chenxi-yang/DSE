@@ -199,7 +199,6 @@ class IfElse(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, states):
-        test = self.f_test(self.test)
         body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
         if len(body_states) > 0:
             body_states = self.body(body_states)

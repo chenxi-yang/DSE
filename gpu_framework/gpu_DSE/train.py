@@ -13,14 +13,8 @@ import importlib
 from utils import (
     batch_pair,
     batch_pair_endpoint,
-    ini_trajectory,
-    show_component, 
-    show_cuda_memory,
-    show_trajectory,
     divide_chunks,
     save_model,
-    load_model,
-    import_benchmarks,
     )
 from domain_utils import (
     concatenate_states,
@@ -46,7 +40,6 @@ elif constants.benchmark_name == "path_explosion_2":
     from benchmarks.path_explosion_2 import *
 
 random.seed(1)
-
 
 def get_intersection(interval_1, interval_2):
     res_interval = domain.Interval()
@@ -105,7 +98,6 @@ def safe_distance(component_result_list, target):
     # take the average over components
     
     loss = var_list([0.0])
-    p_list = list()
     min_l, max_r = 100000, -100000
     for idx, target_component in enumerate(target):
         target_loss = var_list([0.0])
