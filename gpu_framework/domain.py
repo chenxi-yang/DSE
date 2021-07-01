@@ -483,49 +483,18 @@ class Box():
         return self.new(self.c.matmul(other), self.delta.matmul(other.abs()))
     
     def add(self, other):
-        #TODO:
-        # if debug:
-        #     r1 = torch.cuda.memory_reserved(0) 
-        #     a1 = torch.cuda.memory_allocated(0)
-        #     print(f"#add, ini#, memory: {a1}")
         if isinstance(other, torch.Tensor):
             c, d = self.c.add(other), self.delta
-            # if debug:
-            #     r3 = torch.cuda.memory_reserved(0) 
-            #     a3 = torch.cuda.memory_allocated(0)
-                # print(f"#add, c, d# : memory cost {a3}, {a3 - a1}")
             res = self.new(c, d)
-            # if debug:
-            #     r4 = torch.cuda.memory_reserved(0) 
-            #     a4 = torch.cuda.memory_allocated(0)
-            #     print(f"#add, res new# : memory cost {a4}, {a4 - a1}")
-            # res = self.new(self.c.add(other), self.delta)
         else:
             c, d = self.c.add(other.c), self.delta + other.delta
-            # if debug:
-            #     r3 = torch.cuda.memory_reserved(0) 
-            #     a3 = torch.cuda.memory_allocated(0)
-            #     print(f"#add, c, d# : memory cost {a3}, {a3 - a1}")
             res = self.new(c, d)
-            # if debug:
-            #     r4 = torch.cuda.memory_reserved(0) 
-            #     a4 = torch.cuda.memory_allocated(0)
-            #     print(f"#add, res new# : memory cost {a4}, {a4 - a1}")
-            # res = self.new(self.c.add(other.c), self.delta + other.delta)
-        # if debug:
-        #     r2 = torch.cuda.memory_reserved(0) 
-        #     a2 = torch.cuda.memory_allocated(0)
-        #     print(f"#add# : memory cost {a2}, {a2 - a1}")
         return res
             
     def sub_l(self, other): # self - other
-        # print(f"sub_l other:{other}")
         if isinstance(other, torch.Tensor):
             return self.new(self.c.sub(other), self.delta)
         else:
-            # print(f"in here")
-            # print(f"self.c: {self.c}")
-            # print(f"other.c: {other.c}")
             return self.new(self.c.sub(other.c), self.delta + other.delta)
     
     def sub_r(self, other): # other - self
@@ -535,11 +504,6 @@ class Box():
             return self.new(other.c.sub(self.c), self.delta + other.delta)
     
     def mul(self, other):
-        # if debug:
-        #     r1 = torch.cuda.memory_reserved(0) 
-        #     a1 = torch.cuda.memory_allocated(0)
-        #     print(f"#mul ini# : memory cost {a1}")
-        # print(f"mul, {self.c.shape}")
         interval = self.getInterval()
         if isinstance(other, torch.Tensor):
             pass
@@ -547,15 +511,6 @@ class Box():
             other = other.getInterval()
         res_interval = interval.mul(other)
         res = res_interval.getBox()
-        # print(f"mul, {res.c.shape}")
-        # if debug:
-        #     r2 = torch.cuda.memory_reserved(0) 
-        #     a2 = torch.cuda.memory_allocated(0)
-        #     print(f"#mul# : memory cost {a2}, {a2 - a1}")
-        #     del res_interval
-        #     del interval
-        #     a3 = torch.cuda.memory_allocated(0)
-        #     print(f"after del in mul: {a3}, {a3 - a1}")
         return res
     
     def cos(self):
@@ -616,39 +571,16 @@ class Box():
         return self.new((tp + bt)/2, (tp - bt)/2)
     
     def relu(self): # monotonic function
-        # relu_time = time.time()
         tp = F.relu(self.c + self.delta)
-        bt = F.relu(self.c - self.delta)
-        # print(f"relu: {time.time() - relu_time}")
-
-        # approximate volume
-        p0 = var(1.0)
-        # for idx, c in enumerate(self.c):
-        #     delta = self.delta[idx]
-        #     if (c + delta) > 0.0 and (c - delta).data.item() < 0.0:
-        #         p0 = p0.mul((c+delta) * 1.0/(delta * 2.0))
-        # print(f"after volume  approximation: {time.time() - relu_time}")
-        
+        bt = F.relu(self.c - self.delta)        
         return self.new((tp + bt)/2, (tp - bt)/2)
     
     def sigmoid_linear(self, sig_range):
-        # sl_time = time.time()
         a = var(0.5/sig_range)
         b = var(0.5)
         x = self.mul(a).add(b)
         tp = torch.clamp(x.c + x.delta, 0, 1)
         bt = torch.clamp(x.c - x.delta, 0, 1)
-        # print(f"sl: {time.time() - sl_time}")
-
-        # approximate volume
-        p0 = var(1.0)
-        # for idx, c in enumerate(self.c):
-        #     delta = self.delta[idx]
-        #     if delta.data.item() > 0.0:
-        #         r = torch.clamp(c + delta, 0, 1)
-        #         l = torch.clamp(c - delta, 0, 1)
-        #         p0 = p0.mul((r - l) * 1.0/ (delta  * 2.0))
-        # print(f"after volume  approximation: {time.time() - sl_time}")
 
         return self.new((tp + bt)/2, (tp - bt)/2)
 
@@ -705,15 +637,6 @@ class Zonotope:
     
         # arithmetic
     def add(self, y):
-        # print('in add', self.getInterval().left, self.getInterval().right)
-        # print('self, c', self.center)
-        # for i in self.alpha_i:
-        #     print(i)
-
-        # if isinstance(y, torch.Tensor):
-        #     print('y', y)
-        # else:
-        #     print('y', y.getInterval().left, y.getInterval().right)
         # self + y
         res = Zonotope()
         if isinstance(y, torch.Tensor):
@@ -809,15 +732,6 @@ class Zonotope:
         return res
 
     def mul(self, y):
-        # self * y
-        # print('in mul', self.getInterval().left, self.getInterval().right)
-        # print('self, c', self.center)
-        # for i in self.alpha_i:
-        #     print(i)
-        # if isinstance(y, torch.Tensor):
-        #     print('y', y)
-        # else:
-        #     print('y', y.getInterval().left, y.getInterval().right)
 
         res = Zonotope()
         if isinstance(y, torch.Tensor):
@@ -826,81 +740,11 @@ class Zonotope:
 
             res = self.getInterval().mul(y).getZonotope()
         else:
-            # res.center = self.center.mul(y.center)
-            # res.alpha_i = list()
-            
-            # l1 = self.getCoefLength()
-            # l2 = y.getCoefLength()
-            # max_l = max(l1, l2)
-            # # equalize the length
-            # for i in range(l1, max_l):
-            #     self.alpha_i.append(var(0.0))
-            # for i in range(l2, max_l):
-            #     y.alpha_i.append(var(0.0))
-            
-            # for i in range(max_l):
-            #     tmp_coef = self.center.mul(y.alpha_i[i]).add(y.center.mul(self.alpha_i[i]))
-            #     res.alpha_i.append(tmp_coef)
-            
-            # # last noise coef: uv, u = sum abs(x_i), v = sum abs(y_i)
-            # u = var(0.0)
-            # v = var(0.0)
-            # for i in range(l1):
-            #     u = u.add(torch.abs(self.alpha_i[i]))
-            # for i in range(l2):
-            #     v = v.add(torch.abs(y.alpha_i[i]))
             res = self.getInterval().mul(y.getInterval()).getZonotope()
-            # res.alpha_i.append(u.mul(v))
-        # print('after mul', res.getInterval().left, res.getInterval().right)
         return res
 
 
     def div(self, y):
-
-        # print('in div', self.getInterval().left, self.getInterval().right)
-        # if isinstance(y, torch.Tensor):
-        #     print('y', y)
-        # else:
-        #     print('y', y.getInterval().left, y.getInterval().right)
-        # # y / self
-        # # use mini-range approximation
-        # res = Zonotope()
-        # l1 = self.getCoefLength()
-        # res_l = res.getCoefLength()
-        # if res_l < l1:
-        #     for i in range(res_l, l1):
-        #         res.alpha_i.append(var(0.0))
-
-        # tmp_interval = self.getInterval()
-        # m = tmp_interval.left
-        # n = tmp_interval.right
-
-        # if m.data.item() <= 0 and n.data.item() >= 0:
-        #     return Zonotope(N_INFINITY.data.item(), P_INFINITY.data.item())
-
-        # t1 = torch.abs(m)
-        # t2 = torch.abs(n)
-
-        # a = torch.min(t1, t2)
-        # b = torch.max(t1, t2)
-
-        # alpha = var(-1.0).div(b.mul(b))
-        # # i = ((1/a)-alpha*a, 2/b), alpha_0 = i.mid() 
-        # dzeta = (((var(1.0)/a).sub(alpha.mul(a))).add(var(2.0).div(b))).div(2.0)
-        # delta = var(2.0).div(b).sub(dzeta)
-
-        # if tmp_interval.left.data.item() < 0.0:
-        #     dzeta = dzeta.mul(var(-1.0))
-        
-        # res.center = alpha.mul(self.center).add(dzeta)
-        # for i in range(l1):
-        #     res.alpha_i[i] = alpha.mul(self.alpha_i[i])
-        # res.alpha_i.append(delta)
-        # # res = 1/self
-        
-        # res = res.mul(y)
-
-        # print('after div', res.getInterval().left, res.getInterval().right)
         tmp_res = self.getInterval()
         tmp_res = tmp_res.div(var(1.0))
         res = tmp_res.getZonotope().mul(y)
@@ -908,36 +752,6 @@ class Zonotope:
         return res
 
     def exp(self):
-        # e^(self)
-        # print('in exp', self.getInterval().left, self.getInterval().right)
-        # res = Zonotope()
-        # l1 = self.getCoefLength()
-        # res_l = res.getCoefLength()
-        # if res_l < l1:
-        #     for i in range(res_l, l1):
-        #         res.alpha_i.append(var(0.0))
-        
-        # tmp_interval = self.getInterval()
-        # a = tmp_interval.left
-        # b = tmp_interval.right
-
-        # ea = torch.exp(a)
-        # eb = torch.exp(b)
-
-        # alpha = (eb.sub(ea)).div(b.sub(a))
-        # xs = torch.log(alpha)
-        # maxdelta = alpha.mul(xs.sub(var(1.0).sub(a))).add(ea)
-        # dzeta = alpha.mul(var(1.0).sub(xs))
-        # # get the error
-        # delta = maxdelta.div(var(2.0))
-
-        # res.center = alpha.mul(self.center).add(dzeta)
-        # for i in range(l1):
-        #     res.alpha_i[i] = alpha.mul(self.alpha_i[i])
-        # res.alpha_i.append(delta)
-
-        # print('after exp', res.getInterval().left, res.getInterval().right)
-
         tmp_res = self.getInterval()
         res = tmp_res.exp().getZonotope()
 
@@ -1028,6 +842,12 @@ class Zonotope:
         # return res
         tmp_res = (self.getInterval().min(y.getInterval())).getZonotope()
         return tmp_res
+
+
+class HybridZonotope:
+    def __init__(self, left=0.0, right=0.0):
+        self.center = var((left + right)/2.0)
+        self.alpha_i = list([var((right - left)/2.0)])
 
 
 
