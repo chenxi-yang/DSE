@@ -845,9 +845,10 @@ class Zonotope:
 
 
 class HybridZonotope:
-    def __init__(self, left=0.0, right=0.0):
-        self.center = var((left + right)/2.0)
-        self.alpha_i = list([var((right - left)/2.0)])
+    def __init__(self, head, beta, errors, **kargs): 
+        self.head = head
+        self.errors = errors
+        self.beta = beta
 
 
 
