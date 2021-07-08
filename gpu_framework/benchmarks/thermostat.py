@@ -128,7 +128,7 @@ def f_wrap_up_tmp_down_nn(nn):
         # print(f"nn, before: {x.c, x.delta}")
         x_input = x.div(var(70.0))
         # print(f"nn, before: {x_input.c, x_input.delta}")
-        plant = nn(x_input).mul(var(1.0))
+        plant = nn(x_input)
         # print(f"nn, after: {plant.c, plant.delta}")
         assert(not torch.any(torch.isnan(x_input.c)))
         assert(not torch.any(torch.isnan(plant.c)))
@@ -140,7 +140,7 @@ def f_wrap_up_tmp_up_nn(nn):
     def f_tmp_up_nn(x):
         # print(f"nn, before: {x.c, x.delta}")
         x_input = x.div(var(70.0))
-        plant = nn(x_input).mul(var(1.0))
+        plant = nn(x_input)
         # print(f"nn, after: {plant.c, plant.delta}")
         return x.select_from_index(1, index0).sub_l(plant).add(var(10.0))
     return f_tmp_up_nn
