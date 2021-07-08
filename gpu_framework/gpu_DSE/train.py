@@ -29,7 +29,9 @@ elif constants.benchmark_name == "mountain_car":
     importlib.reload(mc)
     from benchmarks.mountain_car import *
 elif constants.benchmark_name == "unsmooth_1":
-    from benchmarks.unsmooth import *
+    import benchmarks.unsmooth_1 as us
+    importlib.reload(us)
+    from benchmarks.unsmooth_1 import *
 elif constants.benchmark_name == "unsmooth_2_separate":
     from benchmarks.unsmooth_2_separate import *
 elif constants.benchmark_name == "unsmooth_2_overall":
