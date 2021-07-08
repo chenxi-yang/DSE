@@ -849,7 +849,7 @@ class HybridZonotope:
         self.head = head
         self.errors = errors
         self.beta = beta
-
+        
 
 
 

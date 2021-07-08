@@ -92,6 +92,48 @@ def mountain_car(p0, safe_bound):
     return trajectory_list
 
 
+def light_change(l, c, r):
+    # TODO: add angle
+    angle = 0
+    return angle
+
+def update_light(i):
+    # make the light decision based on sec
+    # center: 10-5-10-5...
+    # left: 4-8-7-8-7...
+    # right: 8-7-8-7...
+    unit_15 = i % 15
+    unit_15_4 = (i - 4) % 15
+    if unit_15 <= 9:
+        c_g, c_r = 1, 0
+    else:
+        c_g, c_r = 0, 1
+    if unit_15 <= 7:
+        r_g, r_r = 1, 0
+    else:
+        r_g, r_r = 0, 1
+    if unit_15_4 <= 7:
+        l_g, l_r = 1, 0
+    else:
+        l_g, l_r = 0, 1
+    return l_g, l_r, c_g, c_r, r_g, r_r 
+
+
+def car_angle_control(light_0, safe_bound):
+    # initial light, light_0: left-g,r; center-g,r; right-g,r
+    # follow a pattern to change the light
+    last_angle = 0.0
+    for i in range(80):
+        l_g, l_r, c_g, c_r, r_g, r_r = update_light(i)
+        cur_angle = NN(l_g, l_r, c_g, c_r, r_g, r_r)
+        trajectory_list.append((l_g, l_r, c_g, c_r, r_g, r_r, cur_angle))
+        if abs(cur_angle - last_angle) <= 0.4:
+            cur_angle /= 2.0
+        last_angle = cur_angle
+
+    return trajectory_list
+
+
 def safe_acceleration_p(p, v, safe_bound):
     u_p = 0.0
     if v <= 0.0:
