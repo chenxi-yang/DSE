@@ -91,6 +91,22 @@ if benchmark_name == "mountain_car":
     safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
+if benchmark_name == "unsmooth_1":
+    x_l = [-5.0]
+    x_r = [5.0]
+
+    safe_range_list = [[1.0, 1.0]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['test']
+
+    safe_range_start=1.0
+    safe_range_end=1.5
+    safe_range_step=1.0
+    safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
 model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}"
 
 dataset_path_prefix = f"dataset/{benchmark_name}"
@@ -162,32 +178,6 @@ if not debug and not generate_dataset and not plot:
 
 # below are other benchmarks
 
-
-if benchmark_name == "unsmooth_1":
-    x_l = [-5.0]
-    x_r = [5.0]
-
-    safe_range_list = [[1.0, 1.0]]
-    phi_list = [0.0, 0.1]
-    phi_list[0] = ini_unsafe_probability
-    if adaptive_weight:
-        w_list = [0.01]
-    else:
-        # w_list = [0.4, 0.6]
-        w_list = [1.0]
-    method_list = ['all']
-    name_list = ['test']
-    # TODO: upper bound list:
-    component_bound_idx = 0
-    bound_direction_idx = 1 # left or right
-    # safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
-    safe_range_start=1.0
-    safe_range_end=1.5
-    safe_range_step=1.0
-    safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
-    analysis_name_list = ['test']
-
-
 if benchmark_name == "unsmooth_2_separate":
     x_l = [-5.0]
     x_r = [5.0]
@@ -216,31 +206,6 @@ if benchmark_name == "unsmooth_2_separate":
 if benchmark_name == "unsmooth_2_overall":
     x_l = [-5.0]
     x_r = [5.0]
-
-    safe_range_list = [[1.0, 2.5]]
-    phi_list = [0.0, 0.1]
-    phi_list[0] = ini_unsafe_probability
-    if adaptive_weight:
-        w_list = [0.01]
-    else:
-        # w_list = [0.4, 0.6]
-        w_list = [1.0]
-    method_list = ['all']
-    name_list = ['test']
-    # TODO: upper bound list:
-    component_bound_idx = 0
-    bound_direction_idx = 1 # left or right
-    # safe_range_bound_list = np.around(np.arange(0.5, 1.1, 0.1), 2).tolist()
-    safe_range_start=1.0
-    safe_range_end=1.5
-    safe_range_step=1.0
-    safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
-    analysis_name_list = ['test']
-
-
-if benchmark_name == "unsmooth_1":
-    x_l = [-1.0]
-    x_r = [1.0]
 
     safe_range_list = [[1.0, 2.5]]
     phi_list = [0.0, 0.1]

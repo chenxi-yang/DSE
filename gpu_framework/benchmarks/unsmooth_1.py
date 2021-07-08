@@ -4,6 +4,25 @@ import torch.nn as nn
 
 import os
 
+if constants.status == 'train':
+    if mode == 'DSE':
+        from gpu_DSE.modules import *
+    elif mode == 'only_data':
+        # print(f"in only data: import DSE_modules")
+        from gpu_DSE.modules import *
+    elif mode == 'DiffAI':
+        from gpu_DiffAI.modules import *
+    elif mode == 'symbol_data_loss_DSE':
+        from gpu_symbol_data_loss_DSE.modules import *
+    elif mode == 'DiffAI_sps':
+        from gpu_DiffAI_sps.modules import *
+elif constants.status == 'verify_AI':
+    # print(f"in verify_AI: modules_AI")
+    from modules_AI import *
+elif constants.status == 'verify_SE':
+    # print(f"in verify_SE: modules_SE")
+    from modules_SE import *
+
 index0 = torch.tensor(0)
 index1 = torch.tensor(1)
 index2 = torch.tensor(2)
@@ -20,44 +39,43 @@ if torch.cuda.is_available():
     max_v = max_v.cuda()
 
 
-def initialize_components(component_list):
-    #TODO: add batched components to replace the following two 
-    return states
-
-# input order: x, y, z
-def initialization_abstract_state(component_list):
-    abstract_state_list = list()
-    # we assume there is only one abstract distribtion, therefore, one component list is one abstract state
-    abstract_state = list()
-    for component in component_list:
-        center, width, p = component['center'], component['width'], component['p']
-        symbol_table = {
-            'x': domain.Box(var_list([center[0], 0.0, 0.0]), var_list([width[0], 0.0, 0.0])),
-            'probability': var(p),
-            'trajectory': list(),
-            'branch': '',
-        }
-
-        abstract_state.append(symbol_table)
-    abstract_state_list.append(abstract_state)
-    return abstract_state_list
-
-
-# input order: x, y, z
-def initialization_nn(batched_center, batched_width):
-    B, D = batched_center.shape
+def initialize_components(abstract_states):
+    center, width = abstract_states['center'], abstract_states['width']
+    B, D = center.shape
     padding = torch.zeros(B, 1)
     if torch.cuda.is_available():
         padding = padding.cuda()
     
-    input_center, input_width = batched_center[:, :1], batched_width[:, :1]
-    symbol_tables = {
-        'x': domain.Box(torch.cat((input_center, padding, padding), 1), torch.cat((input_width, padding, padding), 1)),
-        'trajectory_list': [[] for i in range(B)],
-        'idx_list': [i for i in range(B)], # marks which idx the tensor comes from in the input
+    input_center, input_width = center[:, :1], width[:, :1]
+    states = {
+        'x': domain.Box(torch.cat((input_center, padding, input_center), 1), torch.cat((input_width, padding, padding), 1)),
+        'trajectories': [[] for i in range(B)],
+        'idx_list': [i for i in range(B)],
+        'p_list': [var(1.0) for i in range(B)], # might be changed to batch
+        'alpha_list': [var(1.0) for i in range(B)],
     }
 
-    return symbol_tables
+    return states
+
+# input order: x, y, z
+def initialization_components_point():
+    B = 1
+    input_center, input_width, padding = torch.zeros(B, 1), torch.zeros(B, 1), torch.zeros(B, 1)
+    if torch.cuda.is_available():
+        padding = padding.cuda()
+        input_center = input_center.cuda()
+        input_width = input_width.cuda()
+    
+    input_center[0], input_width[0] = 1.0, 0.0
+    states = {
+        'x': domain.Box(torch.cat((input_center, padding, padding, padding), 1), torch.cat((input_width, padding, padding, padding), 1)),
+        'trajectories': [[] for i in range(B)],
+        'idx_list': [i for i in range(B)],
+        'p_list': [var(0.0) for i in range(B)], # might be changed to batch
+        'alpha_list': [var(1.0) for i in range(B)],
+    }
+
+    return states
 
 def f_test(x):
     return x
@@ -100,7 +118,6 @@ class Program(nn.Module):
         self.bar = var(1.0)
         if nn_mode == "simple":
             self.nn = LinearNN(l=l)
-        # complex version
         if nn_mode == "complex":
             self.nn = LinearNNComplex(l=l)
 
@@ -119,7 +136,6 @@ class Program(nn.Module):
     
     def forward(self, input, version=None):
         if version == "single_nn_learning":
-            # TODO: use a batch-wise way
             y = self.nn(input)
             # print(f"y: {y.detach().cpu().numpy().tolist()[:3]}")
             x = torch.clone(y)

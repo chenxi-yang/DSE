@@ -106,7 +106,9 @@ if __name__ == "__main__":
                     importlib.reload(mc)
                     from benchmarks.mountain_car import *
                 elif benchmark_name == "unsmooth_1":
-                    from benchmarks.unsmooth import *
+                    from benchmarks.unsmooth_1 import us
+                    importlib.reload(us)
+                    from benchmarks.unsmooth_1 import *
                 elif benchmark_name == "unsmooth_2_separate":
                     from benchmarks.unsmooth_2_separate import *
                 elif benchmark_name == "unsmooth_2_overall":

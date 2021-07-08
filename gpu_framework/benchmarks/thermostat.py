@@ -1,12 +1,10 @@
 import torch
-import torch.nn.functional as F
 import torch.nn as nn
 
 from constants import *
 import constants
 import domain
 
-import os
 
 if constants.status == 'train':
     if mode == 'DSE':
@@ -45,7 +43,6 @@ if torch.cuda.is_available():
 
 
 def initialize_components(abstract_states):
-    #TODO: add batched components to replace the following two 
     center, width = abstract_states['center'], abstract_states['width']
     B, D = center.shape
     padding = torch.zeros(B, 1)
@@ -164,7 +161,7 @@ def assign_update(x):
 
 
 class Program(nn.Module):
-    def __init__(self, l, sig_range=10, nn_mode='all'):
+    def __init__(self, l, nn_mode='all'):
         super(Program, self).__init__()
         self.tOff = var(78.0)
         self.tOn = var(66.0)
