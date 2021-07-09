@@ -11,25 +11,33 @@ from utils import (
     create_abstract_states_from_components,
 )
 
-if benchmark_name == "thermostat":
+if constants.benchmark_name == "thermostat":
     import benchmarks.thermostat as tm
     importlib.reload(tm)
     from benchmarks.thermostat import *
-elif benchmark_name == "mountain_car":
+elif constants.benchmark_name == "mountain_car":
     import benchmarks.mountain_car as mc
     importlib.reload(mc)
     from benchmarks.mountain_car import *
-elif benchmark_name == "unsmooth_1":
+elif constants.benchmark_name == "unsmooth_1":
     import benchmarks.unsmooth_1 as us
     importlib.reload(us)
     from benchmarks.unsmooth_1 import *
-elif benchmark_name == "unsmooth_2_separate":
+elif constants.benchmark_name == "unsmooth_2_separate":
+    import benchmarks.unsmooth_2_separate as uss
+    importlib.reload(uss)
     from benchmarks.unsmooth_2_separate import *
-elif benchmark_name == "unsmooth_2_overall":
+elif constants.benchmark_name == "unsmooth_2_overall":
+    import benchmarks.unsmooth_2_overall as uso
+    importlib.reload(uso)
     from benchmarks.unsmooth_2_overall import *
-elif benchmark_name == "path_explosion":
+elif constants.benchmark_name == "path_explosion":
+    import benchmarks.path_explosion as pe
+    importlib.reload(pe)
     from benchmarks.path_explosion import *
-elif benchmark_name == "path_explosion_2":
+elif constants.benchmark_name == "path_explosion_2":
+    import benchmarks.path_explosion_2 as pe2
+    importlib.reload(pe2)
     from benchmarks.path_explosion_2 import *
 
 

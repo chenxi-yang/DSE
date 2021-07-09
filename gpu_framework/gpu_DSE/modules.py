@@ -128,6 +128,10 @@ def calculate_branch(target_idx, test, states):
 
     p_left, p_right = extract_branch_probability(target, test)
     left, right = sample_from_p(p_left, p_right)
+    if constants.debug:
+        print(f"target c: {target.c}, delta: {target.delta}")
+        print(f"left probability: {p_left}")
+        print(f"right probability: {p_right}")
 
     if True in left: # split to left
         left_idx = left.nonzero(as_tuple=True)[0].tolist()
@@ -142,7 +146,13 @@ def calculate_branch(target_idx, test, states):
         body_states['x'] = x_left
         body_states['trajectories'] = [states['trajectories'][i] for i in left_idx]
         body_states['idx_list'] = [states['idx_list'][i] for i in left_idx]
+        if constants.debug:
+            print(f"before update: states p_list")
+            print(states['p_list'])
         body_states['p_list'] = [states['p_list'][i].add(torch.log(p_left[i])) for i in left_idx]
+        if constants.debug:
+            print(f"after update: body_states p_list")
+            print(body_states['p_list'])
     
     if True in right: # split to right
         right_idx = right.nonzero(as_tuple=True)[0].tolist()
@@ -157,8 +167,22 @@ def calculate_branch(target_idx, test, states):
         orelse_states['x'] = x_right
         orelse_states['trajectories'] = [states['trajectories'][i] for i in right_idx]
         orelse_states['idx_list'] = [states['idx_list'][i] for i in right_idx]
+        if constants.debug:
+            print(f"before update: states p_list")
+            print(states['p_list'])
         orelse_states['p_list'] = [states['p_list'][i].add(torch.log(p_right[i])) for i in right_idx]
+        if constants.debug:
+            print(f"after update: orelse_states p_list")
+            print(orelse_states['p_list'])
     
+    if constants.debug:
+        print(f"body_states p_list")
+        if len(body_states) > 0:
+            print(body_states['p_list'])
+        print(f"orelse_states p_list")
+        if len(orelse_states) > 0:
+            print(orelse_states['p_list'])
+        
     return body_states, orelse_states
         
 
@@ -207,6 +231,10 @@ class IfElse(nn.Module):
         
         # maintain the same number of components as the initial ones
         res_states = concatenate_states(body_states, orelse_states)
+        # if constants.debug:
+        #     print(f"trajectories of res_states in [IF_ELSE]")
+        #     for trajectory in res_states['trajectories']:
+        #         print(f"trajectory length: {len(trajectory)}")
 
         return res_states
 
@@ -226,14 +254,16 @@ class While(nn.Module):
         res_states = dict()
         while(len(states) > 0):
             body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
-            # TODO: sound append
             res_states = concatenate_states(res_states, orelse_states)
             if len(body_states) == 0:
                 return res_states
             states = self.body(body_states)
             i += 1
-            if i > MAXIMUM_ITERATION:
+            if i > constants.MAXIMUM_ITERATION:
                 break
+            # if constants.debug:
+            #     for trajectory in body_states['trajectories']:
+            #         print(f"trajectory length: {len(trajectory)}")
         res_states = concatenate_states(res_states, orelse_states)
         res_states = concatenate_states(res_states, body_states)
 

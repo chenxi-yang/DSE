@@ -31,6 +31,7 @@ data_attr = args.data_attr
 
 mode = args.mode
 debug = args.debug
+debug_verifier = args.debug_verifier
 run_time_debug = args.run_time_debug
 plot = args.plot
 
@@ -45,6 +46,8 @@ simple_debug = args.simple_debug
 extract_one_trajectory = args.extract_one_trajectory
 
 AI_verifier_num_components = args.AI_verifier_num_components
+SE_verifier_num_components = args.SE_verifier_num_components
+# TODO: SE_verifier_num_components
 SE_verifier_run_times = args.SE_verifier_run_times
 train_sample_size = args.train_sample_size
 
@@ -158,7 +161,7 @@ else:
 trajectory_log_prefix = f"gpu_{mode}/result_test/trajectory/{result_prefix}_"
 
 
-if not debug and not generate_dataset and not plot:
+if not debug and not generate_dataset and not plot and not debug_verifier:
     if os.path.exists(file_dir):
         log_file = open(file_dir, 'a')
     else:

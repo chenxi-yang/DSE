@@ -115,9 +115,11 @@ def get_parser():
     p.add_argument("--extract_one_trajectory", default=False, type=str2bool, help="extract trajectory starting from one point")
     p.add_argument("--AI_verifier_num_components", default=500, type=int, help="components allowed when using AI as a verifier")
     p.add_argument("--SE_verifier_run_times", default=100, type=int, help="Times to run when using SE as a verifier")
+    p.add_argument("--SE_verifier_num_components", default=1, type=int, help="components allowed when using SE as a verifier")
 
     # debug
     p.add_argument("--debug", default=False, type=str2bool, help="decide whether debug")
+    p.add_argument("--debug_verifier", default=False, type=str2bool, help="debug verifier")
     p.add_argument("--cuda_debug", default=False, type=str2bool,  help="decide whether de cuda memory bug")
     p.add_argument("--simple_debug", default=False, type=str2bool, help="change max iteration")
     p.add_argument("--run_time_debug", default=False, type=str2bool, help="whether print sub time")

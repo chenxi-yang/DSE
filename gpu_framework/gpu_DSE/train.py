@@ -33,12 +33,20 @@ elif constants.benchmark_name == "unsmooth_1":
     importlib.reload(us)
     from benchmarks.unsmooth_1 import *
 elif constants.benchmark_name == "unsmooth_2_separate":
+    import benchmarks.unsmooth_2_separate as uss
+    importlib.reload(uss)
     from benchmarks.unsmooth_2_separate import *
 elif constants.benchmark_name == "unsmooth_2_overall":
+    import benchmarks.unsmooth_2_overall as uso
+    importlib.reload(uso)
     from benchmarks.unsmooth_2_overall import *
 elif constants.benchmark_name == "path_explosion":
+    import benchmarks.path_explosion as pe
+    importlib.reload(pe)
     from benchmarks.path_explosion import *
 elif constants.benchmark_name == "path_explosion_2":
+    import benchmarks.path_explosion_2 as pe2
+    importlib.reload(pe2)
     from benchmarks.path_explosion_2 import *
 
 random.seed(1)
@@ -87,11 +95,14 @@ def extract_safe_loss(component, target_component, target_idx):
             # print(f"position: {float(state[1].left), float(state[1].right)}, velocity: {float(state[2].left), float(state[2].right)}")
             # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
+        # print(len(trajectory))
         # print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
         # exit(0)
         component_loss += p * float(unsafe_penalty) + unsafe_penalty
     
     component_loss /= len(component['p_list'])
+    if constants.debug:
+        exit(0)
     return component_loss, (min_l, max_r)
     
 
@@ -185,6 +196,7 @@ def cal_safe_loss(m, abstract_states, target):
     # TODO: sample simultanuously
     # list of trajectories, p_list
     for i in range(constants.SAMPLE_SIZE):
+        ini_states = initialize_components(abstract_states)
         output_states = m(ini_states, 'abstract')
         trajectories = output_states['trajectories']
         idx_list = output_states['idx_list']
@@ -250,11 +262,11 @@ def learning(
             loss = (data_loss + lambda_ * safe_loss) / lambda_
 
             loss.backward(retain_graph=True)
-            # print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
+            print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
-            # print(f"grad before step, weight: {m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.grad.detach().cpu().numpy().tolist()[0]}")
+            print(f"grad before step, weight: {m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.grad.detach().cpu().numpy().tolist()[0]}")
             optimizer.step()
-            # print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
+            print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
         
         if save:
