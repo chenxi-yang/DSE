@@ -140,6 +140,10 @@ def calculate_branch(target_idx, test, states):
     p_left, p_right = extract_branch_probability(target, test)
     left, right = sample_from_p(p_left, p_right)
     # print(left, right)
+    if constants.debug_verifier:
+        print(f"target c: {target.c}, delta: {target.delta}")
+        print(f"left probability: {p_left}")
+        print(f"right probability: {p_right}")
 
     if True in left: # split to left
         left_idx = left.nonzero(as_tuple=True)[0].tolist()
@@ -211,8 +215,8 @@ class IfElse(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, states):
-        test = self.f_test(self.test)
         body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
+    
         if len(body_states) > 0:
             body_states = self.body(body_states)
         if len(orelse_states) > 0:

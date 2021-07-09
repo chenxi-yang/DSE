@@ -97,25 +97,33 @@ if __name__ == "__main__":
             # Run 5 times
             for i in range(5):
                 constants.status = 'train'
-                if benchmark_name == "thermostat":
+                if constants.benchmark_name == "thermostat":
                     import benchmarks.thermostat as tm
                     importlib.reload(tm)
                     from benchmarks.thermostat import *
-                elif benchmark_name == "mountain_car":
+                elif constants.benchmark_name == "mountain_car":
                     import benchmarks.mountain_car as mc
                     importlib.reload(mc)
                     from benchmarks.mountain_car import *
-                elif benchmark_name == "unsmooth_1":
+                elif constants.benchmark_name == "unsmooth_1":
                     import benchmarks.unsmooth_1 as us
                     importlib.reload(us)
                     from benchmarks.unsmooth_1 import *
-                elif benchmark_name == "unsmooth_2_separate":
+                elif constants.benchmark_name == "unsmooth_2_separate":
+                    import benchmarks.unsmooth_2_separate as uss
+                    importlib.reload(uss)
                     from benchmarks.unsmooth_2_separate import *
-                elif benchmark_name == "unsmooth_2_overall":
+                elif constants.benchmark_name == "unsmooth_2_overall":
+                    import benchmarks.unsmooth_2_overall as uso
+                    importlib.reload(uso)
                     from benchmarks.unsmooth_2_overall import *
-                elif benchmark_name == "path_explosion":
+                elif constants.benchmark_name == "path_explosion":
+                    import benchmarks.path_explosion as pe
+                    importlib.reload(pe)
                     from benchmarks.path_explosion import *
-                elif benchmark_name == "path_explosion_2":
+                elif constants.benchmark_name == "path_explosion_2":
+                    import benchmarks.path_explosion_2 as pe2
+                    importlib.reload(pe2)
                     from benchmarks.path_explosion_2 import *
 
                 if mode == 'DSE':
@@ -206,7 +214,7 @@ if __name__ == "__main__":
                 # AI verification use many initial components, as more as possible
                 AI_components = extract_abstract_representation(Trajectory_test, x_l, x_r, AI_verifier_num_components)
                 # SE verification use one initial components
-                SE_components = extract_abstract_representation(Trajectory_test, x_l, x_r, 1)
+                SE_components = extract_abstract_representation(Trajectory_test, x_l, x_r, SE_verifier_num_components)
                 # AI verification, SE verification, Test data loss
                 
                 # TODO: check replacement?

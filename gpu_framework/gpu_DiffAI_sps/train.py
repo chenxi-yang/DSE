@@ -39,12 +39,20 @@ elif constants.benchmark_name == "unsmooth_1":
     importlib.reload(us)
     from benchmarks.unsmooth_1 import *
 elif constants.benchmark_name == "unsmooth_2_separate":
+    import benchmarks.unsmooth_2_separate as uss
+    importlib.reload(uss)
     from benchmarks.unsmooth_2_separate import *
 elif constants.benchmark_name == "unsmooth_2_overall":
+    import benchmarks.unsmooth_2_overall as uso
+    importlib.reload(uso)
     from benchmarks.unsmooth_2_overall import *
 elif constants.benchmark_name == "path_explosion":
+    import benchmarks.path_explosion as pe
+    importlib.reload(pe)
     from benchmarks.path_explosion import *
 elif constants.benchmark_name == "path_explosion_2":
+    import benchmarks.path_explosion_2 as pe2
+    importlib.reload(pe2)
     from benchmarks.path_explosion_2 import *
 
 random.seed(1)

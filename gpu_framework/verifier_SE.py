@@ -14,25 +14,33 @@ from domain_utils import (
     concatenate_states,
 )
 
-if benchmark_name == "thermostat":
+if constants.benchmark_name == "thermostat":
     import benchmarks.thermostat as tm
     importlib.reload(tm)
     from benchmarks.thermostat import *
-elif benchmark_name == "mountain_car":
+elif constants.benchmark_name == "mountain_car":
     import benchmarks.mountain_car as mc
     importlib.reload(mc)
     from benchmarks.mountain_car import *
-elif benchmark_name == "unsmooth_1":
+elif constants.benchmark_name == "unsmooth_1":
     import benchmarks.unsmooth_1 as us
     importlib.reload(us)
     from benchmarks.unsmooth_1 import *
-elif benchmark_name == "unsmooth_2_separate":
+elif constants.benchmark_name == "unsmooth_2_separate":
+    import benchmarks.unsmooth_2_separate as uss
+    importlib.reload(uss)
     from benchmarks.unsmooth_2_separate import *
-elif benchmark_name == "unsmooth_2_overall":
+elif constants.benchmark_name == "unsmooth_2_overall":
+    import benchmarks.unsmooth_2_overall as uso
+    importlib.reload(uso)
     from benchmarks.unsmooth_2_overall import *
-elif benchmark_name == "path_explosion":
+elif constants.benchmark_name == "path_explosion":
+    import benchmarks.path_explosion as pe
+    importlib.reload(pe)
     from benchmarks.path_explosion import *
-elif benchmark_name == "path_explosion_2":
+elif constants.benchmark_name == "path_explosion_2":
+    import benchmarks.path_explosion_2 as pe2
+    importlib.reload(pe2)
     from benchmarks.path_explosion_2 import *
 
 
@@ -121,13 +129,15 @@ def verifier_SE(model_path, model_name, components, target, trajectory_path):
         param.requires_grad = False
     
     abstract_states = create_abstract_states_from_components(components)
-    ini_states = initialize_components(abstract_states)
-
+    
     res_states = dict()
     for i in range(constants.SE_verifier_run_times):
+        ini_states = initialize_components(abstract_states)
         output_states = m(ini_states)
         res_states = concatenate_states(res_states, output_states)
     # TODO: to update the trajectory
     store_trajectory(res_states, trajectory_path, category=None)
     
     verify_worst_case(res_states, target)
+    if constants.debug_verifier:
+        exit(0)
