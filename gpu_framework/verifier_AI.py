@@ -31,6 +31,10 @@ elif constants.benchmark_name == "unsmooth_1_b":
     import benchmarks.unsmooth_1_b as usa
     importlib.reload(usa)
     from benchmarks.unsmooth_1_b import *
+elif constants.benchmark_name == "unsmooth_1_c":
+    import benchmarks.unsmooth_1_c as usc
+    importlib.reload(usc)
+    from benchmarks.unsmooth_1_c import *
 elif constants.benchmark_name == "unsmooth_2_separate":
     import benchmarks.unsmooth_2_separate as uss
     importlib.reload(uss)
