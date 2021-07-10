@@ -172,16 +172,16 @@ def cal_data_loss(m, trajectories, criterion):
         data_loss = criterion(yp, y)
     
     # if constants.debug:
-    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-    y_list = y.squeeze().detach().cpu().numpy().tolist()
-    print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
+    # yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+    # y_list = y.squeeze().detach().cpu().numpy().tolist()
+    # print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
 
-    # print(f"x: {X}")
-    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-    y_list = y.squeeze().detach().cpu().numpy().tolist()
+    # # print(f"x: {X}")
+    # yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+    # y_list = y.squeeze().detach().cpu().numpy().tolist()
 
-    print(f"yp: {min(yp_list)}, {max(yp_list)}")
-    print(f"y: {min(y_list)}, {max(y_list)}")
+    # print(f"yp: {min(yp_list)}, {max(yp_list)}")
+    # print(f"y: {min(y_list)}, {max(y_list)}")
     
     return data_loss
 
@@ -273,11 +273,11 @@ def learning(
             loss = (data_loss + lambda_ * safe_loss) / lambda_
 
             loss.backward(retain_graph=True)
-            print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
+            # print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
-            print(f"grad before step, weight: {m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.grad.detach().cpu().numpy().tolist()[0]}")
+            # print(f"grad before step, weight: {m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.grad.detach().cpu().numpy().tolist()[0]}")
             optimizer.step()
-            print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
+            # print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
         
         if save:
