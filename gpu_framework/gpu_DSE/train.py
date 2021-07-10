@@ -32,6 +32,18 @@ elif constants.benchmark_name == "unsmooth_1":
     import benchmarks.unsmooth_1 as us
     importlib.reload(us)
     from benchmarks.unsmooth_1 import *
+elif constants.benchmark_name == "unsmooth_1_a":
+    import benchmarks.unsmooth_1_a as usa
+    importlib.reload(usa)
+    from benchmarks.unsmooth_1_a import *
+elif constants.benchmark_name == "unsmooth_1_b":
+    import benchmarks.unsmooth_1_b as usa
+    importlib.reload(usa)
+    from benchmarks.unsmooth_1_b import *
+elif constants.benchmark_name == "unsmooth_1_c":
+    import benchmarks.unsmooth_1_c as usc
+    importlib.reload(usc)
+    from benchmarks.unsmooth_1_c import *
 elif constants.benchmark_name == "unsmooth_2_separate":
     import benchmarks.unsmooth_2_separate as uss
     importlib.reload(uss)
@@ -101,8 +113,7 @@ def extract_safe_loss(component, target_component, target_idx):
         component_loss += p * float(unsafe_penalty) + unsafe_penalty
     
     component_loss /= len(component['p_list'])
-    if constants.debug:
-        exit(0)
+
     return component_loss, (min_l, max_r)
     
 
@@ -160,17 +171,17 @@ def cal_data_loss(m, trajectories, criterion):
         yp = m(X, version="single_nn_learning")
         data_loss = criterion(yp, y)
     
-    if constants.debug:
-        yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-        y_list = y.squeeze().detach().cpu().numpy().tolist()
-        print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
-    
-        # print(f"x: {X}")
-        yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-        y_list = y.squeeze().detach().cpu().numpy().tolist()
+    # if constants.debug:
+    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+    y_list = y.squeeze().detach().cpu().numpy().tolist()
+    print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
 
-        print(f"yp: {min(yp_list)}, {max(yp_list)}")
-        print(f"y: {min(y_list)}, {max(y_list)}")
+    # print(f"x: {X}")
+    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+    y_list = y.squeeze().detach().cpu().numpy().tolist()
+
+    print(f"yp: {min(yp_list)}, {max(yp_list)}")
+    print(f"y: {min(y_list)}, {max(y_list)}")
     
     return data_loss
 
