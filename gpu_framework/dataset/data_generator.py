@@ -14,7 +14,13 @@ def dataset_arg(dataset):
         range_ = [55.0, 70.0]
     elif benchmark_name == "mountain_car":
         range_ = [-0.6, -0.4]
-    elif benchmark_name == "unsound_1":
+    elif benchmark_name == "unsmooth_1":
+        range_ = [-5.0, 5.0]
+    elif benchmark_name == "unsmooth_1_a":
+        range_ = [-5.0, 5.0]
+    elif benchmark_name == "unsmooth_1_b":
+        range_ = [-5.0, 5.0]
+    elif benchmark_name == "unsmooth_1_c":
         range_ = [-5.0, 5.0]
     elif benchmark_name == "unsmooth_2_separate":
         range_ = [-5.0, 5.0]
@@ -95,6 +101,12 @@ def run(safe_bound):
         func = benchmark.mountain_car_1
     elif benchmark_name == "unsmooth_1":
         func = benchmark.unsmooth_1
+    elif benchmark_name == "unsmooth_1_a":
+        func = benchmark.unsmooth_1_a
+    elif benchmark_name == "unsmooth_1_b":
+        func = benchmark.unsmooth_1_b
+    elif benchmark_name == "unsmooth_1_c":
+        func = benchmark.unsmooth_1_c
     elif benchmark_name == "unsmooth_2_separate":
         func = benchmark.unsmooth_2_separate
     elif benchmark_name == "unsmooth_2_overall":
