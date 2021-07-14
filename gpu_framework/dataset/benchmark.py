@@ -456,7 +456,7 @@ def nn(x, a, b):
     y = a * x + b
     return y
 
-
+# DiffAI stuck, DSE can learn
 def pattern1_a(x, safe_bound):
     # x in [-5, 5]
     # safe area: z: [1, 1]
@@ -537,6 +537,112 @@ def pattern3_b(x, safe_bound):
     y = nn(x, a, b)
     if y <= bar:
         z = 10 - y
+    else:
+        z = 1
+    trajectory_list.append((x, z))
+
+    return trajectory_list
+
+
+def pattern3_c(x, safe_bound):
+    # x in [-5, 5]
+    # safe area: z: [1, 1]
+    a = 2.0
+    b = 20.0
+    bar = 1.0
+    trajectory_list = list()
+    y = nn(x, a, b)
+    if y <= bar:
+        z = 10 + y
+    else:
+        z = 1
+    trajectory_list.append((x, z))
+
+    return trajectory_list
+
+
+def pattern3_d(x, safe_bound):
+    # x in [-5, 5]
+    # safe area: z: [-oo, 1]
+    a = 2.0
+    b = 20.0
+    bar = 1.0
+    trajectory_list = list()
+    y = nn(x, a, b)
+    if y <= bar:
+        z = 10 + y
+    else:
+        z = 1
+    trajectory_list.append((x, z))
+
+    return trajectory_list
+
+
+def pattern5_a(x, safe_bound):
+    # x in [-5, 5]
+    # safe area: z: [1, 1]
+    a = 0.2
+    b = 1.0
+    bar = 1.0
+    trajectory_list = list()
+    y = a * x + b # [0, 2]
+    w1, b1 = 2
+    if y <= bar:
+        z = nn(x, w1, b1)
+    else:
+        z = 1
+    trajectory_list.append((x, z))
+
+    return trajectory_list
+
+
+def pattern5_b(x, safe_bound):
+    # x in [-5, 5]
+    # safe area: z: [-oo, 1]
+    a = 0.2
+    b = 1.0
+    bar = 1.0
+    trajectory_list = list()
+    y = a * x + b # [0, 2]
+    w1, b1 = 2
+    if y <= bar:
+        z = nn(x, w1, b1)
+    else:
+        z = 1
+    trajectory_list.append((x, z))
+
+    return trajectory_list
+
+
+def pattern6_a(x, safe_bound):
+    # x in [-5, 5]
+    # safe area: z: [1, 1]
+    a = 0.2
+    b = - 1.0
+    bar = 1.0
+    trajectory_list = list()
+    y = a * x + b # [-1, 1]
+    w1, b1 = 2
+    if y <= bar:
+        z = nn(x, w1, b1)
+    else:
+        z = 1
+    trajectory_list.append((x, z))
+
+    return trajectory_list
+
+
+def pattern6_b(x, safe_bound):
+    # x in [-5, 5]
+    # safe area: z: [1, 1]
+    a = 0.2
+    b = - 1.0
+    bar = 1.0
+    trajectory_list = list()
+    y = a * x + b # [-1, 1]
+    w1, b1 = 2
+    if y <= bar:
+        z = nn(x, w1, b1)
     else:
         z = 1
     trajectory_list.append((x, z))
