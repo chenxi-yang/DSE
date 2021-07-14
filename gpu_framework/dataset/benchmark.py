@@ -457,10 +457,10 @@ def nn(x, a, b):
     return y
 
 # DiffAI stuck, DSE can learn
+# benchmark: pattern1
 def pattern1_a(x, safe_bound):
     # x in [-5, 5]
     # safe area: z: [1, 1]
-    # safe area: z: [-oo, 1]
     a = 2.0
     b = 20.0
     bar = 1.0
@@ -477,7 +477,6 @@ def pattern1_a(x, safe_bound):
 
 def pattern1_b(x, safe_bound):
     # x in [-5, 5]
-    # safe area: z: [1, 1]
     # safe area: z: [-oo, 1]
     a = 2.0
     b = 20.0
@@ -544,7 +543,7 @@ def pattern3_b(x, safe_bound):
     return trajectory_list
 
 
-def pattern3_c(x, safe_bound):
+def pattern31_a(x, safe_bound):
     # x in [-5, 5]
     # safe area: z: [1, 1]
     a = 2.0
@@ -561,7 +560,7 @@ def pattern3_c(x, safe_bound):
     return trajectory_list
 
 
-def pattern3_d(x, safe_bound):
+def pattern31_b(x, safe_bound):
     # x in [-5, 5]
     # safe area: z: [-oo, 1]
     a = 2.0
@@ -586,7 +585,7 @@ def pattern5_a(x, safe_bound):
     bar = 1.0
     trajectory_list = list()
     y = a * x + b # [0, 2]
-    w1, b1 = 2
+    w1, b1 = 0.2, 0.0
     if y <= bar:
         z = nn(x, w1, b1)
     else:
@@ -604,7 +603,7 @@ def pattern5_b(x, safe_bound):
     bar = 1.0
     trajectory_list = list()
     y = a * x + b # [0, 2]
-    w1, b1 = 2
+    w1, b1 = 0.2, 0.0
     if y <= bar:
         z = nn(x, w1, b1)
     else:
