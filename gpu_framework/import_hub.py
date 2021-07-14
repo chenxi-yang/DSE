@@ -42,3 +42,23 @@ elif constants.benchmark_name == "path_explosion_2":
     import benchmarks.path_explosion_2 as pe2
     importlib.reload(pe2)
     from benchmarks.path_explosion_2 import *
+elif constants.benchmark_name in ["pattern1_a", "pattern1_b"]:
+    import benchmarks.pattern1 as p1
+    importlib.reload(p1)
+    from benchmarks.pattern1 import *
+elif constants.benchmark_name == "pattern2":
+    import benchmarks.pattern2 as p2
+    importlib.reload(p2)
+    from benchmarks.pattern2 import *
+elif constants.benchmark_name in ["pattern3_a", "pattern3_b"]:
+    import benchmarks.pattern3 as p3
+    importlib.reload(p3)
+    from benchmarks.pattern3 import *
+elif constants.benchmark_name in ["pattern31_a", "pattern31_b"]:
+    import benchmarks.pattern31 as p31
+    importlib.reload(p31)
+    from benchmarks.pattern31 import *
+elif constants.benchmark_name in ["pattern5_a", "pattern5_b"]:
+    import benchmarks.pattern5 as p5
+    importlib.reload(p5)
+    from benchmarks.pattern5 import *

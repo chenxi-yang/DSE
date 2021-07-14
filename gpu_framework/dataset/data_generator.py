@@ -38,6 +38,8 @@ def dataset_arg(dataset):
         range_ =[-0.6, -0.4]
     elif benchmark_name == "fairness_1":
         range_ = [0.0, 10.0]
+    elif "pattern" in benchmark_name:
+        range_ = [-5.0, 5.0]
     
     return range_
 
@@ -121,6 +123,32 @@ def run(safe_bound):
         func = benchmark.path_explosion_2
     elif benchmark_name == "fairness_1":
         func = benchmark.fairness_1
+    elif benchmark_name == "pattern1_a":
+        func = benchmark.fairness_1
+    elif benchmark_name == "pattern1_b":
+        func = benchmark.fairness_1
+    elif benchmark_name == "pattern2":
+        func = benchmark.fairness_1
+    elif benchmark_name == "pattern3_a":
+        func = benchmark.fairness_1
+    elif benchmark_name == "pattern3_b":
+        func = benchmark.fairness_1
+    elif benchmark_name == "pattern31_a":
+        func = benchmark.fairness_1
+    elif benchmark_name == "pattern31_b":
+        func = benchmark.fairness_1
+    elif benchmark_name == "pattern5_a":
+        func = benchmark.fairness_1
+    elif benchmark_name == "pattern5_b":
+        func = benchmark.fairness_1
+    # elif benchmark_name == "fairness_1":
+    #     func = benchmark.fairness_1
+    # elif benchmark_name == "fairness_1":
+    #     func = benchmark.fairness_1
+    # elif benchmark_name == "fairness_1":
+    #     func = benchmark.fairness_1
+    # elif benchmark_name == "fairness_1":
+    #     func = benchmark.fairness_1
     
     input_range = dataset_arg(benchmark_name)
 
