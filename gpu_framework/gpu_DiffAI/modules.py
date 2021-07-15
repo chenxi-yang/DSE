@@ -1,25 +1,12 @@
 import torch
-import torch.nn.functional as F
 import torch.nn as nn
 
-from random import shuffle
 import pdb
 
 import domain
 from constants import *
-import constants
 
 import math
-import time
-import copy
-
-from utils import (
-    show_cuda_memory,
-    show_memory_snapshot,
-)
-
-import sys
-import gc
 
 
 '''
@@ -298,7 +285,7 @@ class IfElse(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, states):
-        test = self.f_test(self.test)
+        # print(f"[ifelse-before]states: x.c: {states['x'].c}, x.delta: {states['x'].delta}")
         body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
         if len(body_states) > 0:
             body_states = self.body(body_states)

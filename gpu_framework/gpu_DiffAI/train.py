@@ -1,12 +1,8 @@
 import copy
 import random
 import time
-
-import matplotlib.pyplot as plt
-import numpy as np
 import torch
 import constants 
-from torch.autograd import Variable
 import importlib
 
 from utils import (
@@ -63,6 +59,7 @@ def extract_safe_loss(component, target_component, target_idx):
             # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
         # exit(0)
+        # TODO: max range increase, loss reduce?????
         component_loss += unsafe_penalty
     
     component_loss /= len(component['trajectories'])
@@ -74,7 +71,6 @@ def safe_distance(component_result_list, target):
     # take the average over components
     
     loss = var_list([0.0])
-    p_list = list()
     min_l, max_r = 100000, -100000
     for idx, target_component in enumerate(target):
         target_loss = var_list([0.0])
@@ -124,17 +120,17 @@ def cal_data_loss(m, trajectories, criterion):
         yp = m(X, version="single_nn_learning")
         data_loss = criterion(yp, y)
     
-    if constants.debug:
-        yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-        y_list = y.squeeze().detach().cpu().numpy().tolist()
-        print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
-    
-        # print(f"x: {X}")
-        yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-        y_list = y.squeeze().detach().cpu().numpy().tolist()
+    # if constants.debug:
+    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+    y_list = y.squeeze().detach().cpu().numpy().tolist()
+    print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
 
-        print(f"yp: {min(yp_list)}, {max(yp_list)}")
-        print(f"y: {min(y_list)}, {max(y_list)}")
+    # print(f"x: {X}")
+    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+    y_list = y.squeeze().detach().cpu().numpy().tolist()
+
+    print(f"yp: {min(yp_list)}, {max(yp_list)}")
+    print(f"y: {min(y_list)}, {max(y_list)}")
     
     return data_loss
 
@@ -199,7 +195,9 @@ def learning(
         for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
 
             data_loss = cal_data_loss(m, trajectories, criterion)
+            # data_loss = var(0.0)
             safe_loss = cal_safe_loss(m, abstract_states, target)
+            # safe_loss = var(1.0)
 
             print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}")
             

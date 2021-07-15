@@ -547,14 +547,14 @@ def pattern31_a(x, safe_bound):
     # x in [-5, 5]
     # safe area: z: [1, 1]
     a = 2.0
-    b = 20.0
-    bar = 1.0
+    b = -20.0
+    bar = - 1.0
     trajectory_list = list()
     y = nn(x, a, b)
     if y <= bar:
-        z = 10 + y
-    else:
         z = 1
+    else:
+        z = 2 + y*y
     trajectory_list.append((x, z))
 
     return trajectory_list
@@ -569,9 +569,9 @@ def pattern31_b(x, safe_bound):
     trajectory_list = list()
     y = nn(x, a, b)
     if y <= bar:
-        z = 10 + y
-    else:
         z = 1
+    else:
+        z = 10 - y
     trajectory_list.append((x, z))
 
     return trajectory_list
@@ -613,40 +613,41 @@ def pattern5_b(x, safe_bound):
     return trajectory_list
 
 
-def pattern6_a(x, safe_bound):
-    # x in [-5, 5]
-    # safe area: z: [1, 1]
-    a = 0.2
-    b = - 1.0
-    bar = 1.0
+# bad join hurts
+def pattern6(x, safe_bound):
+    # x in [-1, 1]
+    # safe area: z: [-5, 0]
+    a = 0.5
+    b = - 0.5
+    bar = 0.0
     trajectory_list = list()
-    y = a * x + b # [-1, 1]
-    w1, b1 = 2
+    y = nn(x, a, b)
     if y <= bar:
-        z = nn(x, w1, b1)
+        z = y # + random.random()
     else:
-        z = 1
+        z = - 10.0
     trajectory_list.append((x, z))
 
     return trajectory_list
 
 
-def pattern6_b(x, safe_bound):
-    # x in [-5, 5]
-    # safe area: z: [1, 1]
-    a = 0.2
-    b = - 1.0
-    bar = 1.0
+def pattern7(x, safe_bound):
+    # x in [-1, 1]
+    # safe area: z: [-5, 0]
+    a = 0.5
+    b = - 0.5
+    bar = 0.0
     trajectory_list = list()
-    y = a * x + b # [-1, 1]
-    w1, b1 = 2
+    y = nn(x, a, b)
     if y <= bar:
-        z = nn(x, w1, b1)
+        z = y + random.random()
     else:
-        z = 1
+        z = - 10.0
     trajectory_list.append((x, z))
 
     return trajectory_list
+
+
 
 
     

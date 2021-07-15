@@ -299,6 +299,38 @@ if benchmark_name == "pattern5_b":
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
+if benchmark_name == "pattern6":
+    x_l = [-1.0]
+    x_r = [1.0]
+
+    safe_range_list = [[-5, 0]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['test']
+
+    safe_range_start=0
+    safe_range_end=0.5
+    safe_range_step=1.0
+    safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
+if benchmark_name == "pattern7":
+    x_l = [-1.0]
+    x_r = [1.0]
+
+    safe_range_list = [[-5, 0]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['test']
+
+    safe_range_start=0
+    safe_range_end=0.5
+    safe_range_step=1.0
+    safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
 model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}"
 
 dataset_path_prefix = f"dataset/{benchmark_name}"

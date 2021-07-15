@@ -30,8 +30,8 @@ index0 = torch.tensor(0)
 index1 = torch.tensor(1)
 index2 = torch.tensor(2)
 index3 = torch.tensor(3)
-min_v = torch.tensor(1.0)
-max_v = torch.tensor(2.0)
+min_v = torch.tensor(-10.0)
+max_v = torch.tensor(10.0)
 
 if torch.cuda.is_available():
     index0 = index0.cuda()
@@ -111,21 +111,22 @@ def f_assign_min_z(x):
     return x.set_value(min_v)
 
 def f_assign_max_z(x):
-    return x.select_from_index(1, index0).mul(x.select_from_index(1, index0)).add(var(2.0))
+    return x
+
 
 class Program(nn.Module):
     def __init__(self, l=1, nn_mode="simple"):
         super(Program, self).__init__()
-        self.bar = var(-1.0)
+        self.bar = var(0.0)
         if nn_mode == "simple":
             self.nn = LinearNN(l=l)
         if nn_mode == "complex":
-            self.nn = LinearNNComplex(l=l) 
+            self.nn = LinearNNComplex(l=l)
 
         self.assign_y = Assign(target_idx=[1], arg_idx=[0], f=self.nn)
 
-        self.assign_min_z = Assign(target_idx=[2], arg_idx=[1], f=f_assign_max_z)
-        self.assign_max_z = Assign(target_idx=[2], arg_idx=[1], f=f_assign_min_z)
+        self.assign_min_z = Assign(target_idx=[2], arg_idx=[2], f=f_assign_min_z)
+        self.assign_max_z = Assign(target_idx=[2], arg_idx=[1], f=f_assign_max_z)
         self.ifelse_z = IfElse(target_idx=[1], test=self.bar, f_test=f_test, body=self.assign_max_z, orelse=self.assign_min_z)
 
         self.trajectory_update = Trajectory(target_idx=[2])
@@ -138,10 +139,9 @@ class Program(nn.Module):
     def forward(self, input, version=None):
         if version == "single_nn_learning":
             y = self.nn(input)
-            # print(f"y: {y.detach().cpu().numpy().tolist()[:3]}")
             x = torch.clone(y)
-            x[y <= float(self.bar)] = float(min_v) 
-            x[y > float(self.bar)] = float(max_v) + torch.square(x[y > float(self.bar)])
+            x[y <= float(self.bar)] = x[y <= float(self.bar)]
+            x[y > float(self.bar)] = float(min_v)
             res = x
         else:
             res = self.program(input)

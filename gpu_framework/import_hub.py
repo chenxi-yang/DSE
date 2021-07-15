@@ -62,3 +62,11 @@ elif constants.benchmark_name in ["pattern5_a", "pattern5_b"]:
     import benchmarks.pattern5 as p5
     importlib.reload(p5)
     from benchmarks.pattern5 import *
+elif constants.benchmark_name == "pattern6":
+    import benchmarks.pattern6 as p6
+    importlib.reload(p6)
+    from benchmarks.pattern6 import *
+elif constants.benchmark_name == "pattern7":
+    import benchmarks.pattern7 as p7
+    importlib.reload(p7)
+    from benchmarks.pattern7 import *
