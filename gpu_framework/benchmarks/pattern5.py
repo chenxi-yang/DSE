@@ -148,8 +148,9 @@ class Program(nn.Module):
             y = a * input + b
             # y = self.nn(input)
             # print(f"y: {y.detach().cpu().numpy().tolist()[:3]}")
+            tmp_res = self.nn(y)
             x = torch.clone(y)
-            x[y <= float(self.bar)] = self.nn(x[y <= float(self.bar)]) # float(max_v) + y[y <= float(self.bar)]
+            x[y <= float(self.bar)] = tmp_res[y <= float(self.bar)] # float(max_v) + y[y <= float(self.bar)]
             x[y > float(self.bar)] = float(min_v)
             res = x
         else:

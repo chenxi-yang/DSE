@@ -137,11 +137,12 @@ class Program(nn.Module):
     
     def forward(self, input, version=None):
         if version == "single_nn_learning":
+            print(input.shape)
             y = self.nn(input)
             # print(f"y: {y.detach().cpu().numpy().tolist()[:3]}")
             x = torch.clone(y)
-            x[y <= float(self.bar)] = y[y <= float(self.bar)] + float(max_v)
-            x[y > float(self.bar)] = y[y > float(self.bar)] - float(min_v)
+            x[y <= float(self.bar)] = x[y <= float(self.bar)] + float(max_v)
+            x[y > float(self.bar)] = x[y > float(self.bar)] - float(min_v)
             res = x
         else:
             res = self.program(input)

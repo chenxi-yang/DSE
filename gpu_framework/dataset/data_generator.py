@@ -38,6 +38,8 @@ def dataset_arg(dataset):
         range_ =[-0.6, -0.4]
     elif benchmark_name == "fairness_1":
         range_ = [0.0, 10.0]
+    elif benchmark_name in ["pattern6", "pattern7"]:
+        range_ = [-1.0, 1.0]
     elif "pattern" in benchmark_name:
         range_ = [-5.0, 5.0]
     
@@ -124,25 +126,27 @@ def run(safe_bound):
     elif benchmark_name == "fairness_1":
         func = benchmark.fairness_1
     elif benchmark_name == "pattern1_a":
-        func = benchmark.fairness_1
+        func = benchmark.pattern1_a
     elif benchmark_name == "pattern1_b":
-        func = benchmark.fairness_1
+        func = benchmark.pattern1_b
     elif benchmark_name == "pattern2":
-        func = benchmark.fairness_1
+        func = benchmark.pattern2
     elif benchmark_name == "pattern3_a":
-        func = benchmark.fairness_1
+        func = benchmark.pattern3_a
     elif benchmark_name == "pattern3_b":
-        func = benchmark.fairness_1
+        func = benchmark.pattern3_b
     elif benchmark_name == "pattern31_a":
-        func = benchmark.fairness_1
+        func = benchmark.pattern31_a
     elif benchmark_name == "pattern31_b":
-        func = benchmark.fairness_1
+        func = benchmark.pattern31_b
     elif benchmark_name == "pattern5_a":
-        func = benchmark.fairness_1
+        func = benchmark.pattern5_a
     elif benchmark_name == "pattern5_b":
-        func = benchmark.fairness_1
-    # elif benchmark_name == "fairness_1":
-    #     func = benchmark.fairness_1
+        func = benchmark.pattern5_b
+    elif benchmark_name == "pattern6":
+        func = benchmark.pattern6
+    elif benchmark_name == "pattern7":
+        func = benchmark.pattern7
     # elif benchmark_name == "fairness_1":
     #     func = benchmark.fairness_1
     # elif benchmark_name == "fairness_1":
