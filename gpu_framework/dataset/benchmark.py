@@ -648,6 +648,23 @@ def pattern7(x, safe_bound):
     return trajectory_list
 
 
+def pattern8(x, safe_bound):
+    # x in [-1, 1]
+    # safe area: z: [1, 5]
+    a = 2
+    b = 1
+    bar = 0.0
+    trajectory_list = list()
+    y = nn(x, a, b)
+    if y < bar:
+        z = 1 - y # >= 1
+    else: # y >= 0
+        z = y - 2
+    trajectory_list.append((x, z))
+
+    return trajectory_list
+    
+
 
 
     
