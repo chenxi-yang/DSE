@@ -87,12 +87,13 @@ if __name__ == "__main__":
         for idx, safe_range in enumerate(safe_range_list):
             target.append(
                 {   # constraint is in box domain
-                    "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)),
+                    "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
                     "method": method_list[idx],
                     "name": name_list[idx],
                     "map_condition": [
                       domain.Interval(var(constraint[0]), var(constraint[1])) for constraint in map_safe_range
                     ] if map_mode is True else None,
+                    "map_mode": map_mode,
                 }
             )
 
