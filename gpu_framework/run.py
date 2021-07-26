@@ -90,6 +90,9 @@ if __name__ == "__main__":
                     "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)),
                     "method": method_list[idx],
                     "name": name_list[idx],
+                    "map_condition": [
+                      domain.Interval(var(constraint[0]), var(constraint[1])) for constraint in map_safe_range
+                    ] if map_mode is True else None,
                 }
             )
 
