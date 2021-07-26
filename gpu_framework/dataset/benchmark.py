@@ -649,21 +649,85 @@ def pattern7(x, safe_bound):
 
 
 def pattern8(x, safe_bound):
-    # x in [-1, 1]
-    # safe area: z: [1, 5]
+    # x in [-5, 5]
+    # safe area: z: [-oo, 1]
     a = 2
     b = 1
     bar = 0.0
     trajectory_list = list()
     y = nn(x, a, b)
-    if y < bar:
-        z = 1 - y # >= 1
+    if y <= bar:
+        z = y + 2 # y <= - 1
     else: # y >= 0
-        z = y - 2
+        z = - y
     trajectory_list.append((x, z))
 
     return trajectory_list
-    
+
+
+# lots of branches
+def pattern9(x, safe_bound):
+    return trajectory_list
+
+
+# path explosion
+def pattern10(x, safe_bound):
+    return trajectory_list
+
+
+# map
+# 10 x 30
+# initial area: x: [4.0, 6.0], y: [0, 0]
+# safe area: # not reach -> unsafety
+# x: [0, 3], y: [24.0, 29.0]
+# x: [4, 6], y: [0.0, 29.0]
+# x: [7, 7], y: [4.0, 29.0]
+# x: [8, 8], y: [8.0, 29.0]
+# x: [9, 9], y: [12.0, 29.0]
+# xxxxxxxxxxxxxxxxxxxxxxxxgggggg
+# xxxxxxxxxxxxxxxxxxxxxxxx......
+# xxxxxxxxxxxxxxxxxxxxxxxx......
+# xxxxxxxxxxxxxxxxxxxxxxxx......
+# s..................a.....a....
+# s..................aa...a.....
+# s..................aaa.aa.....
+# xxxx................aaaaa.....
+# xxxxxxxx.............aaa......
+# xxxxxxxxxxxx..........a.......
+
+# control the steel angle
+# steel angle: [-1.0, -0.25]: up-right, (-0.25, 0.25]: right, (0.25, 1.0]: down-right
+def car_control(x, y):
+    angle = 0.0
+    if y <= 19:
+        angle = 0.0
+    elif y <= 22:
+        angle = -1
+    elif y <= 25:
+        angle = 1
+    else:
+        angle = 1
+    return angle
+        
+
+def map_simple(x, safe_bound):
+    x, y = x, 0.0
+    steps = 30
+    trajectory_list = list()
+    for i in range(steps):
+        angle = car_control(x, y)
+        if angle <= -0.25:
+            x -= 1
+        elif angle <= 0.25:
+            x = x
+        else:
+            x += 1
+        y += 1
+        trajectory_list((x, y, angle))
+    return trajectory_list
+
+
+
 
 
 

@@ -147,6 +147,8 @@ def run(safe_bound):
         func = benchmark.pattern6
     elif benchmark_name == "pattern7":
         func = benchmark.pattern7
+    elif benchmark_name == "pattern8":
+        func = benchmark.pattern8
     # elif benchmark_name == "fairness_1":
     #     func = benchmark.fairness_1
     # elif benchmark_name == "fairness_1":
