@@ -148,15 +148,9 @@ class Program(nn.Module):
     
     def forward(self, input, version=None):
         if version == "single_nn_learning":
+            # model the car-controller
             y = self.nn(input)
-            x = torch.clone(y)
-
-            y_list = y.squeeze().detach().cpu().numpy().tolist()
-            print(f"before branch: {min(y_list)}, {max(y_list)}")
-            x[y <= float(self.bar)] = x[y <= float(self.bar)] + 2 # float(max_v) # -torch.square(x[y <= float(self.bar)]) - 1
-            # x[y <= float(self.bar)] = x[y <= float(self.bar)]
-            x[y > float(self.bar)] = - x[y > float(self.bar)] # torch.square(x[y > float(self.bar)]) # float(min_v)
-            res = x
+            res = y
         else:
             res = self.program(input)
         return res
