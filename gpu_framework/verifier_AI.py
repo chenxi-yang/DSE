@@ -24,7 +24,8 @@ def in_interval(x, y):
 
 
 def trajectory_worst_case(trajectory, target_component, target_idx):
-    safe_interval = target_component['condition']
+    if target_component["map_mode"] is False:
+        safe_interval = target_component["condition"]
     method = target_component['method']
     if method == 'last':
         trajectory = [trajectory[-1]]
@@ -32,8 +33,10 @@ def trajectory_worst_case(trajectory, target_component, target_idx):
         trajectory = trajectory
     
     trajectory_worst_unsafe = False
-    for state in trajectory:
+    for state_idx, state in enumerate(trajectory):
         X = state[target_idx]
+        if target_component["map_mode"] is True:
+            safe_interval = target_component["map_condition"][state_idx] # the constraint over the k-th step
         if not in_interval(X, safe_interval):
             return True
     return trajectory_worst_unsafe
