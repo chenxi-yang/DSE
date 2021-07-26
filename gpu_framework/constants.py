@@ -366,7 +366,7 @@ if benchmark_name == "racetrack_easy":
     # map k-column in map[k] interval
     # 0 is the basic version
     w_list = [1.0]
-    method_list = ['each'] # each element in the trajectory is 
+    method_list = ['map_each'] # each element in the trajectory is 
     name_list = ['position']
     safe_range_bound_list = [0]
 
