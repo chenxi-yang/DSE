@@ -30,7 +30,8 @@ def get_intersection(interval_1, interval_2):
 def extract_safe_loss(component, target_component, target_idx):
     # component: {'trajectories', 'p_list'}
 
-    safe_interval = target_component["condition"]
+    if target_component["map_mode"] is False:
+        safe_interval = target_component["condition"]
     # print(f"safe interval: {float(safe_interval.left)}, {float(safe_interval.right)}")
     method = target_component["method"]
     component_loss = var_list([0.0])
@@ -39,14 +40,17 @@ def extract_safe_loss(component, target_component, target_idx):
     for trajectory, p in zip(component['trajectories'], component['p_list']):
         if method == "last":
             trajectory = [trajectory[-1]]
-        elif method == "all":
+        elif method in ["all", "map_each"]:
             trajectory = trajectory
         else:
             raise NotImplementedError("Error: No trajectory method detected!")
 
         unsafe_penalty = var_list([0.0])
-        for state in trajectory:
+        for state_idx, state in enumerate(trajectory):
             X = state[target_idx]
+            # print(f"trajectory length: {len(trajectory)}")
+            if target_component["map_mode"] is True:
+                safe_interval = target_component["map_condition"][state_idx] # the constraint over the k-th step
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 # update safe loss
@@ -62,10 +66,10 @@ def extract_safe_loss(component, target_component, target_idx):
             # unsafe_penalty = unsafe_penalty + unsafe_value
             unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
             # print(f"position: {float(state[1].left), float(state[1].right)}, velocity: {float(state[2].left), float(state[2].right)}")
-            # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
+            print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
         # print(len(trajectory))
-        # print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
+        print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
         # exit(0)
         component_loss += p * float(unsafe_penalty) + unsafe_penalty
     
@@ -129,9 +133,9 @@ def cal_data_loss(m, trajectories, criterion):
         data_loss = criterion(yp, y)
     
     # if constants.debug:
-    # yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-    # y_list = y.squeeze().detach().cpu().numpy().tolist()
-    # print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
+    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+    y_list = y.squeeze().detach().cpu().numpy().tolist()
+    print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
 
     # # print(f"x: {X}")
     # yp_list = yp.squeeze().detach().cpu().numpy().tolist()
@@ -165,6 +169,7 @@ def cal_safe_loss(m, abstract_states, target):
     # list of trajectories, p_list
     for i in range(constants.SAMPLE_SIZE):
         ini_states = initialize_components(abstract_states)
+        # print(f"start safe AI")
         output_states = m(ini_states, 'abstract')
         trajectories = output_states['trajectories']
         idx_list = output_states['idx_list']
