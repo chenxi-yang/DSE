@@ -70,3 +70,7 @@ elif constants.benchmark_name == "pattern7":
     import benchmarks.pattern7 as p7
     importlib.reload(p7)
     from benchmarks.pattern7 import *
+elif constants.benchmark_name == "pattern8":
+    import benchmarks.pattern8 as p8
+    importlib.reload(p8)
+    from benchmarks.pattern8 import *
