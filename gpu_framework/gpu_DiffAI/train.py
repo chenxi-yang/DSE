@@ -28,7 +28,8 @@ def get_intersection(interval_1, interval_2):
 def extract_safe_loss(component, target_component, target_idx):
     # component: {'trajectories', 'p_list'}
 
-    safe_interval = target_component["condition"]
+    if target_component["map_mode"] is False:
+        safe_interval = target_component["condition"]
     # print(f"safe interval: {float(safe_interval.left)}, {float(safe_interval.right)}")
     method = target_component["method"]
     component_loss = var_list([0.0])
@@ -37,14 +38,16 @@ def extract_safe_loss(component, target_component, target_idx):
     for trajectory in component['trajectories']:
         if method == "last":
             trajectory = [trajectory[-1]]
-        elif method == "all":
+        elif method in ["all", "map_each"]:
             trajectory = trajectory
         else:
             raise NotImplementedError("Error: No trajectory method detected!")
 
         unsafe_penalty = var_list([0.0])
-        for state in trajectory:
+        for state_idx, state in enumerate(trajectory):
             X = state[target_idx]
+            if target_component["map_mode"] is True:
+                safe_interval = target_component["map_condition"][state_idx] # the constraint over the k-th step
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 if X.isPoint():
@@ -55,6 +58,7 @@ def extract_safe_loss(component, target_component, target_idx):
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
             # unsafe_penalty = unsafe_penalty + unsafe_value
+            # TODO: sum or max??
             unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
             # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
@@ -118,6 +122,7 @@ def cal_data_loss(m, trajectories, criterion):
             X = X.cuda()
             y = y.cuda()
         yp = m(X, version="single_nn_learning")
+        # print(f"finish: {yp.shape}")
         data_loss = criterion(yp, y)
     
     # if constants.debug:
