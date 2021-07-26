@@ -59,6 +59,7 @@ SAMPLE_SIZE = train_sample_size
 DOMAIN = "interval" # [interval, zonotope]
 
 MODEL_PATH = f"gpu_{mode}/models"
+map_mode = False
 
 status = ''
 
@@ -329,6 +330,45 @@ if benchmark_name == "pattern7":
     safe_range_step=1.0
     safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
+if benchmark_name == "pattern8":
+    x_l = [-5.0]
+    x_r = [5.0]
+
+    safe_range_list = [[-10000.0, 1.0]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['test']
+
+    safe_range_start=1
+    safe_range_end=1.5
+    safe_range_step=1.0
+    safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
+if benchmark_name == "racetrack_easy":
+    x_l = [4.0]
+    x_r = [6.0]
+    map_mode = True
+    # y's range
+    map_safe_range = [
+        [4.0, 6.0], [4.0, 6.0], [4.0, 6.0], [4.0, 6.0],
+        [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
+        [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
+        [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], 
+        [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], 
+        [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [0.0, 9.0],
+        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 9.0],
+        [0.0, 9.0], [0.0, 2.0],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    w_list = [1.0]
+    method_list = ['each'] # each element in the trajectory is 
+    name_list = ['position']
+    safe_range_bound_list = [0]
 
 
 model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}"

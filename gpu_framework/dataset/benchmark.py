@@ -679,21 +679,22 @@ def pattern10(x, safe_bound):
 # 10 x 30
 # initial area: x: [4.0, 6.0], y: [0, 0]
 # safe area: # not reach -> unsafety
-# x: [0, 3], y: [24.0, 29.0]
+# x: [0, 3], y: [23.0, 29.0]
 # x: [4, 6], y: [0.0, 29.0]
 # x: [7, 7], y: [4.0, 29.0]
 # x: [8, 8], y: [8.0, 29.0]
 # x: [9, 9], y: [12.0, 29.0]
-# xxxxxxxxxxxxxxxxxxxxxxxxgggggg
-# xxxxxxxxxxxxxxxxxxxxxxxx......
-# xxxxxxxxxxxxxxxxxxxxxxxx......
-# xxxxxxxxxxxxxxxxxxxxxxxx......
-# s..................a.....a....
-# s..................aa...a.....
-# s..................aaa.aa.....
-# xxxx................aaaaa.....
-# xxxxxxxx.............aaa......
-# xxxxxxxxxxxx..........a.......
+# goal area: x: [0.0, 1.0], y: [23.0, 29.0]
+# xxxxxxxxxxxxxxxxxxxxxxx....ggg
+# xxxxxxxxxxxxxxxxxxxxxxx......g
+# xxxxxxxxxxxxxxxxxxxxxxx......x
+# xxxxxxxxxxxxxxxxxxxxxxx......x
+# s..................a.....a...x
+# s..................aa...a....x
+# s..................aaa.aa....x
+# xxxx................aaaaa....x
+# xxxxxxxx.............aaa.....x
+# xxxxxxxxxxxx..........a......x
 
 # control the steel angle
 # steel angle: [-1.0, -0.25]: up-right, (-0.25, 0.25]: right, (0.25, 1.0]: down-right
@@ -702,15 +703,15 @@ def car_control(x, y):
     if y <= 19:
         angle = 0.0
     elif y <= 22:
-        angle = -1
+        angle = 1
     elif y <= 25:
-        angle = 1
+        angle = -1
     else:
-        angle = 1
+        angle = -1
     return angle
         
-
-def map_simple(x, safe_bound):
+# data loss: angle trajectory(same length)
+def racetrack_easy(x, safe_bound):
     x, y = x, 0.0
     steps = 30
     trajectory_list = list()
@@ -723,7 +724,7 @@ def map_simple(x, safe_bound):
         else:
             x += 1
         y += 1
-        trajectory_list((x, y, angle))
+        trajectory_list.append((x, y, angle))
     return trajectory_list
 
 

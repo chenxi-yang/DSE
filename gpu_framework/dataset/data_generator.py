@@ -42,6 +42,8 @@ def dataset_arg(dataset):
         range_ = [-1.0, 1.0]
     elif "pattern" in benchmark_name:
         range_ = [-5.0, 5.0]
+    elif benchmark_name == "racetrack_easy":
+        range_ = [4.0, 6.0]
     
     return range_
 
@@ -149,6 +151,8 @@ def run(safe_bound):
         func = benchmark.pattern7
     elif benchmark_name == "pattern8":
         func = benchmark.pattern8
+    elif benchmark_name == "racetrack_easy":
+        func = benchmark.racetrack_easy
     # elif benchmark_name == "fairness_1":
     #     func = benchmark.fairness_1
     # elif benchmark_name == "fairness_1":
