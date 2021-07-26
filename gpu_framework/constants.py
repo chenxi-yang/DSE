@@ -351,6 +351,7 @@ if benchmark_name == "pattern8":
 if benchmark_name == "racetrack_easy":
     x_l = [4.0]
     x_r = [6.0]
+    safe_range_list = [0]
     map_mode = True
     # y's range
     map_safe_range = [
