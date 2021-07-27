@@ -78,3 +78,7 @@ elif constants.benchmark_name == "racetrack_easy":
     import benchmarks.racetrack_easy as re
     importlib.reload(re)
     from benchmarks.racetrack_easy import *
+elif constants.benchmark_name == "racetrack_easy_1":
+    import benchmarks.racetrack_easy_1 as re1
+    importlib.reload(re1)
+    from benchmarks.racetrack_easy_1 import *
