@@ -17,7 +17,8 @@ from import_hub import *
 
 def in_interval(x, y):
     # check if x in y
-    if x.left >= y.left and x.right <= y.right:
+    # add a rounding operation
+    if x.left >= y.left - EPSILON and x.right <= y.right + EPSILON:
         return True
     else:
         return False

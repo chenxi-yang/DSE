@@ -20,7 +20,7 @@ from import_hub import *
 
 def in_interval(x, y):
     # check if x in y
-    if x.left >= y.left and x.right <= y.right:
+    if x.left >= y.left - EPSILON and x.right <= y.right + EPSILON:
         return True
     else:
         return False
@@ -109,6 +109,8 @@ def verifier_SE(model_path, model_name, components, target, trajectory_path):
     
     res_states = dict()
     for i in range(constants.SE_verifier_run_times):
+        if i % 50 == 0:
+            print(f"sample: {i}-th")
         ini_states = initialize_components(abstract_states)
         output_states = m(ini_states)
         res_states = concatenate_states(res_states, output_states)
