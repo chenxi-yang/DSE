@@ -369,6 +369,48 @@ if benchmark_name == "racetrack_easy":
     safe_range_bound_list = [0]
 
 
+if benchmark_name == "racetrack_easy_1":
+    x_l = [4.0]
+    x_r = [6.0]
+    safe_range_list = [0]
+    map_mode = True
+    # y's range
+    map_safe_range = [
+        [4.0, 6.0], [4.0, 6.0], [4.0, 6.0], [4.0, 6.0],
+        [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
+        [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
+        [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [0.0, 9.0], 
+        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 5.0],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    w_list = [1.0]
+    method_list = ['map_each'] # each element in the trajectory is 
+    name_list = ['position']
+    safe_range_bound_list = [0]
+
+# ???
+if benchmark_name == "racetrack_easy_2":
+    x_l = [4.0]
+    x_r = [6.0]
+    safe_range_list = [0]
+    map_mode = True
+    # y's range
+    map_safe_range = [
+        [4.0, 6.0], [4.0, 6.0], [4.0, 6.0], [4.0, 6.0],
+        [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
+        [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
+        [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [0.0, 9.0], 
+        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 6.0],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    w_list = [1.0]
+    method_list = ['map_each'] # each element in the trajectory is 
+    name_list = ['position']
+    safe_range_bound_list = [0]
+
+
 model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}"
 
 dataset_path_prefix = f"dataset/{benchmark_name}"
@@ -392,7 +434,7 @@ P_INFINITY = var(10000.0)
 INTERVAL_BETA = var(0.5) # var(1.0) # 2.0
 POINT_BETA = var(5.0) # var(50.0) # var(100.0) # 10.0s
 PARTIAL_BETA = var(2.0) # 1.0
-EPSILON = var(1e-10)
+EPSILON = var(1e-6)
 SMALL_PROBABILITY = var(0.01)
 B = var(b) # the range of lambda
 
