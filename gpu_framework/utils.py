@@ -52,7 +52,7 @@ def batch_pair(trajectory_list, data_bs=None):
     for trajectory in trajectory_list:
         for (state, action) in trajectory:
             states.append(state)
-            actions.append([action])
+            actions.append(action)
     c = list(zip(states, actions))
     random.shuffle(c)
     states, actions = zip(*c)

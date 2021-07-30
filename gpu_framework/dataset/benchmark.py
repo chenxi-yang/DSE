@@ -809,11 +809,11 @@ def thermostat_refined(x, safe_bound):
         if isOn < 0.5:
             isOn = nn_cool_policy(x) # isOn should have a sigmoid
             x = cooling(x)
-            trajectory_list.append(([x], [isOn], ['cool']))
+            trajectory_list.append(([x, 0], [isOn]))
         else: 
             h, isOn = nn_heat_policy(x)
             x = warming(x, h)
-            trajectory_list.append(([x], [isOn, h], ['heat']))
+            trajectory_list.append(([x, 1], [isOn, h]))
         # separate two nns
         
     return trajectory_list
