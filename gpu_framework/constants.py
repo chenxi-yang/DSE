@@ -411,6 +411,22 @@ if benchmark_name == "racetrack_easy_2":
     safe_range_bound_list = [0]
 
 
+if benchmark_name == "thermostat_refined":
+    x_l = [58.0]
+    x_r = [68.0]
+    safe_range_list = [[55.0, 83.0]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['x']
+
+    safe_range_start=83.0
+    safe_range_end=83.5
+    safe_range_step=0.5
+
+    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
 model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}"
 
 dataset_path_prefix = f"dataset/{benchmark_name}"
