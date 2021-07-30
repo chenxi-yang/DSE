@@ -773,7 +773,7 @@ def warming(x, h):
     x = x - dt * k * x + h # increase by the gap between heat and the current temperature
     return x
 
-def cooling(x, h):
+def cooling(x):
     k = 0.1
     dt = 0.5
     x = x - dt * k * x
