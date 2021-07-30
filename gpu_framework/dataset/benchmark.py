@@ -676,50 +676,50 @@ def pattern10(x, safe_bound):
 
 
 # map
-# 10 x 30
+# 10 x 20
 # initial area: x: [4.0, 6.0], y: [0, 0]
 # safe area: # not reach -> unsafety
-# x: [0, 3], y: [23.0, 29.0]
-# x: [4, 6], y: [0.0, 29.0]
-# x: [7, 7], y: [4.0, 29.0]
-# x: [8, 8], y: [8.0, 29.0]
-# x: [9, 9], y: [12.0, 29.0]
-# goal area: x: [0.0, 1.0], y: [23.0, 29.0]
-# xxxxxxxxxxxxxxxxxxxxxxx....ggg
-# xxxxxxxxxxxxxxxxxxxxxxx......g
-# xxxxxxxxxxxxxxxxxxxxxxx......x
-# xxxxxxxxxxxxxxxxxxxxxxx......x
-# s..................a.....a...x
-# s..................aa...a....x
-# s..................aaa.aa....x
-# xxxx................aaaaa....x
-# xxxxxxxx.............aaa.....x
-# xxxxxxxxxxxx..........a......x
+# x: [0, 3], y: [14.0, 19.0]
+# x: [4, 6], y: [0.0, 19.0]
+# x: [7, 7], y: [4.0, 19.0]
+# x: [8, 8], y: [8.0, 19.0]
+# x: [9, 9], y: [12.0, 19.0]
+# goal area: x: [0.0, 1.0], y: [14.0, 19.0]
+# xxxxxxxxxxxxxxx..ggg
+# xxxxxxxxxxxxxxx....g
+# xxxxxxxxxxxxxxx....g
+# xxxxxxxxxxxxxxx....x
+# s.............aa...x
+# s.............a....x
+# s........aaa.aa....x
+# xxxx......aaaaa....x
+# xxxxxxxx...aaa.....x
+# xxxxxxxxxxxx...a...x
 
 # control the steel angle
 # steel angle: [-1.0, -0.25]: up-right, (-0.25, 0.25]: right, (0.25, 1.0]: down-right
 def car_control(x, y):
     angle = 0.0
-    if y <= 19:
-        angle = 0.0
-    elif y <= 22:
+    if y <= 9:
+        angle = 0.5
+    elif y <= 12:
         angle = 1
-    elif y <= 25:
-        angle = -1
+    elif y <= 15:
+        angle = 0.0
     else:
-        angle = -1
+        angle = 0.0
     return angle
         
 # data loss: angle trajectory(same length)
 def racetrack_easy(x, safe_bound):
     x, y = x, 0.0
-    steps = 30
+    steps = 20
     trajectory_list = list()
     for i in range(steps):
         angle = car_control(x, y)
-        if angle <= -0.25:
+        if angle <= 0.25:
             x -= 1
-        elif angle <= 0.25:
+        elif angle <= 0.75:
             x = x
         else:
             x += 1
@@ -727,6 +727,93 @@ def racetrack_easy(x, safe_bound):
         trajectory_list.append((x, y, angle))
     return trajectory_list
 
+
+# easier
+def racetrack_easy_1(x, safe_bound):
+    x, y = x, 0.0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps):
+        angle = car_control(x, y)
+        if angle <= 0.25:
+            x -= 1
+        elif angle <= 0.75:
+            x = x
+        else:
+            x += 1
+        y += 1
+        trajectory_list.append((x, y, angle))
+    return trajectory_list
+
+
+# easiest
+def racetrack_easy_2(x, safe_bound):
+    x, y = x, 0.0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps):
+        angle = car_control(x, y)
+        if angle <= 0.25:
+            x -= 1
+        elif angle <= 0.75:
+            x = x
+        else:
+            x += 1
+        y += 1
+        trajectory_list.append((x, y, angle))
+    return trajectory_list
+
+
+# thermostat
+# assume the dt is 0.1
+def warming(x, h):
+    k = 0.1
+    # h ~ 150.0
+    dt = 0.5
+    x = x - dt * k * x + h # increase by the gap between heat and the current temperature
+    return x
+
+def cooling(x, h):
+    k = 0.1
+    dt = 0.5
+    x = x - dt * k * x
+    return x
+
+def nn_heat_policy(x):
+    tOff = 80.0
+    if x <= tOff:
+        h = 10.0
+        isOn = 1.0
+    else:
+        h = 0.0
+        isOn = 0.0
+        
+    return h, isOn
+
+def nn_cool_policy(x):
+    # tOff = 80.0
+    tOn = 65.0
+    if x <= tOn:
+        isOn = 1.0
+    else:
+        isOn = 0.0
+    return isOn
+
+def thermostat_refined(x, safe_bound):
+    isOn = 0.0
+    steps = 40
+    trajectory_list = list()
+    for i in range(steps): 
+        # isOn comes from the previous step
+        if isOn < 0.5:
+            isOn = nn_cool_policy(x)
+            x = cooling(x)
+        else: 
+            h, isOn = nn_heat_policy(x)
+            x = warming(x, h)
+        trajectory_list = list((x, ))
+    return trajectory_list
+    
 
 
 
