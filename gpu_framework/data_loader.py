@@ -22,11 +22,13 @@ def load_data(
         trajectory_list = list()
         for state_content in content:
             # print(state_content)
-            state_content = state_content[1:-1].split(',')
-            state_list = [float(v) for v in state_content]
-            #! only the last value represents the action
-            state, action = state_list[:-1], state_list[-1]
-            trajectory_list.append([state, action])
+            state_content = state_content[2:-2].split('] ,[')
+            state_list, action_list, label_list = state_content[0], state_content[1], state_content[2]
+            # one state is represented by state, action, label
+            state = [float(v) for v in state_list]
+            action = [float(v) for v in action_list]
+            label = label_list[0][1:-1]
+            trajectory_list.append([state, action, label])
         data_list.append(trajectory_list)
 
     data_list = np.array(data_list)
