@@ -797,7 +797,7 @@ def nn_cool_policy(x):
         isOn = 1.0
     else:
         isOn = 0.0
-    return 0.0, isOn
+    return isOn
 
 def thermostat_refined(x, safe_bound):
     # x: [58.0, 68.0]
