@@ -122,49 +122,42 @@ def f_assign_max_z(x):
     # return (x.select_from_index(1, index0)).mul(x.select_from_index(1, index0).add(var(1.0)))
     # return x
 
-def f_move_down(x):
-    return x.sub_l(var(1.0))
-def f_move_right(x):
-    return x
-def f_move_up(x):
-    return x.add(var(1.0))
+def f_assign_min_z(x):
+    # return x.set_value(min_v)
+    # return x.sub_l(var(3.0))
+    return x.mul(var(-1.0))
 
-def f_forward(x): # y += 1
-    return x.add(var(1.0))
-def f_step_update(x):
-    return x.add(var(1.0))
+
+def f_assign_max_z(x):
+    return x.add(var(2.0))
+    # return x.sub_r(var(1.0))
+    # return x.mul(var(-1.0)).sub_l(var(1.0))
+    # return x.mul(x).mul(var(-1.0)).sub_l(var(1.0))
+    # return (x.select_from_index(1, index0)).mul(x.select_from_index(1, index0).add(var(1.0)))
+    # return x
+
 
 class Program(nn.Module):
     def __init__(self, l=1, nn_mode="simple"):
         super(Program, self).__init__()
-        self.step = var(30)
-        self.down_bar = var(-0.25)
-        self.up_bar = var(0.25)
+        self.bar = var(0.0)
         if nn_mode == "simple":
             self.nn = LinearNN(l=l)
         if nn_mode == "complex":
             self.nn = LinearNNComplex(l=l)
 
-        self.assign_angle = Assign(target_idx=[2], arg_idx=[0, 1], f=self.nn)
+        self.assign_y = Assign(target_idx=[1], arg_idx=[0], f=self.nn)
 
-        self.move_down = Assign(target_idx=[0], arg_idx=[0], f=f_move_down)
-        self.move_right = Assign(target_idx=[0], arg_idx=[0], f=f_move_right)
-        self.move_up = Assign(target_idx=[0], arg_idx=[0], f=f_move_up)
-        self.ifelse_angle_2 = IfElse(target_idx=[2], test=self.up_bar, f_test=f_test, body=self.move_right, orelse=self.move_up)
-        self.ifelse_angle = IfElse(target_idx=[2], test=self.down_bar, f_test=f_test, body=self.move_down, orelse=self.ifelse_angle_2)
+        self.assign_min_z = Assign(target_idx=[2], arg_idx=[1], f=f_assign_min_z)
+        self.assign_max_z = Assign(target_idx=[2], arg_idx=[1], f=f_assign_max_z)
+        self.ifelse_z = IfElse(target_idx=[1], test=self.bar, f_test=f_test, body=self.assign_max_z, orelse=self.assign_min_z)
 
-        self.forward_update = Assign(target_idx=[1], arg_idx=[1], f=f_forward)
-        self.step_update = Assign(target_idx=[3], arg_idx=[3], f=f_step_update)
-        self.trajectory_update = Trajectory(target_idx=[0, 1, 2]) # x, y, angle
-
-        self.whileblock = nn.Sequential(
-            self.assign_angle, # x, y -> angle
-            self.ifelse_angle, # update x, y according to angle
-            self.forward_update,  # update y: y += 1
-            self.step_update, # update step i
-            self.trajectory_update, 
+        self.trajectory_update = Trajectory(target_idx=[2])
+        self.program = nn.Sequential(
+            self.assign_y,
+            self.ifelse_z,
+            self.trajectory_update,
         )
-        self.program = While(target_idx=[3], test=self.step, body=self.whileblock)
     
     def forward(self, input, version=None):
         if version == "single_nn_learning":
@@ -176,7 +169,7 @@ class Program(nn.Module):
             x[y <= float(self.bar)] = x[y <= float(self.bar)] + 2 # float(max_v) # -torch.square(x[y <= float(self.bar)]) - 1
             # x[y <= float(self.bar)] = x[y <= float(self.bar)]
             x[y > float(self.bar)] = - x[y > float(self.bar)] # torch.square(x[y > float(self.bar)]) # float(min_v)
-            res = x
+            res = y
         else:
             res = self.program(input)
         return res
@@ -189,32 +182,6 @@ class Program(nn.Module):
                 nn.utils.weight_norm(self, dim=None)
             else:
                 nn.utils.weight_norm(self)
-
-
-def load_model(m, folder, name, epoch=None):
-    if os.path.isfile(folder):
-        m.load_state_dict(torch.load(folder))
-        return None, m
-    model_dir = os.path.join(folder, f"model_{name}")
-    if not os.path.exists(model_dir):
-        return None, None
-    if epoch is None and os.listdir(model_dir):
-        epoch = max(os.listdir(model_dir), key=int)
-    path = os.path.join(model_dir, str(epoch))
-    if not os.path.exists(path):
-        return None, None
-    m.load_state_dict(torch.load(path))
-    return int(epoch), m
-
-
-def save_model(model, folder, name, epoch):
-    path = os.path.join(folder, f"model_{name}", str(epoch))
-    try:
-        os.makedirs(os.path.dirname(path))
-    except FileExistsError:
-        pass
-    torch.save(model.state_dict(), path)
-
 
 
 
