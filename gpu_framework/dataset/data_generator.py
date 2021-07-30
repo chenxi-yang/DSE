@@ -46,6 +46,8 @@ def dataset_arg(dataset):
         range_ = [4.0, 6.0]
     elif benchmark_name == "racetrack_easy_1":
         range_ = [4.0, 6.0]
+    elif benchmark_name == "thermostat_refined":
+        range_ = [58.0, 68.0]
     
     return range_
 
@@ -157,6 +159,8 @@ def run(safe_bound):
         func = benchmark.racetrack_easy
     elif benchmark_name == "racetrack_easy_1":
         func = benchmark.racetrack_easy_1
+    elif benchmark_name == "thermostat_refined":
+        func = benchmark.thermostat_refined
     # elif benchmark_name == "fairness_1":
     #     func = benchmark.fairness_1
     # elif benchmark_name == "fairness_1":
