@@ -208,41 +208,7 @@ class Program(nn.Module):
         #     for x in x_list:
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
         if version == "single_nn_learning":
-            # TODO: add the program version of this benchmark
-            # print(input.shape)
-            B = input.shape[0]
-            isOn = torch.zeros(B, 1)
-            lin = input[:, 0].unsqueeze(1)
-            x = input[:, 1].unsqueeze(1)
-            state = input
-            # print(lin.shape, x.shape, isOn.shape)
-            trajectory_list = list()
-            for i in range(40):
-                off_idx = (isOn <= 0.5)
-                on_idx = (isOn > 0.5)
-                # print(f"off_idx: {off_idx.shape}, x: {x.shape}")
-                off_x = x[off_idx].unsqueeze(1)
-                # print(f"off_x: {off_x.shape}")
-                on_x = x[on_idx].unsqueeze(1)
-                off_state = torch.cat((lin[off_idx].unsqueeze(1), off_x), 1)
-                on_state = torch.cat((lin[on_idx].unsqueeze(1), on_x), 1)
-                isOn_off = isOn[off_idx].unsqueeze(1)
-                isOn_on = isOn[on_idx].unsqueeze(1)
-
-                # if isOn <= 0.5: off
-                off_x = off_x - self.nn(off_state/70.0) # * 10.0
-                # print(f"off shape: {isOn_off.shape}, {off_x.shape}")
-                isOn_off[off_x <= float(self.tOn)] = float(1.0)
-
-                # else  isOn > 0.5: on
-                on_x = on_x - self.nn(on_state/70.0) + 10.0 # * 10.0 + 10.0
-                isOn_on[on_x > float(self.tOff)] = float(0.0)
-
-                x = torch.cat((off_x, on_x), 0)
-                isOn = torch.cat((isOn_off, isOn_on), 0)
-                trajectory_list.append(x)
-            
-            res = trajectory_list
+            if 
         else:
             res = self.program(input)
             # exit(0)

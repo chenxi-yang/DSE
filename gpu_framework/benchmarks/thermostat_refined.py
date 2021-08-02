@@ -104,9 +104,9 @@ def f_self(x):
 class LinearReLU(nn.Module):
     def __init__(self, l):
         super().__init__()
-        self.linear1 = Linear(in_channels=2, out_channels=l)
+        self.linear1 = Linear(in_channels=1, out_channels=l)
         self.linear2 = Linear(in_channels=l, out_channels=l)
-        self.linear3 = Linear(in_channels=l, out_channels=1)
+        self.linear3 = Linear(in_channels=l, out_channels=2)
         self.relu = ReLU()
         self.sigmoid = Sigmoid()
 
@@ -167,10 +167,11 @@ class Program(nn.Module):
         self.tOn = var(66.0)
         # balance temperature: 70.0
 
-        self.nn = LinearReLU(l=l)
+        self.nn_cool = LinearReLU(l=l)
+        self.nn_heat = LinearReLU(l=l)
 
         # curL = curL + 10.0 * NN(curL, lin)
-        self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_down_nn(self.nn))
+        self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_down_nn(self.nn_cool))
 
         # TODO: empty select index works?
         self.ifelse_tOn_block1 = Assign(target_idx=[1], arg_idx=[1], f=f_ifelse_tOn_block1)# f=lambda x: (x.set_value(var(1.0)), var(1.0)))
@@ -181,7 +182,7 @@ class Program(nn.Module):
             self.ifelse_tOn, # if x <= tOn: isOn=1.0 else: skip
         )
 
-        self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_up_nn(self.nn))
+        self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_up_nn(self.nn_cool))
 
         self.ifelse_tOff_block1 = Skip()
         self.ifelse_tOff_block2 = Assign(target_idx=[1], arg_idx=[1], f=f_ifelse_tOff_block2)# f=lambda x: (x.set_value(var(0.0)), var(1.0)))
@@ -208,7 +209,19 @@ class Program(nn.Module):
         #     for x in x_list:
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
         if version == "single_nn_learning":
-            print(f"in thermostat_refined")
+            # TODO: add update of input(seperate data loss)
+            # input[:, 1] == 0: nn_cool
+            # input[:, 1] == 1: nn_heat
+            # use a placeholder for the results
+            # update the placeholder in a piece-wise way
+            B, D = input.shape
+            res = torch.zeros(B, 2) # placeholder for res
+            if torch.cuda.is_available():
+                res = res.cuda()
+            cool_index = input[:, 1] == 0
+            heat_index = input[:, 1] == 1
+            res[cool_index] = self.nn_cool(input[cool_index][:, :-1])
+            res[heat_index] = self.nn_heat(input[heat_index][:, :-1])
         else:
             res = self.program(input)
             # exit(0)
