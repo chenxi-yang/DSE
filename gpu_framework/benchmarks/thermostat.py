@@ -208,7 +208,9 @@ class Program(nn.Module):
         #     for x in x_list:
         #         print(f"x: {x['x'].c}, {x['x'].delta}")
         if version == "single_nn_learning":
-            if 
+            pass
+            print(f"deleted")
+            exit(0)
         else:
             res = self.program(input)
             # exit(0)
