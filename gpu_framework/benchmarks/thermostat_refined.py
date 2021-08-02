@@ -116,6 +116,7 @@ class LinearReLU(nn.Module):
         res = self.linear2(res)
         res = self.relu(res)
         res = self.linear3(res)
+        res = self.sigmoid(res)
         return res
 
 # can not pickle local object
@@ -138,6 +139,8 @@ def f_warming(x):
     dt = var(0.5)
     return x.select_from_index(1, index0).sub_l(x.select_from_index(1, index0).mul(k).mul(dt)).add(x.select_from_index(1, index1))
 
+def f_update_heat(x):
+    return x.mul(var(15.0))
 
 # i, x, h, isOn
 class Program(nn.Module):
@@ -145,6 +148,7 @@ class Program(nn.Module):
         super(Program, self).__init__()
         self.tOff = var(76.0)
         self.tOn = var(65.0)
+        self.h_unit = var(15.0)
         # balance temperature: 70.0
 
         self.nn_cool = LinearReLU(l=l)
@@ -159,9 +163,11 @@ class Program(nn.Module):
 
         # assign to (h, isOn)
         self.assign_heat_nn = Assign(target_idx=[2, 3], arg_idx=[1], f=self.nn_heat)
+        self.assign_update_heat = Assign(target_idx=[2], arg_idx=[2], f=f_update_heat)
         self.assign_warming = Assign(target_idx=[1], arg_idx=[1, 2], f=f_warming)
         self.heat_block = nn.Sequential(
             self.assign_heat_nn,
+            self.assign_update_heat,
             self.assign_warming,
         )
         self.ifelse_isOn = IfElse(target_idx=[3], test=var(0.5), f_test=f_test, body=self.cool_block, orelse=self.heat_block)
