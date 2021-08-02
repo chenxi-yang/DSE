@@ -782,7 +782,7 @@ def cooling(x):
 def nn_heat_policy(x):
     tOff = 76.0
     if x <= tOff:
-        h = 15.0
+        h = 1.0
         isOn = 1.0
     else:
         h = 0.0
@@ -802,18 +802,20 @@ def nn_cool_policy(x):
 def thermostat_refined(x, safe_bound):
     # x: [58.0, 68.0]
     isOn = 0.0
+    h_unit = 15.0
     steps = 40
     trajectory_list = list()
     for i in range(steps): 
         # isOn comes from the previous step
-        if isOn < 0.5:
+        if isOn <= 0.5:
             isOn = nn_cool_policy(x) # isOn should have a sigmoid
+            trajectory_list.append(([x, 0], [isOn, 0.0]))
             x = cooling(x)
-            trajectory_list.append(([x, 0], [isOn]))
         else: 
             h, isOn = nn_heat_policy(x)
-            x = warming(x, h)
             trajectory_list.append(([x, 1], [isOn, h]))
+            h = h * h_unit
+            x = warming(x, h)
         # separate two nns
         
     return trajectory_list
