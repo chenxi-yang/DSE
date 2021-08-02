@@ -41,7 +41,7 @@ if torch.cuda.is_available():
     index2 = index2.cuda()
     index3 = index3.cuda()
 
-
+# i, x, heat, isOn
 def initialize_components(abstract_states):
     center, width = abstract_states['center'], abstract_states['width']
     B, D = center.shape
@@ -51,7 +51,7 @@ def initialize_components(abstract_states):
     
     input_center, input_width = center[:, :1], width[:, :1]
     states = {
-        'x': domain.Box(torch.cat((padding, padding, input_center, input_center), 1), torch.cat((padding, padding, input_width, input_width), 1)),
+        'x': domain.Box(torch.cat((padding, input_center, input_center, padding), 1), torch.cat((padding, input_width, input_width, padding), 1)),
         'trajectories': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
         'p_list': [var(1.0) for i in range(B)], # might be changed to batch
@@ -71,7 +71,7 @@ def initialization_components_point():
     
     input_center[0], input_width[0] = 68.0, 0.0
     states = {
-        'x': domain.Box(torch.cat((input_center, padding, padding, padding), 1), torch.cat((input_width, padding, padding, padding), 1)),
+        'x': domain.Box(torch.cat((padding, input_center, input_center, padding), 1), torch.cat((padding, input_center, input_center, padding), 1)),
         'trajectories': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
         'p_list': [var(0.0) for i in range(B)], # might be changed to batch
@@ -116,32 +116,7 @@ class LinearReLU(nn.Module):
         res = self.linear2(res)
         res = self.relu(res)
         res = self.linear3(res)
-        res = self.sigmoid(res)
         return res
-
-
-def f_wrap_up_tmp_down_nn(nn):
-    def f_tmp_down_nn(x):
-        # print(f"nn, before: {x.c, x.delta}")
-        x_input = x.div(var(70.0))
-        # print(f"nn, before: {x_input.c, x_input.delta}")
-        plant = nn(x_input)
-        # print(f"nn, after: {plant.c, plant.delta}")
-        assert(not torch.any(torch.isnan(x_input.c)))
-        assert(not torch.any(torch.isnan(plant.c)))
-        return x.select_from_index(1, index0).sub_l(plant)
-    return f_tmp_down_nn
-        
-
-def f_wrap_up_tmp_up_nn(nn):
-    def f_tmp_up_nn(x):
-        # print(f"nn, before: {x.c, x.delta}")
-        x_input = x.div(var(70.0))
-        plant = nn(x_input)
-        # print(f"nn, after: {plant.c, plant.delta}")
-        return x.select_from_index(1, index0).sub_l(plant).add(var(10.0))
-    return f_tmp_up_nn
-
 
 # can not pickle local object
 def f_ifelse_tOn_block1(x):
@@ -150,52 +125,49 @@ def f_ifelse_tOn_block1(x):
 def f_test(x):
     return x
 
-def f_assign2_single(x):
-    return f_up_temp(x)
-
-def f_ifelse_tOff_block2(x):
-    return x.set_value(var(0.0))
-
 def assign_update(x):
     return x.add(var(1.0))
 
+def f_cooling(x):
+    k = var(0.1)
+    dt = var(0.5)
+    return x.sub_l(x.mul(dt).mul(k))
 
+def f_warming(x):
+    k = var(0.1)
+    dt = var(0.5)
+    return x.select_from_index(1, index0).sub_l(x.select_from_index(1, index0).mul(k).mul(dt)).add(x.select_from_index(1, index1))
+
+
+# i, x, h, isOn
 class Program(nn.Module):
     def __init__(self, l, nn_mode='all'):
         super(Program, self).__init__()
-        self.tOff = var(78.0)
-        self.tOn = var(66.0)
+        self.tOff = var(76.0)
+        self.tOn = var(65.0)
         # balance temperature: 70.0
 
         self.nn_cool = LinearReLU(l=l)
         self.nn_heat = LinearReLU(l=l)
 
-        # curL = curL + 10.0 * NN(curL, lin)
-        self.assign1 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_down_nn(self.nn_cool))
-
-        # TODO: empty select index works?
-        self.ifelse_tOn_block1 = Assign(target_idx=[1], arg_idx=[1], f=f_ifelse_tOn_block1)# f=lambda x: (x.set_value(var(1.0)), var(1.0)))
-        self.ifelse_tOn_block2 = Skip()
-        self.ifelse_tOn = IfElse(target_idx=[2], test=self.tOn, f_test=f_test, body=self.ifelse_tOn_block1, orelse=self.ifelse_tOn_block2)
-        self.ifblock1 = nn.Sequential(
-            self.assign1, # DNN
-            self.ifelse_tOn, # if x <= tOn: isOn=1.0 else: skip
+        self.assign_cool_nn = Assign(target_idx=[2, 3], arg_idx=[1], f=self.nn_cool)
+        self.assign_cooling = Assign(target_idx=[1], arg_idx=[1], f=f_cooling)
+        self.cool_block = nn.Sequential(
+            self.assign_cool_nn,
+            self.assign_cooling,
         )
 
-        self.assign2 = Assign(target_idx=[2], arg_idx=[2, 3], f=f_wrap_up_tmp_up_nn(self.nn_cool))
-
-        self.ifelse_tOff_block1 = Skip()
-        self.ifelse_tOff_block2 = Assign(target_idx=[1], arg_idx=[1], f=f_ifelse_tOff_block2)# f=lambda x: (x.set_value(var(0.0)), var(1.0)))
-        self.ifelse_tOff = IfElse(target_idx=[2], test=self.tOff, f_test=f_test, body=self.ifelse_tOff_block1, orelse=self.ifelse_tOff_block2)
-
-        self.ifblock2 = nn.Sequential(
-            self.assign2,
-            self.ifelse_tOff,  # if x <= tOff: skip else: isOn=0.0
+        # assign to (h, isOn)
+        self.assign_heat_nn = Assign(target_idx=[2, 3], arg_idx=[1], f=self.nn_heat)
+        self.assign_warming = Assign(target_idx=[1], arg_idx=[1, 2], f=f_warming)
+        self.heat_block = nn.Sequential(
+            self.assign_heat_nn,
+            self.assign_warming,
         )
-
-        self.ifelse_isOn = IfElse(target_idx=[1], test=var(0.5), f_test=f_test, body=self.ifblock1, orelse=self.ifblock2)
+        self.ifelse_isOn = IfElse(target_idx=[3], test=var(0.5), f_test=f_test, body=self.cool_block, orelse=self.heat_block)
+        
         self.assign_update = Assign(target_idx=[0], arg_idx=[0], f=assign_update)
-        self.trajectory_update = Trajectory(target_idx=[2])
+        self.trajectory_update = Trajectory(target_idx=[1]) # update the temperature
         self.whileblock = nn.Sequential(
             self.ifelse_isOn,
             self.assign_update,
@@ -203,11 +175,7 @@ class Program(nn.Module):
         )
         self.program = While(target_idx=[0], test=var(40.0), body=self.whileblock)
     
-    def forward(self, input, version=None):
-        # if transition == 'abstract':
-        # #     print(f"# of Partitions Before: {len(x_list)}")
-        #     for x in x_list:
-        #         print(f"x: {x['x'].c}, {x['x'].delta}")
+    def forward(self, input, version=None): # version describing data loss or safety loss
         if version == "single_nn_learning":
             # TODO: add update of input(seperate data loss)
             # input[:, 1] == 0: nn_cool
@@ -224,11 +192,7 @@ class Program(nn.Module):
             res[heat_index] = self.nn_heat(input[heat_index][:, :-1])
         else:
             res = self.program(input)
-            # exit(0)
-        # if transition == 'abstract':
-        #     print(f"# of Partitions After: {len(res_list)}")
-        #     # for x in res_list:
-        #     #     print(f"x: {x['x'].c}, {x['x'].delta}")
+
         return res
     
     def clip_norm(self):
