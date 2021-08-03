@@ -412,8 +412,8 @@ if benchmark_name == "racetrack_easy_2":
 
 
 if benchmark_name == "thermostat_refined":
-    x_l = [58.0]
-    x_r = [68.0]
+    x_l = [60.0]
+    x_r = [64.0]
     safe_range_list = [[55.0, 83.0]]
     w_list = [1.0]
     method_list = ['all']
