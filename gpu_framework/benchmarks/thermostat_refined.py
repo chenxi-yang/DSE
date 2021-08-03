@@ -54,7 +54,7 @@ def initialize_components(abstract_states):
         'x': domain.Box(torch.cat((padding, input_center, input_center, padding), 1), torch.cat((padding, input_width, input_width, padding), 1)),
         'trajectories': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
-        'p_list': [var(1.0) for i in range(B)], # might be changed to batch
+        'p_list': [var(0.0) for i in range(B)], # might be changed to batch
         'alpha_list': [var(1.0) for i in range(B)],
     }
 
@@ -132,12 +132,12 @@ def assign_update(x):
 def f_cooling(x):
     k = var(0.1)
     dt = var(0.5)
-    return x.sub_l(x.mul(dt).mul(k))
+    return x.mul(var(1.0) - k*dt)
 
 def f_warming(x):
     k = var(0.1)
     dt = var(0.5)
-    return x.select_from_index(1, index0).sub_l(x.select_from_index(1, index0).mul(k).mul(dt)).add(x.select_from_index(1, index1))
+    return x.select_from_index(1, index0).mul(var(1-0.1*0.5)).add(x.select_from_index(1, index1))
 
 def f_update_heat(x):
     return x.mul(var(15.0))
@@ -149,6 +149,7 @@ class Program(nn.Module):
         self.tOff = var(76.0)
         self.tOn = var(65.0)
         self.h_unit = var(15.0)
+        self.steps = var(10)
         # balance temperature: 70.0
 
         self.nn_cool = LinearReLU(l=l)
@@ -179,7 +180,7 @@ class Program(nn.Module):
             self.assign_update,
             self.trajectory_update,
         )
-        self.program = While(target_idx=[0], test=var(40.0), body=self.whileblock)
+        self.program = While(target_idx=[0], test=self.steps, body=self.whileblock)
     
     def forward(self, input, version=None): # version describing data loss or safety loss
         if version == "single_nn_learning":
