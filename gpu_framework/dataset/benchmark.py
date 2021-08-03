@@ -800,10 +800,10 @@ def nn_cool_policy(x):
     return isOn
 
 def thermostat_refined(x, safe_bound):
-    # x: [58.0, 68.0]
+    # x: [60.0, 64.0]
     isOn = 0.0
     h_unit = 15.0
-    steps = 40
+    steps = 10
     trajectory_list = list()
     for i in range(steps): 
         # isOn comes from the previous step

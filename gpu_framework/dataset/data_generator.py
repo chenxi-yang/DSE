@@ -47,7 +47,7 @@ def dataset_arg(dataset):
     elif benchmark_name == "racetrack_easy_1":
         range_ = [4.0, 6.0]
     elif benchmark_name == "thermostat_refined":
-        range_ = [58.0, 68.0]
+        range_ = [60.0, 64.0]
     
     return range_
 

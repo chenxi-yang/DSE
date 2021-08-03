@@ -155,7 +155,7 @@ class Program(nn.Module):
         self.nn_cool = LinearReLU(l=l)
         self.nn_heat = LinearReLU(l=l)
 
-        self.assign_cool_nn = Assign(target_idx=[2, 3], arg_idx=[1], f=self.nn_cool)
+        self.assign_cool_nn = Assign(target_idx=[3, 2], arg_idx=[1], f=self.nn_cool)
         self.assign_cooling = Assign(target_idx=[1], arg_idx=[1], f=f_cooling)
         self.cool_block = nn.Sequential(
             self.assign_cool_nn,
@@ -163,7 +163,7 @@ class Program(nn.Module):
         )
 
         # assign to (h, isOn)
-        self.assign_heat_nn = Assign(target_idx=[2, 3], arg_idx=[1], f=self.nn_heat)
+        self.assign_heat_nn = Assign(target_idx=[3, 2], arg_idx=[1], f=self.nn_heat)
         self.assign_update_heat = Assign(target_idx=[2], arg_idx=[2], f=f_update_heat)
         self.assign_warming = Assign(target_idx=[1], arg_idx=[1, 2], f=f_warming)
         self.heat_block = nn.Sequential(
