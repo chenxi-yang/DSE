@@ -248,11 +248,24 @@ def divide_chunks(components_list, bs=1, data_bs=None):
         abstract_states = dict()
         trajectories = list()
         center_list, width_list = list(), list()
+        count_trajectory = 0
         for component_idx, component in enumerate(components):
             center_list.append(component['center'])
             width_list.append(component['width'])
             for trajectory_idx, trajectory in enumerate(component['trajectories']):
                 trajectories.append(trajectory)
+                if data_bs is None:
+                    pass
+                else:
+                    count_trajectory += 1
+                    if count_trajectory > data_bs:
+                        batched_center, batched_width = batch_points(center_list), batch_points(width_list)
+                        abstract_states['center'] = batched_center
+                        abstract_states['width'] = batched_width
+                        res_trajectories = trajectories
+                        trajectories = list()
+                        count_trajectory = 0
+                        yield res_trajectories, abstract_states
 
         batched_center, batched_width = batch_points(center_list), batch_points(width_list)
         abstract_states['center'] = batched_center
