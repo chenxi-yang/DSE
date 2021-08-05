@@ -309,6 +309,7 @@ class While(nn.Module):
         while(len(states) > 0):
             body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
             # TODO: update
+            # print(f"body_states: {body_states['x'].c}, {body_states['x'].delta}")
             res_states = sound_join(res_states, orelse_states)
             if len(body_states) == 0:
                 return res_states
@@ -318,7 +319,7 @@ class While(nn.Module):
                 break
         res_states = sound_join(res_states, orelse_states)
         res_states = sound_join(res_states, body_states)
-
+        # exit(0)
         return res_states
 
 

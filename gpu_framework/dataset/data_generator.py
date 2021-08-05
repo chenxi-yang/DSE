@@ -46,6 +46,8 @@ def dataset_arg(dataset):
         range_ = [4.0, 6.0]
     elif benchmark_name == "racetrack_easy_1":
         range_ = [4.0, 6.0]
+    elif benchmark_name == "racetrack_easy_sample":
+        range_ = [4.0, 6.0]
     elif benchmark_name == "thermostat_refined":
         range_ = [60.0, 64.0]
     
@@ -58,7 +60,7 @@ def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
     )
 
 
-def generate_dataset(func, distribution, input_range, safe_bound, data_size=50000):
+def generate_dataset(func, distribution, input_range, safe_bound, data_size=200000):
     res_list = list()
     min_tra, max_tra = 100000, -100000
     print(f"Start generation.")
@@ -159,6 +161,8 @@ def run(safe_bound):
         func = benchmark.racetrack_easy
     elif benchmark_name == "racetrack_easy_1":
         func = benchmark.racetrack_easy_1
+    elif benchmark_name == "racetrack_easy_sample":
+        func = benchmark.racetrack_easy_sample
     elif benchmark_name == "thermostat_refined":
         func = benchmark.thermostat_refined
     # elif benchmark_name == "fairness_1":
