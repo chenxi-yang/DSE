@@ -390,7 +390,7 @@ if benchmark_name == "racetrack_easy_1":
     safe_range_bound_list = [0]
 
 # ???
-if benchmark_name == "racetrack_easy_2":
+if benchmark_name == "racetrack_easy_sample":
     x_l = [4.0]
     x_r = [6.0]
     safe_range_list = [0]
@@ -401,7 +401,7 @@ if benchmark_name == "racetrack_easy_2":
         [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
         [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
         [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [0.0, 9.0], 
-        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 6.0],
+        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 5.0],
     ]
     # map k-column in map[k] interval
     # 0 is the basic version
@@ -476,7 +476,6 @@ else:
     file_dir_evaluation = f"gpu_{mode}/result/{result_prefix}_evaluation.txt"
 
 trajectory_log_prefix = f"gpu_{mode}/result_test/trajectory/{result_prefix}_"
-
 
 if not debug and not generate_dataset and not plot and not debug_verifier:
     if os.path.exists(file_dir):
