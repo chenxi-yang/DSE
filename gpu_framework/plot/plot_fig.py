@@ -13,6 +13,7 @@ import seaborn as sns
 
 import numpy as np
 # import domain
+from plot_utils import *
 
 def read_loss(loss_path):
     q_list = list()
@@ -880,10 +881,105 @@ def extract_mountain_car(
         )
 
 
+def extract_concrete_trajectories(
+        trajectories_file_list,
+        mode_list,
+        name_list,
+        name_idx,
+        benchmark_name,
+        safe_lower_bound_list,
+        safe_upper_bound_list,
+    ):
+    # name_list = ['acceleration', 'position', 'velocity']
+    # name_idx = 1
+    # safe_bound = 0.5
+    # safe_bound = 0.7
+    # benchmark_name = 'MC'
+
+    trajectories_dict_list = list()
+    for file_name in trajectories_file_list:
+        trajectories_dict_list.append(read_point_trajectory(file_name, name_list))
+    
+    trajectories_list = split_trajectories(trajectories_dict_list, name_list, name_idx)
+    plot_concrete_trajectories(trajectories_list, name_list, name_idx, mode_list, 
+        safe_lower_bound_list,
+        safe_upper_bound_list,
+        benchmark_name)
+
+
+def extract_racetrack_easy_concrete_trajectories():
+    trajectories_file_list = [
+        '../gpu_DSE/result_test/trajectory/racetrack_easy_complex_64_2_11_200_[0]_500_100__0_0_single.txt',
+        '../gpu_DSE/result_test/trajectory/racetrack_easy_complex_64_2_21_200_[0]_500_100__0_0_single.txt',
+        '../gpu_DiffAI/result_test/trajectory/racetrack_easy_complex_64_2_500_200_[0]_500_100__0_0_single.txt',
+        '../gpu_only_data/result_test/trajectory/racetrack_easy_complex_64_52_10_200_[0]_500_100__0_0_single.txt'
+    ]
+    mode_list = [
+        'DSE-11',
+        'DSE-21',
+        'DiffAI-500',
+        'Only_data-large',
+    ]
+    safe_lower_bound_list = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0]
+    safe_upper_bound_list = [6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 3]
+    safe_lower_bound_list = [10 - i for i in safe_lower_bound_list]
+    safe_upper_bound_list = [10 - i for i in safe_upper_bound_list]
+    name_list = ['x', 'y', 'angle']
+    name_idx = 0
+    benchmark_name = 'RaceTrack-Easy'
+
+    extract_concrete_trajectories(
+        trajectories_file_list,
+        mode_list,
+        name_list,
+        name_idx,
+        benchmark_name,
+        safe_lower_bound_list,
+        safe_upper_bound_list,
+    )
+
+    #TODO: whenever running, use 10- before the float numbers
+
+    return 
+
+
+def extract_thermostat_concrete_trajectories():
+    trajectories_file_list = [
+        '../gpu_DSE/result_test/trajectory/thermostat_refined_complex_64_2_10_200_[83.0]_500_100__83.0_0_single.txt',
+        '../gpu_DiffAI/result_test/trajectory/thermostat_refined_complex_64_2_500_200_[83.0]_500_100__83.0_0_single.txt',
+        '../gpu_only_data/result_test/trajectory/thermostat_refined_complex_64_52_10_200_[83.0]_500_100__83.0_0_single.txt'
+    ]
+    mode_list = [
+        'DSE-10',
+        'DiffAI-500',
+        'Only_data-large',
+    ]
+
+    safe_lower_bound_list = [55.0] * 10
+    safe_upper_bound_list = [83.0] * 10
+    name_list = ['Temperature']
+    name_idx = 0
+    benchmark_name = 'Thermostat'
+
+    extract_concrete_trajectories(
+        trajectories_file_list,
+        mode_list,
+        name_list,
+        name_idx,
+        benchmark_name,
+        safe_lower_bound_list,
+        safe_upper_bound_list,
+    )
+
+    return 
+
 
 if __name__ == "__main__":
+    # extract_racetrack_easy_concrete_trajectories()
+    extract_thermostat_concrete_trajectories()
+    # extract_concrete_trajectories()
     # plot_single_loss('../gpu_DSE/result/mountain_car_all_10_2_1_200_[0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1]_500_500.txt') # the q and c loss
-    plot_log('../gpu_DSE/result/mc_log.txt')
+    # plot_log('../gpu_DSE/result/mc_log.txt')
     #  plot_loss_2('loss/')
     # plot_sample('data/sample_time.txt')
     # lr_bs_epoch_samplesize
