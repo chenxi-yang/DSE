@@ -724,7 +724,8 @@ def racetrack_easy(x, safe_bound):
         else:
             x += 1
         y += 1
-        trajectory_list.append((x, y, angle))
+        # trajectory_list.append((x, y, angle))
+        trajectory_list.append(([x, y], [angle]))
     return trajectory_list
 
 
@@ -742,26 +743,71 @@ def racetrack_easy_1(x, safe_bound):
         else:
             x += 1
         y += 1
-        trajectory_list.append((x, y, angle))
+        # trajectory_list.append((x, y, angle))
+        trajectory_list.append(([x, y], [angle]))
     return trajectory_list
 
 
-# easiest
-def racetrack_easy_2(x, safe_bound):
+def car_control_sample(x, y):
+    angle = 0.0
+    if y <= 9:
+        angle = 0.5
+    elif y <= 12:
+        angle = 1
+    elif y <= 15:
+        angle = 0.0
+    else:
+        angle = 0.0
+    return angle
+
+# sample
+def racetrack_easy_sample(x, safe_bound):
     x, y = x, 0.0
     steps = 20
     trajectory_list = list()
     for i in range(steps):
         angle = car_control(x, y)
-        if angle <= 0.25:
-            x -= 1
-        elif angle <= 0.75:
+        if angle <= 0.6 and angle > 0.4:
             x = x
-        else:
-            x += 1
+            branch = 0
+        else: # 0.5 vs. 0.5 select up or down
+            star = random.random()
+            star += (angle - 0.5) / 4 # add more probability
+            if star < 0.5: # up
+                x -= 1
+                branch = 1
+            else: # down
+                x += 1
+                branch = 2
         y += 1
-        trajectory_list.append((x, y, angle))
+        # trajectory_list.append((x, y, angle))
+        trajectory_list.append(([x, y, angle, branch], [x]))
     return trajectory_list
+
+
+# # sample
+# def racetrack_easy_sample_1(x, safe_bound):
+#     x, y = x, 0.0
+#     steps = 20
+#     trajectory_list = list()
+#     for i in range(steps):
+#         angle = car_control(x, y)
+#         if angle <= 0.6 and angle > 0.4:
+#             x = x
+#             branch = 0
+#         else: # 0.5 vs. 0.5 select up or down
+#             star = random.random()
+#             star += (angle - 0.5) / 4 # add more probability
+#             if star < 0.5: # up
+#                 x -= 1
+#                 branch = 1
+#             else: # down
+#                 x += 1
+#                 branch = 2
+#         y += 1
+#         # trajectory_list.append((x, y, angle))
+#         trajectory_list.append(([x, y, angle, branch], [x]))
+#     return trajectory_list
 
 
 # thermostat
