@@ -717,6 +717,7 @@ def racetrack_easy(x, safe_bound):
     trajectory_list = list()
     for i in range(steps):
         angle = car_control(x, y)
+        trajectory_list.append(([x, y], [angle]))
         if angle <= 0.25:
             x -= 1
         elif angle <= 0.75:
@@ -725,7 +726,6 @@ def racetrack_easy(x, safe_bound):
             x += 1
         y += 1
         # trajectory_list.append((x, y, angle))
-        trajectory_list.append(([x, y], [angle]))
     return trajectory_list
 
 
@@ -736,6 +736,7 @@ def racetrack_easy_1(x, safe_bound):
     trajectory_list = list()
     for i in range(steps):
         angle = car_control(x, y)
+        trajectory_list.append(([x, y], [angle]))
         if angle <= 0.25:
             x -= 1
         elif angle <= 0.75:
@@ -744,7 +745,7 @@ def racetrack_easy_1(x, safe_bound):
             x += 1
         y += 1
         # trajectory_list.append((x, y, angle))
-        trajectory_list.append(([x, y], [angle]))
+        # trajectory_list.append(([x, y], [angle]))
     return trajectory_list
 
 
@@ -768,20 +769,22 @@ def racetrack_easy_sample(x, safe_bound):
     for i in range(steps):
         angle = car_control(x, y)
         if angle <= 0.6 and angle > 0.4:
-            x = x
+            new_x = x
             branch = 0
         else: # 0.5 vs. 0.5 select up or down
             star = random.random()
             star += (angle - 0.5) / 4 # add more probability
             if star < 0.5: # up
-                x -= 1
+                new_x = x - 1
                 branch = 1
             else: # down
-                x += 1
+                new_x = x + 1
                 branch = 2
-        y += 1
+        new_y = y + 1
         # trajectory_list.append((x, y, angle))
-        trajectory_list.append(([x, y, angle, branch], [x]))
+        trajectory_list.append(([x, y, angle, branch], [new_x]))
+        x = new_x
+        y = new_y
     return trajectory_list
 
 
@@ -866,6 +869,129 @@ def thermostat_refined(x, safe_bound):
         
     return trajectory_list
     
+
+
+
+def aircraft_distance(x1, y1, x2, y2):
+    return (x1 - x2) ** 2 + (y1 - y2) **2
+
+
+def nn_left(x1, y1):
+    return 0.5
+
+def nn_right(x1, y1):
+    return 0.5
+
+# x1, y1: the aircraft in control
+# x2, y2: the aircraft keep flying horizontally
+# stage: ['CRUISE', 'LEFT', 'STRAIGHT', 'RIGHT']
+# x1 in [12, 16], y1 = -15
+# x2, y2 = (0, 0)
+# safe_distance_square: 20
+def aircraft_collision(x, safe_bound):
+    stage = 'CRUISE'
+    critical_distance_square = 212
+    steps = 15
+    x1, y1, x2, y2 = x, -15.0, 0.0, 0.0
+    x_unit = 10.0
+    straight_speed = 5.0
+    step = 0
+    x1_co = 0.0
+    trajectory_list = list()
+    min_ = 1000000
+    for i in range(steps):
+        # print(aircraft_distance(x1, y1, x2, y2))
+        min_ = min(aircraft_distance(x1, y1, x2, y2), min_)
+        if stage == 'CRUISE':
+            if aircraft_distance(x1, y1, x2, y2) <= critical_distance_square:
+                stage = 'LEFT'
+                step = 0
+        elif stage == 'LEFT':
+            x1_co = nn_left(x1, y1)
+            trajectory_list.append(([x1, y1, 0], [x1_co]))
+            x1 = x1 - x1_co * x_unit
+            step += 1
+            if step > 3:
+                stage = 'STRAIGHT'
+                step = 0
+        elif stage == 'STRAIGHT':
+            step += 1
+            if step > 2:
+                stage = 'RIGHT'
+                step = 0
+        elif stage == 'RIGHT':
+            x1_co = nn_right(x1, y1)
+            trajectory_list.append(([x1, y1, 1], [x1_co]))
+            x1 = x1 + x1_co * x_unit
+            step += 1
+            if step > 3:
+                stage = 'CRUISE'
+        y1 = y1 + straight_speed
+        x2 = x2 + straight_speed
+    # exit(0)
+    # print(min_)
+    
+    return trajectory_list
+
+
+def f_nn_control_stage(x1, y1, x2, y2, step, stage):
+    critical_distance_square = 200
+    if stage == 0.0:
+        if aircraft_distance(x1, y1, x2, y2) <= critical_distance_square:
+            stage = 0.3
+            step = 0
+    elif stage == 0.3:
+        step += 1
+        if step > 3:
+            stage = 0.6
+            step = 0
+    elif stage == 0.6:
+        step += 1
+        if step > 2:
+            stage = 0.9
+            step = 0
+    elif stage == 0.9:
+        step += 1
+        if step > 3:
+            stage = 0.0
+    
+    return stage, step
+
+
+# x1, y1: the aircraft in control
+# x2, y2: the aircraft keep flying horizontally
+# stage: ['CRUISE', 'LEFT', 'STRAIGHT', 'RIGHT']
+# x1 in [12, 16], y1 = -15
+# x2, y2 = (0, 0)
+# safe_distance_square: 20
+# <= 0.25: CRUISE; <=0.5: LEFT; <=0.75: STRAIGHT; <=1.0: RIGHT
+def aircraft_collision_refined(x, safe_bound):
+    stage = 0.0
+    steps = 15
+    straight_speed= 5.0
+    x1, y1, x2, y2 = x, -15.0, 0.0, 0.0
+    step = 0
+    trajectory_list = list()
+    for i in range(steps):
+        stage, step = f_nn_control_stage(x1, y1, x2, y2, step, stage)
+        trajectory_list.append(([x1, y1, x2, y2, stage], [stage]))
+        if stage <= 0.25:
+            pass
+        elif stage <= 0.5:
+            x1 = x1 - 5.0
+        elif stage <= 0.75:
+            pass
+        else:
+            x1 =  x1 + 5.0
+        y1 = y1 + straight_speed
+        x2 = x2 + straight_speed
+    
+    return trajectory_list
+
+
+
+
+
 
 
 
