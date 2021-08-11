@@ -50,6 +50,10 @@ def dataset_arg(dataset):
         range_ = [4.0, 6.0]
     elif benchmark_name == "thermostat_refined":
         range_ = [60.0, 64.0]
+    elif benchmark_name == "aircraft_collision":
+        range_ = [12.0, 16.0]
+    elif benchmark_name == "aircraft_collision_refined":
+        range_ = [12.0, 16.0]
     
     return range_
 
@@ -165,6 +169,10 @@ def run(safe_bound):
         func = benchmark.racetrack_easy_sample
     elif benchmark_name == "thermostat_refined":
         func = benchmark.thermostat_refined
+    elif benchmark_name == "aircraft_collision":
+        func = benchmark.aircraft_collision
+    elif benchmark_name == "aircraft_collision_refined":
+        func = benchmark.aircraft_collision_refined
     # elif benchmark_name == "fairness_1":
     #     func = benchmark.fairness_1
     # elif benchmark_name == "fairness_1":
