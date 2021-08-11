@@ -90,3 +90,11 @@ elif constants.benchmark_name == "racetrack_easy_sample":
     import benchmarks.racetrack_easy_sample as res
     importlib.reload(res)
     from benchmarks.racetrack_easy_sample import *
+elif constants.benchmark_name == "aircraft_collision":
+    import benchmarks.aircraft_collision as ac
+    importlib.reload(ac)
+    from benchmarks.aircraft_collision import *
+elif constants.benchmark_name == "aircraft_collision_refined":
+    import benchmarks.aircraft_collision_refined as ac
+    importlib.reload(ac)
+    from benchmarks.aircraft_collision_refined import *
