@@ -153,6 +153,7 @@ if __name__ == "__main__":
                             break
                     else:
                         if m is None:
+                            torch.manual_seed(i)
                             m = Program(l=l, nn_mode=nn_mode)
                     
                     print(f"parameters: {count_parameters(m)}")
