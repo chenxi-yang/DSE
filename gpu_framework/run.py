@@ -97,7 +97,7 @@ if __name__ == "__main__":
                 }
             )
 
-            # Run 5 times
+            # Run 25 times
             for i in range(25):
                 constants.status = 'train'
                 import import_hub as hub
