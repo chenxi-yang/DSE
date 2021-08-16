@@ -164,6 +164,9 @@ class Program(nn.Module):
         if version == "single_nn_learning":
             # model the car-controller
             y = self.nn(input)
+            # print(self.nn.linear1.weight.detach().cpu().numpy().tolist())
+            # print(self.nn.linear2.weight.detach().cpu().numpy().tolist())
+            # exit(0)
             res = y
         else:
             res = self.program(input)
