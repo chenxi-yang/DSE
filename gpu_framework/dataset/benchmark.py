@@ -870,8 +870,6 @@ def thermostat_refined(x, safe_bound):
     return trajectory_list
     
 
-
-
 def aircraft_distance(x1, y1, x2, y2):
     return (x1 - x2) ** 2 + (y1 - y2) **2
 
@@ -980,6 +978,66 @@ def aircraft_collision_refined(x, safe_bound):
         elif stage <= 0.5:
             x1 = x1 - 5.0
         elif stage <= 0.75:
+            pass
+        else:
+            x1 =  x1 + 5.0
+        y1 = y1 + straight_speed
+        x2 = x2 + straight_speed
+    
+    return trajectory_list
+
+
+def classifier_stage(x1, y1, x2, y2, step, stage):
+    p0, p1, p2, p3 = 0, 0, 0, 0
+    critical_distance_square = 200
+    if stage == 0:
+        if aircraft_distance(x1, y1, x2, y2) <= critical_distance_square:
+            stage = 1
+            step = 0
+    elif stage == 1:
+        step += 1
+        if step > 3:
+            stage = 2
+            step = 0
+    elif stage == 2:
+        step += 1
+        if step > 2:
+            stage = 3
+            step = 0
+    elif stage == 3:
+        step += 1
+        if step > 3:
+            stage = 0
+    
+    if stage == 0: 
+        p0 = 1
+    elif stage == 1:
+        p1 = 1
+    elif stage == 2:
+        p2 = 1
+    else:
+        p3 = 1
+    
+    return p0, p1, p2, p3, stage, step
+
+
+# the output of the classifier is a vector of four
+# p0, p1, p2, p3
+def aircraft_collision_refined_classifier(x, safe_bound):
+    stage = 0.0
+    steps = 15
+    straight_speed= 5.0
+    x1, y1, x2, y2 = x, -15.0, 0.0, 0.0
+    step = 0
+    trajectory_list = list()
+    for i in range(steps):
+        p0, p1, p2, p3, stage, step = classifier_stage(x1, y1, x2, y2, stage, step)
+        trajectory_list.append(([x1, y1, x2, y2, stage], [p0, p1, p2, p3]))
+        if p0 == 1:
+            pass
+        elif p1 == 1:
+            x1 = x1 - 5.0
+        elif p2 == 1:
             pass
         else:
             x1 =  x1 + 5.0
