@@ -66,10 +66,14 @@ def extract_safe_loss(component, target_component, target_idx):
             # unsafe_penalty = unsafe_penalty + unsafe_value
             unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
             # print(f"position: {float(state[1].left), float(state[1].right)}, velocity: {float(state[2].left), float(state[2].right)}")
-            print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
+            # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
+            # if float(X.left) ==29.0:
+            #     exit(0)
+            # if state_idx == len(trajectory) - 1:
+            #     print(f"last step X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
         # print(len(trajectory))
-        print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
+        # print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
         # exit(0)
         component_loss += p * float(unsafe_penalty) + unsafe_penalty
     
@@ -131,6 +135,8 @@ def cal_data_loss(m, trajectories, criterion):
             y = y.cuda()
         yp = m(X, version="single_nn_learning")
         data_loss = criterion(yp, y)
+        # print(f"finish data loss")
+        # exit(0)
     
     # if constants.debug:
     yp_list = yp.squeeze().detach().cpu().numpy().tolist()
@@ -180,6 +186,7 @@ def cal_safe_loss(m, abstract_states, target):
         for idx, trajectory, p in sample_result:
             component_result_list[idx]['trajectories'].append(trajectory)
             component_result_list[idx]['p_list'].append(p)
+        # exit(0)
 
     safe_loss = safe_distance(component_result_list, target)
     return safe_loss
@@ -229,6 +236,7 @@ def learning(
             data_loss = cal_data_loss(m, trajectories, criterion)
             # data_loss = var(0.0)
             safe_loss = cal_safe_loss(m, abstract_states, target)
+            # safe_loss = var(1.0)
 
             print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}")
             
@@ -254,11 +262,11 @@ def learning(
             log_file.write(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}\n")
             log_file.flush()
         
-        if float(safe_loss) == 0.0:
+        if abs(float(safe_loss)) <= float(EPSILON):
             end_count += 1
         else:
             end_count = 0
-        if end_count >= 5:
+        if end_count >= 5: # the signal to early stop
             if not constants.debug:
                 log_file = open(file_dir, 'a')
                 log_file.write('EARLY STOP: Get safe results \n')

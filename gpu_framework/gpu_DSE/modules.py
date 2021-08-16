@@ -84,8 +84,12 @@ def calculate_states(target_idx, arg_idx, f, states):
     # print(f"x, c: {x.c}, delta: {x.delta}")
     input = x.select_from_index(1, arg_idx)
     res = f(input)
-    # print(f"input, c: {input.c}, delta: {input.delta}; res, c: {res.c}, delta: {res.delta}")
+    # print(f"f: {f} \ninput, c: {input.c.detach().cpu().numpy().tolist()} \n, delta: {input.delta.detach().cpu().numpy().tolist()}\n; res, c: {res.c.detach().cpu().numpy().tolist()}\n, delta: {res.delta.detach().cpu().numpy().tolist()}")
+    # print(f"before assign: x.c: {x.c}, res.c: {res.c}")
+    # print(f"target_idx: {target_idx}")
     x.c[:, target_idx] = res.c 
+    # print(f"after assign: x.c: {x.c}")
+
     x.delta[:, target_idx] = res.delta
     states['x'] = x
     return states
@@ -129,6 +133,7 @@ def calculate_branch(target_idx, test, states):
     p_left, p_right = extract_branch_probability(target, test)
     left, right = sample_from_p(p_left, p_right)
     if constants.debug:
+        print(f"test: {test}")
         print(f"target c: {target.c}, delta: {target.delta}")
         print(f"left probability: {p_left}")
         print(f"right probability: {p_right}")
@@ -182,8 +187,48 @@ def calculate_branch(target_idx, test, states):
         print(f"orelse_states p_list")
         if len(orelse_states) > 0:
             print(orelse_states['p_list'])
-        
+    
     return body_states, orelse_states
+
+
+def select_argmax(target):
+    index_mask = torch.zeros(target.c.shape, dtype=torch.bool)
+    if torch.cuda.is_available():
+        index_mask = index_mask.cuda()
+    
+    B, M = target.c.shape
+    # the minimum value can be zero
+    # lower bound and upper bound of the interval concretization
+    # interval: K x M
+    interval_left, interval_right = target.c - target.delta, target.c + target.delta
+    for i in range(M):
+        max_right_index = torch.argmax(interval_right, dim=1)
+        # 
+        converted_max_right_index = max_right_index.view(-1, 1)
+        interval_right[max_right_index] = 
+
+    return 
+
+
+def calculate_branches(arg_idx, states):
+    # TODO: finish all the methods
+    # TODO Plus: update the trajectories, idx_list, p_list
+    # arg_idx: [0, 1, 2, 3], target is a new box only having values with these indexes
+
+    x = states['x']
+    target = x.select_from_index(1, arg_idx)
+    # potential problem: tensor is too dense
+    # index_mask is a boolean tensor
+    index_mask = select_argmax(target)
+    # no split of boxes/states
+    # simply used the volume based probability distribution
+    p_list = extract_branch_probability_more(probability_representation, index_mask)
+    # sample
+    # TODO: sample from p, extend to a list version
+    # list of bool representation: x_i has shape (K_i, 1), representing K_i batches fall into i-th branch
+    branch_select_list = sample_from_p(p_list)
+    states_list = assign_states(states, branch_select_list, p_list)
+    return states_list
         
 
 class Skip(nn.Module):
@@ -205,7 +250,6 @@ class Assign(nn.Module):
             self.arg_idx = self.arg_idx.cuda()
     
     def forward(self, states):
-        # TODO: update
         res_states = calculate_states(self.target_idx, self.arg_idx, self.f, states)
 
         return res_states
@@ -235,6 +279,28 @@ class IfElse(nn.Module):
         #     print(f"trajectories of res_states in [IF_ELSE]")
         #     for trajectory in res_states['trajectories']:
         #         print(f"trajectory length: {len(trajectory)}")
+
+        return res_states
+
+
+class ArgMax(nn.Module):
+    def __init__(self, arg_idx, branch_list):
+        super().__init__()
+        self.arg_idx = arg_idx
+        self.branch_list = branch_list
+        if torch.cuda.is_available():
+            self.arg_idx = self.arg_idx.cuda()
+    
+    def forward(self, states):
+        #TODO
+        res_states_list = list()
+        states_list = self.calculate_branches(self.arg_idx, states)
+
+        for idx, state in enumerate(states_list):
+            if len(state) > 0:
+                res_states_list.append(self.branch_list[idx](state))
+        # TODO, concatenate the states in the list form
+        res_states = concatenate_states_list(res_states_list)
 
         return res_states
 

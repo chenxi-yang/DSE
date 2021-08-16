@@ -358,3 +358,8 @@ def product(it):
             product *= x
     return product
 
+
+def set_second_dimension_zero(x, index):
+    x[torch.arange(x.size(0)), index] = 0
+    return x
+
