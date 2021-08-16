@@ -4,6 +4,7 @@ import torch.nn as nn
 
 from random import shuffle
 from torch.distributions.bernoulli import Bernoulli
+from torch.distributions.categorical import Categorical
 
 import domain
 from constants import *
@@ -13,8 +14,11 @@ from domain_utils import (
     concatenate_states,
 )
 
+from utils import (
+    select_argmax,
+)
+
 import math
-import time
 
 '''
 Module used as functions
@@ -191,23 +195,49 @@ def calculate_branch(target_idx, test, states):
     return body_states, orelse_states
 
 
-def select_argmax(target):
-    index_mask = torch.zeros(target.c.shape, dtype=torch.bool)
+def extract_branch_probability_list(target, index_mask):
+    # volume_based probability assignment
+    # return a list of boolean tensor where the k-th boolean tensor represents the states fall into the k-th branch
+    zeros = torch.zeros(index_mask.shape)
+    branch = torch.zeros(index_mask.shape, dtype=torch.bool)
     if torch.cuda.is_available():
-        index_mask = index_mask.cuda()
-    
-    B, M = target.c.shape
-    # the minimum value can be zero
-    # lower bound and upper bound of the interval concretization
-    # interval: K x M
-    interval_left, interval_right = target.c - target.delta, target.c + target.delta
-    for i in range(M):
-        max_right_index = torch.argmax(interval_right, dim=1)
-        # 
-        converted_max_right_index = max_right_index.view(-1, 1)
-        interval_right[max_right_index] = 
+        zeros = zeros.cuda()
+        branch = branch.cuda()
 
-    return 
+    volume = 2 * target.delta
+    # all the volumes belonging to the argmax index set are selected, otherwise 0.0
+    selected_volume = torch.where(index_mask, volume, zeros)
+    sumed_volume = torch.sum(selected_volume, dim=1)[:, None]
+    p_volume = selected_volume / sumed_volume
+
+    m = Categorical(p_volume)
+    res = m.sample()
+    branch[(torch.arange(p_volume.size(0)), res)] = True
+    p_volume = torch.where(branch, p_volume, zeros)
+
+    return branch, p_volume
+
+
+def assign_states(states, branch, p_volume):
+    # K batches, M branches, # no change to the x itself
+    K, M = branch.shape
+    states_list = list()
+    x = states['x']
+
+    for i in range(M):
+        new_states = dict()
+        p = p_volume[:, i]
+        this_branch = branch[:, i]
+        if True in this_branch:
+            this_idx = this_branch.nonzero(as_tuple=True)[0].tolist()
+            x_this = domain.Box(x.c[this_branch], x.delta[this_branch])
+            new_states['x'] = x_this
+            new_states['trajectories'] = [states['trajectories'][i] for i in this_idx]
+            new_states['idx_list'] = [states['idx_list'][i] for i in this_idx]
+            new_states['p_list'] = [states['p_list'][i].add(torch.log(p[idx])) for idx in this_idx]
+        states_list.append(new_states)
+
+    return states_list 
 
 
 def calculate_branches(arg_idx, states):
@@ -217,17 +247,15 @@ def calculate_branches(arg_idx, states):
 
     x = states['x']
     target = x.select_from_index(1, arg_idx)
-    # potential problem: tensor is too dense
+    # TODO: potential problem: tensor is too dense?
     # index_mask is a boolean tensor
-    index_mask = select_argmax(target)
-    # no split of boxes/states
-    # simply used the volume based probability distribution
-    p_list = extract_branch_probability_more(probability_representation, index_mask)
-    # sample
-    # TODO: sample from p, extend to a list version
-    # list of bool representation: x_i has shape (K_i, 1), representing K_i batches fall into i-th branch
-    branch_select_list = sample_from_p(p_list)
-    states_list = assign_states(states, branch_select_list, p_list)
+    index_mask = select_argmax(target.c - target.delta, target.c + target.delta)
+    # no split of boxes/states, only use the volume based probability distribution
+    # branch: boolean tensor k-th colume represents the k-th branch, 
+    # p_volume: real tensor, k-th column represents the probability to select the k-th branch(after samping)
+    branch, p_volume = extract_branch_probability_list(target, index_mask)
+
+    states_list = assign_states(states, branch, p_volume)
     return states_list
         
 
