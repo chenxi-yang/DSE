@@ -98,3 +98,7 @@ elif constants.benchmark_name == "aircraft_collision_refined":
     import benchmarks.aircraft_collision_refined as ac
     importlib.reload(ac)
     from benchmarks.aircraft_collision_refined import *
+elif constants.benchmark_name == "aircraft_collision_refined_classifier":
+    import benchmarks.aircraft_collision_refined_classifier as ac
+    importlib.reload(ac)
+    from benchmarks.aircraft_collision_refined_classifier import *
