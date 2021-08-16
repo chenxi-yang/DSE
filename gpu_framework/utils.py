@@ -359,7 +359,33 @@ def product(it):
     return product
 
 
-def set_second_dimension_zero(x, index):
-    x[torch.arange(x.size(0)), index] = 0
-    return x
+def index_conversion_second_dim(x, index):
+    return (torch.arange(x.size(0)), index)
+
+
+def select_argmax(interval_left, interval_right):
+    # lower bound and upper bound of the interval concretization
+    assert(interval_left.shape == interval_right.shape)
+
+    B, M = interval_right.shape
+    index_mask = torch.zeros((B, M), dtype=torch.bool)
+    all_ones = torch.ones(interval_right.shape)
+    if torch.cuda.is_available():
+        index_mask = index_mask.cuda()
+        all_ones = all_ones.cuda()
+    
+    # interval: K x M
+    max_right_index = index_conversion_second_dim(interval_right, torch.argmax(interval_right, dim=1))
+    for i in range(M - 1):
+        # convert to the shape of K x M
+        max_left_value = interval_left[max_right_index][:, None]
+        # if an interval's right > the max interval's left, it is markd in max as well
+        index_mask[interval_right > max_left_value] = True
+
+        # select all the lower bound of a interval in the argmax set, otherwise 1.0
+        left_already_in = torch.where(index_mask, interval_left, all_ones)
+
+        max_right_index = index_conversion_second_dim(interval_right, torch.argmin(left_already_in, dim=1))
+
+    return index_mask
 
