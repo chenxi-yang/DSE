@@ -151,7 +151,7 @@ class Program(nn.Module):
         self.straight_bar = var(0.75)
         self.right_bar = var(1.0)
 
-        self.nn_control = LinearReLU(l=l)
+        self.nn_classifier = LinearReLU(l=l)
         self.skip = Skip()
 
         self.assign_update_x1_right = Assign(target_idx=[1], arg_idx=[1], f=f_assign_update_x1_right)
@@ -177,7 +177,7 @@ class Program(nn.Module):
             self.assign_stage3,
         )
 
-        self.assign_branch_probability = Assign(target_idx=[5, 6, 7, 8], arg_idx=[1, 2, 3, 4, 9])
+        self.assign_branch_probability = Assign(target_idx=[5, 6, 7, 8], arg_idx=[1, 2, 3, 4, 9], f= self.nn_classifier)
         self.argmax_p = ArgMax(arg_idx=[5, 6, 7, 8], branch_list=[self.update_cruise_block, self.update_left_block,\
              self.update_straight_block, self.update_right_block])
 
@@ -211,7 +211,7 @@ class Program(nn.Module):
             # right_index = input[:, 1] == 1
             # res[left_index] = self.nn_left(input[left_index][:, :-1])
             # res[right_index] = self.nn_right(input[right_index][:, :-1])
-            res = self.nn_control(input)
+            res = self.nn_classifier(input)
         else:
             res = self.program(input)
 
