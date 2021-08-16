@@ -314,7 +314,7 @@ class IfElse(nn.Module):
 class ArgMax(nn.Module):
     def __init__(self, arg_idx, branch_list):
         super().__init__()
-        self.arg_idx = arg_idx
+        self.arg_idx = torch.tensor(arg_idx)
         self.branch_list = branch_list
         if torch.cuda.is_available():
             self.arg_idx = self.arg_idx.cuda()
@@ -322,7 +322,7 @@ class ArgMax(nn.Module):
     def forward(self, states):
         #TODO
         res_states_list = list()
-        states_list = self.calculate_branches(self.arg_idx, states)
+        states_list = calculate_branches(self.arg_idx, states)
 
         for idx, state in enumerate(states_list):
             if len(state) > 0:
