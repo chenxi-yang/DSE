@@ -106,21 +106,27 @@ def extract_branch_probability(target, test):
     right_index = target.getLeft() > test
     cross_idx = torch.logical_and(target.getRight() > test, target.getLeft() <= test)
     volume = 2 * target.delta
+    volume_zero = (volume == 0.0)
+    left_volume_zero_idx = torch.logical_and(left_index, volume_zero)
+    right_volume_zero_idx = torch.logical_and(right_index, volume_zero)
+
     if constants.score_f == 'hybrid':
-        p_test[left_index] = (((volume[left_index]) / (test - target.getLeft()[left_index])) + var(2.0)) / var(3.0)
-        p_test[cross_idx] = ((test - target.getLeft()[cross_idx]) / (volume[cross_idx]) + var(1.0)) / var(3.0)
-        p_test[right_index] = (var(1.0) - (volume[right_index] / (target.getRight()[right_index] - test))) / var(3.0)
+        # print(p_test, volume, test, target.getLeft(), target.getRight())
+        p_test[left_index] = (torch.min((volume[left_index]) / torch.max((test - target.getLeft()[left_index]), EPSILON), var(1.0)) + var(2.0)) / var(3.0)
+        p_test[cross_idx] = (torch.min((test - target.getLeft()[cross_idx]) / torch.max(volume[cross_idx], EPSILON), var(1.0)) + var(1.0)) / var(3.0)
+        p_test[right_index] = (var(1.0) - torch.min(volume[right_index] / torch.max((target.getRight()[right_index] - test), EPSILON), var(1.0))) / var(3.0)
+        p_test[left_volume_zero_idx] = 1.0
+        p_test[right_volume_zero_idx] = 0.0
     else:
         p_test[left_index] = 1.0
         p_test[right_index] = 0.0
-
         p_test[cross_idx] = (test - target.getLeft()[cross_idx]) / (target.getRight()[cross_idx] - target.getLeft()[cross_idx])
     # p_test = (test - target.getLeft()) / (target.getRight() - target.getLeft())
     # print(f"p_test grad: {p_test.grad}; leßn: {target.getRight() - target.getLeft()}")
     # print(p_test)
     # p_test[p_test < 0.0] = 0.0
     # p_test[p_test > 1.0] = 1.0
-    # print(p_test)
+    # print(f"p_test: {p_test}")
 
     return p_test, 1 - p_test
 
@@ -188,6 +194,8 @@ def calculate_branch(target_idx, test, states):
         if constants.debug:
             print(f"before update: states p_list")
             print(states['p_list'])
+            print(f"right: {right_idx}")
+            print(f"len p_list: {len(states['p_list'])}")
         orelse_states['p_list'] = [states['p_list'][i].add(torch.log(p_right[i])) for i in right_idx]
         if constants.debug:
             print(f"after update: orelse_states p_list")
@@ -257,9 +265,9 @@ def assign_states(states, branch, p_volume):
             this_idx = this_branch.nonzero(as_tuple=True)[0].tolist()
             x_this = domain.Box(x.c[this_branch], x.delta[this_branch])
             new_states['x'] = x_this
-            new_states['trajectories'] = [states['trajectories'][i] for i in this_idx]
-            new_states['idx_list'] = [states['idx_list'][i] for i in this_idx]
-            new_states['p_list'] = [states['p_list'][i].add(torch.log(p[idx])) for idx in this_idx]
+            new_states['trajectories'] = [states['trajectories'][idx] for idx in this_idx]
+            new_states['idx_list'] = [states['idx_list'][idx] for idx in this_idx]
+            new_states['p_list'] = [states['p_list'][idx].add(torch.log(p[idx])) for idx in this_idx]
         states_list.append(new_states)
 
     return states_list 
