@@ -4,6 +4,7 @@ import torch.nn as nn
 
 from random import shuffle
 from torch.distributions.bernoulli import Bernoulli
+from torch.distributions.categorical import Categorical
 
 import domain
 from constants import *
@@ -11,10 +12,14 @@ import constants
 
 from domain_utils import (
     concatenate_states,
+    concatenate_states_list,
+)
+
+from utils import (
+    select_argmax,
 )
 
 import math
-import time
 
 
 def show_tra_l(l):
@@ -178,6 +183,87 @@ def calculate_branch(target_idx, test, states):
     return body_states, orelse_states
 
 
+def extract_branch_probability_list(target, index_mask):
+    # volume_based probability assignment
+    # return a list of boolean tensor where the k-th boolean tensor represents the states fall into the k-th branch
+    zeros = torch.zeros(index_mask.shape)
+    branch = torch.zeros(index_mask.shape, dtype=torch.bool)
+    if torch.cuda.is_available():
+        zeros = zeros.cuda()
+        branch = branch.cuda()
+
+    # print(f"c, delta: {target.c.detach().cpu().numpy()}, {target.delta.detach().cpu().numpy()}")
+    # add the influnce from c
+    volume = 2 * target.delta
+    # print(f"volume: {volume.detach().cpu().numpy()}")
+    # print(f"index_mask: {index_mask}")
+    # all the volumes belonging to the argmax index set are selected, otherwise 0.0
+    selected_volume = torch.where(index_mask, volume, zeros)
+    # selected_volume might be all zero
+    # print(EPSILON)
+    selected_volume[index_mask] = torch.max(selected_volume[index_mask], EPSILON)
+
+    # print(f"selected_volume: {selected_volume.detach().cpu().numpy()}")
+    sumed_volume = torch.sum(selected_volume, dim=1)[:, None]
+    p_volume = selected_volume / sumed_volume
+
+    if constants.score_f == 'hybrid':
+        pre_score = p_volume + target.c
+        sumed_score = torch.sum(pre_score, dim=1)[:, None]
+        p_volume = pre_score / sumed_score
+        
+    # print(f"p_volume:\n {p_volume.detach().cpu().numpy()}")
+
+    m = Categorical(p_volume)
+    res = m.sample()
+    branch[(torch.arange(p_volume.size(0)), res)] = True
+    p_volume = torch.where(branch, p_volume, zeros)
+
+    return branch, p_volume
+
+
+def assign_states(states, branch, p_volume):
+    # K batches, M branches, # no change to the x itself
+    K, M = branch.shape
+    states_list = list()
+    x = states['x']
+
+    for i in range(M):
+        new_states = dict()
+        p = p_volume[:, i]
+        this_branch = branch[:, i]
+        if True in this_branch:
+            this_idx = this_branch.nonzero(as_tuple=True)[0].tolist()
+            x_this = domain.Box(x.c[this_branch], x.delta[this_branch])
+            new_states['x'] = x_this
+            new_states['trajectories'] = [states['trajectories'][idx] for idx in this_idx]
+            new_states['idx_list'] = [states['idx_list'][idx] for idx in this_idx]
+            new_states['p_list'] = [states['p_list'][idx].add(torch.log(p[idx])) for idx in this_idx]
+        states_list.append(new_states)
+
+    return states_list 
+
+
+def calculate_branches(arg_idx, states):
+    # TODO: finish all the methods
+    # TODO Plus: update the trajectories, idx_list, p_list
+    # arg_idx: [0, 1, 2, 3], target is a new box only having values with these indexes
+
+    x = states['x']
+    target = x.select_from_index(1, arg_idx)
+    # TODO: potential problem: tensor is too dense?
+    # index_mask is a boolean tensor
+    index_mask = select_argmax(target.c - target.delta, target.c + target.delta)
+    # no split of boxes/states, only use the volume based probability distribution
+    # branch: boolean tensor k-th colume represents the k-th branch, 
+    # p_volume: real tensor, k-th column represents the probability to select the k-th branch(after samping)
+    branch, p_volume = extract_branch_probability_list(target, index_mask)
+    # print(f"p_volume:\n {p_volume.detach().cpu().numpy()}")
+
+    states_list = assign_states(states, branch, p_volume)
+    return states_list
+
+
 class Skip(nn.Module):
     def __init__(self):
         super().__init__()
@@ -227,6 +313,25 @@ class IfElse(nn.Module):
 
         return res_states
 
+
+class ArgMax(nn.Module):
+    def __init__(self, arg_idx, branch_list):
+        super().__init__()
+        self.arg_idx = torch.tensor(arg_idx)
+        self.branch_list = branch_list
+        if torch.cuda.is_available():
+            self.arg_idx = self.arg_idx.cuda()
+    
+    def forward(self, states):
+        res_states_list = list()
+        states_list = calculate_branches(self.arg_idx, states)
+
+        for idx, state in enumerate(states_list):
+            if len(state) > 0:
+                res_states_list.append(self.branch_list[idx](state))
+        res_states = concatenate_states_list(res_states_list)
+
+        return res_states
 
 class While(nn.Module):
     def __init__(self, target_idx, test, body):

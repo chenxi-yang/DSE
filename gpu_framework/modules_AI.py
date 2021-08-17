@@ -11,6 +11,10 @@ import constants
 import math
 import time
 
+from utils import (
+    select_argmax,
+)
+
 torch.autograd.set_detect_anomaly(True)
 
 def show_tra_l(l):
@@ -181,6 +185,16 @@ def sound_join(states1, states2):
     return res_states
 
 
+def sound_join_list(states_list):
+    if len(states_list) == 0:
+        return states_list[0]
+    res_states = dict()
+
+    for states_idx, states in enumerate(states_list):
+        res_states = sound_join(res_states, states)
+    return res_states
+
+
 def calculate_states(target_idx, arg_idx, f, states):
     x = states['x']
     input = x.select_from_index(1, arg_idx)
@@ -242,6 +256,37 @@ def calculate_branch(target_idx, test, states):
     return body_states, orelse_states
 
 
+def assign_states(states, mask):
+    states_list = list()
+    K, M = mask.shape
+    x = states['x']
+
+    for i in range(M):
+        new_states = dict()
+        this_branch = mask[:, i]
+        if True in this_branch:
+            this_idx = this_branch.nonzero(as_tuple=True)[0].tolist()
+            x_this = domain.Box(x.c[this_branch], x.delta[this_branch])
+            new_states['x'] = x_this
+            new_states['trajectories'] = [states['trajectories'][idx] for idx in this_idx]
+            new_states['idx_list'] = [states['idx_list'][idx] for idx in this_idx]
+            new_states['p_list'] = [states['p_list'][idx] for idx in this_idx]
+        states_list.append(new_states)
+    
+    return states_list
+
+
+def calculate_branches(arg_idx, states):
+    # select argmax
+    # argmax
+    x = states['x']
+    target = x.select_from_index(1, arg_idx)
+
+    index_mask = select_argmax(target.c - target.delta, target.c + target.delta)
+    states_list = assign_states(states, index_mask)
+
+    return states_list
+
 class Skip(nn.Module):
     def __init__(self):
         super().__init__()
@@ -289,6 +334,27 @@ class IfElse(nn.Module):
         # maintain the same number of components as the initial ones
         # TODO: update sound join
         res_states = sound_join(body_states, orelse_states)
+
+        return res_states
+
+
+class ArgMax(nn.Module):
+    def __init__(self, arg_idx, branch_list):
+        super().__init__()
+        self.arg_idx = torch.tensor(arg_idx)
+        self.branch_list = branch_list
+        if torch.cuda.is_available():
+            self.arg_idx = self.arg_idx.cuda()
+
+    def forward(self, states):
+        print(f"in module AI ArgMAX")
+        res_states_list = list()
+        states_list = calculate_branches(self.arg_idx, states)
+
+        for idx, state in enumerate(states_list):
+            if len(state) > 0:
+                res_states_list.append(self.branch_list[idx](state))
+        res_states = sound_join_list(res_states_list)
 
         return res_states
 
