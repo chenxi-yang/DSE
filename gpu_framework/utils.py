@@ -379,8 +379,9 @@ def select_argmax(interval_left, interval_right):
     for i in range(M - 1):
         # convert to the shape of K x M
         max_left_value = interval_left[max_right_index][:, None]
-        # if an interval's right > the max interval's left, it is markd in max as well
-        index_mask[interval_right > max_left_value] = True
+        # if an interval's right >= the max interval's left, it is markd in max as well
+        # >= is for the interval where delta == 0
+        index_mask[interval_right >= max_left_value] = True
 
         # select all the lower bound of a interval in the argmax set, otherwise 1.0
         left_already_in = torch.where(index_mask, interval_left, all_ones)
