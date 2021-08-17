@@ -12,6 +12,7 @@ import constants
 
 from domain_utils import (
     concatenate_states,
+    concatenate_states_list,
 )
 
 from utils import (
@@ -101,11 +102,19 @@ def calculate_states(target_idx, arg_idx, f, states):
 
 def extract_branch_probability(target, test):
     p_test = torch.zeros(target.getLeft().shape).cuda()
-    p_test[target.getRight() <= test] = 1.0
-    p_test[target.getLeft() > test] = 0.0
+    left_index = target.getRight() <= test
+    right_index = target.getLeft() > test
     cross_idx = torch.logical_and(target.getRight() > test, target.getLeft() <= test)
+    volume = 2 * target.delta
+    if constants.score_f == 'hybrid':
+        p_test[left_index] = (((volume[left_index]) / (test - target.getLeft()[left_index])) + var(2.0)) / var(3.0)
+        p_test[cross_idx] = ((test - target.getLeft()[cross_idx]) / (volume[cross_idx]) + var(1.0)) / var(3.0)
+        p_test[right_index] = (var(1.0) - (volume[right_index] / (target.getRight()[right_index] - test))) / var(3.0)
+    else:
+        p_test[left_index] = 1.0
+        p_test[right_index] = 0.0
 
-    p_test[cross_idx] = (test - target.getLeft()[cross_idx]) / (target.getRight()[cross_idx] - target.getLeft()[cross_idx])
+        p_test[cross_idx] = (test - target.getLeft()[cross_idx]) / (target.getRight()[cross_idx] - target.getLeft()[cross_idx])
     # p_test = (test - target.getLeft()) / (target.getRight() - target.getLeft())
     # print(f"p_test grad: {p_test.grad}; leßn: {target.getRight() - target.getLeft()}")
     # print(p_test)
@@ -204,11 +213,27 @@ def extract_branch_probability_list(target, index_mask):
         zeros = zeros.cuda()
         branch = branch.cuda()
 
+    # print(f"c, delta: {target.c.detach().cpu().numpy()}, {target.delta.detach().cpu().numpy()}")
+    # add the influnce from c
     volume = 2 * target.delta
+    # print(f"volume: {volume.detach().cpu().numpy()}")
+    # print(f"index_mask: {index_mask}")
     # all the volumes belonging to the argmax index set are selected, otherwise 0.0
     selected_volume = torch.where(index_mask, volume, zeros)
+    # selected_volume might be all zero
+    # print(EPSILON)
+    selected_volume[index_mask] = torch.max(selected_volume[index_mask], EPSILON)
+
+    # print(f"selected_volume: {selected_volume.detach().cpu().numpy()}")
     sumed_volume = torch.sum(selected_volume, dim=1)[:, None]
     p_volume = selected_volume / sumed_volume
+
+    if constants.score_f == 'hybrid':
+        pre_score = p_volume + target.c
+        sumed_score = torch.sum(pre_score, dim=1)[:, None]
+        p_volume = pre_score / sumed_score
+        
+    # print(f"p_volume:\n {p_volume.detach().cpu().numpy()}")
 
     m = Categorical(p_volume)
     res = m.sample()
@@ -254,6 +279,7 @@ def calculate_branches(arg_idx, states):
     # branch: boolean tensor k-th colume represents the k-th branch, 
     # p_volume: real tensor, k-th column represents the probability to select the k-th branch(after samping)
     branch, p_volume = extract_branch_probability_list(target, index_mask)
+    # print(f"p_volume:\n {p_volume.detach().cpu().numpy()}")
 
     states_list = assign_states(states, branch, p_volume)
     return states_list

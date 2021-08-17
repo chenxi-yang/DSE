@@ -42,6 +42,7 @@ bound_start = args.bound_start
 bound_end = args.bound_end
 
 simple_debug = args.simple_debug
+score_f = args.score_f
 
 extract_one_trajectory = args.extract_one_trajectory
 
@@ -369,6 +370,27 @@ if benchmark_name == "racetrack_easy":
     safe_range_bound_list = [0]
 
 
+if benchmark_name == "racetrack_easy_classifier":
+    x_l = [4.0]
+    x_r = [6.0]
+    safe_range_list = [0]
+    map_mode = True
+    # y's range
+    map_safe_range = [
+        [4.0, 6.0], [4.0, 6.0], [4.0, 6.0], [4.0, 6.0],
+        [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
+        [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
+        [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [0.0, 9.0], 
+        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 3.0],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    w_list = [1.0]
+    method_list = ['map_each'] # each element in the trajectory is 
+    name_list = ['position']
+    safe_range_bound_list = [0]
+
+
 if benchmark_name == "racetrack_easy_1":
     x_l = [4.0]
     x_r = [6.0]
@@ -476,6 +498,8 @@ if benchmark_name == "aircraft_collision_refined_classifier":
 
 
 model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}"
+if score_f != 'volume':
+    model_name_prefix += f"_{score_f}"
 
 dataset_path_prefix = f"dataset/{benchmark_name}"
 
@@ -512,6 +536,8 @@ alpha_smooth_max = 0.8
 eps = 1e-10
 
 expr_info_prefix = f"{train_size}_{safe_range_bound_list}"
+if score_f != 'hybrid':
+    expr_info_prefix += f"_{score_f}"
 test_info_prefix = f"{AI_verifier_num_components}_{SE_verifier_run_times}"
 
 result_prefix = f"{model_name_prefix}_{expr_info_prefix}_{test_info_prefix}"
