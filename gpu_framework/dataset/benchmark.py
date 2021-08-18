@@ -729,6 +729,34 @@ def racetrack_easy(x, safe_bound):
     return trajectory_list
 
 
+def car_control_classifier(x, y):
+    p0, p1, p2 = 0.0, 0.0, 0.0
+    if y <= 9:
+        p1 = 1.0
+    elif y <= 12:
+        p2 = 1.0
+    else:
+        p0 = 1.0
+    return p0, p1, p2
+
+
+def racetrack_easy_classifier(x, safe_bound):
+    x, y = x, 0.0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps): 
+        p0, p1, p2 = car_control_classifier(x, y)
+        trajectory_list.append(([x, y], [p0, p1, p2]))
+        if p0 == 1:
+            x -= 1
+        elif p1 == 1:
+            x = x
+        else:
+            x += 1
+        y += 1
+    return trajectory_list
+
+
 # easier
 def racetrack_easy_1(x, safe_bound):
     x, y = x, 0.0
@@ -989,7 +1017,7 @@ def aircraft_collision_refined(x, safe_bound):
 
 def classifier_stage(x1, y1, x2, y2, step, stage):
     p0, p1, p2, p3 = 0, 0, 0, 0
-    critical_distance_square = 200
+    critical_distance_square = 250
     if stage == 0:
         if aircraft_distance(x1, y1, x2, y2) <= critical_distance_square:
             stage = 1
@@ -1031,16 +1059,17 @@ def aircraft_collision_refined_classifier(x, safe_bound):
     step = 0
     trajectory_list = list()
     for i in range(steps):
+        # assign stage based on the branch
         p0, p1, p2, p3, stage, step = classifier_stage(x1, y1, x2, y2, stage, step)
         trajectory_list.append(([x1, y1, x2, y2, stage], [p0, p1, p2, p3]))
         if p0 == 1:
-            pass
+            pass # stage = 0
         elif p1 == 1:
-            x1 = x1 - 5.0
+            x1 = x1 - 5.0 # stage = 1
         elif p2 == 1:
-            pass
+            pass # stage = 2
         else:
-            x1 =  x1 + 5.0
+            x1 =  x1 + 5.0 # stage = 3
         y1 = y1 + straight_speed
         x2 = x2 + straight_speed
     
