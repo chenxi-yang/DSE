@@ -57,7 +57,7 @@ def get_parser():
     p.add_argument(
         "--score_f", 
         default="volume", 
-        choices=['volume', 'hybrid'], # volume: volume based, hybrid: volume + distance based
+        choices=['volume', 'hybrid', 'distance'], # volume: volume based, hybrid: volume + distance based
         help="define the score function used to calculate the sampling probability"
     )
     p.add_argument("--use_smooth_kernel", default=False, type=str2bool, help="decide whether to use smooth kernel")

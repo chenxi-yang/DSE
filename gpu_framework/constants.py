@@ -43,6 +43,8 @@ bound_end = args.bound_end
 
 simple_debug = args.simple_debug
 score_f = args.score_f
+if score_f == 'hybrid':
+    importance_weight_list = [1.0, 1.0] # 0.9 for volume, 0.1 for probability
 
 extract_one_trajectory = args.extract_one_trajectory
 

@@ -116,7 +116,10 @@ def f_update_y1(x):
     return x.add(var(5.0))
 
 def f_update_x2(x):
-    return x.add(var(5.0))
+    # print(f"c: {x.c}, delta: {x.delta}")
+    res = x.add(var(5.0))
+    # print(f"res c: {res.c}, res delta: {res.delta}")
+    return res
 
 def compute_distance(x):
     x1 = x.select_from_index(1, index0)
@@ -146,10 +149,6 @@ class Program(nn.Module):
         super(Program, self).__init__()
         self.steps = var(15)
         self.straight_speed = var(5.0)
-        self.cruise_bar = var(0.25)
-        self.left_bar = var(0.5)
-        self.straight_bar = var(0.75)
-        self.right_bar = var(1.0)
 
         self.nn_classifier = LinearReLU(l=l)
         self.skip = Skip()
@@ -184,7 +183,7 @@ class Program(nn.Module):
         self.assign_y1 = Assign(target_idx=[2], arg_idx=[2], f=f_update_y1)
         self.assign_x2 = Assign(target_idx=[3], arg_idx=[3], f=f_update_x2)
         self.assign_update_i = Assign(target_idx=[0], arg_idx=[0], f=f_update_i)
-        self.trajectory_update = Trajectory(target_idx=[5]) # update the distance
+        self.trajectory_update = Trajectory(target_idx=[10, 1, 2, 3, 4, 5, 6, 7, 8]) # update the distance
         self.whileblock = nn.Sequential(
             self.assign_distance, 
             self.assign_branch_probability,  
