@@ -4,6 +4,7 @@ import random
 import torch.nn as nn
 import torch
 from scipy.stats import bernoulli
+import random
 
 import numpy as np
 
@@ -731,16 +732,120 @@ def racetrack_easy(x, safe_bound):
 
 def car_control_classifier(x, y):
     p0, p1, p2 = 0.0, 0.0, 0.0
+    i1 = random.uniform(0, 1)
+    i2 = random.uniform(0, 1)
+    flip_target = 0.4 # 0.15
+    second_target = 0.5
+
     if y <= 9:
         p1 = 1.0
+        if i1 <= flip_target:
+            p1 = 0.0
+            # p2 = 1.0
+            if i2 <= second_target:
+                p2 = 1.0
+            else:
+                p0 = 1.0
     elif y <= 12:
         p2 = 1.0
+        if i1 <= flip_target:
+            # pass
+            p2 = 0.0
+            # p0 = 1.0
+            if i2 <= second_target:
+                p0 = 1.0
+            else:
+                p1 = 1.0
+    elif y <= 13: # add difficulty in the training trajectory
+        p1 = 1.0
+        if i1 <= flip_target:
+            p1 = 0.0
+            # p2 = 1.0
+            if i2 <= second_target:
+                p2 = 1.0
+            else:
+                p0 = 1.0 
     else:
         p0 = 1.0
+        if i1 <= flip_target:
+            p0 = 0.0
+            # p2 = 1.0
+            if i2 <= second_target:
+                p1 = 1.0
+            else:
+                p2 = 1.0
+    
     return p0, p1, p2
 
 
 def racetrack_easy_classifier(x, safe_bound):
+    x, y = x, 0.0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps): 
+        p0, p1, p2 = car_control_classifier(x, y)
+        trajectory_list.append(([x, y], [p0, p1, p2]))
+        if p0 == 1:
+            x -= 1
+        elif p1 == 1:
+            x = x
+        else:
+            x += 1
+        y += 1
+    return trajectory_list
+
+
+def racetrack_easy_classifier_ITE(x, safe_bound):
+    # convert a classifier into an ITE version when using DSE
+    x, y = x, 0.0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps):
+        p0, p1, p2 = car_control_classifier(x, y)
+        trajectory_list.append(([x, y], [p0, p1, p2]))
+        # additional comparison between pi to model argmax
+        a = p1 - p0
+        b = p2 - p0
+        c = p2 - p1
+        if a <= 0: # p1 <= p0
+            if b <= 0: # p2 <= p0
+                index = 0
+            else: # p2 > p0 >= p1
+                index = 2
+        else: # p1 > p0
+            if c <= 0: # p2 <= p1 (p1 >= p2, p1 > p0)
+                index = 1
+            else: # p2 > p1 > p0
+                index = 2
+        if index == 0:
+            x -= 1
+        elif index == 1:
+            x = x
+        else:
+            x += 1
+        y += 1
+    
+    return trajectory_list
+
+
+def racetrack_easy_1_classifier(x, safe_bound):
+    x, y = x, 0.0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps): 
+        p0, p1, p2 = car_control_classifier(x, y)
+        trajectory_list.append(([x, y], [p0, p1, p2]))
+        if p0 == 1:
+            x -= 1
+        elif p1 == 1:
+            x = x
+        else:
+            x += 1
+        y += 1
+    return trajectory_list
+
+
+def racetrack_easy_2_classifier(x, safe_bound):
     x, y = x, 0.0
     steps = 20
     trajectory_list = list()
@@ -1074,6 +1179,22 @@ def aircraft_collision_refined_classifier(x, safe_bound):
         x2 = x2 + straight_speed
     
     return trajectory_list
+
+
+def aircraft_collision_refined_classifier_ITE(x, safe_bound):
+    stage = 0.0
+    steps = 15
+    straight_speed = 5.0
+    x1, y1, x2, y2 = x, -15.0, 0.0, 0.0
+    step = 0
+    trajectory_list = list()
+    for i in range(steps):
+        p0, p1, p2, p3, stage, step = classifier_stage(x1, y1, x2, y2, stage, step)
+        trajectory_list.append(([x1, y1, x2, y2, stage], [p0, p1, p2, p3]))
+        # TODO
+
+
+
 
 
 

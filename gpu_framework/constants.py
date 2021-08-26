@@ -372,6 +372,27 @@ if benchmark_name == "racetrack_easy":
     safe_range_bound_list = [0]
 
 
+if benchmark_name == "racetrack_easy_classifier_ITE":
+    x_l = [4.0]
+    x_r = [6.0]
+    safe_range_list = [0]
+    map_mode = True
+    # y's range
+    map_safe_range = [
+        [4.0, 6.0], [4.0, 6.0], [4.0, 6.0], [4.0, 6.0],
+        [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
+        [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
+        [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [0.0, 9.0], 
+        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 3.0],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    w_list = [1.0]
+    method_list = ['map_each'] # each element in the trajectory is 
+    name_list = ['position']
+    safe_range_bound_list = [0]
+
+
 if benchmark_name == "racetrack_easy_classifier":
     x_l = [4.0]
     x_r = [6.0]
@@ -384,6 +405,48 @@ if benchmark_name == "racetrack_easy_classifier":
         [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
         [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [0.0, 9.0], 
         [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 3.0],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    w_list = [1.0]
+    method_list = ['map_each'] # each element in the trajectory is 
+    name_list = ['position']
+    safe_range_bound_list = [0]
+
+
+if benchmark_name == "racetrack_easy_1_classifier":
+    x_l = [4.0]
+    x_r = [6.0]
+    safe_range_list = [0]
+    map_mode = True
+    # y's range
+    map_safe_range = [
+        [4.0, 6.0], [4.0, 6.0], [4.0, 6.0], [4.0, 6.0],
+        [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
+        [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
+        [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [0.0, 9.0], 
+        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 5.0],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    w_list = [1.0]
+    method_list = ['map_each'] # each element in the trajectory is 
+    name_list = ['position']
+    safe_range_bound_list = [0]
+
+
+if benchmark_name == "racetrack_easy_2_classifier":
+    x_l = [4.0]
+    x_r = [6.0]
+    safe_range_list = [0]
+    map_mode = True
+    # y's range
+    map_safe_range = [
+        [3.0, 6.0], [3.0, 6.0], [3.0, 6.0], [3.0, 6.0],
+        [3.0, 7.0], [3.0, 7.0], [3.0, 7.0], [3.0, 7.0],
+        [3.0, 8.0], [3.0, 8.0], [3.0, 8.0], [3.0, 8.0],
+        [3.0, 9.0], [3.0, 9.0], [3.0, 9.0], [0.0, 9.0], 
+        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 5.0],
     ]
     # map k-column in map[k] interval
     # 0 is the basic version
@@ -538,6 +601,7 @@ alpha_smooth_max = 0.8
 eps = 1e-10
 
 expr_info_prefix = f"{train_size}_{safe_range_bound_list}"
+# TODO fix the name issue
 if score_f != 'hybrid':
     expr_info_prefix += f"_{score_f}"
 test_info_prefix = f"{AI_verifier_num_components}_{SE_verifier_run_times}"
