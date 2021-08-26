@@ -369,24 +369,55 @@ def select_argmax(interval_left, interval_right):
 
     B, M = interval_right.shape
     index_mask = torch.zeros((B, M), dtype=torch.bool)
-    all_ones = torch.ones(interval_right.shape)
+    all_ones = torch.ones(interval_right.shape) + 1.0 # should be larger than 1.0
     if torch.cuda.is_available():
         index_mask = index_mask.cuda()
         all_ones = all_ones.cuda()
     
+    # print(f"interval_left: {interval_left}")
+    # print(f"interval_right: {interval_right}")
+    
     # interval: K x M
     max_right_index = index_conversion_second_dim(interval_right, torch.argmax(interval_right, dim=1))
     for i in range(M - 1):
+        # print(f"max_right_index: {max_right_index}")
         # convert to the shape of K x M
         max_left_value = interval_left[max_right_index][:, None]
+        # print(f"max_left_value: {max_left_value}")
         # if an interval's right >= the max interval's left, it is markd in max as well
         # >= is for the interval where delta == 0
+        # print(f"in index: {interval_right >= max_left_value}")
         index_mask[interval_right >= max_left_value] = True
 
         # select all the lower bound of a interval in the argmax set, otherwise 1.0
         left_already_in = torch.where(index_mask, interval_left, all_ones)
+        # print(f"left_already_in: {left_already_in}")
 
         max_right_index = index_conversion_second_dim(interval_right, torch.argmin(left_already_in, dim=1))
-
+    
+    # print(f"index_mask: {index_mask}")
+    # exit(0)
     return index_mask
+
+
+def aggregate_sampling_states(abstract_states, sample_size, max_allowed=600):
+    aggregated_abstract_states_list = list()
+    center, width = abstract_states['center'], abstract_states['width']
+    
+    aggregated_center = center.repeat(sample_size, 1)
+    aggregated_width = width.repeat(sample_size, 1)
+
+    B, D = aggregated_center.shape
+    unit = int((B - 1) / max_allowed) + 1
+    for i in range(unit):
+        aggregated_abstract_states = {
+            'center': aggregated_center[i * max_allowed: (i+1) * max_allowed, :],
+            'width': aggregated_width[i * max_allowed: (i+1) * max_allowed, :],
+        }
+        aggregated_abstract_states_list.append(aggregated_abstract_states)
+    
+    # print(len(aggregated_abstract_states_list))
+    return aggregated_abstract_states_list
+
+
 

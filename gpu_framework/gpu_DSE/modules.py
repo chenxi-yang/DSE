@@ -156,6 +156,10 @@ def calculate_branch(target_idx, test, states):
         print(f"target c: {target.c}, delta: {target.delta}")
         print(f"left probability: {p_left}")
         print(f"right probability: {p_right}")
+    # print(f"test: {test}")
+    # print(f"target c: {target.c}, delta: {target.delta}")
+    # print(f"left probability: {p_left}")
+    # print(f"right probability: {p_right}")
 
     if True in left: # split to left
         left_idx = left.nonzero(as_tuple=True)[0].tolist()
@@ -233,16 +237,24 @@ def extract_branch_probability_list(target, index_mask):
     selected_volume[index_mask] = torch.max(selected_volume[index_mask], EPSILON)
 
     # print(f"selected_volume: {selected_volume.detach().cpu().numpy()}")
+
     sumed_volume = torch.sum(selected_volume, dim=1)[:, None]
     p_volume = selected_volume / sumed_volume
 
     if constants.score_f == 'hybrid':
+        # pre_score = importance_weight_list[0] * p_volume + importance_weight_list[1] * target.c
         pre_score = p_volume + target.c
+        # print(f"volume: {p_volume.detach().cpu().numpy()}; c: {target.c.detach().cpu().numpy()}")
+        sumed_score = torch.sum(pre_score, dim=1)[:, None]
+        p_volume = pre_score / sumed_score
+    if constants.score_f == 'distance':
+        pre_score = target.c
+        # print(f"target.c: {target.c}")
         sumed_score = torch.sum(pre_score, dim=1)[:, None]
         p_volume = pre_score / sumed_score
         
     # print(f"p_volume:\n {p_volume.detach().cpu().numpy()}")
-
+    # exit(0)
     m = Categorical(p_volume)
     res = m.sample()
     branch[(torch.arange(p_volume.size(0)), res)] = True
