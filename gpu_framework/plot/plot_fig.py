@@ -19,19 +19,32 @@ def read_loss(loss_path):
     q_list = list()
     c_list = list()
     with open(loss_path, 'r') as loss_f:
-        loss_f.readline()
-        loss_f.readline()
-        loss_f.readline()
-        i = 0
+        # loss_f.readline()
+        # loss_f.readline()
+        # loss_f.readline()
+        flag = False
+        i = 1
         for line in loss_f:
-            if i % 2 == 1:
+            if 'Namespace' in line or 'Target' in line or 'path_sample_size' in line:
+                continue
+            if flag is False and '71.57061076164246' not in line:
+                continue
+            if '71.57061076164246' in line:
+                flag = True
+            if 'Optimization' in line:
+                break
+            # print(line)
+            # if i % 3 == 2:
+            if 'finish' in line:
+                # print(line)
                 content = line.split(",")
                 # print(content)
                 q = float(content[1].split(":")[1])
-                c = abs(float(content[2].split(":")[1]))
+                c = abs(float(content[3].split(":")[1]))
                 q_list.append(q)
                 c_list.append(c)
             i += 1
+    print(c_list)
     return q_list, c_list
 
 
@@ -759,7 +772,7 @@ def extract_test_info(
 #     plt.close()
 #     return 
 def plot_single_loss(loss_dir):
-    loss_name = 'mc'
+    loss_name = 're_volume'
     q_list, c_list = read_loss(loss_dir)
     x_list = list(range(len(q_list)))
 
@@ -976,9 +989,11 @@ def extract_thermostat_concrete_trajectories():
 
 if __name__ == "__main__":
     # extract_racetrack_easy_concrete_trajectories()
-    extract_thermostat_concrete_trajectories()
+    # extract_thermostat_concrete_trajectories()
     # extract_concrete_trajectories()
-    # plot_single_loss('../gpu_DSE/result/mountain_car_all_10_2_1_200_[0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1]_500_500.txt') # the q and c loss
+    # plot_single_loss('../gpu_DSE/result/racetrack_easy_classifier_complex_64_2_12_hybrid_200_[0]_4000_1000.txt') # the q and c loss
+    # plot_single_loss('../gpu_DSE/result/racetrack_easy_classifier_complex_64_2_12_distance_200_[0]_distance_4000_1000.txt')
+    plot_single_loss('../gpu_DSE/result/racetrack_easy_classifier_complex_64_2_12_200_[0]_volume_4000_1000.txt')
     # plot_log('../gpu_DSE/result/mc_log.txt')
     #  plot_loss_2('loss/')
     # plot_sample('data/sample_time.txt')
