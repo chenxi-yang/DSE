@@ -12,6 +12,7 @@ from utils import (
     batch_pair,
     divide_chunks,
     save_model,
+    aggregate_sampling_states,
     )
 
 import import_hub as hub
@@ -47,6 +48,9 @@ def extract_safe_loss(component, target_component, target_idx):
             raise NotImplementedError("Error: No trajectory method detected!")
 
         unsafe_penalty = var_list([0.0])
+        p0_left_list, p1_left_list, p2_left_list = list(), list(), list()
+        a_list, b_list, c_list = list(), list(), list()
+        x_left_list,  x_right_list, unsafe_value_list = list(), list(), list()
         for state_idx, state in enumerate(trajectory):
             X = state[target_idx]
             # print(f"trajectory length: {len(trajectory)}")
@@ -65,20 +69,46 @@ def extract_safe_loss(component, target_component, target_idx):
             else:
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
+            
+            # use sum
+            # try use the sum to penalize
             # unsafe_penalty = unsafe_penalty + unsafe_value
             unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
+
             # print(f"x1: {float(state[1].left), float(state[1].right)}, y1: {float(state[2].left), float(state[2].right)}")
             # print(f"x2: {float(state[3].left), float(state[3].right)}, y2: {float(state[4].left), float(state[4].right)}")
             # print(f"p0: {float(state[5].left), float(state[5].right)}, p1: {float(state[6].left), float(state[6].right)}")
             # print(f"p2: {float(state[7].left), float(state[7].right)}, p3: {float(state[8].left), float(state[8].right)}")
+            
+            # race_track
+            # print(f"p0: {float(state[2].left), float(state[2].right)}, p1: {float(state[3].left), float(state[3].right)}")
+            # print(f"p2: {float(state[4].left), float(state[4].right)}")
             # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             # if float(X.left) == 0.0:
             #     exit(0)
+            p0_left_list.append(float(state[2].left))
+            p1_left_list.append(float(state[3].left))
+            p2_left_list.append(float(state[4].left))
+            a_list.append((float(state[5].left), float(state[5].right)))
+            b_list.append((float(state[6].left), float(state[6].right)))
+            c_list.append((float(state[7].left), float(state[7].right)))
+            x_left_list.append(float(X.left))
+            x_right_list.append(float(X.right))
+            unsafe_value_list.append(float(unsafe_value))
             # if state_idx == len(trajectory) - 1:
+            #     # print(f"p0: {float(state[2].left), float(state[2].right)}, p1: {float(state[3].left), float(state[3].right)}")
+            #     # print(f"p2: {float(state[4].left), float(state[4].right)}")
             #     print(f"last step X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
         # print(len(trajectory))
-        # print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
+        print(f"p0: {p0_left_list}")
+        print(f"p1: {p1_left_list}")
+        print(f"p2: {p2_left_list}")
+        print(f"a: {a_list}\nb: {b_list}\nc: {c_list}")
+        print(f"x left: {x_left_list}")
+        print(f"x right: {x_right_list}")
+        print(f"unsafe_value list: {unsafe_value_list}")
+        print(f"p: {float(p)}, unsafe_penalty: {float(unsafe_penalty)}")
         # exit(0)
         component_loss += p * float(unsafe_penalty) + unsafe_penalty
         real_safety_loss += float(unsafe_penalty)
@@ -182,11 +212,12 @@ def cal_safe_loss(m, abstract_states, target):
             'p_list': list(),
         }
         component_result_list.append(component)
-
+    
     # TODO: sample simultanuously
-    # list of trajectories, p_list
-    for i in range(constants.SAMPLE_SIZE):
-        ini_states = initialize_components(abstract_states)
+    # aggregate abstract states based on sample_size
+    aggregated_abstract_states_list = aggregate_sampling_states(abstract_states, constants.SAMPLE_SIZE)
+    for aggregated_abstract_states in aggregated_abstract_states_list:
+        ini_states = initialize_components(aggregated_abstract_states)
         # print(f"start safe AI")
         output_states = m(ini_states, 'abstract')
         trajectories = output_states['trajectories']
@@ -196,11 +227,27 @@ def cal_safe_loss(m, abstract_states, target):
         ziped_result = zip(idx_list, trajectories, p_list)
         sample_result = [(x, y, z) for x, y, z in sorted(ziped_result, key=lambda tuple: tuple[0])]
         for idx, trajectory, p in sample_result:
-            component_result_list[idx]['trajectories'].append(trajectory)
-            component_result_list[idx]['p_list'].append(p)
+            component_result_list[0]['trajectories'].append(trajectory)
+            component_result_list[0]['p_list'].append(p)
+    safe_loss, real_safety_loss = safe_distance([component_result_list[0]], target)
+    
+    # list of trajectories, p_list
+    # for i in range(constants.SAMPLE_SIZE):
+    #     ini_states = initialize_components(abstract_states)
+    #     # print(f"start safe AI")
+    #     output_states = m(ini_states, 'abstract')
+    #     trajectories = output_states['trajectories']
+    #     idx_list = output_states['idx_list']
+    #     p_list = output_states['p_list']
+
+    #     ziped_result = zip(idx_list, trajectories, p_list)
+    #     sample_result = [(x, y, z) for x, y, z in sorted(ziped_result, key=lambda tuple: tuple[0])]
+    #     for idx, trajectory, p in sample_result:
+    #         component_result_list[idx]['trajectories'].append(trajectory)
+    #         component_result_list[idx]['p_list'].append(p)
         # exit(0)
 
-    safe_loss, real_safety_loss = safe_distance(component_result_list, target)
+    # safe_loss, real_safety_loss = safe_distance(component_result_list, target)
     return safe_loss, real_safety_loss
 
 
@@ -270,7 +317,7 @@ def learning(
         print(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}, real_c: {real_safety_loss}")
         if not constants.debug:
             log_file = open(constants.file_dir, 'a')
-            log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
+            log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1 - epochs_to_skip)}\n")
             log_file.write(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}, real_c: {real_safety_loss}\n")
             log_file.flush()
         
