@@ -84,6 +84,8 @@ class SigmoidLinear(nn.Module):
 Program Statement
 '''
 def calculate_states(target_idx, arg_idx, f, states):
+    if constants.profile:
+        start = time.time()
     x = states['x']
     # print(f)
     # print(f"x, c: {x.c}, delta: {x.delta}")
@@ -97,6 +99,9 @@ def calculate_states(target_idx, arg_idx, f, states):
 
     x.delta[:, target_idx] = res.delta
     states['x'] = x
+    if constants.profile:
+        end = time.time()
+        # print(f"--FUNCTION TIME: {end - start}, function: {str(f)}")
     return states
 
 
@@ -140,6 +145,8 @@ def sample_from_p(p_left, p_right):
 
 
 def calculate_branch(target_idx, test, states):
+    if constants.profile:
+        start = time.time()
     body_states, orelse_states = dict(), dict()
     x = states['x']
     target = x.select_from_index(1, target_idx) # select the batch target from x
@@ -212,6 +219,10 @@ def calculate_branch(target_idx, test, states):
         print(f"orelse_states p_list")
         if len(orelse_states) > 0:
             print(orelse_states['p_list'])
+    
+    if constants.profile:
+        end = time.time()
+        print(f"--CALCULATE BRANCH: {end - start}, target: {target_idx.squeeze().detach().cpu().numpy()}")
     
     return body_states, orelse_states
 
@@ -341,6 +352,9 @@ class IfElse(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, states):
+        if constants.profile:
+            start = time.time()
+
         body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
         if len(body_states) > 0:
             body_states = self.body(body_states)
@@ -353,6 +367,9 @@ class IfElse(nn.Module):
         #     print(f"trajectories of res_states in [IF_ELSE]")
         #     for trajectory in res_states['trajectories']:
         #         print(f"trajectory length: {len(trajectory)}")
+        if constants.profile:
+            end = time.time()
+            print(f"--IFELSE BLOCK: {end - start}")
 
         return res_states
 
@@ -397,7 +414,13 @@ class While(nn.Module):
             res_states = concatenate_states(res_states, orelse_states)
             if len(body_states) == 0:
                 return res_states
+            if constants.profile:
+                start = time.time()
             states = self.body(body_states)
+            if constants.profile:
+                end = time.time()
+                print(f"--EACH ITERATION: {end - start}")
+                # exit(0)
             i += 1
             if i > constants.MAXIMUM_ITERATION:
                 break
@@ -419,22 +442,43 @@ class Trajectory(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, states):
+        if constants.profile:
+            start = time.time()
         x = states['x']
         trajectories = states['trajectories']
         B, D = x.c.shape
-        for x_idx in range(B):
-            cur_x_c, cur_x_delta = x.c[x_idx], x.delta[x_idx]
-            input_interval_list = list()
-            for idx in self.target_idx:
-                input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
-                input_interval = input.getInterval()
+        # print(f"B: {B}; D: {D}")
+        # print(f"target_idx: {self.target_idx}")
 
-                assert input_interval.left.data.item() <= input_interval.right.data.item()
-                input_interval_list.append(input_interval)
-            trajectories[x_idx].append(input_interval_list)
+        # x.select_from_index(1, arg_idx)
+    
+        # for x_idx in range(B):
+        #     cur_x_c, cur_x_delta = x.c[x_idx], x.delta[x_idx]
+        #     input_interval_list = list()
+        #     for idx in self.target_idx:
+        #         input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
+        #         input_interval = input.getInterval()
+
+        #         assert float(input_interval.left) <= float(input_interval.right)
+        #         input_interval_list.append(input_interval)
+        #     trajectories[x_idx].append(input_interval_list)
         
-        states['trajectories'] = trajectories
+        input = x.select_from_index(1, self.target_idx)
+        input_interval = input.getInterval()
+        _, K = input_interval.left.shape
+        for x_idx in range(B):
+            trajectories[x_idx].append((input_interval.left[x_idx], input_interval.right[x_idx]))
+            # input_interval_list = list()
+            # for idx in range(K):
+            #     res = domain.Interval(left=input_interval.left[x_idx][idx], right=input_interval.right[x_idx][idx])
+            #     assert float(res.left) <= float(res.right)
+            #     input_interval_list.append(input_interval)
+            # trajectories[x_idx].append(input_interval_list)
 
+        states['trajectories'] = trajectories
+        if constants.profile:
+            end = time.time()
+            print(f"--UPDATE TRAJECTORY: {end - start}")
         return states
 
 
