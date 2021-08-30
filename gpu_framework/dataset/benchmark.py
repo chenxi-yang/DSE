@@ -732,48 +732,49 @@ def racetrack_easy(x, safe_bound):
 
 def car_control_classifier(x, y):
     p0, p1, p2 = 0.0, 0.0, 0.0
-    i1 = random.uniform(0, 1)
-    i2 = random.uniform(0, 1)
-    flip_target = 0.4 # 0.15
-    second_target = 0.5
+    # no noise in the dataset
+    # i1 = random.uniform(0, 1)
+    # i2 = random.uniform(0, 1)
+    # flip_target = 0.0 # 0.15
+    # second_target = 0.5
 
     if y <= 9:
         p1 = 1.0
-        if i1 <= flip_target:
-            p1 = 0.0
-            # p2 = 1.0
-            if i2 <= second_target:
-                p2 = 1.0
-            else:
-                p0 = 1.0
+        # if i1 <= flip_target:
+        #     p1 = 0.0
+        #     # p2 = 1.0
+        #     if i2 <= second_target:
+        #         p2 = 1.0
+        #     else:
+        #         p0 = 1.0
     elif y <= 12:
         p2 = 1.0
-        if i1 <= flip_target:
-            # pass
-            p2 = 0.0
-            # p0 = 1.0
-            if i2 <= second_target:
-                p0 = 1.0
-            else:
-                p1 = 1.0
+        # if i1 <= flip_target:
+        #     # pass
+        #     p2 = 0.0
+        #     # p0 = 1.0
+        #     if i2 <= second_target:
+        #         p0 = 1.0
+        #     else:
+        #         p1 = 1.0
     elif y <= 13: # add difficulty in the training trajectory
         p1 = 1.0
-        if i1 <= flip_target:
-            p1 = 0.0
-            # p2 = 1.0
-            if i2 <= second_target:
-                p2 = 1.0
-            else:
-                p0 = 1.0 
+        # if i1 <= flip_target:
+        #     p1 = 0.0
+        #     # p2 = 1.0
+        #     if i2 <= second_target:
+        #         p2 = 1.0
+        #     else:
+        #         p0 = 1.0 
     else:
         p0 = 1.0
-        if i1 <= flip_target:
-            p0 = 0.0
-            # p2 = 1.0
-            if i2 <= second_target:
-                p1 = 1.0
-            else:
-                p2 = 1.0
+        # if i1 <= flip_target:
+        #     p0 = 0.0
+        #     # p2 = 1.0
+        #     if i2 <= second_target:
+        #         p1 = 1.0
+        #     else:
+        #         p2 = 1.0
     
     return p0, p1, p2
 
@@ -1192,6 +1193,18 @@ def aircraft_collision_refined_classifier_ITE(x, safe_bound):
         p0, p1, p2, p3, stage, step = classifier_stage(x1, y1, x2, y2, stage, step)
         trajectory_list.append(([x1, y1, x2, y2, stage], [p0, p1, p2, p3]))
         # TODO
+        if p0 == 1:
+            pass
+        elif p1 == 1:
+            x1 = x1 - 5.0
+        elif p2 == 1:
+            pass
+        else:
+            x1 = x1 + 5.0
+        y1 = y1 + straight_speed
+        x2 = x2 + straight_speed
+    
+    return trajectory_list
 
 
 

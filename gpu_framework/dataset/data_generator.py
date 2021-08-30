@@ -64,6 +64,8 @@ def dataset_arg(dataset):
         range_ = [12.0, 16.0]
     elif benchmark_name == "aircraft_collision_refined_classifier":
         range_ = [12.0, 16.0]
+    elif benchmark_name == "aircraft_collision_refined_classifier_ITE":
+        range_ = [12.0, 16.0]
     
     return range_
 
@@ -193,6 +195,8 @@ def run(safe_bound):
         func = benchmark.aircraft_collision_refined
     elif benchmark_name == "aircraft_collision_refined_classifier":
         func = benchmark.aircraft_collision_refined_classifier
+    elif benchmark_name == "aircraft_collision_refined_classifier_ITE":
+        func = benchmark.aircraft_collision_refined_classifier_ITE
     # elif benchmark_name == "fairness_1":
     #     func = benchmark.fairness_1
     # elif benchmark_name == "fairness_1":
