@@ -52,7 +52,8 @@ def extract_safe_loss(component, target_component, target_idx):
         a_list, b_list, c_list = list(), list(), list()
         x_left_list,  x_right_list, unsafe_value_list = list(), list(), list()
         for state_idx, state in enumerate(trajectory):
-            X = state[target_idx]
+            # X = state[target_idx]
+            X = domain.Interval(state[0][target_idx], state[1][target_idx])
             # print(f"trajectory length: {len(trajectory)}")
             # print(state_idx)
             if target_component["map_mode"] is True:
@@ -86,14 +87,14 @@ def extract_safe_loss(component, target_component, target_idx):
             # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             # if float(X.left) == 0.0:
             #     exit(0)
-            p0_left_list.append(float(state[2].left))
-            p1_left_list.append(float(state[3].left))
-            p2_left_list.append(float(state[4].left))
-            a_list.append((float(state[5].left), float(state[5].right)))
-            b_list.append((float(state[6].left), float(state[6].right)))
-            c_list.append((float(state[7].left), float(state[7].right)))
-            x_left_list.append(float(X.left))
-            x_right_list.append(float(X.right))
+            # p0_left_list.append(float(state[2].left))
+            # p1_left_list.append(float(state[3].left))
+            # p2_left_list.append(float(state[4].left))
+            # a_list.append((float(state[5].left), float(state[5].right)))
+            # b_list.append((float(state[6].left), float(state[6].right)))
+            # c_list.append((float(state[7].left), float(state[7].right)))
+            # x_left_list.append(float(X.left))
+            # x_right_list.append(float(X.right))
             unsafe_value_list.append(float(unsafe_value))
             # if state_idx == len(trajectory) - 1:
             #     # print(f"p0: {float(state[2].left), float(state[2].right)}, p1: {float(state[3].left), float(state[3].right)}")
@@ -101,14 +102,14 @@ def extract_safe_loss(component, target_component, target_idx):
             #     print(f"last step X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
         # print(len(trajectory))
-        print(f"p0: {p0_left_list}")
-        print(f"p1: {p1_left_list}")
-        print(f"p2: {p2_left_list}")
-        print(f"a: {a_list}\nb: {b_list}\nc: {c_list}")
-        print(f"x left: {x_left_list}")
-        print(f"x right: {x_right_list}")
-        print(f"unsafe_value list: {unsafe_value_list}")
-        print(f"p: {float(p)}, unsafe_penalty: {float(unsafe_penalty)}")
+        # print(f"p0: {p0_left_list}")
+        # print(f"p1: {p1_left_list}")
+        # print(f"p2: {p2_left_list}")
+        # print(f"a: {a_list}\nb: {b_list}\nc: {c_list}")
+        # print(f"x left: {x_left_list}")
+        # print(f"x right: {x_right_list}")
+        # print(f"unsafe_value list: {unsafe_value_list}")
+        # print(f"p: {float(p)}, unsafe_penalty: {float(unsafe_penalty)}")
         # exit(0)
         component_loss += p * float(unsafe_penalty) + unsafe_penalty
         real_safety_loss += float(unsafe_penalty)
@@ -171,7 +172,7 @@ def cal_data_loss(m, trajectories, criterion):
     else:
         X, y = batch_pair(trajectories, data_bs=512)
         X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
-        print(f"after batch pair: {X.shape}")
+        # print(f"after batch pair: {X.shape}")
         if torch.cuda.is_available():
             X = X.cuda()
             y = y.cuda()
@@ -181,9 +182,9 @@ def cal_data_loss(m, trajectories, criterion):
         # exit(0)
     
     # if constants.debug:
-    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-    y_list = y.squeeze().detach().cpu().numpy().tolist()
-    print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
+    # yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+    # y_list = y.squeeze().detach().cpu().numpy().tolist()
+    # print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
 
     # # print(f"x: {X}")
     # yp_list = yp.squeeze().detach().cpu().numpy().tolist()
@@ -216,6 +217,8 @@ def cal_safe_loss(m, abstract_states, target):
     # TODO: sample simultanuously
     # aggregate abstract states based on sample_size
     aggregated_abstract_states_list = aggregate_sampling_states(abstract_states, constants.SAMPLE_SIZE)
+    if constants.profile:
+        start = time.time()
     for aggregated_abstract_states in aggregated_abstract_states_list:
         ini_states = initialize_components(aggregated_abstract_states)
         # print(f"start safe AI")
@@ -229,6 +232,9 @@ def cal_safe_loss(m, abstract_states, target):
         for idx, trajectory, p in sample_result:
             component_result_list[0]['trajectories'].append(trajectory)
             component_result_list[0]['p_list'].append(p)
+    if constants.profile:
+        end = time.time()
+        print(f"--SAFE OUTPUT EXTRACTION: {end - start}")
     safe_loss, real_safety_loss = safe_distance([component_result_list[0]], target)
     
     # list of trajectories, p_list
@@ -321,16 +327,18 @@ def learning(
             log_file.write(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}, real_c: {real_safety_loss}\n")
             log_file.flush()
         
-        if abs(float(safe_loss)) <= float(EPSILON):
-            end_count += 1
-        else:
-            end_count = 0
-        if end_count >= 5: # the signal to early stop
-            if not constants.debug:
-                log_file = open(file_dir, 'a')
-                log_file.write('EARLY STOP: Get safe results \n')
-                log_file.close()
-            break
+        if constants.early_stop is True:
+            if abs(float(safe_loss)) <= float(EPSILON):
+                end_count += 1
+            else:
+                end_count = 0
+            
+            if end_count >= 5: # the signal to early stop
+                if not constants.debug:
+                    log_file = open(file_dir, 'a')
+                    log_file.write('EARLY STOP: Get safe results \n')
+                    log_file.close()
+                break
 
         if (time.time() - start_time)/(i+1) > 3600 or TIME_OUT:
             if not constants.debug:
