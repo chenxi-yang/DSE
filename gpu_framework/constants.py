@@ -562,7 +562,23 @@ if benchmark_name == "aircraft_collision_refined_classifier":
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
-model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}"
+if benchmark_name == "aircraft_collision_refined_classifier_ITE":
+    x_l = [12.0]
+    x_r = [16.0]
+    safe_range_list = [[40.0, 100000.0]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['x1']
+
+    safe_range_start=100000.0
+    safe_range_end=100050.0
+    safe_range_step=100
+
+    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
+model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}_{train_size}"
 if score_f != 'volume':
     model_name_prefix += f"_{score_f}"
 
