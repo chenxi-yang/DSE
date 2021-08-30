@@ -45,7 +45,7 @@ def extract_safe_loss(component, target_component, target_idx):
 
         unsafe_penalty = var_list([0.0])
         for state_idx, state in enumerate(trajectory):
-            X = state[target_idx]
+            X = domain.Interval(state[0][target_idx], state[1][target_idx])
             if target_component["map_mode"] is True:
                 safe_interval = target_component["map_condition"][state_idx] # the constraint over the k-th step
             intersection_interval = get_intersection(X, safe_interval)

@@ -8,6 +8,9 @@ from constants import *
 
 import math
 
+from utils import (
+    select_argmax,
+)
 
 '''
 Module used as functions
@@ -181,6 +184,16 @@ def sound_join(states1, states2):
     # print(f"******* end sound join *******")
     # pdb.set_trace()
 
+    return res_states
+
+
+def sound_join_list(states_list):
+    if len(states_list) == 0:
+        return states_list[0]
+    res_states = dict()
+
+    for states_idx, states in enumerate(states_list):
+        res_states = sound_join(res_states, states)
     return res_states
 
 
@@ -426,16 +439,21 @@ class Trajectory(nn.Module):
         x = states['x']
         trajectories = states['trajectories']
         B, D = x.c.shape
+        # for x_idx in range(B):
+        #     cur_x_c, cur_x_delta = x.c[x_idx], x.delta[x_idx]
+        #     input_interval_list = list()
+        #     for idx in self.target_idx:
+        #         input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
+        #         input_interval = input.getInterval()
+        #         # print(f"into trajectory, x: {float(input_interval.left), float(input_interval.right)}")
+        #         assert input_interval.left.data.item() <= input_interval.right.data.item()
+        #         input_interval_list.append(input_interval)
+        #     trajectories[x_idx].append(input_interval_list)
+        input = x.select_from_index(1, self.target_idx)
+        input_interval = input.getInterval()
+        _, K = input_interval.left.shape
         for x_idx in range(B):
-            cur_x_c, cur_x_delta = x.c[x_idx], x.delta[x_idx]
-            input_interval_list = list()
-            for idx in self.target_idx:
-                input = domain.Box(cur_x_c[idx], cur_x_delta[idx])
-                input_interval = input.getInterval()
-                # print(f"into trajectory, x: {float(input_interval.left), float(input_interval.right)}")
-                assert input_interval.left.data.item() <= input_interval.right.data.item()
-                input_interval_list.append(input_interval)
-            trajectories[x_idx].append(input_interval_list)
+            trajectories[x_idx].append((input_interval.left[x_idx], input_interval.right[x_idx]))
         
         states['trajectories'] = trajectories
 
