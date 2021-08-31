@@ -52,7 +52,9 @@ def initialize_components(abstract_states):
     states = {
         'x': domain.Box(torch.cat((padding, input_center, padding_y1, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding), 1), \
             torch.cat((padding, input_width, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding), 1)),
-        'trajectories': [[] for i in range(B)],
+        # 'trajectories': [[] for i in range(B)],
+        'trajectories_l': [[] for i in range(B)],
+        'trajectories_r': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
         'p_list': [var(0.0) for i in range(B)], # use the log_p here, so start from 0.0
         'alpha_list': [var(1.0) for i in range(B)],
@@ -75,7 +77,9 @@ def initialization_components_point():
     states = {
         'x': domain.Box(torch.cat((padding, input_center, padding_y1, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding), 1), \
             torch.cat((padding, input_width, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding), 1)),
-        'trajectories': [[] for i in range(B)],
+        # 'trajectories': [[] for i in range(B)],
+        'trajectories_l': [[] for i in range(B)],
+        'trajectories_r': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
         'p_list': [var(0.0) for i in range(B)], # might be changed to batch
         'alpha_list': [var(1.0) for i in range(B)],
