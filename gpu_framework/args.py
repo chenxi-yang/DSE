@@ -77,6 +77,12 @@ def get_parser():
         type=str2bool, 
         help="only use data loss"
     )
+    p.add_argument(
+        "--early_stop", 
+        default=True, 
+        type=str2bool, 
+        help="early stop"
+    )
     p.add_argument("--data_bs", default=2, type=int, help="number of trajectories to use for data loss")
     p.add_argument("--use_data_loss", default=True, type=str2bool, help="use data loss")
     p.add_argument(
@@ -129,6 +135,7 @@ def get_parser():
     p.add_argument("--cuda_debug", default=False, type=str2bool,  help="decide whether de cuda memory bug")
     p.add_argument("--simple_debug", default=False, type=str2bool, help="change max iteration")
     p.add_argument("--run_time_debug", default=False, type=str2bool, help="whether print sub time")
+    p.add_argument("--profile", default=False, type=str2bool, help="print the running time of per part")
     
     # plot
     p.add_argument("--plot", default=False, type=str2bool, help="plot or not")

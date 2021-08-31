@@ -146,6 +146,9 @@ if __name__ == "__main__":
 
                     m = Program(l=l, nn_mode=nn_mode)
                     epochs_to_skip, m = load_model(m, MODEL_PATH, name=target_model_name)
+                    if constants.profile:
+                        epochs_to_skip = -1
+                        m = None
                     if test_mode:
                         if m is None:
                             print(f"No Model to test.")
@@ -219,20 +222,20 @@ if __name__ == "__main__":
                 )
                 print(f"---verification AI time: {time.time() - verification_time} sec---")
 
-                constants.status = 'verify_SE'
-                import verifier_SE as vS
-                importlib.reload(vS)
-                from verifier_SE import *
+                # constants.status = 'verify_SE'
+                # import verifier_SE as vS
+                # importlib.reload(vS)
+                # from verifier_SE import *
                 
-                verification_time = time.time()
-                verifier_SE(
-                    model_path=MODEL_PATH, 
-                    model_name=target_model_name,
-                    components=SE_components,
-                    target=target,
-                    trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
-                )
-                print(f"---verification SE time: {time.time() - verification_time} sec---")
+                # verification_time = time.time()
+                # verifier_SE(
+                #     model_path=MODEL_PATH, 
+                #     model_name=target_model_name,
+                #     components=SE_components,
+                #     target=target,
+                #     trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
+                # )
+                # print(f"---verification SE time: {time.time() - verification_time} sec---")
 
                 import tester as t
                 importlib.reload(t)

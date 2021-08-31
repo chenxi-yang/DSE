@@ -23,6 +23,7 @@ b = args.b
 num_components = args.num_components
 save = args.save
 test_mode = args.test_mode
+early_stop = args.early_stop
 
 data_attr = args.data_attr
 # thermostat: normal_55.0_62.0
@@ -34,6 +35,7 @@ debug = args.debug
 debug_verifier = args.debug_verifier
 run_time_debug = args.run_time_debug
 plot = args.plot
+profile = args.profile
 
 data_bs = args.data_bs
 
@@ -53,6 +55,8 @@ SE_verifier_num_components = args.SE_verifier_num_components
 # TODO: SE_verifier_num_components
 SE_verifier_run_times = args.SE_verifier_run_times
 train_sample_size = args.train_sample_size
+
+# assert(profile != save)
 
 # thermostat: 0.3
 # mountain_car: 0.01
@@ -620,7 +624,8 @@ expr_info_prefix = f"{train_size}_{safe_range_bound_list}"
 # TODO fix the name issue
 if score_f != 'hybrid':
     expr_info_prefix += f"_{score_f}"
-test_info_prefix = f"{AI_verifier_num_components}_{SE_verifier_run_times}"
+# test_info_prefix = f"{AI_verifier_num_components}_{SE_verifier_run_times}"
+test_info_prefix = f"{AI_verifier_num_components}"
 
 result_prefix = f"{model_name_prefix}_{expr_info_prefix}_{test_info_prefix}"
 
@@ -633,7 +638,7 @@ else:
 
 trajectory_log_prefix = f"gpu_{mode}/result_test/trajectory/{result_prefix}_"
 
-if not debug and not generate_dataset and not plot and not debug_verifier:
+if not profile and not debug and not generate_dataset and not plot and not debug_verifier:
     if os.path.exists(file_dir):
         log_file = open(file_dir, 'a')
     else:
