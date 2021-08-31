@@ -166,9 +166,11 @@ def extract_safe_loss(component, target_component, target_idx):
 
     unsafe_penalty = torch.max(unsafe_value, 1)[0]
     # print(unsafe_penalty.shape, torch.sum(unsafe_penalty))
-    sum_penalty = float(torch.sum(unsafe_penalty))
-    component_loss = torch.dot(p_list, unsafe_penalty) + sum_penalty
-    real_safety_loss = sum_penalty
+    sum_penalty = torch.sum(unsafe_penalty)
+    # !!! detach!!!
+    # print(p_list.shape, unsafe_penalty.shape)
+    component_loss = torch.dot(p_list.squeeze(), unsafe_penalty.detach()) + sum_penalty
+    real_safety_loss = float(sum_penalty)
 
     component_loss /= len(component['p_list'])
     real_safety_loss /= len(component['p_list'])
