@@ -54,7 +54,8 @@ def initialize_components(abstract_states):
     states = {
         'x': domain.Box(torch.cat((input_center, padding, padding, padding, padding, padding, padding, padding, padding), 1), \
              torch.cat((input_width, padding, padding, padding, padding, padding, padding, padding, padding), 1)),
-        'trajectories': [[] for i in range(B)],
+        'trajectories_l': [[] for i in range(B)],
+        'trajectories_r': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
         'p_list': [var(0.0) for i in range(B)], # might be changed to batch
         'alpha_list': [var(1.0) for i in range(B)],
@@ -80,7 +81,9 @@ def initialization_components_point():
     states = {
         'x': domain.Box(torch.cat((input_center, padding, padding, padding, padding, padding, padding, padding, padding), 1), \
             torch.cat((input_width, padding, padding, padding, padding, padding, padding, padding, padding), 1)),
-        'trajectories': [[] for i in range(B)],
+        # 'trajectories': [[] for i in range(B)],
+        'trajectories_l': [[] for i in range(B)],
+        'trajectories_r': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
         'p_list': [var(0.0) for i in range(B)], # might be changed to batch
         'alpha_list': [var(1.0) for i in range(B)],
@@ -178,6 +181,7 @@ class Program(nn.Module):
         self.forward_update = Assign(target_idx=[1], arg_idx=[1], f=f_forward)
         self.step_update = Assign(target_idx=[5], arg_idx=[5], f=f_step_update)
         self.trajectory_update = Trajectory(target_idx=[0, 1, 2, 3, 4, 6,7, 8]) # x, y, p0, p1, p2
+        # self.trajectory_update = Trajectory(target_idx=[0, 1])
 
         self.whileblock = nn.Sequential(
             self.assign_probability, # x, y -> p0, p1, p2

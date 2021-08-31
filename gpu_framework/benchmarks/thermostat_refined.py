@@ -52,7 +52,9 @@ def initialize_components(abstract_states):
     input_center, input_width = center[:, :1], width[:, :1]
     states = {
         'x': domain.Box(torch.cat((padding, input_center, input_center, padding), 1), torch.cat((padding, input_width, input_width, padding), 1)),
-        'trajectories': [[] for i in range(B)],
+        # 'trajectories': [[] for i in range(B)],
+        'trajectories_l': [[] for i in range(B)],
+        'trajectories_r': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
         'p_list': [var(0.0) for i in range(B)], # might be changed to batch
         'alpha_list': [var(1.0) for i in range(B)],
@@ -73,7 +75,9 @@ def initialization_components_point():
     input_center[1], input_width[1] = 60.5, 0.001
     states = {
         'x': domain.Box(torch.cat((padding, input_center, input_center, padding), 1), torch.cat((padding, input_width, input_width, padding), 1)),
-        'trajectories': [[] for i in range(B)],
+        # 'trajectories': [[] for i in range(B)],
+        'trajectories_l': [[] for i in range(B)],
+        'trajectories_r': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
         'p_list': [var(0.0) for i in range(B)], # might be changed to batch
         'alpha_list': [var(1.0) for i in range(B)],
