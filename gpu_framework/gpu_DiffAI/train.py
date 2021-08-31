@@ -25,7 +25,7 @@ def get_intersection(interval_1, interval_2):
     return res_interval
 
 
-def extract_safe_loss(component, target_component, target_idx):
+def extract_safe_loss_old(component, target_component, target_idx):
     # component: {'trajectories', 'p_list'}
 
     if target_component["map_mode"] is False:
@@ -67,6 +67,51 @@ def extract_safe_loss(component, target_component, target_idx):
         component_loss += unsafe_penalty
     
     component_loss /= len(component['trajectories'])
+    return component_loss, (min_l, max_r)
+
+
+def extract_safe_loss(component, target_component, target_idx):
+    # component: {'trajectories', 'p_list'}
+
+    if target_component["map_mode"] is False:
+        safe_interval_l, safe_interval_r = target_component["condition"].left, target_component["condition"].right
+    else:
+        safe_interval_list = target_component["map_condition"]
+
+    trajectories_l = component['trajectories_l']
+    trajectories_r = component['trajectories_r']
+    converted_trajectories_l, converted_trajectories_r = list(zip(*trajectories_l)), list(zip(*trajectories_r))
+    stacked_trajectories_l = [torch.stack(i) for i in converted_trajectories_l]
+    stacked_trajectories_r = [torch.stack(i) for i in converted_trajectories_r]
+
+    B, C = len(trajectories_l), len(converted_trajectories_l)
+    unsafe_value = torch.zeros((B, C))
+    if torch.cuda.is_available():
+        unsafe_value = unsafe_value.cuda()
+    min_l, max_r = 100000, -100000
+
+    for state_idx, stacked_state in enumerate(stacked_trajectories_l):
+        # print(stacked_state.shape, target_idx)
+        l = stacked_state[:, target_idx]
+        r = stacked_trajectories_r[state_idx][:, target_idx]
+        if target_component["map_mode"] is True:
+            safe_interval_l, safe_interval_r = safe_interval_list[state_idx].left, safe_interval_list[state_idx].right # the constraint over the k-th step
+        
+        intersection_l, intersection_r = torch.max(l, safe_interval_l), torch.min(r, safe_interval_r)
+        empty_idx = intersection_r < intersection_l
+        # other_idx = intersection_r >= intersection_l
+        other_idx = ~ empty_idx
+        # print(unsafe_value.shape, empty_idx.shape, state_idx)
+        unsafe_value[empty_idx, state_idx] = torch.max(l[empty_idx] - safe_interval_r, safe_interval_l - r[empty_idx]) + 1.0
+        unsafe_value[other_idx, state_idx] = 1 - (intersection_r[other_idx] - intersection_l[other_idx] + eps) / (r[other_idx] - l[other_idx] + eps)
+        min_l, max_r = min(float(torch.min(l)), min_l), max(float(torch.max(r)), max_r)
+
+    unsafe_penalty = torch.max(unsafe_value, 1)[0]
+    # print(unsafe_penalty.shape, torch.sum(unsafe_penalty))
+    component_loss = torch.sum(unsafe_penalty)
+
+    component_loss /= len(component['trajectories_l'])
+
     return component_loss, (min_l, max_r)
     
 
