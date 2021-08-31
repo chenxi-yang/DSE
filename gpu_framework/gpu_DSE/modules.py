@@ -84,8 +84,8 @@ class SigmoidLinear(nn.Module):
 Program Statement
 '''
 def calculate_states(target_idx, arg_idx, f, states):
-    if constants.profile:
-        start = time.time()
+    # if constants.profile:
+    #     start = time.time()
     x = states['x']
     # print(f)
     # print(f"x, c: {x.c}, delta: {x.delta}")
@@ -99,8 +99,8 @@ def calculate_states(target_idx, arg_idx, f, states):
 
     x.delta[:, target_idx] = res.delta
     states['x'] = x
-    if constants.profile:
-        end = time.time()
+    # if constants.profile:
+    #     end = time.time()
         # print(f"--FUNCTION TIME: {end - start}, function: {str(f)}")
     return states
 
@@ -117,9 +117,9 @@ def extract_branch_probability(target, test):
 
     if constants.score_f == 'hybrid':
         # print(p_test, volume, test, target.getLeft(), target.getRight())
-        p_test[left_index] = (torch.min((volume[left_index]) / torch.max((test - target.getLeft()[left_index]), EPSILON), var(1.0)) + var(2.0)) / var(3.0)
-        p_test[cross_idx] = (torch.min((test - target.getLeft()[cross_idx]) / torch.max(volume[cross_idx], EPSILON), var(1.0)) + var(1.0)) / var(3.0)
-        p_test[right_index] = (var(1.0) - torch.min(volume[right_index] / torch.max((target.getRight()[right_index] - test), EPSILON), var(1.0))) / var(3.0)
+        p_test[left_index] = (torch.min((volume[left_index]) / max((test - target.getLeft()[left_index]), EPSILON), var(1.0)) + var(2.0)) / var(3.0)
+        p_test[cross_idx] = (torch.min((test - target.getLeft()[cross_idx]) / max(volume[cross_idx], EPSILON), var(1.0)) + var(1.0)) / var(3.0)
+        p_test[right_index] = (var(1.0) - torch.min(volume[right_index] / max((target.getRight()[right_index] - test), EPSILON), var(1.0))) / var(3.0)
         p_test[left_volume_zero_idx] = 1.0
         p_test[right_volume_zero_idx] = 0.0
     else:
@@ -145,8 +145,8 @@ def sample_from_p(p_left, p_right):
 
 
 def calculate_branch(target_idx, test, states):
-    if constants.profile:
-        start = time.time()
+    # if constants.profile:
+    #     start = time.time()
     body_states, orelse_states = dict(), dict()
     x = states['x']
     target = x.select_from_index(1, target_idx) # select the batch target from x
@@ -156,8 +156,18 @@ def calculate_branch(target_idx, test, states):
     # select the idx accordingly
     # split the other
 
+    # if constants.profile:
+        # start_extract = time.time()
     p_left, p_right = extract_branch_probability(target, test)
+    # if constants.profile:
+    #     end_extract = time.time()
+    #     print(f"--EXTRACT BRANCH PROBABILITY: {end_extract - start_extract}")
+    #     start_sample = time.time()
     left, right = sample_from_p(p_left, p_right)
+    # if constants.profile:
+    #     end_sample = time.time()
+    #     print(f"--SAMPLING: {end_sample - start_sample}")
+    #     start_state_update = time.time()
     if constants.debug:
         print(f"test: {test}")
         print(f"target c: {target.c}, delta: {target.delta}")
@@ -178,13 +188,25 @@ def calculate_branch(target_idx, test, states):
         x_left.c[:, target_idx:target_idx+1] = new_left_target_c
         x_left.delta[:, target_idx:target_idx+1] = new_left_target_delta
 
-        body_states['x'] = x_left
-        body_states['trajectories'] = [states['trajectories'][i] for i in left_idx]
-        body_states['idx_list'] = [states['idx_list'][i] for i in left_idx]
+        # if constants.profile:
+        #     start_body_update = time.time()
         if constants.debug:
             print(f"before update: states p_list")
             print(states['p_list'])
-        body_states['p_list'] = [states['p_list'][i].add(torch.log(p_left[i])) for i in left_idx]
+        body_states['x'] = x_left
+        body_states['trajectories_l'], body_states['trajectories_r'], body_states['idx_list'], body_states['p_list'] = list(), list(), list(), list()
+        for i in left_idx:
+            # body_states['trajectories'].append(states['trajectories'][i])
+            body_states['trajectories_l'].append(states['trajectories_l'][i])
+            body_states['trajectories_r'].append(states['trajectories_r'][i])
+            body_states['idx_list'].append(states['idx_list'][i])
+            body_states['p_list'].append(states['p_list'][i])
+        # body_states['trajectories'] = [states['trajectories'][i] for i in left_idx]
+        # body_states['idx_list'] = [states['idx_list'][i] for i in left_idx]
+        # body_states['p_list'] = [states['p_list'][i].add(torch.log(p_left[i])) for i in left_idx]
+        # if constants.profile:
+        #     end_body_update = time.time()
+            # print(f"--LEFT UPDATE: {end_body_update - start_body_update}")
         if constants.debug:
             print(f"after update: body_states p_list")
             print(body_states['p_list'])
@@ -199,15 +221,27 @@ def calculate_branch(target_idx, test, states):
         x_right.c[:, target_idx:target_idx+1] = new_right_target_c
         x_right.delta[:, target_idx:target_idx+1] = new_right_target_delta
 
-        orelse_states['x'] = x_right
-        orelse_states['trajectories'] = [states['trajectories'][i] for i in right_idx]
-        orelse_states['idx_list'] = [states['idx_list'][i] for i in right_idx]
+        # if constants.profile:
+        #     start_orelse_update = time.time()
         if constants.debug:
             print(f"before update: states p_list")
             print(states['p_list'])
             print(f"right: {right_idx}")
             print(f"len p_list: {len(states['p_list'])}")
-        orelse_states['p_list'] = [states['p_list'][i].add(torch.log(p_right[i])) for i in right_idx]
+        orelse_states['x'] = x_right
+        orelse_states['trajectories_l'], orelse_states['trajectories_r'], orelse_states['idx_list'], orelse_states['p_list'] = list(), list(), list(), list()
+        for i in right_idx:
+            # orelse_states['trajectories'].append(states['trajectories'][i])
+            orelse_states['trajectories_l'].append(states['trajectories_l'][i])
+            orelse_states['trajectories_r'].append(states['trajectories_r'][i])
+            orelse_states['idx_list'].append(states['idx_list'][i])
+            orelse_states['p_list'].append(states['p_list'][i])
+        # orelse_states['trajectories'] = [states['trajectories'][i] for i in right_idx]
+        # orelse_states['idx_list'] = [states['idx_list'][i] for i in right_idx]
+        # orelse_states['p_list'] = [states['p_list'][i].add(torch.log(p_right[i])) for i in right_idx]
+        # if constants.profile:
+        #     end_orelse_update = time.time()
+            # print(f"--RIGHT UPDATE: {end_orelse_update - start_orelse_update}")
         if constants.debug:
             print(f"after update: orelse_states p_list")
             print(orelse_states['p_list'])
@@ -220,9 +254,11 @@ def calculate_branch(target_idx, test, states):
         if len(orelse_states) > 0:
             print(orelse_states['p_list'])
     
-    if constants.profile:
-        end = time.time()
-        print(f"--CALCULATE BRANCH: {end - start}, target: {target_idx.squeeze().detach().cpu().numpy()}")
+    # if constants.profile:
+    #     end_state_update = time.time()
+    #     print(f"--STATE UPDATE: {end_state_update - start_state_update}")
+    #     end = time.time()
+    #     print(f"--CALCULATE BRANCH: {end - start}, target: {target_idx.squeeze().detach().cpu().numpy()}")
     
     return body_states, orelse_states
 
@@ -245,7 +281,7 @@ def extract_branch_probability_list(target, index_mask):
     selected_volume = torch.where(index_mask, volume, zeros)
     # selected_volume might be all zero
     # print(EPSILON)
-    selected_volume[index_mask] = torch.max(selected_volume[index_mask], EPSILON)
+    selected_volume[index_mask] = max(selected_volume[index_mask], EPSILON)
 
     # print(f"selected_volume: {selected_volume.detach().cpu().numpy()}")
 
@@ -288,7 +324,9 @@ def assign_states(states, branch, p_volume):
             this_idx = this_branch.nonzero(as_tuple=True)[0].tolist()
             x_this = domain.Box(x.c[this_branch], x.delta[this_branch])
             new_states['x'] = x_this
-            new_states['trajectories'] = [states['trajectories'][idx] for idx in this_idx]
+            # new_states['trajectories'] = [states['trajectories'][idx] for idx in this_idx]
+            new_states['trajectories_l'] = [states['trajectories_l'][idx] for idx in this_idx]
+            new_states['trajectories_r'] = [states['trajectories_r'][idx] for idx in this_idx]
             new_states['idx_list'] = [states['idx_list'][idx] for idx in this_idx]
             new_states['p_list'] = [states['p_list'][idx].add(torch.log(p[idx])) for idx in this_idx]
         states_list.append(new_states)
@@ -352,8 +390,8 @@ class IfElse(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, states):
-        if constants.profile:
-            start = time.time()
+        # if constants.profile:
+        #     start = time.time()
 
         body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
         if len(body_states) > 0:
@@ -367,9 +405,9 @@ class IfElse(nn.Module):
         #     print(f"trajectories of res_states in [IF_ELSE]")
         #     for trajectory in res_states['trajectories']:
         #         print(f"trajectory length: {len(trajectory)}")
-        if constants.profile:
-            end = time.time()
-            print(f"--IFELSE BLOCK: {end - start}")
+        # if constants.profile:
+        #     end = time.time()
+        #     print(f"--IFELSE BLOCK: {end - start}")
 
         return res_states
 
@@ -414,12 +452,12 @@ class While(nn.Module):
             res_states = concatenate_states(res_states, orelse_states)
             if len(body_states) == 0:
                 return res_states
-            if constants.profile:
-                start = time.time()
+            # if constants.profile:
+            #     start = time.time()
             states = self.body(body_states)
-            if constants.profile:
-                end = time.time()
-                print(f"--EACH ITERATION: {end - start}")
+            # if constants.profile:
+            #     end = time.time()
+            #     print(f"--EACH ITERATION: {end - start}")
                 # exit(0)
             i += 1
             if i > constants.MAXIMUM_ITERATION:
@@ -442,10 +480,11 @@ class Trajectory(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, states):
-        if constants.profile:
-            start = time.time()
+        # if constants.profile:
+        #     start = time.time()
         x = states['x']
-        trajectories = states['trajectories']
+        trajectories_l = states['trajectories_l']
+        trajectories_r = states['trajectories_r']
         B, D = x.c.shape
         # print(f"B: {B}; D: {D}")
         # print(f"target_idx: {self.target_idx}")
@@ -467,7 +506,8 @@ class Trajectory(nn.Module):
         input_interval = input.getInterval()
         _, K = input_interval.left.shape
         for x_idx in range(B):
-            trajectories[x_idx].append((input_interval.left[x_idx], input_interval.right[x_idx]))
+            trajectories_l[x_idx].append(input_interval.left[x_idx])
+            trajectories_r[x_idx].append(input_interval.right[x_idx])
             # input_interval_list = list()
             # for idx in range(K):
             #     res = domain.Interval(left=input_interval.left[x_idx][idx], right=input_interval.right[x_idx][idx])
@@ -475,10 +515,11 @@ class Trajectory(nn.Module):
             #     input_interval_list.append(input_interval)
             # trajectories[x_idx].append(input_interval_list)
 
-        states['trajectories'] = trajectories
-        if constants.profile:
-            end = time.time()
-            print(f"--UPDATE TRAJECTORY: {end - start}")
+        states['trajectories_l'] = trajectories_l
+        states['trajectories_r'] = trajectories_r
+        # if constants.profile:
+        #     end = time.time()
+        #     print(f"--UPDATE TRAJECTORY: {end - start}")
         return states
 
 
