@@ -200,7 +200,7 @@ def calculate_branch(target_idx, test, states):
             body_states['trajectories_l'].append(states['trajectories_l'][i])
             body_states['trajectories_r'].append(states['trajectories_r'][i])
             body_states['idx_list'].append(states['idx_list'][i])
-            body_states['p_list'].append(states['p_list'][i])
+            body_states['p_list'].append(states['p_list'][i] + torch.log(p_left[i]))
         # body_states['trajectories'] = [states['trajectories'][i] for i in left_idx]
         # body_states['idx_list'] = [states['idx_list'][i] for i in left_idx]
         # body_states['p_list'] = [states['p_list'][i].add(torch.log(p_left[i])) for i in left_idx]
@@ -235,7 +235,7 @@ def calculate_branch(target_idx, test, states):
             orelse_states['trajectories_l'].append(states['trajectories_l'][i])
             orelse_states['trajectories_r'].append(states['trajectories_r'][i])
             orelse_states['idx_list'].append(states['idx_list'][i])
-            orelse_states['p_list'].append(states['p_list'][i])
+            orelse_states['p_list'].append(states['p_list'][i] + torch.log(p_right[i]))
         # orelse_states['trajectories'] = [states['trajectories'][i] for i in right_idx]
         # orelse_states['idx_list'] = [states['idx_list'][i] for i in right_idx]
         # orelse_states['p_list'] = [states['p_list'][i].add(torch.log(p_right[i])) for i in right_idx]
