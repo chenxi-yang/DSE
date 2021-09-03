@@ -581,13 +581,6 @@ if benchmark_name == "aircraft_collision_refined_classifier_ITE":
     safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
-if benchmark_name is not None:
-    model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}_{train_size}"
-    if score_f != 'volume':
-        model_name_prefix += f"_{score_f}"
-
-    dataset_path_prefix = f"dataset/{benchmark_name}"
-
 # args
 dataset_size = 50
 lambda_ = 100.0
@@ -620,23 +613,30 @@ alpha_coeff = 0.9
 alpha_smooth_max = 0.8
 eps = 1e-10
 
-expr_info_prefix = f"{train_size}_{safe_range_bound_list}"
-# TODO fix the name issue
-if score_f != 'hybrid':
-    expr_info_prefix += f"_{score_f}"
-# test_info_prefix = f"{AI_verifier_num_components}_{SE_verifier_run_times}"
-test_info_prefix = f"{AI_verifier_num_components}"
+if benchmark_name is not None:
+    model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}_{train_size}"
+    if score_f != 'volume':
+        model_name_prefix += f"_{score_f}"
 
-result_prefix = f"{model_name_prefix}_{expr_info_prefix}_{test_info_prefix}"
+    dataset_path_prefix = f"dataset/{benchmark_name}"
 
-if test_mode:
-    file_dir = f"gpu_{mode}/result_test/{result_prefix}.txt"
-    file_dir_evaluation = f"gpu_{mode}/result_test/{result_prefix}_evaluation.txt"
-else:
-    file_dir = f"gpu_{mode}/result/{result_prefix}.txt"
-    file_dir_evaluation = f"gpu_{mode}/result/{result_prefix}_evaluation.txt"
+    expr_info_prefix = f"{train_size}_{safe_range_bound_list}"
+    # TODO fix the name issue
+    if score_f != 'hybrid':
+        expr_info_prefix += f"_{score_f}"
+    # test_info_prefix = f"{AI_verifier_num_components}_{SE_verifier_run_times}"
+    test_info_prefix = f"{AI_verifier_num_components}"
 
-trajectory_log_prefix = f"gpu_{mode}/result_test/trajectory/{result_prefix}_"
+    result_prefix = f"{model_name_prefix}_{expr_info_prefix}_{test_info_prefix}"
+
+    if test_mode:
+        file_dir = f"gpu_{mode}/result_test/{result_prefix}.txt"
+        file_dir_evaluation = f"gpu_{mode}/result_test/{result_prefix}_evaluation.txt"
+    else:
+        file_dir = f"gpu_{mode}/result/{result_prefix}.txt"
+        file_dir_evaluation = f"gpu_{mode}/result/{result_prefix}_evaluation.txt"
+
+    trajectory_log_prefix = f"gpu_{mode}/result_test/trajectory/{result_prefix}_"
 
 if not profile and not debug and not generate_dataset and not plot and not debug_verifier:
     if os.path.exists(file_dir):
