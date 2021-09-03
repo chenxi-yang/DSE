@@ -27,7 +27,7 @@ def get_parser():
 
     p.add_argument("--w", default=0.5, type=float, help="the measure between two lagarangian iteration")
 
-    p.add_argument("--benchmark_name", default="benchmark", help="represent the benchmark")
+    p.add_argument("--benchmark_name", default=None, help="represent the benchmark")
     p.add_argument("--data_size", default=10000, type=int, help="size of dataset, both for training and testing")
     
     p.add_argument("--num_epoch", default=100, type=int, help="number of epochs for training")

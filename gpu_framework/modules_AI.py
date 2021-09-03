@@ -94,17 +94,8 @@ def sound_join_trajectory(trajectory_1_l, trajectory_1_r, trajectory_2_l, trajec
     K = min(l1, l2)
     for idx in range(K):
         states_1_l, states_1_r, states_2_l, states_2_r = trajectory_1_l[idx], trajectory_1_r[idx], trajectory_2_l[idx], trajectory_2_r[idx]
-        l_s = len(states_1_l)
-        state_list_l = list()
-        state_list_r = list()
-        for state_idx in range(l_s):
-            state_1, state_2 = domain.Interval(states_1_l[state_idx], states_1_r[state_idx]), domain.Interval(states_2_l[state_idx], states_2_r[state_idx])
-            # states_1[state_idx], states_2[state_idx]
-            a = state_1.soundJoin(state_2)
-            state_list_l.append(a.left)
-            state_list_r.append(a.right)
-        trajectory_l.append(state_list_l)
-        trajectory_r.append(state_list_r)
+        trajectory_l.append(torch.min(states_1_l, states_2_l))
+        trajectory_r.append(torch.max(states_1_r, states_2_r))
     
     if l1 < l2:
         trajectory_l.extend(trajectory_2_l[l2 - 1:])

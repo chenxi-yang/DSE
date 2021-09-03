@@ -581,12 +581,12 @@ if benchmark_name == "aircraft_collision_refined_classifier_ITE":
     safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
+if benchmark_name is not None:
+    model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}_{train_size}"
+    if score_f != 'volume':
+        model_name_prefix += f"_{score_f}"
 
-model_name_prefix = f"{benchmark_name}_{nn_mode}_{l}_{data_bs}_{num_components}_{train_size}"
-if score_f != 'volume':
-    model_name_prefix += f"_{score_f}"
-
-dataset_path_prefix = f"dataset/{benchmark_name}"
+    dataset_path_prefix = f"dataset/{benchmark_name}"
 
 # args
 dataset_size = 50
