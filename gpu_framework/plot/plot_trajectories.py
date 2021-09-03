@@ -4,25 +4,50 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 
-def read_trajectories(configs):
-    file_name = configs['trajectory_path']
+def read_symbolic_trajectories(configs):
+    file_name = configs['symbolic_trajectory_path']
     f = open(file_name, 'r')
     f.readline()
     #  read the first property
-    trajectory_list = list() # each element is a trajectory of (l, r)
+    symbolic_trajectory_list = list() # each element is a trajectory of (l, r)
     trajectory = list()
     for line in f:
         if 'trajectory_idx' in line:
             if len(trajectory) > 0:
-                trajectory_list.append(trajectory)
+                symbolic_trajectory_list.append(trajectory)
                 trajectory = list()
         else:
+            # Racetrack, thermostat can choose the first element
+            # AC should choose the coordinate, specifically, x
             properties = line.split(';')[0]
             content = properties.split(', ')
             l, r = float(content[0]), float(content[1])
             trajectory.append((l, r))
 
-    return trajectory_list
+    return symbolic_trajectory_list
+
+
+def read_concrete_trajectories(configs):
+    file_name = configs['concrete_trajectory_path']
+    f = open(file_name, 'r')
+    f.readline()
+
+    concrete_trajectory_list = list() # each element is a trajectory of (l, r)
+    trajectory = list()
+    for line in f:
+        if 'trajectory_idx' in line:
+            if len(trajectory) > 0:
+                concrete_trajectory_list.append(trajectory)
+                trajectory = list()
+        else:
+            # Racetrack, thermostat can choose the first element
+            # AC should choose the coordinate, specifically, x
+            properties = line.split(';')[0]
+            content = properties.split(', ')
+            value = float(content[0])
+            trajectory.append(value)
+
+    return concrete_trajectory_list
 
 
 def preprocess_trajectories(trajectory_list):
@@ -44,17 +69,26 @@ def preprocess_trajectories(trajectory_list):
     return updated_trajectory_list
 
 
-def plot_trajectories(trajectories, configs):
+def plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, configs):
     fig = plt.figure()
-    ax = fig.add_subplot(111, aspect=1.0)
-    plt.xlim([0, 20])
-    plt.ylim([-5, 15])
+    if configs['benchmark'] == 'AC':
+        ax = fig.add_subplot(111, aspect=1.0)
+        plt.xlim([0, 20])
+        plt.ylim([-5, 15])
+    if configs['benchmark'] == 'Racetrack':
+        ax = fig.add_subplot(111, aspect=1.0)
+        plt.xlim([0, 20])
+        plt.ylim([-5, 15])
+    if configs['benchmark'] == 'Thermostat':
+        ax = fig.add_subplot(111, aspect=0.1)
+        plt.xlim([0, 10])
+        plt.ylim([40, 90])
 
     patches = []
     patches_unsafe = []
     patches_starting = []
-    for trajectory in trajectories:
-        for position in trajectory:
+    for symbolic_trajectory in symbolic_trajectory_list:
+        for position in symbolic_trajectory:
             # print(x, y, width, height)
             # rectangle
             # x, y, width, height = position
@@ -81,7 +115,7 @@ def plot_trajectories(trajectories, configs):
             width, 
             height,
             fill=True,
-            alpha=0.5,
+            alpha=0.6,
             facecolor='gray',
         )
         patches_unsafe.append(shape)
@@ -100,61 +134,290 @@ def plot_trajectories(trajectories, configs):
     ax.add_collection(PatchCollection(patches, match_original=True))
     ax.add_collection(PatchCollection(patches_unsafe, match_original=True))
     ax.add_collection(PatchCollection(patches_starting, match_original=True))
-    plt.savefig(f"figures/trajectories/{configs['method']}_{configs['benchmark']}.png")
+
+    # plot concrete trajectories
+    for concrete_trajectory in concrete_trajectory_list:
+        x = [i + 0.5 for i in range(len(concrete_trajectory))]
+        plt.plot(x, concrete_trajectory, color='red', linewidth=0.3)
+    
+    plt.axis('off')
+    plt.savefig(f"figures/trajectories/{configs['benchmark']}_{configs['method']}.png",  bbox_inches='tight', pad_inches = 0)
 
     return
 
 
 def visualize_trajectories(configs):
-    trajectory_list = read_trajectories(configs)
-    trajectory_list = preprocess_trajectories(trajectory_list)
-    plot_trajectories(trajectory_list, configs)
+    concrete_trajectory_list = read_concrete_trajectories(configs)
+    symbolic_trajectory_list = read_symbolic_trajectories(configs)
+    symbolic_trajectory_list = preprocess_trajectories(symbolic_trajectory_list)
+    plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, configs)
     return
 
 
-def f_dse(unsafe_map):
-    components = 100
-    configs = {
-        'trajectory_path': f"../gpu_DSE/result_test/trajectory/racetrack_easy_classifier_ITE_complex_64_2_1_200_[0]_volume_{components}_1000__0_0_AI.txt",
-        'method': 'DSE',
-        'benchmark': 'Racetrack',
-        'unsafe_area': unsafe_map, 
-        'number_property': 1,
-        'starting_area': [(0, 4, 1, 2)],
-    }
-    visualize_trajectories(configs)
-
-
-def f_only_data(unsafe_map):
-    components = 100
-    configs = {
-        'trajectory_path': f"../gpu_only_data/result_test/trajectory/racetrack_easy_classifier_ITE_complex_64_2_1_200_[0]_volume_{components}_1000__0_0_AI.txt",
-        'method': 'Only_Data',
-        'benchmark': 'Racetrack',
-        'unsafe_area': unsafe_map, 
-        'number_property': 1,
-        'starting_area': [(0, 4, 1, 2)],
-    }
-    visualize_trajectories(configs)
-
-
 if __name__ == "__main__":
-    mode = ['only_data', 'DSE']
-    unsafe_map = [
-        (0, 0, 15, 4),
-        (0, 6, 4, 4),
-        (4, 7, 4, 3),
-        (8, 8, 4, 2),
-        (19, 3, 1, 7),
+    unsafe_map_racetrack = [
+        (0, 0, 14.5, 4),
+        (0, 6, 3.5, 4),
+        (3.5, 7, 4, 3),
+        (7.5, 8, 4, 2),
+        (19.5, 3, 1, 7),
         (0, -10, 20, 10),
-        (0, 10, 20, 10),
+        (0, 10, 20.5, 10),
         ]
-    starting_area = [
+    starting_area_racetrack = [
         (0, 4, 1, 2),
     ]
-    if 'DSE' in mode:
-        f_dse(unsafe_map)
-    if 'only_data' in mode:
-        f_only_data(unsafe_map)
+    unsafe_map_thermostat = [
+        (0, 0, 10, 53.0),
+        (0, 83.0, 10, 10),
+    ]
+    starting_area_thermostat = [
+        (0, 60.0, 1, 4.0),
+    ]
+
+    configs = dict()
+    configs['Thermostat'] = dict()
+    configs['Racetrack'] = dict()
+    configs['AircraftCollision'] = dict()
+    configs['Thermostat']['Initial'] = {
+        'concrete_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_100_100_83.0_0_0_DiffAI+_0_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_100_100_83.0_0_0_DiffAI+_0_symbolic.txt",
+        'unsafe_area': unsafe_map_thermostat, 
+        'starting_area': starting_area_thermostat,
+        'benchmark': 'Thermostat',
+    }
+    configs['Thermostat']['DiffAI(750)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_100_100_83.0_0_0_DiffAI+_749_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_100_100_83.0_0_0_DiffAI+_749_symbolic.txt",
+        'unsafe_area': unsafe_map_thermostat, 
+        'starting_area': starting_area_thermostat,
+        'benchmark': 'Thermostat',
+    }
+    configs['Thermostat']['DSE(750)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_1_100_83.0_0_0_DSE_749_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_1_100_83.0_0_0_DSE_749_symbolic.txt",
+        'unsafe_area': unsafe_map_thermostat, 
+        'starting_area': starting_area_thermostat,
+        'benchmark': 'Thermostat',
+    }
+    configs['Thermostat']['DiffAI(1500)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_100_100_83.0_0_0_DiffAI+_1499_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_100_100_83.0_0_0_DiffAI+_1499_symbolic.txt",
+        'unsafe_area': unsafe_map_thermostat, 
+        'starting_area': starting_area_thermostat,
+        'benchmark': 'Thermostat',
+    }
+    configs['Thermostat']['DSE(1500)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_1_100_83.0_0_0_DSE_1499_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_1_100_83.0_0_0_DSE_1499_symbolic.txt",
+        'unsafe_area': unsafe_map_thermostat, 
+        'starting_area': starting_area_thermostat,
+        'benchmark': 'Thermostat',
+    }
+    configs['Thermostat']['DiffAI(5000)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_100_100_83.0_0_0_DiffAI+_4999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_100_100_83.0_0_0_DiffAI+_4999_symbolic.txt",
+        'unsafe_area': unsafe_map_thermostat, 
+        'starting_area': starting_area_thermostat,
+        'benchmark': 'Thermostat',
+    }
+    configs['Thermostat']['DSE(5000)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_1_100_83.0_0_0_DSE_4999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_1_100_83.0_0_0_DSE_4999_symbolic.txt",
+        'unsafe_area': unsafe_map_thermostat, 
+        'starting_area': starting_area_thermostat,
+        'benchmark': 'Thermostat',
+    }
+    # configs['Racetrack']['Initial'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_100_100_0_0_0_DiffAI+_0_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_100_100_0_0_0_DiffAI+_0_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack,
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'Racetrack',
+    # }
+    # configs['Racetrack']['DiffAI(750)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_100_100_0_0_0_DiffAI+_749_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_100_100_0_0_0_DiffAI+_749_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack,
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'Racetrack',
+    # }
+    # configs['Racetrack']['DSE(750)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_1_100_0_0_0_DSE_749_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_1_100_0_0_0_DSE_749_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack,
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'Racetrack',
+    # }
+    # configs['Racetrack']['DiffAI(3000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_100_100_0_0_0_DiffAI+_2999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_100_100_0_0_0_DiffAI+_2999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack,
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'Racetrack',
+    # }
+    # configs['Racetrack']['DSE(3000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_1_100_0_0_0_DSE_4999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_1_100_0_0_0_DSE_4999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack,
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'Racetrack',
+    # }
+    # configs['Racetrack']['DiffAI(5000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_100_100_0_0_0_DiffAI+_4999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_100_100_0_0_0_DiffAI+_4999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack,
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'Racetrack',
+    # }
+    # configs['Racetrack']['DSE(5000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_1_100_0_0_0_DSE_4999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_easy_classifier_ITE_complex_64_2_1_100_0_0_0_DSE_4999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack,
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'Racetrack',
+    # }
+    # configs['AircraftCollision']['Initial'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_0_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_0_symbolic.txt",
+    #     'unsafe_area': [
+    #             (0, 0, 15, 4),
+    #             (0, 6, 4, 4),
+    #             (4, 7, 4, 3),
+    #             (8, 8, 4, 2),
+    #             (19, 3, 1, 7),
+    #             (0, -10, 20, 10),
+    #             (0, 10, 20, 10),
+    #         ],
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'AC',
+    # }
+    # configs['AircraftCollision']['DiffAI(750)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_749_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_749_symbolic.txt",
+    #     'unsafe_area': [
+    #             (0, 0, 15, 4),
+    #             (0, 6, 4, 4),
+    #             (4, 7, 4, 3),
+    #             (8, 8, 4, 2),
+    #             (19, 3, 1, 7),
+    #             (0, -10, 20, 10),
+    #             (0, 10, 20, 10),
+    #         ],
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'AC',
+    # }
+    # configs['AircraftCollision']['DSE(750)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_749_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_749_symbolic.txt",
+    #     'unsafe_area': [
+    #             (0, 0, 15, 4),
+    #             (0, 6, 4, 4),
+    #             (4, 7, 4, 3),
+    #             (8, 8, 4, 2),
+    #             (19, 3, 1, 7),
+    #             (0, -10, 20, 10),
+    #             (0, 10, 20, 10),
+    #         ],
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'AC',
+    # }
+    # configs['AircraftCollision']['DiffAI(2000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_1999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_1999_symbolic.txt",
+    #     'unsafe_area': [
+    #             (0, 0, 15, 4),
+    #             (0, 6, 4, 4),
+    #             (4, 7, 4, 3),
+    #             (8, 8, 4, 2),
+    #             (19, 3, 1, 7),
+    #             (0, -10, 20, 10),
+    #             (0, 10, 20, 10),
+    #         ],
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'AC',
+    # }
+    # configs['AircraftCollision']['DSE(2000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_1999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_1999_symbolic.txt",
+    #     'unsafe_area': [
+    #             (0, 0, 15, 4),
+    #             (0, 6, 4, 4),
+    #             (4, 7, 4, 3),
+    #             (8, 8, 4, 2),
+    #             (19, 3, 1, 7),
+    #             (0, -10, 20, 10),
+    #             (0, 10, 20, 10),
+    #         ],
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'AC',
+    # }
+    # configs['AircraftCollision']['DiffAI(5000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_4999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_4999_symbolic.txt",
+    #     'unsafe_area': [
+    #             (0, 0, 15, 4),
+    #             (0, 6, 4, 4),
+    #             (4, 7, 4, 3),
+    #             (8, 8, 4, 2),
+    #             (19, 3, 1, 7),
+    #             (0, -10, 20, 10),
+    #             (0, 10, 20, 10),
+    #         ],
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'AC',
+    # }
+    # configs['AircraftCollision']['DSE(5000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_4999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_4999_symbolic.txt",
+    #     'unsafe_area': [
+    #             (0, 0, 15, 4),
+    #             (0, 6, 4, 4),
+    #             (4, 7, 4, 3),
+    #             (8, 8, 4, 2),
+    #             (19, 3, 1, 7),
+    #             (0, -10, 20, 10),
+    #             (0, 10, 20, 10),
+    #         ],
+    #     'starting_area': [
+    #             (0, 4, 1, 2),
+    #         ],
+    #     'benchmark': 'AC',
+    # }
+
+    for benchmark, benchmark_dict in configs.items():
+        for method, method_dict in benchmark_dict.items():
+            method_dict['method'] = method
+            visualize_trajectories(method_dict)
+
+
+
+    
 
     

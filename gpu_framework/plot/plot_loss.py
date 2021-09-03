@@ -64,7 +64,7 @@ def plot_loss(loss_dict, configs, category):
             if l[idx] == r[idx]:
                 l[idx] = max(0, l[idx] - 0.1)
                 r[idx] = r[idx] + 0.1
-        handles.append(plt.fill_between(x, l, r, alpha=0.5))
+        handles.append(plt.fill_between(x, l, r, alpha=0.8))
         labels.append(method)
     
     # if category == 'Safety':
