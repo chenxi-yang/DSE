@@ -383,11 +383,93 @@ if benchmark_name == "racetrack_easy_classifier_ITE":
     map_mode = True
     # y's range
     map_safe_range = [
-        [4.0, 6.0], [4.0, 6.0], [4.0, 6.0], [4.0, 6.0],
-        [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
-        [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
-        [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [0.0, 9.0], 
-        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 3.0],
+        [[4.0, 6.0]], [[4.0, 6.0]], [[4.0, 6.0]], [[4.0, 6.0]],
+        [[4.0, 7.0]], [[4.0, 7.0]], [[4.0, 7.0]], [[4.0, 7.0]],
+        [[4.0, 8.0]], [[4.0, 8.0]], [[4.0, 8.0]], [[4.0, 8.0]],
+        [[4.0, 9.0]], [[4.0, 9.0]], [[4.0, 9.0]], [[0.0, 9.0]], 
+        [[0.0, 9.0]], [[0.0, 9.0]], [[0.0, 9.0]], [[0.0, 3.0]],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    w_list = [1.0]
+    method_list = ['map_each'] # each element in the trajectory is 
+    name_list = ['position']
+    safe_range_bound_list = [0]
+
+
+if benchmark_name == "racetrack_moderate_classifier_ITE":
+    x_l = [7.0]
+    x_r = [10.0]
+    safe_range_list = [0]
+    map_mode = True
+    # y's range
+    map_safe_range = [
+        [[7.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]], [[8.0, 10.0]], [[8.0, 10.0]],
+        [[7.0, 10.0]], [[3.0, 10.0]], [[3.0, 10.0]], [[2.0, 9.0]],  [[1.0, 7.0]],
+        [[1.0, 5.0]],  [[1.0, 5.0]],  [[2.0, 7.0]],  [[3.0, 9.0]],  [[3.0, 10.0]],
+        [[5.0, 10.0]], [[7.0, 10.0]], [[8.0, 10.0]], [[7.0, 9.0]],  [[5.0, 9.0]],
+        [[3.0, 8.0]],  [[2.0, 7.0]],  [[2.0, 6.0]],  [[2.0, 5.0]],  [[2.0, 7.0]], 
+        [[2.0, 7.0]],  [[2.0, 7.0]],  [[4.0, 9.0]],  [[5.0, 9.0]],  [[6.0, 9.0]],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    w_list = [1.0]
+    method_list = ['map_each'] # each element in the trajectory is 
+    name_list = ['position']
+    safe_range_bound_list = [0]
+
+
+if benchmark_name == "racetrack_moderate_2_classifier_ITE":
+    x_l = [7.0]
+    x_r = [10.0]
+    safe_range_list = [0]
+    map_mode = True
+    # y's range
+    map_safe_range = [
+        [[7.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]],
+        [[6.0, 10.0]], [[3.0, 10.0]], [[3.0, 10.0]], [[2.0, 9.0]],  [[1.0, 7.0]],
+        [[1.0, 5.0]],  [[1.0, 5.0]],  [[2.0, 7.0]],  [[3.0, 9.0]],  [[3.0, 10.0]],
+        [[5.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    w_list = [1.0]
+    method_list = ['map_each'] # each element in the trajectory is 
+    name_list = ['position']
+    safe_range_bound_list = [0]
+
+
+if benchmark_name == "racetrack_moderate_3_classifier_ITE":
+    x_l = [7.0]
+    x_r = [9.0]
+    safe_range_list = [0]
+    map_mode = True
+    # y's range
+    map_safe_range = [
+        [[7.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]],
+        [[6.0, 10.0]], [[3.0, 10.0]], [[3.0, 10.0]], [[2.0, 9.0]],  [[1.0, 7.0]],
+        [[1.0, 5.0]],  [[1.0, 5.0]],  [[2.0, 7.0]],  [[3.0, 9.0]],  [[3.0, 10.0]],
+        [[5.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]], [[7.0, 10.0]],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    w_list = [1.0]
+    method_list = ['map_each'] # each element in the trajectory is 
+    name_list = ['position']
+    safe_range_bound_list = [0]
+
+
+if benchmark_name == "racetrack_hard_classifier_ITE":
+    x_l = [4.0]
+    x_r = [6.0]
+    safe_range_list = [0]
+    map_mode = True
+    # y's range
+    map_safe_range = [
+        [[4.0, 6.0]], [[3.0, 7.0]], [[2.0, 4.0], [5.0, 8.0]], [[0.0, 4.0], [5.0, 10.0]], [[1.0, 4.0], [5.0, 9.0]],
+        [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]],
+        [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]],
+        [[1.0, 3.0], [6.0, 9.0]], [[1.0, 4.0], [5.0, 8.0]], [[1.0, 7.0]], [[2.0, 7.0]], [[3.0, 6.0]],
     ]
     # map k-column in map[k] interval
     # 0 is the basic version

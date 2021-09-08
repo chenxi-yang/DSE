@@ -732,49 +732,15 @@ def racetrack_easy(x, safe_bound):
 
 def car_control_classifier(x, y):
     p0, p1, p2 = 0.0, 0.0, 0.0
-    # no noise in the dataset
-    # i1 = random.uniform(0, 1)
-    # i2 = random.uniform(0, 1)
-    # flip_target = 0.0 # 0.15
-    # second_target = 0.5
 
     if y <= 9:
         p1 = 1.0
-        # if i1 <= flip_target:
-        #     p1 = 0.0
-        #     # p2 = 1.0
-        #     if i2 <= second_target:
-        #         p2 = 1.0
-        #     else:
-        #         p0 = 1.0
     elif y <= 12:
         p2 = 1.0
-        # if i1 <= flip_target:
-        #     # pass
-        #     p2 = 0.0
-        #     # p0 = 1.0
-        #     if i2 <= second_target:
-        #         p0 = 1.0
-        #     else:
-        #         p1 = 1.0
     elif y <= 13: # add difficulty in the training trajectory
         p1 = 1.0
-        # if i1 <= flip_target:
-        #     p1 = 0.0
-        #     # p2 = 1.0
-        #     if i2 <= second_target:
-        #         p2 = 1.0
-        #     else:
-        #         p0 = 1.0 
     else:
         p0 = 1.0
-        # if i1 <= flip_target:
-        #     p0 = 0.0
-        #     # p2 = 1.0
-        #     if i2 <= second_target:
-        #         p1 = 1.0
-        #     else:
-        #         p2 = 1.0
     
     return p0, p1, p2
 
@@ -828,6 +794,338 @@ def racetrack_easy_classifier_ITE(x, safe_bound):
     
     return trajectory_list
 
+
+# map
+# 10x30
+# initial area: x: [7.0, 10.0], y: [0, 0]
+# xxxxx xxxxx xxxxx xxxxx xxxxx xxxxx
+# xxxxx xxxx. ..xxx xxxxx xxxxx xxxxx
+# xxxxx xxx.. oo.xx xxxxx x..oo o.xxx
+# xxxxx x...o ..o.. xxxxx ..o.. .oxxx
+# xxxxx x..o. oo.o. xxxxx .o.o. ..oxx
+# xxxxx x.o.o xxo.o .xxx. o.oxo ...ox
+# xxxxx xo.o. xx.o. oxxxo .oxx. oo..o
+# sooxx o.o.x xxx.o .oxo. oxxxx xxo..
+# s..oo .o..x xxx.. o.ooo xxxxx xx.oo
+# soooo o..xx xxxx. .ooxx xxxxx xxxxx
+map_safe_range_moderate = [
+        [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [8.0, 10.0], [8.0, 10.0],
+        [7.0, 10.0], [3.0, 10.0], [3.0, 10.0], [2.0, 9.0],  [1.0, 7.0],
+        [1.0, 5.0],  [1.0, 5.0],  [2.0, 7.0],  [3.0, 9.0],  [3.0, 10.0],
+        [5.0, 10.0], [7.0, 10.0], [8.0, 10.0], [7.0, 9.0],  [5.0, 9.0],
+        [3.0, 8.0],  [2.0, 7.0],  [2.0, 6.0],  [2.0, 5.0],  [2.0, 7.0], 
+        [2.0, 7.0],  [2.0, 7.0],  [4.0, 9.0],  [5.0, 9.0],  [6.0, 9.0],
+    ]
+absolute_safe_range_moderate = [
+        [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [8.0, 10.0], [8.0, 10.0],
+        [7.0, 10.0], [6.0, 9.0],  [5.0, 8.0],  [4.0, 7.0],  [3.0, 6.0],
+        [2.0, 5.0],  [2.0, 5.0],  [3.0, 6.0],  [4.0, 7.0],  [5.0, 8.0],
+        [6.0, 9.0],  [7.0, 10.0], [8.0, 10.0], [7.0, 9.0],  [6.0, 9.0],
+        [5.0, 8.0],  [4.0, 7.0],  [3.0, 6.0],  [2.0, 5.0],  [2.0, 6.0], 
+        [2.0, 7.0],  [3.0, 7.0],  [4.0, 8.0],  [5.0, 9.0],  [6.0, 9.0],
+    ]
+
+def car_control_moderate_classifier(x, y):
+    p0, p1, p2 = 0.0, 0.0, 0.0
+    # 
+    next_abs_safe_range = absolute_safe_range_moderate[y]
+    select_list = []
+    if x <= next_abs_safe_range[1] and x >= next_abs_safe_range[0]:
+        select_list.append(1)
+    if x - 1 <= next_abs_safe_range[1] and x - 1 >= next_abs_safe_range[0]:
+        select_list.append(0)
+    if x + 1 <= next_abs_safe_range[1] and x + 1 >= next_abs_safe_range[0]:
+        select_list.append(2)
+    index = random.choice(select_list)
+    if index == 0:
+        p0 = 1.0
+    elif index == 1:
+        p1 = 1.0
+    else:
+        p2 = 1.0
+    
+    return p0, p1, p2
+
+
+def racetrack_moderate_classifier_ITE(x, safe_bound):
+    # convert a classifier into an ITE version when using DSE
+    x, y = x, 0
+    steps = 30
+    trajectory_list = list()
+    for i in range(steps):
+        p0, p1, p2 = car_control_moderate_classifier(x, y)
+        trajectory_list.append(([x, y], [p0, p1, p2]))
+        # additional comparison between pi to model argmax
+        a = p1 - p0
+        b = p2 - p0
+        c = p2 - p1
+        if a <= 0: # p1 <= p0
+            if b <= 0: # p2 <= p0
+                index = 0
+            else: # p2 > p0 >= p1
+                index = 2
+        else: # p1 > p0
+            if c <= 0: # p2 <= p1 (p1 >= p2, p1 > p0)
+                index = 1
+            else: # p2 > p1 > p0
+                index = 2
+        if index == 0:
+            x -= 1
+        elif index == 1:
+            x = x
+        else:
+            x += 1
+        y += 1
+    
+    return trajectory_list
+
+
+# map
+# 10x20
+# initial area: x: [7.0, 10.0], y: [0, 0]
+# xxxxx xxxxx xxxxx xxxxx
+# xxxxx xxxx. ..xxx xxxxx
+# xxxxx xxx.. oo.xx xxxxx
+# xxxxx x...o ..o.. xxxxx
+# xxxxx x..o. oo.o. xxxxx
+# xxxxx x.o.o xxo.o .xxxx
+# xxxxx oo.o. xx.o. oxxxx
+# soooo o.o.x xxx.o .oooo
+# s.... .o..x xxx.. o....
+# soooo o..xx xxxx. .oooo 
+map_safe_range_moderate_2 = [
+        [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0],
+        [6.0, 10.0], [3.0, 10.0], [3.0, 10.0], [2.0, 9.0],  [1.0, 7.0],
+        [1.0, 5.0],  [1.0, 5.0],  [2.0, 7.0],  [3.0, 9.0],  [3.0, 10.0],
+        [5.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0],
+    ]
+absolute_safe_range_moderate_2 = [
+        [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0],
+        [7.0, 10.0], [6.0, 9.0],  [5.0, 8.0],  [4.0, 7.0],  [3.0, 6.0],
+        [2.0, 5.0],  [2.0, 5.0],  [3.0, 6.0],  [4.0, 7.0],  [5.0, 8.0],
+        [6.0, 9.0],  [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0],
+    ]
+
+def car_control_moderate_2_classifier(x, y):
+    p0, p1, p2 = 0.0, 0.0, 0.0
+    # 
+    next_abs_safe_range = absolute_safe_range_moderate_2[y]
+    select_list = []
+    if x <= next_abs_safe_range[1] and x >= next_abs_safe_range[0]:
+        select_list.append(1)
+    if x - 1 <= next_abs_safe_range[1] and x - 1 >= next_abs_safe_range[0]:
+        select_list.append(0)
+    if x + 1 <= next_abs_safe_range[1] and x + 1 >= next_abs_safe_range[0]:
+        select_list.append(2)
+    index = random.choice(select_list)
+    if index == 0:
+        p0 = 1.0
+    elif index == 1:
+        p1 = 1.0
+    else:
+        p2 = 1.0
+    
+    return p0, p1, p2
+
+
+def racetrack_moderate_2_classifier_ITE(x, safe_bound):
+    # convert a classifier into an ITE version when using DSE
+    x, y = x, 0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps):
+        p0, p1, p2 = car_control_moderate_2_classifier(x, y)
+        trajectory_list.append(([x, y], [p0, p1, p2]))
+        # additional comparison between pi to model argmax
+        a = p1 - p0
+        b = p2 - p0
+        c = p2 - p1
+        if a <= 0: # p1 <= p0
+            if b <= 0: # p2 <= p0
+                index = 0
+            else: # p2 > p0 >= p1
+                index = 2
+        else: # p1 > p0
+            if c <= 0: # p2 <= p1 (p1 >= p2, p1 > p0)
+                index = 1
+            else: # p2 > p1 > p0
+                index = 2
+        if index == 0:
+            x -= 1
+        elif index == 1:
+            x = x
+        else:
+            x += 1
+        y += 1
+    
+    return trajectory_list
+
+
+# map
+# 10x20
+# initial area: x: [7.0, 10.0], y: [0, 0]
+# xxxxx xxxxx xxxxx xxxxx
+# xxxxx xxxx. o.xxx xxxxx
+# xxxxx xxx.o oo.xx xxxxx
+# xxxxx x..oo ..o.. xxxxx
+# xxxxx x.oo. oo.o. xxxxx
+# xxxxx xoo.o xxo.o .xxxx
+# xxxxx oo.o. xxoo. oxxxx
+# soooo o.o.x xxxoo .oooo
+# s.... .o..x xxxoo o....
+# ooooo o..xx xxxxo ooooo 
+map_safe_range_moderate_3 = [
+        [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0],
+        [6.0, 10.0], [3.0, 10.0], [3.0, 10.0], [2.0, 9.0],  [1.0, 7.0],
+        [1.0, 5.0],  [1.0, 5.0],  [2.0, 7.0],  [3.0, 9.0],  [3.0, 10.0],
+        [5.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0],
+    ]
+absolute_safe_range_moderate_3 = [
+        [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0],
+        [6.0, 10.0], [5.0, 9.0],  [4.0, 8.0],  [3.0, 7.0],  [2.0, 6.0],
+        [1.0, 5.0],  [2.0, 5.0],  [3.0, 7.0],  [4.0, 9.0],  [5.0, 10.0],
+        [6.0, 10.0],  [7.0, 10.0], [7.0, 10.0], [7.0, 10.0], [7.0, 10.0],
+    ]
+
+def car_control_moderate_3_classifier(x, y):
+    p0, p1, p2 = 0.0, 0.0, 0.0
+    # 
+    next_abs_safe_range = absolute_safe_range_moderate_3[y]
+    select_list = []
+    if x <= next_abs_safe_range[1] and x >= next_abs_safe_range[0]:
+        select_list.append(1)
+    if x - 1 <= next_abs_safe_range[1] and x - 1 >= next_abs_safe_range[0]:
+        select_list.append(0)
+    if x + 1 <= next_abs_safe_range[1] and x + 1 >= next_abs_safe_range[0]:
+        select_list.append(2)
+        # Racetrack-Moderate3-1
+        select_list.append(2)
+        select_list.append(2)
+        select_list.append(2)
+        # add weight to these kind of trajectories
+    index = random.choice(select_list)
+    if index == 0:
+        p0 = 1.0
+    elif index == 1:
+        p1 = 1.0
+    else:
+        p2 = 1.0
+    
+    return p0, p1, p2
+
+
+def racetrack_moderate_3_classifier_ITE(x, safe_bound):
+    # convert a classifier into an ITE version when using DSE
+    x, y = x, 0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps):
+        p0, p1, p2 = car_control_moderate_3_classifier(x, y)
+        trajectory_list.append(([x, y], [p0, p1, p2]))
+        # additional comparison between pi to model argmax
+        a = p1 - p0
+        b = p2 - p0
+        c = p2 - p1
+        if a <= 0: # p1 <= p0
+            if b <= 0: # p2 <= p0
+                index = 0
+            else: # p2 > p0 >= p1
+                index = 2
+        else: # p1 > p0
+            if c <= 0: # p2 <= p1 (p1 >= p2, p1 > p0)
+                index = 1
+            else: # p2 > p1 > p0
+                index = 2
+        if index == 0:
+            x -= 1
+        elif index == 1:
+            x = x
+        else:
+            x += 1
+        y += 1
+    
+    return trajectory_list
+
+# map
+# 10x20
+# initial area: x: [4.0, 6.0], y: [0, 0]
+# xxxx. ..... ..... xxxxx
+# xxx.. ..... ..... ...xx
+# xx... ..... ..... ....x
+# x.... xxxxx xxxxx x....
+# s.xxx xxxxx xxxxx xx...
+# s..xx xxxxx xxxxx x....
+# x.... xxxxx xxxxx ....x
+# xx... ..... ..... ..xxx
+# xxx.. ..... ..... .xxxx
+# xxxx. ..... ..... xxxxx 
+map_safe_range_hard = [
+        [[4.0, 6.0]], [[3.0, 7.0]], [[2.0, 4.0], [5.0, 8.0]], [[1.0, 4.0], [6.0, 9.0]], [[0.0, 4.0], [6.0, 10.0]],
+        [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]],
+        [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]],
+        [[1.0, 3.0], [6.0, 9.0]], [[1.0, 4.0], [5.0, 8.0]], [[1.0, 7.0]], [[2.0, 7.0]], [[3.0, 6.0]],
+    ]
+absolute_safe_range_hard = [
+        [[4.0, 6.0], [4.0, 6.0]], [[3.0, 7.0], [3.0, 7.0]], [[2.0, 4.0], [5.0, 8.0]], [[1.0, 4.0], [6.0, 9.0]], [[1.0, 4.0], [6.0, 10.0]],
+        [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]],
+        [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]], [[0.0, 3.0], [7.0, 10.0]],
+        [[1.0, 3.0], [6.0, 9.0]], [[1.0, 4.0], [5.0, 8.0]], [[1.0, 7.0], [1.0, 7.0]], [[2.0, 7.0], [2.0, 7.0]], [[3.0, 6.0], [3.0, 6.0]],
+    ]
+
+def car_control_hard_classifier(x, y):
+    p0, p1, p2 = 0.0, 0.0, 0.0
+    # 
+    next_abs = absolute_safe_range_hard[y]
+    # print(x, y, next_abs)
+    select_list = []
+    if (x <= next_abs[0][1] and x >= next_abs[0][0]) or (x <= next_abs[1][1] and x >= next_abs[1][0]):
+        select_list.append(1)
+    if (x - 1 <= next_abs[0][1] and x - 1 >= next_abs[0][0]) or (x - 1 <= next_abs[1][1] and x - 1 >= next_abs[1][0]):
+        select_list.append(0)
+    if (x + 1 <= next_abs[0][1] and x + 1 >= next_abs[0][0]) or (x + 1 <= next_abs[1][1] and x + 1 >= next_abs[1][0]):
+        select_list.append(2)
+    index = random.choice(select_list)
+    if index == 0:
+        p0 = 1.0
+    elif index == 1:
+        p1 = 1.0
+    else:
+        p2 = 1.0
+    
+    return p0, p1, p2
+
+
+def racetrack_hard_classifier_ITE(x, safe_bound):
+    # convert a classifier into an ITE version when using DSE
+    x, y = x, 0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps):
+        p0, p1, p2 = car_control_hard_classifier(x, y)
+        trajectory_list.append(([x, y], [p0, p1, p2]))
+        # additional comparison between pi to model argmax
+        a = p1 - p0
+        b = p2 - p0
+        c = p2 - p1
+        if a <= 0: # p1 <= p0
+            if b <= 0: # p2 <= p0
+                index = 0
+            else: # p2 > p0 >= p1
+                index = 2
+        else: # p1 > p0
+            if c <= 0: # p2 <= p1 (p1 >= p2, p1 > p0)
+                index = 1
+            else: # p2 > p1 > p0
+                index = 2
+        if index == 0:
+            x -= 1
+        elif index == 1:
+            x = x
+        else:
+            x += 1
+        y += 1
+    
+    return trajectory_list
 
 def racetrack_easy_1_classifier(x, safe_bound):
     x, y = x, 0.0

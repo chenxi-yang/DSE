@@ -5,6 +5,7 @@ import pdb
 
 import domain
 from constants import *
+import constants
 
 import math
 
@@ -84,23 +85,31 @@ def sound_join_trajectory(trajectory_1_l, trajectory_1_r, trajectory_2_l, trajec
     assert(len(trajectory_1_l) == len(trajectory_1_r))
     assert(len(trajectory_2_l) == len(trajectory_2_l))
     l1, l2 = len(trajectory_1_l), len(trajectory_2_l)
+    # print(f"-SOUND JOIN TRAJECTORY: {len(trajectory_1_l)}, {len(trajectory_2_l)}")
     # pdb.set_trace()
     trajectory_l, trajectory_r = list(), list()
     K = min(l1, l2)
-    for idx in range(K):
-        states_1_l, states_1_r, states_2_l, states_2_r = trajectory_1_l[idx], trajectory_1_r[idx], trajectory_2_l[idx], trajectory_2_r[idx]
-        l_s = len(states_1_l)
-        state_list_l = list()
-        state_list_r = list()
-        for state_idx in range(l_s):
-            state_1, state_2 = domain.Interval(states_1_l[state_idx], states_1_r[state_idx]), domain.Interval(states_2_l[state_idx], states_2_r[state_idx])
-            # states_1[state_idx], states_2[state_idx]
-            a = state_1.soundJoin(state_2)
-            state_list_l.append(a.left)
-            state_list_r.append(a.right)
-        trajectory_l.append(state_list_l)
-        trajectory_r.append(state_list_r)
-    
+    # in our benchmarks, trajectories are always updated after sound join
+    trajectory_l.extend(trajectory_1_l[:K])
+    trajectory_r.extend(trajectory_1_r[:K])
+    # for idx in range(K):
+    #     states_1_l, states_1_r, states_2_l, states_2_r = trajectory_1_l[idx], trajectory_1_r[idx], trajectory_2_l[idx], trajectory_2_r[idx]
+    #     # l_s = len(states_1_l)
+    #     # state_list_l = list()
+    #     # state_list_r = list()
+    #     # for state_idx in range(l_s):
+    #     #     # state_1, state_2 = domain.Interval(states_1_l[state_idx], states_1_r[state_idx]), domain.Interval(states_2_l[state_idx], states_2_r[state_idx])
+    #     #     # states_1[state_idx], states_2[state_idx]
+    #     #     # a = state_1.soundJoin(state_2)
+    #     #     # state_list_l.append(a.left)
+    #     #     # state_list_r.append(a.right)
+    #     #     state_list_l.append(torch.min(states_1_l[state_idx], states_2_l[state_idx]))
+    #     #     state_list_r.append(torch.max(states_1_r[state_idx], states_2_r[state_idx]))
+    #     print(f"l: {states_1_l, states_2_l}")
+    #     print(f"r: {states_1_r, states_2_r}")
+    #     trajectory_l.append(torch.min(states_1_l, states_2_l))
+    #     trajectory_r.append(torch.max(states_1_r, states_2_r))
+
     if l1 < l2:
         trajectory_l.extend(trajectory_2_l[l2 - 1:])
         trajectory_r.extend(trajectory_2_r[l2 - 1:])
@@ -109,6 +118,7 @@ def sound_join_trajectory(trajectory_1_l, trajectory_1_r, trajectory_2_l, trajec
         trajectory_r.extend(trajectory_1_r[l1 - 1:])
     assert(len(trajectory_l) == max(l1, l2))
     # pdb.set_trace()
+    # print("----trajectory_l length", len(trajectory_l))
 
     return trajectory_l, trajectory_r
 
@@ -132,6 +142,7 @@ def update_joined_tables(res_states, new_c, new_delta, new_trajectory_l, new_tra
     return res_states
 
 
+# todo: check
 def sound_join(states1, states2):
     # symbol_tables
     # 'x': B*D, 'trajectories': trajectory of each B, 'idx_list': idx of B in order
@@ -174,7 +185,12 @@ def sound_join(states1, states2):
             new_trajectory_l, new_trajectory_r = sound_join_trajectory(states1['trajectories_l'][idx1], states1['trajectories_r'][idx1], states2['trajectories_l'][idx2], states2['trajectories_r'][idx2])
             new_idx = idx_list_1[idx1]
             new_p = p_list_1[idx1]
+            # if constants.profile:
+            #     start_join_table = time.time()
             res_states = update_joined_tables(res_states, new_c, new_delta, new_trajectory_l, new_trajectory_r, new_idx, new_p)
+            # if constants.profile:
+            #     end_join_table = time.time()
+            #     print(f"---UPDATE JOIN TABLE: {end_join_table - start_join_table}")
             idx2 += 1
             idx1 += 1
 
@@ -237,10 +253,13 @@ def calculate_branch(target_idx, test, states):
         x_left.delta[:, target_idx:target_idx+1] = new_left_target_delta
 
         body_states['x'] = x_left
-        body_states['trajectories_l'] = [states['trajectories_l'][i] for i in left_idx]
-        body_states['trajectories_r'] = [states['trajectories_r'][i] for i in left_idx]
-        body_states['idx_list'] = [states['idx_list'][i] for i in left_idx]
-        body_states['p_list'] = [states['p_list'][i] for i in left_idx]
+        body_states['trajectories_l'], body_states['trajectories_r'], body_states['idx_list'], body_states['p_list'] = list(), list(), list(), list()
+        for i in left_idx:
+            # body_states['trajectories'].append(states['trajectories'][i])
+            body_states['trajectories_l'].append(states['trajectories_l'][i])
+            body_states['trajectories_r'].append(states['trajectories_r'][i])
+            body_states['idx_list'].append(states['idx_list'][i])
+            body_states['p_list'].append(states['p_list'][i])
     
     right = target.getRight() > test
     if True in right: # split to right
@@ -254,11 +273,18 @@ def calculate_branch(target_idx, test, states):
         x_right.delta[:, target_idx:target_idx+1] = new_right_target_delta
 
         orelse_states['x'] = x_right
-        # orelse_states['trajectories'] = [states['trajectories'][i] for i in right_idx]
-        orelse_states['trajectories_l'] = [states['trajectories_l'][i] for i in right_idx]
-        orelse_states['trajectories_r'] = [states['trajectories_r'][i] for i in right_idx]
-        orelse_states['idx_list'] = [states['idx_list'][i] for i in right_idx]
-        orelse_states['p_list'] = [states['p_list'][i] for i in right_idx]
+        orelse_states['trajectories_l'], orelse_states['trajectories_r'], orelse_states['idx_list'], orelse_states['p_list'] = list(), list(), list(), list()
+        for i in right_idx:
+            # orelse_states['trajectories'].append(states['trajectories'][i])
+            orelse_states['trajectories_l'].append(states['trajectories_l'][i])
+            orelse_states['trajectories_r'].append(states['trajectories_r'][i])
+            orelse_states['idx_list'].append(states['idx_list'][i])
+            orelse_states['p_list'].append(states['p_list'][i])
+        # # orelse_states['trajectories'] = [states['trajectories'][i] for i in right_idx]
+        # orelse_states['trajectories_l'] = [states['trajectories_l'][i] for i in right_idx]
+        # orelse_states['trajectories_r'] = [states['trajectories_r'][i] for i in right_idx]
+        # orelse_states['idx_list'] = [states['idx_list'][i] for i in right_idx]
+        # orelse_states['p_list'] = [states['p_list'][i] for i in right_idx]
     
     # pdb.set_trace()
     
@@ -336,6 +362,8 @@ class IfElse(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, states):
+        # if constants.profile:
+        #     start = time.time()
         # print(f"[ifelse-before]states: x.c: {states['x'].c}, x.delta: {states['x'].delta}")
         body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
         if len(body_states) > 0:
@@ -354,15 +382,22 @@ class IfElse(nn.Module):
         #         print(f"new trajectory")
         #         for states in tra:
         #             print(f"{float(states[0].left), float(states[0].right)}")
-        
+        # if constants.profile:
+        #     start_sound_join = time.time()
         # maintain the same number of components as the initial ones
         # TODO: update sound join
         res_states = sound_join(body_states, orelse_states)
+        # if constants.profile:
+        #     end_sound_join = time.time()
+        #     print(f"--IFELSE SOUND JOIN: {end_sound_join - start_sound_join}")
         # print(f"[ifelse]res: x.c: {res_states['x'].c}, x.delta: {res_states['x'].delta}")
         # for tra in res_states['trajectories']:
         #     print(f"new trajectory")
         #     for states in tra:
         #         print(f"{float(states[0].left), float(states[0].right)}")
+        # if constants.profile:
+        #     end = time.time()
+        #     print(f"--IFELSE BLOCK: {end - start}")
 
         return res_states
 
@@ -416,10 +451,15 @@ class While(nn.Module):
             
             # if i > 2:
             #     exit(0)
+            # if constants.profile:
+            #     start = time.time()
             res_states = sound_join(res_states, orelse_states)
             if len(body_states) == 0:
                 return res_states
             states = self.body(body_states)
+            # if constants.profile:
+            #     end = time.time()
+            #     print(f"--EACH ITERATION: {end - start}")
             i += 1
             if i > MAXIMUM_ITERATION:
                 break
@@ -449,7 +489,7 @@ class Trajectory(nn.Module):
         trajectories_l = states['trajectories_l']
         trajectories_r = states['trajectories_r']
         B, D = x.c.shape
-        
+        # print(self.target_idx)
         input = x.select_from_index(1, self.target_idx)
         input_interval = input.getInterval()
         _, K = input_interval.left.shape
@@ -459,7 +499,9 @@ class Trajectory(nn.Module):
 
         states['trajectories_l'] = trajectories_l
         states['trajectories_r'] = trajectories_r
-
+        # if constants.profile:
+        #     end = time.time()
+        #     print(f"--UPDATE TRAJECTORY: {end - start}")
         return states
 
 
