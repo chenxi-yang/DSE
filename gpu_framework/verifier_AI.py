@@ -38,9 +38,10 @@ def trajectory_worst_case(trajectory_l, trajectory_r, target_component, target_i
         state_r = trajectory_r[state_idx]
         X_l, X_r = state_l[target_idx], state_r[target_idx]
         if target_component["map_mode"] is True:
-            safe_interval = target_component["map_condition"][state_idx] # the constraint over the k-th step
-        if not in_interval(X_l, X_r, safe_interval):
-            return True
+            safe_interval_l = target_component["map_condition"][state_idx] # the constraint over the k-th step
+            for safe_interval in safe_interval_l:
+                if not in_interval(X_l, X_r, safe_interval):
+                    return True
     return trajectory_worst_unsafe
 
 
