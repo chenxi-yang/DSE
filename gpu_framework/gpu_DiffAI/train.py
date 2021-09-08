@@ -83,6 +83,7 @@ def extract_safe_loss(component, target_component, target_idx):
     converted_trajectories_l, converted_trajectories_r = list(zip(*trajectories_l)), list(zip(*trajectories_r))
     stacked_trajectories_l = [torch.stack(i) for i in converted_trajectories_l]
     stacked_trajectories_r = [torch.stack(i) for i in converted_trajectories_r]
+    # exit(0)
 
     B, C = len(trajectories_l), len(converted_trajectories_l)
     unsafe_value = torch.zeros((B, C))
@@ -95,16 +96,36 @@ def extract_safe_loss(component, target_component, target_idx):
         l = stacked_state[:, target_idx]
         r = stacked_trajectories_r[state_idx][:, target_idx]
         if target_component["map_mode"] is True:
-            safe_interval_l, safe_interval_r = safe_interval_list[state_idx].left, safe_interval_list[state_idx].right # the constraint over the k-th step
-        
-        intersection_l, intersection_r = torch.max(l, safe_interval_l), torch.min(r, safe_interval_r)
-        empty_idx = intersection_r < intersection_l
-        # other_idx = intersection_r >= intersection_l
-        other_idx = ~ empty_idx
-        # print(unsafe_value.shape, empty_idx.shape, state_idx)
-        unsafe_value[empty_idx, state_idx] = torch.max(l[empty_idx] - safe_interval_r, safe_interval_l - r[empty_idx]) + 1.0
-        unsafe_value[other_idx, state_idx] = 1 - (intersection_r[other_idx] - intersection_l[other_idx] + eps) / (r[other_idx] - l[other_idx] + eps)
-        min_l, max_r = min(float(torch.min(l)), min_l), max(float(torch.max(r)), max_r)
+            safe_interval_sub_list = safe_interval_list[state_idx] 
+            tmp_unsafe_value_list = list()
+            for safe_interval in safe_interval_sub_list:
+                tmp_unsafe_value = torch.zeros((B, 1))
+                if torch.cuda.is_available():
+                    tmp_unsafe_value = tmp_unsafe_value.cuda()
+                safe_interval_l, safe_interval_r = safe_interval.left, safe_interval.right # the constraint over the k-th step
+                intersection_l, intersection_r = torch.max(l, safe_interval_l), torch.min(r, safe_interval_r)
+                empty_idx = intersection_r < intersection_l
+                # other_idx = intersection_r >= intersection_l
+                other_idx = ~ empty_idx
+                # print(unsafe_value.shape, empty_idx.shape, state_idx)
+                tmp_unsafe_value[empty_idx, 0] = torch.max(l[empty_idx] - safe_interval_r, safe_interval_l - r[empty_idx]) + 1.0
+                tmp_unsafe_value[other_idx, 0] = 1 - (intersection_r[other_idx] - intersection_l[other_idx] + eps) / (r[other_idx] - l[other_idx] + eps)
+                min_l, max_r = min(float(torch.min(l)), min_l), max(float(torch.max(r)), max_r)
+                tmp_unsafe_value_list.append(tmp_unsafe_value)
+            if len(tmp_unsafe_value_list) > 1:
+                unsafe_value[:, state_idx] = torch.min(tmp_unsafe_value_list[0], tmp_unsafe_value_list[1]).squeeze()
+            else:
+                # print(unsafe_value[:, state_idx].shape, tmp_unsafe_value_list[0].shape, tmp_unsafe_value_list[0].squeeze().shape)
+                unsafe_value[:, state_idx] = tmp_unsafe_value_list[0].squeeze()
+        else:
+            intersection_l, intersection_r = torch.max(l, safe_interval_l), torch.min(r, safe_interval_r)
+            empty_idx = intersection_r < intersection_l
+            # other_idx = intersection_r >= intersection_l
+            other_idx = ~ empty_idx
+            # print(unsafe_value.shape, empty_idx.shape, state_idx)
+            unsafe_value[empty_idx, state_idx] = torch.max(l[empty_idx] - safe_interval_r, safe_interval_l - r[empty_idx]) + 1.0
+            unsafe_value[other_idx, state_idx] = 1 - (intersection_r[other_idx] - intersection_l[other_idx] + eps) / (r[other_idx] - l[other_idx] + eps)
+            min_l, max_r = min(float(torch.min(l)), min_l), max(float(torch.max(r)), max_r)
 
     unsafe_penalty = torch.max(unsafe_value, 1)[0]
     # print(unsafe_penalty.shape, torch.sum(unsafe_penalty))
@@ -160,7 +181,7 @@ def cal_data_loss(m, trajectories, criterion):
             data_loss = data_loss + criterion(yp, y_trajectory[idx])
             data_loss /= len(yp_trajectory)
     else:
-        X, y = batch_pair(trajectories, data_bs=512)
+        X, y = batch_pair(trajectories, data_bs=1024)
         X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
         print(f"after batch pair: {X.shape}")
         if torch.cuda.is_available():
@@ -170,17 +191,17 @@ def cal_data_loss(m, trajectories, criterion):
         # print(f"finish: {yp.shape}")
         data_loss = criterion(yp, y)
     
-    # if constants.debug:
-    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-    y_list = y.squeeze().detach().cpu().numpy().tolist()
-    print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
+    if constants.debug:
+        yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+        y_list = y.squeeze().detach().cpu().numpy().tolist()
+        print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
 
-    # print(f"x: {X}")
-    yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-    y_list = y.squeeze().detach().cpu().numpy().tolist()
+        # print(f"x: {X}")
+        yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+        y_list = y.squeeze().detach().cpu().numpy().tolist()
 
-    print(f"yp: {min(yp_list)}, {max(yp_list)}")
-    print(f"y: {min(y_list)}, {max(y_list)}")
+        print(f"yp: {min(yp_list)}, {max(yp_list)}")
+        print(f"y: {min(y_list)}, {max(y_list)}")
     
     return data_loss
 
@@ -243,7 +264,8 @@ def learning(
             continue
 
         for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
-
+            if constants.profile:
+                start_forward = time.time()
             data_loss = cal_data_loss(m, trajectories, criterion)
             # data_loss = var(0.0)
             safe_loss = cal_safe_loss(m, abstract_states, target)
@@ -252,6 +274,9 @@ def learning(
             print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}")
             
             loss = (data_loss + lambda_ * safe_loss) / lambda_
+            if constants.profile:
+                end_forward = time.time()
+                print(f"--FORWARD: {end_forward - start_forward}")
 
             loss.backward(retain_graph=True)
             # print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
@@ -265,24 +290,25 @@ def learning(
             save_model(m, constants.MODEL_PATH, name=model_name, epoch=i)
             print(f"save model")
                 
-        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1 - epochs_to_skip)}")
+        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i - epochs_to_skip)}")
         print(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}")
         if not constants.debug:
             log_file = open(constants.file_dir, 'a')
-            log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
+            log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i - epochs_to_skip)}\n")
             log_file.write(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}\n")
             log_file.flush()
-        
-        if float(safe_loss) == 0.0:
-            end_count += 1
-        else:
-            end_count = 0
-        if end_count >= 3:
-            if not constants.debug:
-                log_file = open(file_dir, 'a')
-                log_file.write('EARLY STOP: Get safe results \n')
-                log_file.close()
-            break
+
+        if constants.early_stop is True:
+            if float(safe_loss) == 0.0:
+                end_count += 1
+            else:
+                end_count = 0
+            if end_count >= 3:
+                if not constants.debug:
+                    log_file = open(file_dir, 'a')
+                    log_file.write('EARLY STOP: Get safe results \n')
+                    log_file.close()
+                break
 
         if (time.time() - start_time)/(i+1) > 3600*5 or TIME_OUT:
             if not constants.debug:

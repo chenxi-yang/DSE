@@ -86,6 +86,22 @@ elif constants.benchmark_name == "racetrack_easy_classifier_ITE":
     import benchmarks.racetrack_easy_classifier_ITE as re
     importlib.reload(re)
     from benchmarks.racetrack_easy_classifier_ITE import *
+elif constants.benchmark_name == "racetrack_moderate_classifier_ITE":
+    import benchmarks.racetrack_moderate_classifier_ITE as re
+    importlib.reload(re)
+    from benchmarks.racetrack_moderate_classifier_ITE import *
+elif constants.benchmark_name == "racetrack_moderate_2_classifier_ITE":
+    import benchmarks.racetrack_moderate_2_classifier_ITE as re
+    importlib.reload(re)
+    from benchmarks.racetrack_moderate_2_classifier_ITE import *
+elif constants.benchmark_name == "racetrack_moderate_3_classifier_ITE":
+    import benchmarks.racetrack_moderate_3_classifier_ITE as re
+    importlib.reload(re)
+    from benchmarks.racetrack_moderate_3_classifier_ITE import *
+elif constants.benchmark_name == "racetrack_hard_classifier_ITE":
+    import benchmarks.racetrack_hard_classifier_ITE as re
+    importlib.reload(re)
+    from benchmarks.racetrack_hard_classifier_ITE import *
 elif constants.benchmark_name == "racetrack_easy_1_classifier":
     import benchmarks.racetrack_easy_1_classifier as re
     importlib.reload(re)
@@ -122,4 +138,7 @@ elif constants.benchmark_name == "aircraft_collision_refined_classifier_ITE":
     import benchmarks.aircraft_collision_refined_classifier_ITE as ac
     importlib.reload(ac)
     from benchmarks.aircraft_collision_refined_classifier_ITE import *
+
+
+# print(constants.benchmark_name)
 

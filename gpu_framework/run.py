@@ -90,12 +90,18 @@ if __name__ == "__main__":
                     "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
                     "method": method_list[idx],
                     "name": name_list[idx],
-                    "map_condition": [
-                      domain.Interval(var(constraint[0]), var(constraint[1])) for constraint in map_safe_range
-                    ] if map_mode is True else None,
+                    "map_condition": None,
                     "map_mode": map_mode,
                 }
             )
+            map_condition = list()
+            if map_mode is True:
+                for constraint_l in map_safe_range:
+                    interval_l = list()
+                    for constraint in constraint_l:
+                        interval_l.append(domain.Interval(var(constraint[0]), var(constraint[1])))
+                    map_condition.append(interval_l)
+                target[0]['map_condition'] = map_condition
 
             # Run 25 times
             for i in range(5):
