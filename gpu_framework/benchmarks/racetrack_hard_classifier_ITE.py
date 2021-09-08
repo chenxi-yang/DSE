@@ -65,10 +65,12 @@ def initialize_components(abstract_states):
 
 # input order: x, y, z
 def initialization_components_point(x_l=None, x_r=None):
-    B = 100
+    B = 50000
     input_center = torch.rand(B, 1) * (x_r[0] - x_l[0]) + x_l[0]
     input_center[0] = x_r[0]
     input_center[1] = x_l[0]
+    # print(input_center)
+    # exit(0)
 
     input_width, padding = torch.zeros(B, 1), torch.zeros(B, 1)
     
@@ -114,7 +116,8 @@ class LinearNNComplex(nn.Module):
     def __init__(self, l=4):
         super().__init__()
         self.linear1 = Linear(in_channels=2, out_channels=l)
-        self.linear2 = Linear(in_channels=l, out_channels=3)
+        self.linear2 = Linear(in_channels=l, out_channels=l)
+        self.linear3 = Linear(in_channels=l, out_channels=3)
         self.relu = ReLU()
         self.sigmoid = Sigmoid()
 
@@ -122,6 +125,8 @@ class LinearNNComplex(nn.Module):
         res = self.linear1(x)
         res = self.relu(res)
         res = self.linear2(res)
+        res = self.relu(res)
+        res = self.linear3(res)
         # res = self.sigmoid(res) # to increase the volume
         return res
 
