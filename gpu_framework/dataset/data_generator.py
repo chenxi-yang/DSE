@@ -48,6 +48,14 @@ def dataset_arg(dataset):
         range_ = [4.0, 6.0]
     elif benchmark_name == "racetrack_easy_classifier_ITE":
         range_ = [4.0, 6.0]
+    elif benchmark_name == "racetrack_moderate_classifier_ITE":
+        range_ = [7.0, 10.0]
+    elif benchmark_name == "racetrack_moderate_2_classifier_ITE":
+        range_ = [7.0, 10.0]
+    elif benchmark_name == "racetrack_moderate_3_classifier_ITE":
+        range_ = [7.0, 9.0]
+    elif benchmark_name == "racetrack_hard_classifier_ITE":
+        range_ = [4.0, 6.0]
     elif benchmark_name == "racetrack_easy_1_classifier":
         range_ = [4.0, 6.0]
     elif benchmark_name == "racetrack_easy_2_classifier":
@@ -179,6 +187,14 @@ def run(safe_bound):
         func = benchmark.racetrack_easy_classifier
     elif benchmark_name == "racetrack_easy_classifier_ITE":
         func = benchmark.racetrack_easy_classifier_ITE
+    elif benchmark_name == "racetrack_moderate_classifier_ITE":
+        func = benchmark.racetrack_moderate_classifier_ITE
+    elif benchmark_name == "racetrack_moderate_2_classifier_ITE":
+        func = benchmark.racetrack_moderate_2_classifier_ITE
+    elif benchmark_name == "racetrack_moderate_3_classifier_ITE":
+        func = benchmark.racetrack_moderate_3_classifier_ITE
+    elif benchmark_name == "racetrack_hard_classifier_ITE":
+        func = benchmark.racetrack_hard_classifier_ITE
     elif benchmark_name == "racetrack_easy_1_classifier":
         func = benchmark.racetrack_easy_1_classifier
     elif benchmark_name == "racetrack_easy_2_classifier":

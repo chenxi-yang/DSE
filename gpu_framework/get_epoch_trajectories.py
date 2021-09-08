@@ -23,7 +23,10 @@ from data_loader import (
 def store_trajectory(output_states, trajectory_path):
     trajectory_log_file = open(trajectory_path, 'w')
     trajectory_log_file.write(f"###\n")
+    # print(f"trajectory starts")
     for trajectory_idx, trajectory_l in enumerate(output_states['trajectories_l']):
+        # print(f"{trajectory_l}")
+        # continue
         trajectory_r = output_states['trajectories_r'][trajectory_idx]
         trajectory_log_file.write(f"trajectory_idx {trajectory_idx}\n")
         for state_idx, state_l in enumerate(trajectory_l):
@@ -72,85 +75,201 @@ if __name__ == "__main__":
     configs = dict()
     configs['Thermostat'] = dict()
     configs['Racetrack'] = dict()
+    configs['Racetrack-Moderate'] = dict()
+    configs['Racetrack-Moderate2'] = dict()
+    configs['Racetrack-Moderate3'] = dict()
+    configs['Racetrack-Moderate3-1'] = dict()
+    configs['Racetrack-Hard'] = dict()
     configs['AircraftCollision'] = dict()
-    configs['Thermostat']['DiffAI'] = {
-        'model_path': f"gpu_DiffAI/models",
-        'model_name': f"thermostat_refined_complex_64_2_100_100_83.0_0_0",
-        'method': 'DiffAI+',
-        'benchmark': 'Thermostat',
-        # 'epoch_list': [0, 1499],
-        'epoch_list': [749],
-        # 'epoch_list': [4999],
-        'benchmark_name': 'thermostat_refined',
-        'dataset_path': "dataset/thermostat_refined_83.0.txt",
-        'x_l': [60.0],
-        'x_r': [64.0],
-    }
-    configs['Thermostat']['DSE'] = {
-        'model_path': f"gpu_DSE/models",
-        'model_name': f"thermostat_refined_complex_64_2_1_100_83.0_0_0",
-        'method': 'DSE',
-        'benchmark': 'Thermostat',
-        # 'epoch_list': [0, 1499],
-        'epoch_list': [749],
-        # 'epoch_list': [4999],
-        'benchmark_name': 'thermostat_refined',
-        'dataset_path': "dataset/thermostat_refined_83.0.txt",
-        'x_l': [60.0],
-        'x_r': [64.0],
-    }
-    configs['Racetrack']['DiffAI'] = {
-        'model_path': f"gpu_DiffAI/models",
-        'model_name': f"racetrack_easy_classifier_ITE_complex_64_2_100_100_0_0_0",
-        'method': 'DiffAI+',
-        'benchmark': 'Racetrack',
+    # configs['Thermostat']['DiffAI'] = {
+    #     'model_path': f"gpu_DiffAI/models",
+    #     'model_name': f"thermostat_refined_complex_64_2_100_100_83.0_0_0",
+    #     'method': 'DiffAI+',
+    #     'benchmark': 'Thermostat',
+    #     # 'epoch_list': [0, 1499],
+    #     'epoch_list': [749],
+    #     # 'epoch_list': [4999],
+    #     'benchmark_name': 'thermostat_refined',
+    #     'dataset_path': "dataset/thermostat_refined_83.0.txt",
+    #     'x_l': [60.0],
+    #     'x_r': [64.0],
+    # }
+    # configs['Thermostat']['DSE'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"thermostat_refined_complex_64_2_1_100_83.0_0_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'Thermostat',
+    #     # 'epoch_list': [0, 1499],
+    #     'epoch_list': [749],
+    #     # 'epoch_list': [4999],
+    #     'benchmark_name': 'thermostat_refined',
+    #     'dataset_path': "dataset/thermostat_refined_83.0.txt",
+    #     'x_l': [60.0],
+    #     'x_r': [64.0],
+    # }
+    # configs['Racetrack']['DiffAI'] = {
+    #     'model_path': f"gpu_DiffAI/models",
+    #     'model_name': f"racetrack_easy_classifier_ITE_complex_64_2_100_100_0_0_0",
+    #     'method': 'DiffAI+',
+    #     'benchmark': 'Racetrack',
+    #     # 'epoch_list': [0, 2999],
+    #     'epoch_list': [749],
+    #     # 'epoch_list': [4999],
+    #     'benchmark_name': 'racetrack_easy_classifier_ITE',
+    #     'dataset_path': "dataset/racetrack_easy_classifier_ITE_0.txt",
+    #     'x_l': [4.0],
+    #     'x_r': [6.0],
+    # }
+    # configs['Racetrack']['DSE'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"racetrack_easy_classifier_ITE_complex_64_2_1_100_0_0_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'Racetrack',
+    #     # 'epoch_list': [0, 2999],
+    #     'epoch_list': [749],
+    #     # 'epoch_list': [4999],
+    #     'benchmark_name': 'racetrack_easy_classifier_ITE',
+    #     'dataset_path': "dataset/racetrack_easy_classifier_ITE_0.txt",
+    #     'x_l': [4.0],
+    #     'x_r': [6.0],
+    # }
+    # configs['Racetrack-Moderate']['DSE'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"racetrack_moderate_classifier_ITE_complex_64_2_1_100_0_0_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'Racetrack-Moderate',
+    #     # 'epoch_list': [0, 2999],
+    #     # 'epoch_list': [0, 1499, 3499],
+    #     'epoch_list': [4799],
+    #     'benchmark_name': 'racetrack_moderate_classifier_ITE',
+    #     'dataset_path': "dataset/racetrack_moderate_classifier_ITE_0.txt",
+    #     'x_l': [7.0],
+    #     'x_r': [10.0],
+    # }
+    # configs['Racetrack-Moderate2']['DSE'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"racetrack_moderate_2_classifier_ITE_complex_64_2_1_100_0_0_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'Racetrack-Moderate2',
+    #     # 'epoch_list': [0, 2999],
+    #     # 'epoch_list': [0, 1499, 3499],
+    #     'epoch_list': [0, 1999, 3999, 5999, 7999],
+    #     'benchmark_name': 'racetrack_moderate_2_classifier_ITE',
+    #     'dataset_path': "dataset/racetrack_moderate_2_classifier_ITE_0.txt",
+    #     'x_l': [7.0],
+    #     'x_r': [10.0],
+    # }
+    # configs['Racetrack-Moderate2']['Ablation'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"racetrack_moderate_2_classifier_ITE_complex_64_2_1_5000_0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'Racetrack-Moderate2',
+    #     # 'epoch_list': [0, 2999],
+    #     # 'epoch_list': [0, 1499, 3499],
+    #     # 'epoch_list': [0, 1999, 3999, 5999, 7999],
+    #     'epoch_list': [3999],
+    #     'benchmark_name': 'racetrack_moderate_2_classifier_ITE',
+    #     'dataset_path': "dataset/racetrack_moderate_2_classifier_ITE_0.txt",
+    #     'x_l': [7.0],
+    #     'x_r': [10.0],
+    # }
+    # configs['Racetrack-Moderate3']['Ablation'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"racetrack_moderate_3_classifier_ITE_complex_64_2_1_5000_0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'Racetrack-Moderate3',
+    #     # 'epoch_list': [0, 2999],
+    #     # 'epoch_list': [0, 1499, 3499],
+    #     # 'epoch_list': [0, 1999, 3999, 5999, 7999],
+    #     # 'epoch_list': [499, 999],
+    #     'epoch_list': [999],
+    #     'benchmark_name': 'racetrack_moderate_3_classifier_ITE',
+    #     'dataset_path': "dataset/racetrack_moderate_3_classifier_ITE_0.txt",
+    #     'x_l': [7.0],
+    #     'x_r': [9.0],
+    # }
+    configs['Racetrack-Moderate3-1']['Ablation'] = {
+        'model_path': f"gpu_only_data/models",
+        'model_name': f"racetrack_moderate_3_classifier_ITE_complex_64_2_2_5000_0_0_0",
+        'method': 'Ablation',
+        'benchmark': 'Racetrack-Moderate3',
         # 'epoch_list': [0, 2999],
-        'epoch_list': [749],
-        # 'epoch_list': [4999],
-        'benchmark_name': 'racetrack_easy_classifier_ITE',
-        'dataset_path': "dataset/racetrack_easy_classifier_ITE_0.txt",
-        'x_l': [4.0],
-        'x_r': [6.0],
+        # 'epoch_list': [0, 1499, 3499],
+        # 'epoch_list': [0, 1999, 3999, 5999, 7999],
+        # 'epoch_list': [499, 999],
+        'epoch_list': [1999],
+        'benchmark_name': 'racetrack_moderate_3_classifier_ITE',
+        'dataset_path': "dataset/racetrack_moderate_3_classifier_ITE_0.txt",
+        'x_l': [7.0],
+        'x_r': [9.0],
     }
-    configs['Racetrack']['DSE'] = {
-        'model_path': f"gpu_DSE/models",
-        'model_name': f"racetrack_easy_classifier_ITE_complex_64_2_1_100_0_0_0",
-        'method': 'DSE',
-        'benchmark': 'Racetrack',
-        # 'epoch_list': [0, 2999],
-        'epoch_list': [749],
-        # 'epoch_list': [4999],
-        'benchmark_name': 'racetrack_easy_classifier_ITE',
-        'dataset_path': "dataset/racetrack_easy_classifier_ITE_0.txt",
-        'x_l': [4.0],
-        'x_r': [6.0],
-    }
-    configs['AircraftCollision']['DiffAI'] = {
-        'model_path': f"gpu_DiffAI/models",
-        'model_name': f"aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0",
-        'method': 'DiffAI+',
-        'benchmark': 'AC',
-        # 'epoch_list': [0, 1999],
-        'epoch_list': [749],
-        # 'epoch_list': [4999],
-        'benchmark_name': 'aircraft_collision_refined_classifier_ITE',
-        'dataset_path': "dataset/aircraft_collision_refined_classifier_ITE_100000.0.txt",
-        'x_l': [12.0],
-        'x_r': [16.0],
-    }
-    configs['AircraftCollision']['DSE'] = {
-        'model_path': f"gpu_DSE/models",
-        'model_name': f"aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0",
-        'method': 'DSE',
-        'benchmark': 'AC',
-        # 'epoch_list': [0, 1999],
-        'epoch_list': [749],
-        # 'epoch_list': [4999],
-        'benchmark_name': 'aircraft_collision_refined_classifier_ITE',
-        'dataset_path': "dataset/aircraft_collision_refined_classifier_ITE_100000.0.txt",
-        'x_l': [12.0],
-        'x_r': [16.0],
-    }
+    # configs['Racetrack-Moderate3']['DSE'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"racetrack_moderate_3_classifier_ITE_complex_64_2_1_100_0_0_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'Racetrack-Moderate3',
+    #     # 'epoch_list': [0, 2999],
+    #     # 'epoch_list': [0, 1499, 3499],
+    #     # 'epoch_list': [0, 1999, 3999, 5999, 7999],
+    #     'epoch_list': [7999], # 9999
+    #     'benchmark_name': 'racetrack_moderate_3_classifier_ITE',
+    #     'dataset_path': "dataset/racetrack_moderate_3_classifier_ITE_0.txt",
+    #     'x_l': [7.0],
+    #     'x_r': [9.0],
+    # }
+    # configs['Racetrack-Hard']['Ablation'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"racetrack_hard_classifier_ITE_complex_64_2_1_5000_0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'Racetrack-Hard',
+    #     # 'epoch_list': [0, 2999],
+    #     # 'epoch_list': [0, 1499, 3499],
+    #     'epoch_list': [1499, 2499],
+    #     'benchmark_name': 'racetrack_hard_classifier_ITE',
+    #     'dataset_path': "dataset/racetrack_hard_classifier_ITE_0.txt",
+    #     'x_l': [4.0],
+    #     'x_r': [6.0],
+    # }
+    # configs['Racetrack-Hard']['DSE'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"racetrack_hard_classifier_ITE_complex_64_2_1_100_0_0_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'Racetrack-Hard',
+    #     # 'epoch_list': [0, 2999],
+    #     # 'epoch_list': [0, 1499, 3499],
+    #     # 'epoch_list': [0, 1999, 3999, 5999, 7999],
+    #     'epoch_list': [1499, 2999],
+    #     'benchmark_name': 'racetrack_hard_classifier_ITE',
+    #     'dataset_path': "dataset/racetrack_hard_classifier_ITE_0.txt",
+    #     'x_l': [4.0],
+    #     'x_r': [6.0],
+    # }
+    # configs['AircraftCollision']['DiffAI'] = {
+    #     'model_path': f"gpu_DiffAI/models",
+    #     'model_name': f"aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0",
+    #     'method': 'DiffAI+',
+    #     'benchmark': 'AC',
+    #     # 'epoch_list': [0, 1999],
+    #     'epoch_list': [749],
+    #     # 'epoch_list': [4999],
+    #     'benchmark_name': 'aircraft_collision_refined_classifier_ITE',
+    #     'dataset_path': "dataset/aircraft_collision_refined_classifier_ITE_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+    # configs['AircraftCollision']['DSE'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'AC',
+    #     # 'epoch_list': [0, 1999],
+    #     'epoch_list': [749],
+    #     # 'epoch_list': [4999],
+    #     'benchmark_name': 'aircraft_collision_refined_classifier_ITE',
+    #     'dataset_path': "dataset/aircraft_collision_refined_classifier_ITE_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
 
 
     torch.autograd.set_detect_anomaly(True)
@@ -158,7 +277,7 @@ if __name__ == "__main__":
     for benchmark, benchmark_dict in configs.items():
         for method, method_dict in benchmark_dict.items():
             for epoch in method_dict['epoch_list']:
-                print(f"-- GENERATE TRAJECTORY -- {benchmark} & {method}")
+                print(f"-- GENERATE TRAJECTORY -- {benchmark} & {method} & {epoch}")
                 start_time = time.time()
                 constants.status = 'verify_AI'
                 constants.benchmark_name = method_dict['benchmark_name']
@@ -169,10 +288,10 @@ if __name__ == "__main__":
                     dataset_path=method_dict['dataset_path'],
                 )
                 components = extract_abstract_representation(
-                    Trajectory_train, 
+                    Trajectory_test, 
                     x_l=method_dict['x_l'], 
                     x_r=method_dict['x_r'], 
-                    num_components=100)
+                    num_components=2)
 
                 import import_hub as hub
                 importlib.reload(hub)
@@ -185,7 +304,7 @@ if __name__ == "__main__":
                     category='concrete',
                     epoch=epoch,
                 )
-
+                # exit(0)
                 abstract_states = create_abstract_states_from_components(components)
                 ini_states = initialize_components(abstract_states)
                 extract_trajectory(
