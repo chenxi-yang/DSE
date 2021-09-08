@@ -63,17 +63,22 @@ def initialize_components(abstract_states):
     return states
 
 
-def initialization_components_point():
-    B = 2
-    input_center, input_width, padding, padding_y1 = torch.zeros(B, 1), torch.zeros(B, 1), torch.zeros(B, 1), torch.zeros(B, 1) - 15.0
+def initialization_components_point(x_l=None, x_r=None):
+    B = 100
+    input_center = torch.rand(B, 1) * (x_r[0] - x_l[0]) + x_l[0]
+    input_center[0] = x_r[0]
+    input_center[1] = x_l[0]
+
+    input_width, padding, padding_y1 = torch.zeros(B, 1), torch.zeros(B, 1), torch.zeros(B, 1) - 15.0
+    
     if torch.cuda.is_available():
         padding = padding.cuda()
         padding_y1 = padding_y1.cuda()
         input_center = input_center.cuda()
         input_width = input_width.cuda()
     
-    input_center[0], input_width[0] = 12.0, 0.0
-    input_center[1], input_width[1] = 12.5, 0.001
+    # input_center[0], input_width[0] = 12.0, 0.0
+    # input_center[1], input_width[1] = 12.5, 0.001
     states = {
         'x': domain.Box(torch.cat((padding, input_center, padding_y1, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding), 1), \
             torch.cat((padding, input_width, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding, padding), 1)),
