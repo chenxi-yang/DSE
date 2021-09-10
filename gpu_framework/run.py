@@ -85,24 +85,68 @@ if __name__ == "__main__":
         # update target, fix the left endpoint, varify the right endpoint
         target = list()
         for idx, safe_range in enumerate(safe_range_list):
-            target.append(
-                {   # constraint is in box domain
-                    "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
-                    "method": method_list[idx],
-                    "name": name_list[idx],
-                    "map_condition": None,
-                    "map_mode": map_mode,
-                }
-            )
-            map_condition = list()
+            if multi_agent_mode is True:
+                # target distance, x1, x2
+                # distance
+                target.append(
+                    {   # constraint is in box domain
+                        "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
+                        "method": method_list[idx],
+                        "name": name_list[idx],
+                        "map_condition": None,
+                        "map_mode": map_mode,
+                    }
+                )
+                # agent1
+                target.append(
+                    {   # constraint is in box domain
+                        "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
+                        "method": method_list[idx],
+                        "name": name_list[idx],
+                        "map_condition": None,
+                        "map_mode": map_mode,
+                    }
+                )
+                # agent2
+                target.append(
+                    {   # constraint is in box domain
+                        "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
+                        "method": method_list[idx],
+                        "name": name_list[idx],
+                        "map_condition": None,
+                        "map_mode": map_mode,
+                    }
+                )
+            else:
+                target.append(
+                    {   # constraint is in box domain
+                        "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
+                        "method": method_list[idx],
+                        "name": name_list[idx],
+                        "map_condition": None,
+                        "map_mode": map_mode,
+                    }
+                )
             if map_mode is True:
+                map_condition = list()
                 for constraint_l in map_safe_range:
                     interval_l = list()
                     for constraint in constraint_l:
                         interval_l.append(domain.Interval(var(constraint[0]), var(constraint[1])))
                     map_condition.append(interval_l)
-                target[0]['map_condition'] = map_condition
-
+                if multi_agent_mode is True:
+                    target[1]['map_condition'] = map_condition
+                    target[2]['map_condition'] = map_condition
+                    distance_condition = list()
+                    for constraint_l in distance_safe_range:
+                        interval_l = list()
+                        for constraint in constraint_l:
+                            interval_l.append(domain.Interval(var(constraint[0]), var(constraint[1])))
+                        distance_condition.append(interval_l)
+                    target[0]['map_condition'] = distance_condition
+                else:
+                    target[0]['map_condition'] = map_condition
+                
             # Run 25 times
             for i in range(5):
                 # i += 1

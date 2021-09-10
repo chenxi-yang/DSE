@@ -67,6 +67,7 @@ DOMAIN = "interval" # [interval, zonotope]
 
 MODEL_PATH = f"gpu_{mode}/models"
 map_mode = False
+multi_agent_mode = False
 
 status = ''
 
@@ -362,12 +363,14 @@ if benchmark_name == "racetrack_easy":
     map_mode = True
     # y's range
     map_safe_range = [
-        [4.0, 6.0], [4.0, 6.0], [4.0, 6.0], [4.0, 6.0],
-        [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
-        [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
-        [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [0.0, 9.0], 
-        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 3.0],
+        [[4.0, 6.0]],
+        [[4.0, 6.0]], [[4.0, 6.0]], [[4.0, 6.0]], [[4.0, 6.0]],
+        [[4.0, 7.0]], [[4.0, 7.0]], [[4.0, 7.0]], [[4.0, 7.0]],
+        [[4.0, 8.0]], [[4.0, 8.0]], [[4.0, 8.0]], [[4.0, 8.0]],
+        [[4.0, 9.0]], [[4.0, 9.0]], [[4.0, 9.0]], [[0.0, 9.0]], 
+        [[0.0, 9.0]], [[0.0, 9.0]], [[0.0, 9.0]], [[0.0, 3.0]],
     ]
+    # another constraint: distance > 0.5
     # map k-column in map[k] interval
     # 0 is the basic version
     w_list = [1.0]
@@ -389,11 +392,44 @@ if benchmark_name == "racetrack_easy_classifier_ITE":
         [[4.0, 9.0]], [[4.0, 9.0]], [[4.0, 9.0]], [[0.0, 9.0]], 
         [[0.0, 9.0]], [[0.0, 9.0]], [[0.0, 9.0]], [[0.0, 3.0]],
     ]
+    distance_safe_range = []
     # map k-column in map[k] interval
     # 0 is the basic version
     w_list = [1.0]
     method_list = ['map_each'] # each element in the trajectory is 
     name_list = ['position']
+    safe_range_bound_list = [0]
+
+
+if benchmark_name == "racetrack_easy_multi":
+    # two agents start from one point, 
+    # they should be no-crash and the distance between two agents should be larger than 0.5 except the first one
+    x_l = [4.0]
+    x_r = [6.0]
+    safe_range_list = [0]
+    map_mode = True
+    multi_agent_mode = True
+    # y's range
+    map_safe_range = [
+        [[4.0, 6.0]], # the first step
+        [[4.0, 6.0]], [[4.0, 6.0]], [[4.0, 6.0]], [[4.0, 6.0]],
+        [[4.0, 7.0]], [[4.0, 7.0]], [[4.0, 7.0]], [[4.0, 7.0]],
+        [[4.0, 8.0]], [[4.0, 8.0]], [[4.0, 8.0]], [[4.0, 8.0]],
+        [[4.0, 9.0]], [[4.0, 9.0]], [[4.0, 9.0]], [[0.0, 9.0]], 
+        [[0.0, 9.0]], [[0.0, 9.0]], [[0.0, 9.0]], [[0.0, 3.0]],
+    ]
+    distance_safe_range = [
+        [[0.0, 10000.0]],
+        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], 
+        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], 
+        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], 
+        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], 
+        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    method_list = ['map_each', 'map_each', 'map_each'] # each element in the trajectory is 
+    name_list = ['distance', 'position1', 'position2']
     safe_range_bound_list = [0]
 
 
