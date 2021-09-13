@@ -126,6 +126,18 @@ elif constants.benchmark_name == "racetrack_easy_multi":
     import benchmarks.racetrack_easy_multi as res
     importlib.reload(res)
     from benchmarks.racetrack_easy_multi import *
+elif constants.benchmark_name == "racetrack_easy_multi2":
+    import benchmarks.racetrack_easy_multi2 as res
+    importlib.reload(res)
+    from benchmarks.racetrack_easy_multi2 import *
+elif constants.benchmark_name == "racetrack_relaxed_multi":
+    import benchmarks.racetrack_relaxed_multi as res
+    importlib.reload(res)
+    from benchmarks.racetrack_relaxed_multi import *
+elif constants.benchmark_name == "racetrack_relaxed_multi2":
+    import benchmarks.racetrack_relaxed_multi2 as res
+    importlib.reload(res)
+    from benchmarks.racetrack_relaxed_multi2 import *
 elif constants.benchmark_name == "aircraft_collision":
     import benchmarks.aircraft_collision as ac
     importlib.reload(ac)

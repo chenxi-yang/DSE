@@ -64,6 +64,12 @@ def dataset_arg(dataset):
         range_ = [4.0, 6.0]
     elif benchmark_name == "racetrack_easy_multi":
         range_ = [4.0, 6.0]
+    elif benchmark_name == "racetrack_easy_multi2":
+        range_ = [4.0, 6.0]
+    elif benchmark_name == "racetrack_relaxed_multi":
+        range_ = [5.0, 6.0]
+    elif benchmark_name == "racetrack_relaxed_multi2":
+        range_ = [5.0, 6.0]
     elif benchmark_name == "racetrack_easy_sample":
         range_ = [4.0, 6.0]
     elif benchmark_name == "thermostat_refined":
@@ -205,6 +211,12 @@ def run(safe_bound):
         func = benchmark.racetrack_easy_1
     elif benchmark_name == "racetrack_easy_multi":
         func = benchmark.racetrack_easy_multi
+    elif benchmark_name == "racetrack_easy_multi2":
+        func = benchmark.racetrack_easy_multi2
+    elif benchmark_name == "racetrack_relaxed_multi":
+        func = benchmark.racetrack_relaxed_multi
+    elif benchmark_name == "racetrack_relaxed_multi2":
+        func = benchmark.racetrack_relaxed_multi2
     elif benchmark_name == "racetrack_easy_sample":
         func = benchmark.racetrack_easy_sample
     elif benchmark_name == "thermostat_refined":

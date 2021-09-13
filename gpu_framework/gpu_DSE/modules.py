@@ -173,10 +173,11 @@ def calculate_branch(target_idx, test, states):
         print(f"target c: {target.c}, delta: {target.delta}")
         print(f"left probability: {p_left}")
         print(f"right probability: {p_right}")
+    
     # print(f"test: {test}")
-    # print(f"target c: {target.c}, delta: {target.delta}")
-    # print(f"left probability: {p_left}")
-    # print(f"right probability: {p_right}")
+    # print(f"target c: {target.c.detach().cpu().numpy().tolist()}, delta: {target.delta.detach().cpu().numpy().tolist()}")
+    # print(f"left probability: {float(torch.min(p_left)), float(torch.max(p_left))}")
+    # print(f"right probability: {float(torch.min(p_right)), float(torch.max(p_right))}")
 
     if True in left: # split to left
         left_idx = left.nonzero(as_tuple=True)[0].tolist()

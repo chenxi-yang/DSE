@@ -91,30 +91,33 @@ if __name__ == "__main__":
                 target.append(
                     {   # constraint is in box domain
                         "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
-                        "method": method_list[idx],
-                        "name": name_list[idx],
+                        "method": method_list[0],
+                        "name": name_list[0],
                         "map_condition": None,
                         "map_mode": map_mode,
+                        "distance": True,
                     }
                 )
                 # agent1
                 target.append(
                     {   # constraint is in box domain
                         "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
-                        "method": method_list[idx],
-                        "name": name_list[idx],
+                        "method": method_list[1],
+                        "name": name_list[1],
                         "map_condition": None,
                         "map_mode": map_mode,
+                        "distance": False,
                     }
                 )
                 # agent2
                 target.append(
                     {   # constraint is in box domain
                         "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
-                        "method": method_list[idx],
-                        "name": name_list[idx],
+                        "method": method_list[2],
+                        "name": name_list[2],
                         "map_condition": None,
                         "map_mode": map_mode,
+                        "distance": False,
                     }
                 )
             else:
@@ -125,6 +128,7 @@ if __name__ == "__main__":
                         "name": name_list[idx],
                         "map_condition": None,
                         "map_mode": map_mode,
+                        "distance": False,
                     }
                 )
             if map_mode is True:
