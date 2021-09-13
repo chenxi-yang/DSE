@@ -57,9 +57,11 @@ def extract_safe_loss_old(component, target_component, target_idx):
             else:
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
-            # unsafe_penalty = unsafe_penalty + unsafe_value
-            # TODO: sum or max??
-            unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
+            
+            # sum
+            unsafe_penalty = unsafe_penalty + unsafe_value
+            # TODO: sum or max?
+            # unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
             # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
         # exit(0)
@@ -93,8 +95,24 @@ def extract_safe_loss(component, target_component, target_idx):
 
     for state_idx, stacked_state in enumerate(stacked_trajectories_l):
         # print(stacked_state.shape, target_idx)
-        l = stacked_state[:, target_idx]
-        r = stacked_trajectories_r[state_idx][:, target_idx]
+        pre_l = stacked_state[:, target_idx]
+        pre_r = stacked_trajectories_r[state_idx][:, target_idx]
+        if target_component['distance']:
+            l = torch.zeros(pre_l.shape)
+            r = torch.zeros(pre_r.shape)
+            if torch.cuda.is_available():
+                l = l.cuda()
+                r = r.cuda()
+            all_neg_index = torch.logical_and(pre_l<=0, pre_r<=0)
+            across_index = torch.logical_and(pre_l<=0, pre_r>0)
+            all_pos_index = torch.logical_and(pre_l>0, pre_r>0)
+            l[all_neg_index], r[all_neg_index] = pre_r[all_neg_index].abs(), pre_l[all_neg_index].abs()
+            l[across_index], r[across_index] = 0, pre_r[across_index]
+            l[all_pos_index], r[all_pos_index] = pre_l[all_pos_index], pre_r[all_pos_index]
+        else:
+            l = pre_l
+            r = pre_r
+            
         if target_component["map_mode"] is True:
             safe_interval_sub_list = safe_interval_list[state_idx] 
             tmp_unsafe_value_list = list()
@@ -144,6 +162,7 @@ def safe_distance(component_result_list, target):
     min_l, max_r = 100000, -100000
     for idx, target_component in enumerate(target):
         target_loss = var_list([0.0])
+        min_l, max_r = 100000, -100000
         # print(f"len abstract_state_list: {len(abstract_state_list)}")
         for component in component_result_list:
             component_safe_loss, (tmp_min_l, tmp_max_r) = extract_safe_loss(
@@ -153,7 +172,7 @@ def safe_distance(component_result_list, target):
             min_l, max_r = min(min_l, tmp_min_l), max(max_r, tmp_max_r)
         target_loss = target_loss / len(component_result_list)
         loss += target_loss
-    print(f"range of trajectory: {min_l, max_r}")
+        print(f"range of trajectory: {min_l, max_r}")
     if not constants.debug:
         log_file = open(constants.file_dir, 'a')
         log_file.write(f"range of trajectory: {min_l, max_r}\n")

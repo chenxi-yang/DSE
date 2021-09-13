@@ -156,7 +156,12 @@ def f_assign_c(x):
 def f_assign_distance(x):
     p0 = x.select_from_index(1, index0)
     p1 = x.select_from_index(1, index1)
-    return p0.sub_l(p1)
+    res = p0.sub_l(p1)
+    # return p0.sub_l(p1)
+    # print(f"p0: {p0.c.detach().cpu().numpy().tolist(), p0.delta.detach().cpu().numpy().tolist()}")
+    # print(f"p1: {p1.c.detach().cpu().numpy().tolist(), p1.delta.detach().cpu().numpy().tolist()}")
+    # print(f"res: {res.c.detach().cpu().numpy().tolist(), res.delta.detach().cpu().numpy().tolist()}")
+    return res
 
 # x y p0, p1, p2
 # x1, y1, x2, y2, p00, p01, p02, p10, p11, p12, i, a1, b1, c1, a2, b2, c2, d, d_me

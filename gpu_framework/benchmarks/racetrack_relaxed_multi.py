@@ -65,7 +65,7 @@ def initialize_components(abstract_states):
 
 # input order: x, y, z
 def initialization_components_point(x_l=None, x_r=None):
-    B = 4
+    B = 100
     input_center = torch.rand(B, 1) * (x_r[0] - x_l[0]) + x_l[0]
     input_center[0] = x_r[0]
     input_center[1] = x_l[0]

@@ -798,29 +798,31 @@ def racetrack_easy_classifier_ITE(x, safe_bound):
 # map
 # 10x20
 # initial area: x: [4.0, 6.0], y: [0, 0]
-# xxxxxxxxxxxxxxx..ggg
-# xxxxxxxxxxxxxxx....g
-# xxxxxxxxxxxxxxx....g
-# xxxxxxxxxxxxxxx...og
-# x.............aa.oox
-# s.............a.oo.x
-# s........aaa.aaoo..x
+# xxxxxxxxxxxxxxx..goo
+# xxxxxxxxxxxxxxx..o.g
+# xxxxxxxxxxxxxxx.o..g
+# xxxxxxxxxxxxxxxo..oo
+# ..............oa.oox
+# ..............a.oo.x
+# .........aaa.aaoo..x
 # xxxx......aaaaoo...x
 # xxxxxxxx...aaoo....x
 # xxxxxxxxxxxx.o.a...x
+
+# fuck u
 map_safe_range_easy_multi = [
         [4.0, 6.0], [4.0, 6.0], [4.0, 6.0], [4.0, 6.0],
         [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
         [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
         [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [0.0, 9.0], 
-        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 3.0],
+        [0.0, 9.0], [0.0, 9.0], [0.0, 9.0], [0.0, 4.0],
     ]
 absolute_safe_range_easy_multi = [
         [4.0, 6.0], [4.0, 6.0], [4.0, 6.0], [4.0, 6.0],
         [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
         [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
         [4.0, 9.0], [4.0, 9.0], [4.0, 8.0], [0.0, 7.0], 
-        [0.0, 6.0], [0.0, 5.0], [0.0, 4.0], [0.0, 3.0],
+        [0.0, 7.0], [0.0, 6.0], [0.0, 5.0], [0.0, 4.0],
     ]
 
 def car_control_easy_multi_classifier(x, y):
@@ -885,6 +887,132 @@ def racetrack_easy_multi(x, safe_bound):
         
     return trajectory_list
 
+
+def racetrack_easy_multi2(x, safe_bound):
+    # convert a classifier into an ITE version when using DSE
+    x1, y1, x2, y2 = x, 0, x, 0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps):
+        p00, p01, p02 = car_control_easy_multi_classifier(x1, y1)
+        trajectory_list.append(([x1, y1, 0], [p00, p01, p02])) # agent 1
+        p10, p11, p12 = car_control_easy_multi_classifier(x2, y2)
+        trajectory_list.append(([x2, y2, 1], [p10, p11, p12])) # agent 2
+        # additional comparison between pi to model argmax
+        x1, y1 = from_index3_to_position(p00, p01, p02, x1, y1)
+        x2, y2 = from_index3_to_position(p10, p11, p12, x2, y2)
+        
+    return trajectory_list
+
+
+# map (relaxed multi)
+# 10x20
+# initial area: x: [5.0, 6.0], y: [0, 0]
+# 0 xxxxxxxxxxxxxxx..goo
+# 1 xxxxxxxxxxxxxxx..o.g
+# 2 xxxxxxxxxxxxxxx.o..g
+# 3 xxxxxxxxxxxxxxxo..oo
+# 4 ..............oa.oox
+# 5 ..............a.oo.x
+# 6 .........aaa.aaoo..x
+# 7 xxxx......aaaaoo...x
+# 8 xxxxxxxx...aaoo....x
+# 9 xxxxxxxxxxxx.o.a...x
+
+# fxxxxx!!!! a!
+map_safe_range_relaxed_multi = [
+        [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
+        [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
+        [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [4.0, 9.0],
+        [4.0, 10.0],[4.0, 10.0],[4.0, 10.0],[0.0, 10.0], 
+        [0.0, 10.0],[0.0, 10.0],[0.0, 10.0],[0.0, 4.0],
+    ]
+absolute_safe_range_relaxed_multi = [
+        [4.0, 7.0], [4.0, 7.0], [4.0, 7.0], [4.0, 7.0],
+        [4.0, 8.0], [4.0, 8.0], [4.0, 8.0], [4.0, 8.0],
+        [4.0, 9.0], [4.0, 9.0], [4.0, 9.0], [4.0, 9.0],
+        [4.0, 10.0],[4.0, 10.0],[4.0, 9.0], [0.0, 8.0], 
+        [0.0, 7.0], [0.0, 6.0], [0.0, 5.0], [0.0, 4.0],
+    ]
+
+def car_control_relaxed_multi_classifier(x, y):
+    p0, p1, p2 = 0.0, 0.0, 0.0
+    # 
+    next_abs_safe_range = absolute_safe_range_relaxed_multi[y]
+    select_list = []
+    if x <= next_abs_safe_range[1] and x >= next_abs_safe_range[0]:
+        select_list.append(1)
+    if x - 1 <= next_abs_safe_range[1] and x - 1 >= next_abs_safe_range[0]:
+        select_list.append(0)
+    if x + 1 <= next_abs_safe_range[1] and x + 1 >= next_abs_safe_range[0]:
+        select_list.append(2)
+    index = random.choice(select_list)
+    if index == 0:
+        p0 = 1.0
+    elif index == 1:
+        p1 = 1.0
+    else:
+        p2 = 1.0
+    
+    return p0, p1, p2
+
+
+def from_index3_to_position(p0, p1, p2, x, y):
+    a = p1 - p0
+    b = p2 - p0
+    c = p2 - p1
+    if a <= 0: # p1 <= p0
+        if b <= 0: # p2 <= p0
+            index = 0
+        else: # p2 > p0 >= p1
+            index = 2
+    else: # p1 > p0
+        if c <= 0: # p2 <= p1 (p1 >= p2, p1 > p0)
+            index = 1
+        else: # p2 > p1 > p0
+            index = 2
+    if index == 0:
+        x -= 1
+    elif index == 1:
+        x = x
+    else:
+        x += 1
+    y += 1
+    return x, y
+
+# start from one cell in the center, expecting the trajectories to be separate from each other
+def racetrack_relaxed_multi(x, safe_bound):
+    # convert a classifier into an ITE version when using DSE
+    x1, y1, x2, y2 = x, 0, x, 0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps):
+        p00, p01, p02 = car_control_relaxed_multi_classifier(x1, y1)
+        trajectory_list.append(([x1, y1, 0], [p00, p01, p02])) # agent 1
+        p10, p11, p12 = car_control_relaxed_multi_classifier(x2, y2)
+        trajectory_list.append(([x2, y2, 1], [p10, p11, p12])) # agent 2
+        # additional comparison between pi to model argmax
+        x1, y1 = from_index3_to_position(p00, p01, p02, x1, y1)
+        x2, y2 = from_index3_to_position(p10, p11, p12, x2, y2)
+        
+    return trajectory_list
+
+
+def racetrack_relaxed_multi2(x, safe_bound):
+    # convert a classifier into an ITE version when using DSE
+    x1, y1, x2, y2 = x, 0, x, 0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps):
+        p00, p01, p02 = car_control_relaxed_multi_classifier(x1, y1)
+        trajectory_list.append(([x1, y1, 0], [p00, p01, p02])) # agent 1
+        p10, p11, p12 = car_control_relaxed_multi_classifier(x2, y2)
+        trajectory_list.append(([x2, y2, 1], [p10, p11, p12])) # agent 2
+        # additional comparison between pi to model argmax
+        x1, y1 = from_index3_to_position(p00, p01, p02, x1, y1)
+        x2, y2 = from_index3_to_position(p10, p11, p12, x2, y2)
+        
+    return trajectory_list
 
 # map
 # 10x30

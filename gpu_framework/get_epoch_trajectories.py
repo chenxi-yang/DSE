@@ -75,6 +75,8 @@ if __name__ == "__main__":
     configs = dict()
     configs['Thermostat'] = dict()
     configs['Racetrack'] = dict()
+    configs['Racetrack-Easy-Multi'] = dict()
+    configs['Racetrack-Relaxed-Multi'] = dict()
     configs['Racetrack-Moderate'] = dict()
     configs['Racetrack-Moderate2'] = dict()
     configs['Racetrack-Moderate3'] = dict()
@@ -188,21 +190,82 @@ if __name__ == "__main__":
     #     'x_l': [7.0],
     #     'x_r': [9.0],
     # }
-    configs['Racetrack-Moderate3-1']['Ablation'] = {
-        'model_path': f"gpu_only_data/models",
-        'model_name': f"racetrack_moderate_3_classifier_ITE_complex_64_2_2_5000_0_0_0",
-        'method': 'Ablation',
-        'benchmark': 'Racetrack-Moderate3',
+    # configs['Racetrack-Moderate3-1']['Ablation'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"racetrack_moderate_3_classifier_ITE_complex_64_2_2_5000_0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'Racetrack-Moderate3',
+    #     # 'epoch_list': [0, 2999],
+    #     # 'epoch_list': [0, 1499, 3499],
+    #     # 'epoch_list': [0, 1999, 3999, 5999, 7999],
+    #     # 'epoch_list': [499, 999],
+    #     'epoch_list': [1999],
+    #     'benchmark_name': 'racetrack_moderate_3_classifier_ITE',
+    #     'dataset_path': "dataset/racetrack_moderate_3_classifier_ITE_0.txt",
+    #     'x_l': [7.0],
+    #     'x_r': [9.0],
+    # }
+    # configs['Racetrack-Easy-Multi']['Ablation'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"racetrack_easy_multi_complex_64_2_1_1000_0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'Racetrack-Easy-Multi',
+    #     # 'epoch_list': [0, 2999],
+    #     # 'epoch_list': [0, 1499, 3499],
+    #     # 'epoch_list': [0, 1999, 3999, 5999, 7999],
+    #     # 'epoch_list': [499, 999],
+    #     'epoch_list': [1499],
+    #     'benchmark_name': 'racetrack_easy_multi',
+    #     'dataset_path': "dataset/racetrack_easy_multi_0.txt",
+    #     'x_l': [4.0],
+    #     'x_r': [6.0],
+    # }
+    # configs['Racetrack-Relaxed-Multi']['Ablation'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"racetrack_relaxed_multi_complex_64_2_1_5000_0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'Racetrack-Relaxed-Multi',
+    #     # 'epoch_list': [0, 2999],
+    #     # 'epoch_list': [0, 1499, 3499],
+    #     # 'epoch_list': [0, 1999, 3999, 5999, 7999],
+    #     # 'epoch_list': [499, 999],
+    #     'epoch_list': [1499],
+    #     'benchmark_name': 'racetrack_relaxed_multi',
+    #     'dataset_path': "dataset/racetrack_relaxed_multi_0.txt",
+    #     'x_l': [5.0],
+    #     'x_r': [6.0],
+    # }
+    configs['Racetrack-Relaxed-Multi']['DSE'] = {
+        'model_path': f"gpu_DSE/models",
+        'model_name': f"racetrack_relaxed_multi_complex_64_2_1_100_0_0_0",
+        'method': 'DSE',
+        'benchmark': 'Racetrack-Easy-Multi',
         # 'epoch_list': [0, 2999],
         # 'epoch_list': [0, 1499, 3499],
         # 'epoch_list': [0, 1999, 3999, 5999, 7999],
         # 'epoch_list': [499, 999],
-        'epoch_list': [1999],
-        'benchmark_name': 'racetrack_moderate_3_classifier_ITE',
-        'dataset_path': "dataset/racetrack_moderate_3_classifier_ITE_0.txt",
-        'x_l': [7.0],
-        'x_r': [9.0],
+        # 'epoch_list': [4999, 12999, 14999],
+        'epoch_list': [2499],
+        'benchmark_name': 'racetrack_relaxed_multi',
+        'dataset_path': "dataset/racetrack_relaxed_multi_0.txt",
+        'x_l': [5.0],
+        'x_r': [6.0],
     }
+    # configs['Racetrack-Relaxed-Multi']['DiffAI'] = {
+    #     'model_path': f"gpu_DiffAI/models",
+    #     'model_name': f"racetrack_relaxed_multi_complex_64_2_100_100_0_0_0",
+    #     'method': 'DiffAI+',
+    #     'benchmark': 'Racetrack-Relaxed-Multi',
+    #     # 'epoch_list': [0, 2999],
+    #     # 'epoch_list': [0, 1499, 3499],
+    #     # 'epoch_list': [0, 1999, 3999, 5999, 7999],
+    #     # 'epoch_list': [499, 999],
+    #     'epoch_list': [2499],
+    #     'benchmark_name': 'racetrack_relaxed_multi',
+    #     'dataset_path': "dataset/racetrack_relaxed_multi_0.txt",
+    #     'x_l': [5.0],
+    #     'x_r': [6.0],
+    # }
     # configs['Racetrack-Moderate3']['DSE'] = {
     #     'model_path': f"gpu_DSE/models",
     #     'model_name': f"racetrack_moderate_3_classifier_ITE_complex_64_2_1_100_0_0_0",
@@ -284,14 +347,14 @@ if __name__ == "__main__":
 
                 Trajectory_train, Trajectory_test = load_data(
                     train_size=100, 
-                    test_size=20000, 
+                    test_size=200, # 20000
                     dataset_path=method_dict['dataset_path'],
                 )
                 components = extract_abstract_representation(
                     Trajectory_test, 
                     x_l=method_dict['x_l'], 
                     x_r=method_dict['x_r'], 
-                    num_components=2)
+                    num_components=100)
 
                 import import_hub as hub
                 importlib.reload(hub)

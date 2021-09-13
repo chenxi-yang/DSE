@@ -70,16 +70,31 @@ def trajectory_worst_case(trajectory_l, trajectory_r, target):
         state_r = trajectory_r[state_idx]
         # for each trajectory loop the target
         for target_idx, target_component in enumerate(target):
-            X_l, X_r = state_l[target_idx], state_r[target_idx]
+            pre_l, pre_r = state_l[target_idx], state_r[target_idx]
+            if target_component['distance']:
+                l = torch.zeros(pre_l.shape)
+                r = torch.zeros(pre_r.shape)
+                if torch.cuda.is_available():
+                    l = l.cuda()
+                    r = r.cuda()
+                all_neg_index = torch.logical_and(pre_l<=0, pre_r<=0)
+                across_index = torch.logical_and(pre_l<=0, pre_r>0)
+                all_pos_index = torch.logical_and(pre_l>0, pre_r>0)
+                l[all_neg_index], r[all_neg_index] = pre_r[all_neg_index].abs(), pre_l[all_neg_index].abs()
+                l[across_index], r[across_index] = 0, pre_r[across_index]
+                l[all_pos_index], r[all_pos_index] = pre_l[all_pos_index], pre_r[all_pos_index]
+            else:
+                l = pre_l
+                r = pre_r
             if target_component["map_mode"] is True:
                 safe_interval_l = target_component["map_condition"][state_idx] # the constraint over the k-th step
                 for safe_interval in safe_interval_l:
-                    if not in_interval(X_l, X_r, safe_interval):
+                    if not in_interval(l, r, safe_interval):
                         return True
             else:
                 if target_component["map_mode"] is False:
                     safe_interval = target_component["condition"]
-                if not in_interval(X_l, X_r, safe_interval):
+                if not in_interval(l, r, safe_interval):
                     return True
     return trajectory_worst_unsafe
 

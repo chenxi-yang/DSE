@@ -141,6 +141,6 @@ if __name__ == "__main__":
     configs['Racetrack']['benchmark'] = 'Racetrack'
     configs['AircraftCollision']['benchmark'] = 'AC'
     
-    f_loss(configs['Thermostat'])
-    # f_loss(configs['Racetrack'])
+    # f_loss(configs['Thermostat'])
+    f_loss(configs['Racetrack'])
     # f_loss(configs['AircraftCollision'])
