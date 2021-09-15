@@ -68,6 +68,7 @@ def batch_pair_endpoint(trajectory_list, data_bs=None):
         last_state, last_action = trajectory[-1]
         states.append(ini_state)
         actions.append([last_action])
+    
     c = list(zip(states, actions))
     random.shuffle(c)
     states, actions = zip(*c)

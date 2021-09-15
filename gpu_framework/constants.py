@@ -731,6 +731,22 @@ if benchmark_name == "thermostat_refined":
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
+if benchmark_name == "thermostat_new":
+    x_l = [60.0]
+    x_r = [64.0]
+    safe_range_list = [[55.0, 83.0]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['x']
+
+    safe_range_start=83.0
+    safe_range_end=83.5
+    safe_range_step=0.5
+
+    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
 if benchmark_name == "aircraft_collision":
     x_l = [12.0]
     x_r = [16.0]

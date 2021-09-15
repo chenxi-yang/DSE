@@ -30,9 +30,11 @@ def load_data(
             trajectory_list.append([state, action])
         data_list.append(trajectory_list)
 
-    data_list = np.array(data_list)
-    
-    shuffle(data_list)
+    # do not use random shuffle, bugs
+    # data_list = np.array(data_list)
+    # print(f"data:\n {data_list[0][0]}\n{data_list[1][0]}\n{data_list[2][0]}")
+    np.random.shuffle(data_list)
+    # print(f"data after shuffle:\n {data_list[0][0]}\n{data_list[1][0]}\n{data_list[2][0]}")
     trajectory_train_list = data_list[:train_size]
     trajectory_test_list = data_list[train_size:train_size + test_size]
 
@@ -40,4 +42,7 @@ def load_data(
     print("---Data Generation---")
     print("--- %s seconds ---" % (time.time() - start_t))
     # return train_list[:, 0], test_list[:, 0], train_list[:, 1], test_list[:, 1]
+    # print(f"train list: {[k[0] for k in trajectory_train_list]}")
+    # print(f"trajectory train: trajectory_train_list")
+    # exit(0)
     return trajectory_train_list, trajectory_test_list

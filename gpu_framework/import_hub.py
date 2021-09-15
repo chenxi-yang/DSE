@@ -118,6 +118,10 @@ elif constants.benchmark_name == "thermostat_refined":
     import benchmarks.thermostat_refined as tr
     importlib.reload(tr)
     from benchmarks.thermostat_refined import *
+elif constants.benchmark_name == "thermostat_new":
+    import benchmarks.thermostat_new as tr
+    importlib.reload(tr)
+    from benchmarks.thermostat_new import *
 elif constants.benchmark_name == "racetrack_easy_sample":
     import benchmarks.racetrack_easy_sample as res
     importlib.reload(res)
