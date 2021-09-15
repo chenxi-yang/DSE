@@ -43,7 +43,7 @@ def cal_data_loss(m, trajectories, criterion):
     else:
         X, y = batch_pair(trajectories, data_bs=512)
         X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
-        print(f"after batch pair: {X.shape}")
+        # print(f"after batch pair: {X.shape}")
         if torch.cuda.is_available():
             X = X.cuda()
             y = y.cuda()
@@ -61,6 +61,8 @@ def cal_data_loss(m, trajectories, criterion):
 
         print(f"yp: {min(yp_list)}, {max(yp_list)}")
         print(f"y: {min(y_list)}, {max(y_list)}")
+        print(data_loss)
+        exit(0)
     
     return data_loss
 
@@ -101,11 +103,15 @@ def learning(
         if i <= epochs_to_skip:
             continue
 
-        for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
+        epoch_data_loss = 0.0
+        batch_count = 0
+        for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=data_bs):
 
             data_loss = cal_data_loss(m, trajectories, criterion)
 
-            print(f"data loss: {float(data_loss)}")
+            # print(f"data loss: {float(data_loss)}")
+            epoch_data_loss += float(data_loss)
+            batch_count += 1
             
             loss = data_loss
 
@@ -122,11 +128,11 @@ def learning(
             print(f"save model")
                 
         print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1 - epochs_to_skip)}")
-        print(f"-----finish {i}-th epoch-----, q: {float(data_loss)}")
+        print(f"-----finish {i}-th epoch-----, q: {epoch_data_loss/batch_count}")
         if not constants.debug:
             log_file = open(constants.file_dir, 'a')
             log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
-            log_file.write(f"-----finish {i}-th epoch-----, q: {float(data_loss)}\n")
+            log_file.write(f"-----finish {i}-th epoch-----, q: {epoch_data_loss/batch_count}\n")
             log_file.flush()
 
         if (time.time() - start_time)/(i+1) > 900 or TIME_OUT:

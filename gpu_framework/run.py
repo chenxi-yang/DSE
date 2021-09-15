@@ -152,7 +152,11 @@ if __name__ == "__main__":
                     target[0]['map_condition'] = map_condition
                 
             # Run 25 times
-            for i in range(5):
+            if mode == 'DSE' or mode == 'DiffAI':
+                N = 5
+            if mode == 'only_data':
+                N = 10
+            for i in range(N):
                 # i += 1
                 constants.status = 'train'
                 import import_hub as hub

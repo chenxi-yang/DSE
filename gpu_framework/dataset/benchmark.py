@@ -1501,6 +1501,7 @@ def nn_cool_policy(x):
 
 def thermostat_refined(x, safe_bound):
     # x: [60.0, 64.0]
+    # safe area for x: [55.0, 83.0]
     isOn = 0.0
     h_unit = 15.0
     steps = 10
@@ -1519,7 +1520,68 @@ def thermostat_refined(x, safe_bound):
         # separate two nns
         
     return trajectory_list
-    
+
+
+# thermostat
+# assume the dt is 0.1
+def warming_new(x, h):
+    k = 0.1
+    dt = 0.5
+    x = x - dt * k * x + h # increase by the gap between heat and the current temperature
+    return x
+
+def cooling_new(x):
+    k = 0.1
+    dt = 0.5
+    x = x - dt * k * x
+    return x
+
+
+def nn_heat_policy_new(x):
+    tOff = 76.0
+    if x <= tOff:
+        # h = random.random() * min(1.0 - 0.5, (83.0 - 0.95 * x)/11.0 - 0.5) + 0.5
+        h = min(1.0, (83.0 - 0.95*x)/15.0)
+        isOn = random.random() * 0.5 + 0.5
+    else:
+        h = random.random() * (83.0 - 0.95*x)/15.0
+        isOn = random.random() * 0.5
+        
+    return h, isOn
+
+
+def nn_cool_policy_new(x):
+    # tOff = 80.0
+    tOn = 60.95
+    if x <= tOn:
+        isOn = random.random() * 0.5 + 0.5
+    else:
+        isOn = random.random() * 0.5
+    return isOn
+
+
+def thermostat_new(x, safe_bound):
+    # x: [60.0, 64.0]
+    # safe area for x: [55.0, 83.0]
+    isOn = 0.0
+    h_unit = 15.0
+    steps = 20
+    trajectory_list = list()
+    for i in range(steps): 
+        # isOn comes from the previous step
+        if isOn <= 0.5:
+            isOn = nn_cool_policy_new(x) # isOn should have a sigmoid
+            trajectory_list.append(([x, 0], [isOn, 0.0]))
+            x = cooling_new(x)
+        else: 
+            h, isOn = nn_heat_policy_new(x)
+            trajectory_list.append(([x, 1], [isOn, h]))
+            h = h * h_unit
+            x = warming_new(x, h)
+        # separate two nns
+        
+    return trajectory_list
+
 
 def aircraft_distance(x1, y1, x2, y2):
     return (x1 - x2) ** 2 + (y1 - y2) **2
@@ -1699,6 +1761,40 @@ def aircraft_collision_refined_classifier(x, safe_bound):
     return trajectory_list
 
 
+def classifier_stage_refined_classifier_ITE(x1, y1, x2, y2, step, stage):
+    p0, p1, p2, p3 = 0, 0, 0, 0
+    critical_distance_square = 250
+    if stage == 0:
+        if aircraft_distance(x1, y1, x2, y2) <= critical_distance_square:
+            stage = 1
+            step = 0
+    elif stage == 1:
+        step += 1
+        if step > 3:
+            stage = 2
+            step = 0
+    elif stage == 2:
+        step += 1
+        if step > 2:
+            stage = 3
+            step = 0
+    elif stage == 3:
+        step += 1
+        if step > 3:
+            stage = 0
+    
+    if stage == 0: 
+        p0 = 1
+    elif stage == 1:
+        p1 = 1
+    elif stage == 2:
+        p2 = 1
+    else:
+        p3 = 1
+    
+    return p0, p1, p2, p3, stage, step
+
+
 def aircraft_collision_refined_classifier_ITE(x, safe_bound):
     stage = 0.0
     steps = 15
@@ -1707,9 +1803,8 @@ def aircraft_collision_refined_classifier_ITE(x, safe_bound):
     step = 0
     trajectory_list = list()
     for i in range(steps):
-        p0, p1, p2, p3, stage, step = classifier_stage(x1, y1, x2, y2, stage, step)
+        p0, p1, p2, p3, stage, step = classifier_stage_refined_classifier_ITE(x1, y1, x2, y2, stage, step)
         trajectory_list.append(([x1, y1, x2, y2, stage], [p0, p1, p2, p3]))
-        # TODO
         if p0 == 1:
             pass
         elif p1 == 1:

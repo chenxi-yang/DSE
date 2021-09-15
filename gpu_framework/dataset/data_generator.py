@@ -3,6 +3,7 @@ sys.path.append("../")
 
 import numpy as np
 from scipy.stats import truncnorm
+from scipy.stats import uniform
 
 import benchmark
 from args import get_args
@@ -74,6 +75,8 @@ def dataset_arg(dataset):
         range_ = [4.0, 6.0]
     elif benchmark_name == "thermostat_refined":
         range_ = [60.0, 64.0]
+    elif benchmark_name == "thermostat_new":
+        range_ = [60.0, 64.0]
     elif benchmark_name == "aircraft_collision":
         range_ = [12.0, 16.0]
     elif benchmark_name == "aircraft_collision_refined":
@@ -92,7 +95,7 @@ def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
     )
 
 
-def generate_dataset(func, distribution, input_range, safe_bound, data_size=200000):
+def generate_dataset(func, distribution, input_range, safe_bound, data_size=20000):
     res_list = list()
     min_tra, max_tra = 100000, -100000
     print(f"Start generation.")
@@ -101,6 +104,14 @@ def generate_dataset(func, distribution, input_range, safe_bound, data_size=2000
         l, r = input_range[0], input_range[1]
         X = get_truncated_normal((l+r)/2.0, sd=1, low=l, upp=r)
         x_list = X.rvs(data_size).tolist()
+        x_list.append(l)
+        x_list.append(r)
+    
+    if distribution == "uniform":
+        l, r = input_range[0], input_range[1]
+        x_list = (uniform.rvs(size=data_size) * (r - l) + l).tolist()
+        x_list[0] = l
+        x_list[1] = r
     
     max_tra_l = 0.0
     avg_tra_l = 0.0
@@ -221,6 +232,8 @@ def run(safe_bound):
         func = benchmark.racetrack_easy_sample
     elif benchmark_name == "thermostat_refined":
         func = benchmark.thermostat_refined
+    elif benchmark_name == "thermostat_new":
+        func = benchmark.thermostat_new
     elif benchmark_name == "aircraft_collision":
         func = benchmark.aircraft_collision
     elif benchmark_name == "aircraft_collision_refined":
