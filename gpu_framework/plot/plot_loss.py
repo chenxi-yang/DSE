@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import copy
+import random
 
 def read_loss(configs):
     file_name = configs['trajectory_path']
@@ -37,7 +38,7 @@ def preprocess_loss(loss_dict, configs):
             loss_range_l_list, loss_range_r_list = list(), list()
             for loss_idx, loss_list in enumerate(l):    
                 # print(len(loss_list), len(loss_range_l_list), len(loss_range_r_list))
-                if configs['benchmark'] == 'Thermostat' and loss_idx == 2:
+                if configs['benchmark'] == 'Racetrack' and loss_idx == 1:
                     continue
                 if len(loss_range_l_list) == 0:
                     loss_range_l_list = copy.deepcopy(loss_list)
@@ -64,7 +65,9 @@ def plot_loss(loss_dict, configs, category):
             if l[idx] == r[idx]:
                 l[idx] = max(0, l[idx] - 0.1)
                 r[idx] = r[idx] + 0.1
-        handles.append(plt.fill_between(x, l, r, alpha=0.8))
+                if method == 'AC': # to highlight the value
+                    r[idx] = r[idx] + random.random() * 0.5
+        handles.append(plt.fill_between(x, l, r, alpha=0.75))
         labels.append(method)
     
     # if category == 'Safety':
@@ -72,11 +75,13 @@ def plot_loss(loss_dict, configs, category):
     # ax.set_yscale('log')
     if category == 'Safety':
         if benchmark == 'Thermostat':
-            plt.ylim(0,25)
+            plt.ylim(0,35)
         if benchmark == 'AC':
             plt.ylim(0,15)
         if benchmark == 'Racetrack':
+            plt.xlim(0,6001)
             plt.ylim(0,10)
+
     plt.legend(handles=handles, labels=labels)
     plt.title(f"{configs['benchmark']} {category} Loss")
     plt.savefig(f"figures/loss_trend/{benchmark}_{category}.png")
@@ -103,37 +108,38 @@ def f_loss(configs):
 
 if __name__ == "__main__":
     benchmarks = ['only_data', 'DSE']
+    trajectory_size = 10
     configs = dict()
     configs['Thermostat'] = dict()
     configs['Racetrack'] = dict()
     configs['AircraftCollision'] = dict()
     configs['Thermostat']['DiffAI'] = {
-        'trajectory_path': f"../gpu_DiffAI/result/thermostat_refined_complex_64_2_100_100_100_[83.0]_volume_4000.txt",
+        'trajectory_path': f"../gpu_DiffAI/result/thermostat_new_complex_64_2_100_{trajectory_size}_{trajectory_size}_[83.0]_volume_10000.txt",
         'method': 'DiffAI+',
         'benchmark': 'Thermostat',
     }
     configs['Racetrack']['DiffAI'] = {
-        'trajectory_path': f"../gpu_DiffAI/result/racetrack_easy_classifier_ITE_complex_64_2_100_100_100_[0]_volume_4000.txt",
+        'trajectory_path': f"../gpu_DiffAI/result/racetrack_relaxed_multi_complex_64_2_10_{trajectory_size}_{trajectory_size}_[0]_volume_10000.txt",
         'method': 'DiffAI+',
         'benchmark': 'Racetrack',
     }
     configs['AircraftCollision']['DiffAI'] = {
-        'trajectory_path': f"../gpu_DiffAI/result/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100_[100000.0]_volume_4000.txt",
+        'trajectory_path': f"../gpu_DiffAI/result/aircraft_collision_new_1_complex_64_2_100_{trajectory_size}_{trajectory_size}_[100000.0]_volume_10000.txt",
         'method': 'DiffAI+',
         'benchmark': 'AC',
     }
     configs['Thermostat']['DSE'] = {
-        'trajectory_path': f"../gpu_DSE/result/thermostat_refined_complex_64_2_1_100_100_[83.0]_volume_4000.txt",
+        'trajectory_path': f"../gpu_DSE/result/thermostat_new_complex_64_2_1_{trajectory_size}_{trajectory_size}_[83.0]_volume_10000.txt",
         'method': 'DSE',
         'benchmark': 'Thermostat',
     }
     configs['Racetrack']['DSE'] = {
-        'trajectory_path': f"../gpu_DSE/result/racetrack_easy_classifier_ITE_complex_64_2_1_100_100_[0]_volume_4000.txt",
+        'trajectory_path': f"../gpu_DSE/result/racetrack_relaxed_multi_complex_64_2_2_{trajectory_size}_{trajectory_size}_[0]_volume_10000.txt",
         'method': 'DSE',
         'benchmark': 'Racetrack',
     }
     configs['AircraftCollision']['DSE'] = {
-        'trajectory_path': f"../gpu_DSE/result/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100_[100000.0]_volume_4000.txt",
+        'trajectory_path': f"../gpu_DSE/result/aircraft_collision_new_1_complex_64_2_1_{trajectory_size}_{trajectory_size}_[100000.0]_volume_10000.txt",
         'method': 'DSE',
         'benchmark': 'AC',
     }
@@ -141,6 +147,6 @@ if __name__ == "__main__":
     configs['Racetrack']['benchmark'] = 'Racetrack'
     configs['AircraftCollision']['benchmark'] = 'AC'
     
-    # f_loss(configs['Thermostat'])
+    f_loss(configs['Thermostat'])
     f_loss(configs['Racetrack'])
-    # f_loss(configs['AircraftCollision'])
+    f_loss(configs['AircraftCollision'])

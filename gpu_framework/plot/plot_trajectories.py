@@ -2,6 +2,7 @@ from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon, Circle, Rectangle
 import matplotlib
 import matplotlib.pyplot as plt
+import math
 
 
 def read_symbolic_trajectories(configs):
@@ -36,6 +37,15 @@ def read_symbolic_trajectories(configs):
                 content = properties.split(', ')
                 l, r = float(content[0]), float(content[1])
                 tmp_state_list.append((l, r)) # agent2's x
+            elif configs['benchmark'] in ['AC', 'AC-New', 'AC-New-1']:
+                properties = line.split(';')[0] 
+                content = properties.split(', ')
+                l, r = float(content[0]), float(content[1])
+                if l < 0 and r <= 0: l, r = abs(r), abs(l)
+                elif l < 0 and r > 0: l, r = 0.0,  max(abs(l), abs(r))
+                else: pass
+                l, r = math.sqrt(l), math.sqrt(r)
+                tmp_state_list.append((l, r))
             else:
                 properties = line.split(';')[0]
                 content = properties.split(', ')
@@ -75,6 +85,11 @@ def read_concrete_trajectories(configs):
                 content = properties.split(', ')
                 value = float(content[0])
                 tmp_state_list.append(value) # agent2's x
+            elif configs['benchmark'] in ['AC', 'AC-New', 'AC-New-1']:
+                properties = line.split(';')[0] 
+                content = properties.split(', ')
+                value = float(content[0])
+                tmp_state_list.append(math.sqrt(abs(value))) # distance
             else:
                 properties = line.split(';')[0]
                 content = properties.split(', ')
@@ -85,7 +100,7 @@ def read_concrete_trajectories(configs):
     return concrete_trajectory_list
 
 
-def preprocess_trajectories(trajectory_list):
+def preprocess_trajectories(trajectory_list, configs):
     # trajectory_list: list of trajectories
     # trajectory: list of (lower bound, upper bound)
     updated_trajectory_list = list()
@@ -93,8 +108,9 @@ def preprocess_trajectories(trajectory_list):
         tmp_updated_trajectory_list = list()
         for idx, states in enumerate(trajectory):
             states_list = list()
-            if idx == 0: # not count the initial state
-                continue
+            if configs['benchmark'] not in ['Thermostat', 'AC', 'AC-New', 'AC-New-1']:
+                if idx == 0: # not count the initial state
+                    continue
             for state in states:
                 l, r = state[0], state[1]
                 # recangle
@@ -113,9 +129,17 @@ def plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, config
     fig = plt.figure()
     agent_color_list = ['green', 'blue', 'purple']
     if configs['benchmark'] == 'AC':
-        ax = fig.add_subplot(111, aspect=1.0)
-        plt.xlim([0, 20])
-        plt.ylim([-5, 15])
+        ax = fig.add_subplot(111, aspect=0.068)
+        plt.xlim([-1, 15])
+        plt.ylim([0, 100])
+    if configs['benchmark'] == 'AC-New':
+        ax = fig.add_subplot(111, aspect=0.068)
+        plt.xlim([0, 16])
+        plt.ylim([0, 100])
+    if configs['benchmark'] == 'AC-New-1':
+        ax = fig.add_subplot(111, aspect=0.068)
+        plt.xlim([0, 16])
+        plt.ylim([0, 100])
     if configs['benchmark'] == 'Racetrack':
         ax = fig.add_subplot(111, aspect=1.0)
         plt.xlim([0, 20])
@@ -128,14 +152,18 @@ def plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, config
         ax = fig.add_subplot(111, aspect=1.0)
         if property_index == 0:
             plt.xlim([0, 21])
-            plt.ylim([-5, 15])
+            plt.ylim([-2, 11])
         if property_index == 1:
             plt.xlim([0, 21])
             plt.ylim([-0.5, 3.5])
 
     if configs['benchmark'] == 'Thermostat':
         ax = fig.add_subplot(111, aspect=0.1)
-        plt.xlim([0, 10])
+        plt.xlim([-1, 11])
+        plt.ylim([40, 90])
+    if configs['benchmark'] == 'Thermostat-New':
+        ax = fig.add_subplot(111, aspect=0.1)
+        plt.xlim([0, 21])
         plt.ylim([40, 90])
     if configs['benchmark'] == 'Racetrack-Moderate':
         ax = fig.add_subplot(111, aspect=1.0)
@@ -232,7 +260,7 @@ def plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, config
 def visualize_trajectories(configs):
     concrete_trajectory_list = read_concrete_trajectories(configs)
     symbolic_trajectory_list = read_symbolic_trajectories(configs)
-    symbolic_trajectory_list = preprocess_trajectories(symbolic_trajectory_list)
+    symbolic_trajectory_list = preprocess_trajectories(symbolic_trajectory_list, configs)
     if 'name_list' in configs:
         for property_index in range(len(configs['name_list'])):
             plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, configs, property_index)
@@ -243,20 +271,6 @@ def visualize_trajectories(configs):
 
 
 if __name__ == "__main__":
-    unsafe_map_racetrack = [[
-        (0, 0, 14.5, 4), (0, 6, 3.5, 4), (3.5, 7, 4, 3), (7.5, 8, 4, 2), (19.5, 3, 1, 7),
-        (0, -10, 20, 10), (0, 10, 20.5, 10),
-    ]]
-    starting_area_racetrack = [[
-        (0, 4, 1, 2),
-    ]]
-    unsafe_map_racetrack_easy_multi = [[
-        (0, 0, 15.5, 4), (0, 6, 4.5, 4), (3.5, 7, 4, 3), (7.5, 8, 4, 2), (19.5, 3, 1, 7),
-        (0, -10, 21, 10), (0, 10, 21.5, 10),
-    ]]
-    starting_area_racetrack_easy_multi = [[
-        (0, 4, 1, 2),
-    ]]
     unsafe_map_racetrack_relaxed_multi = [
         [
             (0, -10, 0.5, 25), (0.5, 0, 15, 4), (0.5, -10, 20.5, 10), (20.5, 4, 1, 6), 
@@ -273,12 +287,46 @@ if __name__ == "__main__":
         [
             (0, 0, 1.0, 0.1)
         ]]
+    unsafe_map_thermostat_new = [[
+        (0, 0, 21, 55.0),
+        (0, 83.0, 21, 10),
+    ]]
+    starting_area_thermostat_new = [[
+        (0, 60.0, 1, 4.0),
+    ]]
+    unsafe_map_ac_new = [[
+        (1, 0, 21, math.sqrt(40.0)),
+    ]]
+    starting_area_ac_new = [[
+        (0, 0, 1.0, 0.1),
+    ]]
+
+    unsafe_map_ac = [[
+        (0, 0, 21, math.sqrt(40.0)),
+    ]]
+    starting_area_ac= [[
+        (-1, 0, 1.0, 0.1),
+    ]]
+    unsafe_map_racetrack = [[
+        (0, 0, 14.5, 4), (0, 6, 3.5, 4), (3.5, 7, 4, 3), (7.5, 8, 4, 2), (19.5, 3, 1, 7),
+        (0, -10, 20, 10), (0, 10, 20.5, 10),
+    ]]
+    starting_area_racetrack = [[
+        (0, 4, 1, 2),
+    ]]
+    unsafe_map_racetrack_easy_multi = [[
+        (0, 0, 15.5, 4), (0, 6, 4.5, 4), (3.5, 7, 4, 3), (7.5, 8, 4, 2), (19.5, 3, 1, 7),
+        (0, -10, 21, 10), (0, 10, 21.5, 10),
+    ]]
+    starting_area_racetrack_easy_multi = [[
+        (0, 4, 1, 2),
+    ]]
     unsafe_map_thermostat = [[
-        (0, 0, 10, 53.0),
-        (0, 83.0, 10, 10),
+        (-1, 0, 12, 53.0),
+        (-1, 83.0, 12, 10),
     ]]
     starting_area_thermostat = [[
-        (0, 60.0, 1, 4.0),
+        (-1, 60.0, 1, 4.0),
     ]]
     unsafe_map_racetrack_moderate = [[
         (0, 0, 6, 7), (6, 0, 2, 3), (8, 0, 1, 2), (8, 9, 1, 1), (9, 7, 1, 3),
@@ -330,15 +378,230 @@ if __name__ == "__main__":
 
     configs = dict()
     configs['Thermostat'] = dict()
+    configs['Thermostat-New'] = dict() # 1
     configs['Racetrack'] = dict()
     configs['Racetrack-Easy-Multi'] = dict()
-    configs['Racetrack-Relaxed-Multi'] = dict()
+    configs['Racetrack-Relaxed-Multi'] = dict() # 2
     configs['Racetrack-Moderate'] = dict()
     configs['Racetrack-Moderate2'] = dict()
     configs['Racetrack-Moderate3'] = dict()
     configs['Racetrack-Moderate3-1'] = dict()
     configs['Racetrack-Hard'] = dict()
     configs['AircraftCollision'] = dict()
+    configs['AC-New'] = dict() # 3
+    configs['AC-New-1'] = dict() # 3
+    # configs['Thermostat-New']['Ablation-10(199)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_Ablation_199_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_Ablation_199_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat-New']['Ablation-10(989)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_Ablation_989_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_Ablation_989_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat-New']['Ablation-10(1499)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_Ablation_1499_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_Ablation_1499_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat-New']['Ablation-50(199)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_50_83.0_1_0_Ablation_199_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_50_83.0_1_0_Ablation_199_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat-New']['Ablation-50(989)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_50_83.0_1_0_Ablation_989_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_50_83.0_1_0_Ablation_989_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat-New']['Ablation-50(1499)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_50_83.0_1_0_Ablation_1499_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_50_83.0_1_0_Ablation_1499_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat-New']['Ablation-100(999)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_100_83.0_0_0_Ablation_999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_100_83.0_0_0_Ablation_999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat-New']['Ablation-1000(1000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_1000_83.0_0_0_Ablation_999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_1000_83.0_0_0_Ablation_999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat-New']['Ablation-2500(324)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_2500_83.0_0_0_Ablation_324_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_2500_83.0_0_0_Ablation_324_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat-New']['Ablation-50(989)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_50_83.0_0_0_Ablation_989_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_50_83.0_0_0_Ablation_989_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat-New']['Ablation-50(1499)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_50_83.0_0_0_Ablation_1499_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_50_83.0_0_0_Ablation_1499_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+
+    # AC-new
+    # configs['AC-New']['Ablation-10(1500)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_10_100000.0_0_0_Ablation_1499_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_10_100000.0_0_0_Ablation_1499_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-50(1500)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_50_100000.0_0_0_Ablation_1499_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_50_100000.0_0_0_Ablation_1499_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-100(1000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_100_100000.0_0_0_Ablation_999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_100_100000.0_0_0_Ablation_999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-500(1000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_500_100000.0_0_0_Ablation_999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_500_100000.0_0_0_Ablation_999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-5000(3555)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_5000_100000.0_0_0_Ablation_3555_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_5000_100000.0_0_0_Ablation_3555_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-10000(2000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_10000_100000.0_0_0_Ablation_1999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_10000_100000.0_0_0_Ablation_1999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-10000(2500)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_10000_100000.0_0_0_Ablation_2499_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_10000_100000.0_0_0_Ablation_2499_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-10000(2725)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_10000_100000.0_0_0_Ablation_2725_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_10000_100000.0_0_0_Ablation_2725_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-1000(369)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_1000_100000.0_0_0_Ablation_369_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_1000_100000.0_0_0_Ablation_369_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-1000(1000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_1000_100000.0_0_0_Ablation_999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_1000_100000.0_0_0_Ablation_999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-2500(10)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_2500_100000.0_0_0_Ablation_9_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_2500_100000.0_0_0_Ablation_9_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-2500(100)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_2500_100000.0_0_0_Ablation_99_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_2500_100000.0_0_0_Ablation_99_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-2500(200)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_2500_100000.0_0_0_Ablation_199_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_2500_100000.0_0_0_Ablation_199_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-7500(5)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_7500_100000.0_0_0_Ablation_5_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_7500_100000.0_0_0_Ablation_5_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['AC-New']['Ablation-10000(2725)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_10000_100000.0_0_0_Ablation_2725_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_complex_64_2_1_10000_100000.0_0_0_Ablation_2725_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac_new, 
+    #     'starting_area': starting_area_ac_new,
+    #     'benchmark': 'AC-New',
+    # }
+    # configs['Thermostat']['DiffAI(5000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_100_100_83.0_0_0_DiffAI+_4999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_100_100_83.0_0_0_DiffAI+_4999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat']['DSE(1000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_100_83.0_0_0_DSE_999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_100_83.0_0_0_DSE_999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat']['DSE(5000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_100_83.0_0_0_DSE_4999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_100_83.0_0_0_DSE_4999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
+    # configs['Thermostat']['Ablation'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_1_5000_83.0_0_0_Ablation_1499_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_1_5000_83.0_0_0_Ablation_1499_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat, 
+    #     'starting_area': starting_area_thermostat,
+    #     'benchmark': 'Thermostat',
+    # }
     # configs['Thermostat']['Initial'] = {
     #     'concrete_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_100_100_83.0_0_0_DiffAI+_0_concrete.txt",
     #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_refined_complex_64_2_100_100_83.0_0_0_DiffAI+_0_symbolic.txt",
@@ -458,60 +721,69 @@ if __name__ == "__main__":
     #     'starting_area': starting_area_racetrack_easy_multi,
     #     'benchmark': 'Racetrack-Easy-Multi',
     # }
-    configs['Racetrack-Relaxed-Multi']['Ablation(1500)'] = {
-        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_5000_0_0_0_Ablation_1499_concrete.txt",
-        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_5000_0_0_0_Ablation_1499_symbolic.txt",
-        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
-        'starting_area': starting_area_racetrack_relaxed_multi,
-        'benchmark': 'Racetrack-Relaxed-Multi',
-        'name_list': ['position', 'distance'],
-        'idx_list': [[1, 2], [0]],
-    }
-    configs['Racetrack-Relaxed-Multi']['DSE(5000)'] = {
-        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_4999_concrete.txt",
-        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_4999_symbolic.txt",
-        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
-        'starting_area': starting_area_racetrack_relaxed_multi,
-        'benchmark': 'Racetrack-Relaxed-Multi',
-        'name_list': ['position', 'distance'],
-        'idx_list': [[1, 2], [0]],
-    }
-    configs['Racetrack-Relaxed-Multi']['DSE(13000)'] = {
-        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_12999_concrete.txt",
-        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_12999_symbolic.txt",
-        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
-        'starting_area': starting_area_racetrack_relaxed_multi,
-        'benchmark': 'Racetrack-Relaxed-Multi',
-        'name_list': ['position', 'distance'],
-        'idx_list': [[1, 2], [0]],
-    }
-    configs['Racetrack-Relaxed-Multi']['DSE(15000)'] = {
-        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_14999_concrete.txt",
-        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_14999_symbolic.txt",
-        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
-        'starting_area': starting_area_racetrack_relaxed_multi,
-        'benchmark': 'Racetrack-Relaxed-Multi',
-        'name_list': ['position', 'distance'],
-        'idx_list': [[1, 2], [0]],
-    }
-    configs['Racetrack-Relaxed-Multi']['DSE(2500)'] = {
-        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_14999_concrete.txt",
-        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_14999_symbolic.txt",
-        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
-        'starting_area': starting_area_racetrack_relaxed_multi,
-        'benchmark': 'Racetrack-Relaxed-Multi',
-        'name_list': ['position', 'distance'],
-        'idx_list': [[1, 2], [0]],
-    }
-    configs['Racetrack-Relaxed-Multi']['DiffAI(2500)'] = {
-        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_100_100_0_0_0_DiffAI+_2499_concrete.txt",
-        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_100_100_0_0_0_DiffAI+_2499_symbolic.txt",
-        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
-        'starting_area': starting_area_racetrack_relaxed_multi,
-        'benchmark': 'Racetrack-Relaxed-Multi',
-        'name_list': ['position', 'distance'],
-        'idx_list': [[1, 2], [0]],
-    }
+    # configs['Racetrack-Relaxed-Multi']['Ablation(1500)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_5000_0_0_0_Ablation_1499_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_5000_0_0_0_Ablation_1499_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+    #     'starting_area': starting_area_racetrack_relaxed_multi,
+    #     'benchmark': 'Racetrack-Relaxed-Multi',
+    #     'name_list': ['position', 'distance'],
+    #     'idx_list': [[1, 2], [0]],
+    # }
+    # configs['Racetrack-Relaxed-Multi']['DSE(5000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_4999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_4999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+    #     'starting_area': starting_area_racetrack_relaxed_multi,
+    #     'benchmark': 'Racetrack-Relaxed-Multi',
+    #     'name_list': ['position', 'distance'],
+    #     'idx_list': [[1, 2], [0]],
+    # }
+    # configs['Racetrack-Relaxed-Multi']['DSE(13000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_12999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_12999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+    #     'starting_area': starting_area_racetrack_relaxed_multi,
+    #     'benchmark': 'Racetrack-Relaxed-Multi',
+    #     'name_list': ['position', 'distance'],
+    #     'idx_list': [[1, 2], [0]],
+    # }
+    # configs['Racetrack-Relaxed-Multi']['DSE(15000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_14999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_14999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+    #     'starting_area': starting_area_racetrack_relaxed_multi,
+    #     'benchmark': 'Racetrack-Relaxed-Multi',
+    #     'name_list': ['position', 'distance'],
+    #     'idx_list': [[1, 2], [0]],
+    # }
+    # configs['Racetrack-Relaxed-Multi']['DSE(2500)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_14999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_100_0_0_0_DSE_14999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+    #     'starting_area': starting_area_racetrack_relaxed_multi,
+    #     'benchmark': 'Racetrack-Relaxed-Multi',
+    #     'name_list': ['position', 'distance'],
+    #     'idx_list': [[1, 2], [0]],
+    # }
+    # configs['Racetrack-Relaxed-Multi']['DiffAI(2500)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_100_100_0_0_0_DiffAI+_2499_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_100_100_0_0_0_DiffAI+_2499_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+    #     'starting_area': starting_area_racetrack_relaxed_multi,
+    #     'benchmark': 'Racetrack-Relaxed-Multi',
+    #     'name_list': ['position', 'distance'],
+    #     'idx_list': [[1, 2], [0]],
+    # }
+    # configs['Racetrack-Relaxed-Multi']['DiffAI(15000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_20_100_0_0_0_DiffAI+_14999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_20_100_0_0_0_DiffAI+_14999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+    #     'starting_area': starting_area_racetrack_relaxed_multi,
+    #     'benchmark': 'Racetrack-Relaxed-Multi',
+    #     'name_list': ['position', 'distance'],
+    #     'idx_list': [[1, 2], [0]],
+    # }
     # configs['Racetrack-Moderate']['Initial'] = {
     #     'concrete_trajectory_path': f"plot_trajectories/racetrack_moderate_classifier_ITE_complex_64_2_1_100_0_0_0_DSE_0_concrete.txt",
     #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_moderate_classifier_ITE_complex_64_2_1_100_0_0_0_DSE_0_symbolic.txt",
@@ -686,125 +958,126 @@ if __name__ == "__main__":
     # }
     
     
-    # configs['AircraftCollision']['Initial'] = {
-    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_0_concrete.txt",
-    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_0_symbolic.txt",
-    #     'unsafe_area': [
-    #             (0, 0, 15, 4),
-    #             (0, 6, 4, 4),
-    #             (4, 7, 4, 3),
-    #             (8, 8, 4, 2),
-    #             (19, 3, 1, 7),
-    #             (0, -10, 20, 10),
-    #             (0, 10, 20, 10),
-    #         ],
-    #     'starting_area': [
-    #             (0, 4, 1, 2),
-    #         ],
+    # configs['AircraftCollision']['Ablation'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_5000_100000.0_0_0_Ablation_1499_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_5000_100000.0_0_0_Ablation_1499_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac,
+    #     'starting_area': starting_area_ac,
     #     'benchmark': 'AC',
     # }
-    # configs['AircraftCollision']['DiffAI(750)'] = {
-    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_749_concrete.txt",
-    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_749_symbolic.txt",
-    #     'unsafe_area': [
-    #             (0, 0, 15, 4),
-    #             (0, 6, 4, 4),
-    #             (4, 7, 4, 3),
-    #             (8, 8, 4, 2),
-    #             (19, 3, 1, 7),
-    #             (0, -10, 20, 10),
-    #             (0, 10, 20, 10),
-    #         ],
-    #     'starting_area': [
-    #             (0, 4, 1, 2),
-    #         ],
-    #     'benchmark': 'AC',
-    # }
-    # configs['AircraftCollision']['DSE(750)'] = {
-    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_749_concrete.txt",
-    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_749_symbolic.txt",
-    #     'unsafe_area': [
-    #             (0, 0, 15, 4),
-    #             (0, 6, 4, 4),
-    #             (4, 7, 4, 3),
-    #             (8, 8, 4, 2),
-    #             (19, 3, 1, 7),
-    #             (0, -10, 20, 10),
-    #             (0, 10, 20, 10),
-    #         ],
-    #     'starting_area': [
-    #             (0, 4, 1, 2),
-    #         ],
-    #     'benchmark': 'AC',
-    # }
-    # configs['AircraftCollision']['DiffAI(2000)'] = {
-    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_1999_concrete.txt",
-    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_1999_symbolic.txt",
-    #     'unsafe_area': [
-    #             (0, 0, 15, 4),
-    #             (0, 6, 4, 4),
-    #             (4, 7, 4, 3),
-    #             (8, 8, 4, 2),
-    #             (19, 3, 1, 7),
-    #             (0, -10, 20, 10),
-    #             (0, 10, 20, 10),
-    #         ],
-    #     'starting_area': [
-    #             (0, 4, 1, 2),
-    #         ],
-    #     'benchmark': 'AC',
-    # }
-    # configs['AircraftCollision']['DSE(2000)'] = {
-    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_1999_concrete.txt",
-    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_1999_symbolic.txt",
-    #     'unsafe_area': [
-    #             (0, 0, 15, 4),
-    #             (0, 6, 4, 4),
-    #             (4, 7, 4, 3),
-    #             (8, 8, 4, 2),
-    #             (19, 3, 1, 7),
-    #             (0, -10, 20, 10),
-    #             (0, 10, 20, 10),
-    #         ],
-    #     'starting_area': [
-    #             (0, 4, 1, 2),
-    #         ],
+    # configs['AircraftCollision']['DSE(1000)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_999_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_999_symbolic.txt",
+    #     'unsafe_area': unsafe_map_ac,
+    #     'starting_area': starting_area_ac,
     #     'benchmark': 'AC',
     # }
     # configs['AircraftCollision']['DiffAI(5000)'] = {
     #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_4999_concrete.txt",
     #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_100_100_100000.0_0_0_DiffAI+_4999_symbolic.txt",
-    #     'unsafe_area': [
-    #             (0, 0, 15, 4),
-    #             (0, 6, 4, 4),
-    #             (4, 7, 4, 3),
-    #             (8, 8, 4, 2),
-    #             (19, 3, 1, 7),
-    #             (0, -10, 20, 10),
-    #             (0, 10, 20, 10),
-    #         ],
-    #     'starting_area': [
-    #             (0, 4, 1, 2),
-    #         ],
+    #     'unsafe_area': unsafe_map_ac,
+    #     'starting_area': starting_area_ac,
     #     'benchmark': 'AC',
     # }
     # configs['AircraftCollision']['DSE(5000)'] = {
     #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_4999_concrete.txt",
     #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_refined_classifier_ITE_complex_64_2_1_100_100000.0_0_0_DSE_4999_symbolic.txt",
-    #     'unsafe_area': [
-    #             (0, 0, 15, 4),
-    #             (0, 6, 4, 4),
-    #             (4, 7, 4, 3),
-    #             (8, 8, 4, 2),
-    #             (19, 3, 1, 7),
-    #             (0, -10, 20, 10),
-    #             (0, 10, 20, 10),
-    #         ],
-    #     'starting_area': [
-    #             (0, 4, 1, 2),
-    #         ],
+    #     'unsafe_area': unsafe_map_ac,
+    #     'starting_area': starting_area_ac,
     #     'benchmark': 'AC',
     # }
+
+
+    # Thermostat
+    configs['Thermostat']['DiffAI-10(Final)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_100_10_83.0_0_0_DiffAI+_1499_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_100_10_83.0_0_0_DiffAI+_1499_symbolic.txt",
+        'unsafe_area': unsafe_map_thermostat, 
+        'starting_area': starting_area_thermostat,
+        'benchmark': 'Thermostat',
+    }
+    configs['Thermostat']['DSE-10(Middle)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_DSE_499_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_DSE_499_symbolic.txt",
+        'unsafe_area': unsafe_map_thermostat, 
+        'starting_area': starting_area_thermostat,
+        'benchmark': 'Thermostat',
+    }
+    configs['Thermostat']['DSE-10(Final)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_DSE_1499_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_DSE_1499_symbolic.txt",
+        'unsafe_area': unsafe_map_thermostat, 
+        'starting_area': starting_area_thermostat,
+        'benchmark': 'Thermostat',
+    }
+    configs['Thermostat']['Ablation-10(Final)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_Ablation_1499_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_Ablation_1499_symbolic.txt",
+        'unsafe_area': unsafe_map_thermostat, 
+        'starting_area': starting_area_thermostat,
+        'benchmark': 'Thermostat',
+    }
+
+    # Racetrack
+    configs['Racetrack-Relaxed-Multi']['Ablation-10(Final)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_10_0_0_0_Ablation_1499_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_10_0_0_0_Ablation_1499_symbolic.txt",
+        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+        'starting_area': starting_area_racetrack_relaxed_multi,
+        'benchmark': 'Racetrack-Relaxed-Multi',
+        'name_list': ['position', 'distance'],
+        'idx_list': [[1, 2], [0]],
+    }
+    configs['Racetrack-Relaxed-Multi']['DSE-10(Middle)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_2_10_0_0_0_DSE_1999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_2_10_0_0_0_DSE_1999_symbolic.txt",
+        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+        'starting_area': starting_area_racetrack_relaxed_multi,
+        'benchmark': 'Racetrack-Relaxed-Multi',
+        'name_list': ['position', 'distance'],
+        'idx_list': [[1, 2], [0]],
+    }
+    configs['Racetrack-Relaxed-Multi']['DSE-10(Final)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_2_10_0_0_0_DSE_5999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_2_10_0_0_0_DSE_5999_symbolic.txt",
+        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+        'starting_area': starting_area_racetrack_relaxed_multi,
+        'benchmark': 'Racetrack-Relaxed-Multi',
+        'name_list': ['position', 'distance'],
+        'idx_list': [[1, 2], [0]],
+    }
+    configs['Racetrack-Relaxed-Multi']['DiffAI-10(Final)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_10_10_0_0_0_DiffAI+_5999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_10_10_0_0_0_DiffAI+_5999_symbolic.txt",
+        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+        'starting_area': starting_area_racetrack_relaxed_multi,
+        'benchmark': 'Racetrack-Relaxed-Multi',
+        'name_list': ['position', 'distance'],
+        'idx_list': [[1, 2], [0]],
+    }
+
+    # AC-New-1
+    configs['AC-New-1']['Ablation-10(1000)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_Ablation_999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_Ablation_999_symbolic.txt",
+        'unsafe_area': unsafe_map_ac_new, 
+        'starting_area': starting_area_ac_new,
+        'benchmark': 'AC-New-1',
+    }
+    configs['AC-New-1']['DiffAI-10(1000)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_100_10_100000.0_1_0_DiffAI+_999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_100_10_100000.0_1_0_DiffAI+_999_symbolic.txt",
+        'unsafe_area': unsafe_map_ac_new, 
+        'starting_area': starting_area_ac_new,
+        'benchmark': 'AC-New-1',
+    }
+    configs['AC-New-1']['DSE-10(1000)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_DSE_999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_DSE_999_symbolic.txt",
+        'unsafe_area': unsafe_map_ac_new, 
+        'starting_area': starting_area_ac_new,
+        'benchmark': 'AC-New-1',
+    }
 
     for benchmark, benchmark_dict in configs.items():
         for method, method_dict in benchmark_dict.items():
