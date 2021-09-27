@@ -48,7 +48,11 @@ def cal_data_loss(m, trajectories, criterion):
             X = X.cuda()
             y = y.cuda()
         yp = m(X, version="single_nn_learning")
+        # print(X[0])
         data_loss = criterion(yp, y)
+        # print(yp[0], y[0])
+        # print(f"data loss: {data_loss}")
+        # exit(0)
     
     if constants.debug:
         yp_list = yp.squeeze().detach().cpu().numpy().tolist()
@@ -122,7 +126,6 @@ def learning(
             optimizer.step()
             # print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
-        
         if save:
             save_model(m, constants.MODEL_PATH, name=model_name, epoch=i)
             print(f"save model")

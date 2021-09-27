@@ -9,6 +9,7 @@ from utils import (
     batch_pair,
     divide_chunks,
     save_model,
+    batch_pair_yield,
     )
 
 import import_hub as hub
@@ -186,43 +187,21 @@ def cal_data_loss(m, trajectories, criterion):
     # add the point data loss together
     if len(trajectories) == 0:
         return var_list([0.0])
-    # print('only data')
-    if constants.benchmark_name in ['thermostat']:
-        X, y_trajectory = batch_pair_trajectory(trajectories, data_bs=None, standard_value=70.0)
-        X, y_trajectory = torch.from_numpy(X).float(), [torch.from_numpy(y).float() for y in y_trajectory]
-        # print(f"after batch pair: {X.shape}")
-        if torch.cuda.is_available():
-            X, y_trajectory = X.cuda(), [y.cuda() for y in y_trajectory]
-        yp_trajectory = m(X, version="single_nn_learning")
-        data_loss = var(0.0)
-        for idx, yp in enumerate(yp_trajectory):
-            # print(yp.shape, y_trajectory[idx].shape)
-            data_loss = data_loss + criterion(yp, y_trajectory[idx])
-            data_loss /= len(yp_trajectory)
-    else:
-        X, y = batch_pair(trajectories, data_bs=1024)
+
+    expec_data_loss = var_list([0.0])
+    count = 0
+    for X, y in batch_pair_yield(trajectories, data_bs=512):
         X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
-        print(f"after batch pair: {X.shape}")
+        # print(f"after batch pair: {X.shape}")
         if torch.cuda.is_available():
             X = X.cuda()
             y = y.cuda()
         yp = m(X, version="single_nn_learning")
-        # print(f"finish: {yp.shape}")
         data_loss = criterion(yp, y)
-    
-    if constants.debug:
-        yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-        y_list = y.squeeze().detach().cpu().numpy().tolist()
-        print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
-
-        # print(f"x: {X}")
-        yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-        y_list = y.squeeze().detach().cpu().numpy().tolist()
-
-        print(f"yp: {min(yp_list)}, {max(yp_list)}")
-        print(f"y: {min(y_list)}, {max(y_list)}")
-    
-    return data_loss
+        expec_data_loss += data_loss
+        count += 1
+    expec_data_loss = expec_data_loss / count
+    return expec_data_loss
 
 
 def cal_safe_loss(m, abstract_states, target):
