@@ -195,9 +195,9 @@ def extract_safe_loss(component, target_component, target_idx):
         #     print(f"state_idx: {state_idx}")
         #     print(f"l: {l.detach().cpu().numpy().tolist()}")
         #     print(f"r: {r.detach().cpu().numpy().tolist()}")
-        if target_component['distance']:
-            # print(f"min l: {float(torch.min(l))}, max l: {float(torch.max(l))}, number of non-zero: {torch.count_nonzero(l.detach())}")
-            print(f"min l: {float(torch.min(l))}, max l: {float(torch.max(l))}; min r: {float(torch.min(r))}, max r: {float(torch.max(r))}; number of non-zero: {torch.count_nonzero(l.detach())}")
+        # if target_component['distance']:
+        #     # print(f"min l: {float(torch.min(l))}, max l: {float(torch.max(l))}, number of non-zero: {torch.count_nonzero(l.detach())}")
+        #     print(f"min l: {float(torch.min(l))}, max l: {float(torch.max(l))}; min r: {float(torch.min(r))}, max r: {float(torch.max(r))}; number of non-zero: {torch.count_nonzero(l.detach())}")
         # print(f"state idx: {state_idx}")
         # print(f"l: {l}")
         # print(f"r: {r}")
@@ -298,21 +298,10 @@ def cal_data_loss(m, trajectories, criterion):
     # add the point data loss together
     if len(trajectories) == 0:
         return var_list([0.0])
-    # print('only data')
-    if constants.benchmark_name in ['thermostat']:
-        X, y_trajectory = batch_pair_trajectory(trajectories, data_bs=None, standard_value=70.0)
-        X, y_trajectory = torch.from_numpy(X).float(), [torch.from_numpy(y).float() for y in y_trajectory]
-        # print(f"after batch pair: {X.shape}")
-        if torch.cuda.is_available():
-            X, y_trajectory = X.cuda(), [y.cuda() for y in y_trajectory]
-        yp_trajectory = m(X, version="single_nn_learning")
-        data_loss = var(0.0)
-        for idx, yp in enumerate(yp_trajectory):
-            # print(yp.shape, y_trajectory[idx].shape)
-            data_loss = data_loss + criterion(yp, y_trajectory[idx])
-            data_loss /= len(yp_trajectory)
-    else:
-        X, y = batch_pair(trajectories, data_bs=1024)
+
+    expec_data_loss = var_list([0.0])
+    count = 0
+    for X, y in batch_pair_yield(trajectories, data_bs=512):
         X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
         # print(f"after batch pair: {X.shape}")
         if torch.cuda.is_available():
@@ -320,22 +309,11 @@ def cal_data_loss(m, trajectories, criterion):
             y = y.cuda()
         yp = m(X, version="single_nn_learning")
         data_loss = criterion(yp, y)
-        # print(f"finish data loss")
-        # exit(0)
-    
-    # if constants.debug:
-    # yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-    # y_list = y.squeeze().detach().cpu().numpy().tolist()
-    # print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
+        expec_data_loss += data_loss
+        count += 1
+    expec_data_loss = expec_data_loss / count
 
-    # # print(f"x: {X}")
-    # yp_list = yp.squeeze().detach().cpu().numpy().tolist()
-    # y_list = y.squeeze().detach().cpu().numpy().tolist()
-
-    # print(f"yp: {min(yp_list)}, {max(yp_list)}")
-    # print(f"y: {min(y_list)}, {max(y_list)}")
-    
-    return data_loss
+    return expec_data_loss
 
 
 def cal_safe_loss(m, abstract_states, target):
