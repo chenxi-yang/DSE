@@ -83,7 +83,175 @@ if __name__ == "__main__":
     configs['Racetrack-Moderate3'] = dict()
     configs['Racetrack-Moderate3-1'] = dict()
     configs['Racetrack-Hard'] = dict()
-    configs['AircraftCollision'] = dict() # 3
+    configs['AircraftCollision'] = dict() 
+    configs['AC-New'] = dict() # 3
+    configs['AC-New-1'] = dict()
+
+    # Thermostat
+    # configs['Thermostat-New']['Ablation'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"thermostat_new_complex_64_2_1_10_83.0_4_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'Thermostat-New',
+    #     'epoch_list': [1499],
+    #     'benchmark_name': 'thermostat_new',
+    #     'dataset_path': "dataset/thermostat_new_83.0.txt",
+    #     'x_l': [60.0],
+    #     'x_r': [64.0],
+    # }
+    # configs['Thermostat-New']['DSE'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"thermostat_new_complex_64_2_1_10_83.0_4_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'Thermostat-New',
+    #     # 'epoch_list': [0, 1499],
+    #     'epoch_list': [499, 1499],
+    #     # 'epoch_list': [4999],
+    #     'benchmark_name': 'thermostat_new',
+    #     'dataset_path': "dataset/thermostat_new_83.0.txt",
+    #     'x_l': [60.0],
+    #     'x_r': [64.0],
+    # }
+    configs['Thermostat-New']['DiffAI'] = {
+        'model_path': f"gpu_DiffAI/models",
+        'model_name': f"thermostat_new_complex_64_2_100_10_83.0_1_0",
+        'method': 'DiffAI+',
+        'benchmark': 'Thermostat-New',
+        # 'epoch_list': [0, 1499],
+        'epoch_list': [1499],
+        # 'epoch_list': [4999],
+        'benchmark_name': 'thermostat_new',
+        'dataset_path': "dataset/thermostat_new_83.0.txt",
+        'x_l': [60.0],
+        'x_r': [64.0],
+    }
+
+    # AC-New-1
+    # configs['AC-New-1']['Ablation(10)'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'AC-new-1',
+    #     'epoch_list': [999],
+    #     'benchmark_name': 'aircraft_collision_new_1',
+    #     'dataset_path': "dataset/aircraft_collision_new_1_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+    # configs['AC-New-1']['DiffAI(10)'] = {
+    #     'model_path': f"gpu_DiffAI/models",
+    #     'model_name': f"aircraft_collision_new_1_complex_64_2_100_10_100000.0_1_0",
+    #     'method': 'DiffAI+',
+    #     'benchmark': 'AC-new-1',
+    #     'epoch_list': [999],
+    #     'benchmark_name': 'aircraft_collision_new_1',
+    #     'dataset_path': "dataset/aircraft_collision_new_1_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+    # configs['AC-New-1']['DSE(10)'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'AC-new-1',
+    #     'epoch_list': [499],
+    #     'benchmark_name': 'aircraft_collision_new_1',
+    #     'dataset_path': "dataset/aircraft_collision_new_1_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+    # configs['AC-New-1']['DSE(10)'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'AC-new-1',
+    #     'epoch_list': [999],
+    #     'benchmark_name': 'aircraft_collision_new_1',
+    #     'dataset_path': "dataset/aircraft_collision_new_1_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+
+    # Racetrack-Relaxed-Multi
+    # configs['Racetrack-Relaxed-Multi']['Ablation'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"racetrack_relaxed_multi_complex_64_2_1_10_0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'Racetrack-Relaxed-Multi',
+    #     'epoch_list': [1499],
+    #     'benchmark_name': 'racetrack_relaxed_multi',
+    #     'dataset_path': "dataset/racetrack_relaxed_multi_0.txt",
+    #     'x_l': [5.0],
+    #     'x_r': [6.0],
+    # }
+    # configs['Racetrack-Relaxed-Multi']['DSE'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"racetrack_relaxed_multi_complex_64_2_2_10_0_0_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'Racetrack-Easy-Multi',
+    #     'epoch_list': [1999, 5999],
+    #     'benchmark_name': 'racetrack_relaxed_multi',
+    #     'dataset_path': "dataset/racetrack_relaxed_multi_0.txt",
+    #     'x_l': [5.0],
+    #     'x_r': [6.0],
+    # }
+    # configs['Racetrack-Relaxed-Multi']['DiffAI'] = {
+    #     'model_path': f"gpu_DiffAI/models",
+    #     'model_name': f"racetrack_relaxed_multi_complex_64_2_10_10_0_0_0",
+    #     'method': 'DiffAI+',
+    #     'benchmark': 'Racetrack-Relaxed-Multi',
+    #     'epoch_list': [5999],
+    #     'benchmark_name': 'racetrack_relaxed_multi',
+    #     'dataset_path': "dataset/racetrack_relaxed_multi_0.txt",
+    #     'x_l': [5.0],
+    #     'x_r': [6.0],
+    # }
+    
+
+
+    torch.autograd.set_detect_anomaly(True)
+    print(f"#### Extract Trajectory ####")
+    for benchmark, benchmark_dict in configs.items():
+        for method, method_dict in benchmark_dict.items():
+            for epoch in method_dict['epoch_list']:
+                print(f"-- GENERATE TRAJECTORY -- {benchmark} & {method} & {epoch}")
+                start_time = time.time()
+                constants.status = 'verify_AI'
+                constants.benchmark_name = method_dict['benchmark_name']
+
+                Trajectory_train, Trajectory_test = load_data(
+                    train_size=100, 
+                    test_size=200, # 20000
+                    dataset_path=method_dict['dataset_path'],
+                )
+                components = extract_abstract_representation(
+                    Trajectory_test, 
+                    x_l=method_dict['x_l'], 
+                    x_r=method_dict['x_r'], 
+                    num_components=100)
+
+                import import_hub as hub
+                importlib.reload(hub)
+                from import_hub import *
+
+                ini_states = initialization_components_point(x_l=method_dict['x_l'], x_r=method_dict['x_r'])
+                extract_trajectory(
+                    method_dict=method_dict,
+                    ini_states=ini_states,
+                    category='concrete',
+                    epoch=epoch,
+                )
+                # exit(0)
+                abstract_states = create_abstract_states_from_components(components)
+                ini_states = initialize_components(abstract_states)
+                extract_trajectory(
+                    method_dict=method_dict,
+                    ini_states=ini_states,
+                    category='symbolic',
+                    epoch=epoch,
+                )
+                print(f"-- FINISH TRAJECTORY -- {benchmark} & {method} -- {time.time() - start_time} s.")
+
     # configs['Thermostat']['Ablation'] = {
     #     'model_path': f"gpu_only_data/models",
     #     'model_name': f"thermostat_refined_complex_64_2_1_5000_83.0_0_0",
@@ -142,21 +310,21 @@ if __name__ == "__main__":
     #     'x_l': [60.0],
     #     'x_r': [64.0],
     # }
-    configs['Thermostat-New']['Ablation(1000)'] = {
-        'model_path': f"gpu_only_data/models",
-        'model_name': f"thermostat_new_complex_64_2_1_1000_83.0_0_0",
-        'method': 'Ablation',
-        'benchmark': 'Thermostat-New',
-        # 'epoch_list': [0, 1499],
-        # 'epoch_list': [199, 989, 999],
-        # 'epoch_list': [989],
-        # 'epoch_list': [199, 989, 1499],
-        'epoch_list': [999],
-        'benchmark_name': 'thermostat_new',
-        'dataset_path': "dataset/thermostat_new_83.0.txt",
-        'x_l': [60.0],
-        'x_r': [64.0],
-    }
+    # configs['Thermostat-New']['Ablation(1000)'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"thermostat_new_complex_64_2_1_1000_83.0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'Thermostat-New',
+    #     # 'epoch_list': [0, 1499],
+    #     # 'epoch_list': [199, 989, 999],
+    #     # 'epoch_list': [989],
+    #     # 'epoch_list': [199, 989, 1499],
+    #     'epoch_list': [999],
+    #     'benchmark_name': 'thermostat_new',
+    #     'dataset_path': "dataset/thermostat_new_83.0.txt",
+    #     'x_l': [60.0],
+    #     'x_r': [64.0],
+    # }
     # configs['Thermostat-New']['Ablation(2500)'] = {
     #     'model_path': f"gpu_only_data/models",
     #     'model_name': f"thermostat_new_complex_64_2_1_2500_83.0_0_0",
@@ -224,6 +392,97 @@ if __name__ == "__main__":
     #     'x_l': [60.0],
     #     'x_r': [64.0],
     # }
+
+    # AC-new
+    # configs['AC-New']['Ablation(10)'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"aircraft_collision_new_complex_64_2_1_10_100000.0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'AC-new',
+    #     'epoch_list': [1499],
+    #     'benchmark_name': 'aircraft_collision_new',
+    #     'dataset_path': "dataset/aircraft_collision_new_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+    # configs['AC-New']['Ablation(50)'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"aircraft_collision_new_complex_64_2_1_50_100000.0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'AC-new',
+    #     'epoch_list': [999, 1499],
+    #     'benchmark_name': 'aircraft_collision_new',
+    #     'dataset_path': "dataset/aircraft_collision_new_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+    # configs['AC-New']['Ablation(100)'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"aircraft_collision_new_complex_64_2_1_100_100000.0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'AC-new',
+    #     'epoch_list': [999],
+    #     'benchmark_name': 'aircraft_collision_new',
+    #     'dataset_path': "dataset/aircraft_collision_new_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+    # configs['AC-New']['Ablation(500)'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"aircraft_collision_new_complex_64_2_1_500_100000.0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'AC-new',
+    #     'epoch_list': [999],
+    #     'benchmark_name': 'aircraft_collision_new',
+    #     'dataset_path': "dataset/aircraft_collision_new_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+    # configs['AC-New']['Ablation(2500)'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"aircraft_collision_new_complex_64_2_1_2500_100000.0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'AC-new',
+    #     'epoch_list': [9, 99, 199, 237],
+    #     'benchmark_name': 'aircraft_collision_new',
+    #     'dataset_path': "dataset/aircraft_collision_new_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+    # configs['AC-New']['Ablation(2500)'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"aircraft_collision_new_complex_64_2_1_2500_100000.0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'AC-new',
+    #     'epoch_list': [999],
+    #     'benchmark_name': 'aircraft_collision_new',
+    #     'dataset_path': "dataset/aircraft_collision_new_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+    # configs['AC-New']['Ablation(5000)'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"aircraft_collision_new_complex_64_2_1_5000_100000.0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'AC-new',
+    #     'epoch_list': [3555],
+    #     'benchmark_name': 'aircraft_collision_new',
+    #     'dataset_path': "dataset/aircraft_collision_new_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+    # configs['AC-New']['Ablation(10000)'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"aircraft_collision_new_complex_64_2_1_10000_100000.0_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'AC-new',
+    #     'epoch_list': [1999, 2499, 2725],
+    #     'benchmark_name': 'aircraft_collision_new',
+    #     'dataset_path': "dataset/aircraft_collision_new_100000.0.txt",
+    #     'x_l': [12.0],
+    #     'x_r': [16.0],
+    # }
+
     # configs['Racetrack']['DiffAI'] = {
     #     'model_path': f"gpu_DiffAI/models",
     #     'model_name': f"racetrack_easy_classifier_ITE_complex_64_2_100_100_0_0_0",
@@ -335,52 +594,7 @@ if __name__ == "__main__":
     #     'x_l': [4.0],
     #     'x_r': [6.0],
     # }
-    # configs['Racetrack-Relaxed-Multi']['Ablation'] = {
-    #     'model_path': f"gpu_only_data/models",
-    #     'model_name': f"racetrack_relaxed_multi_complex_64_2_1_5000_0_0_0",
-    #     'method': 'Ablation',
-    #     'benchmark': 'Racetrack-Relaxed-Multi',
-    #     # 'epoch_list': [0, 2999],
-    #     # 'epoch_list': [0, 1499, 3499],
-    #     # 'epoch_list': [0, 1999, 3999, 5999, 7999],
-    #     # 'epoch_list': [499, 999],
-    #     'epoch_list': [1499],
-    #     'benchmark_name': 'racetrack_relaxed_multi',
-    #     'dataset_path': "dataset/racetrack_relaxed_multi_0.txt",
-    #     'x_l': [5.0],
-    #     'x_r': [6.0],
-    # }
-    # configs['Racetrack-Relaxed-Multi']['DSE'] = {
-    #     'model_path': f"gpu_DSE/models",
-    #     'model_name': f"racetrack_relaxed_multi_complex_64_2_1_100_0_0_0",
-    #     'method': 'DSE',
-    #     'benchmark': 'Racetrack-Easy-Multi',
-    #     # 'epoch_list': [0, 2999],
-    #     # 'epoch_list': [0, 1499, 3499],
-    #     # 'epoch_list': [0, 1999, 3999, 5999, 7999],
-    #     # 'epoch_list': [499, 999],
-    #     # 'epoch_list': [4999, 12999, 14999],
-    #     'epoch_list': [2499],
-    #     'benchmark_name': 'racetrack_relaxed_multi',
-    #     'dataset_path': "dataset/racetrack_relaxed_multi_0.txt",
-    #     'x_l': [5.0],
-    #     'x_r': [6.0],
-    # }
-    # configs['Racetrack-Relaxed-Multi']['DiffAI'] = {
-    #     'model_path': f"gpu_DiffAI/models",
-    #     'model_name': f"racetrack_relaxed_multi_complex_64_2_20_100_0_0_0",
-    #     'method': 'DiffAI+',
-    #     'benchmark': 'Racetrack-Relaxed-Multi',
-    #     # 'epoch_list': [0, 2999],
-    #     # 'epoch_list': [0, 1499, 3499],
-    #     # 'epoch_list': [0, 1999, 3999, 5999, 7999],
-    #     # 'epoch_list': [499, 999],
-    #     'epoch_list': [14999],
-    #     'benchmark_name': 'racetrack_relaxed_multi',
-    #     'dataset_path': "dataset/racetrack_relaxed_multi_0.txt",
-    #     'x_l': [5.0],
-    #     'x_r': [6.0],
-    # }
+
     # configs['Racetrack-Moderate3']['DSE'] = {
     #     'model_path': f"gpu_DSE/models",
     #     'model_name': f"racetrack_moderate_3_classifier_ITE_complex_64_2_1_100_0_0_0",
@@ -461,50 +675,5 @@ if __name__ == "__main__":
     #     'x_l': [12.0],
     #     'x_r': [16.0],
     # }
-
-
-    torch.autograd.set_detect_anomaly(True)
-    print(f"#### Extract Trajectory ####")
-    for benchmark, benchmark_dict in configs.items():
-        for method, method_dict in benchmark_dict.items():
-            for epoch in method_dict['epoch_list']:
-                print(f"-- GENERATE TRAJECTORY -- {benchmark} & {method} & {epoch}")
-                start_time = time.time()
-                constants.status = 'verify_AI'
-                constants.benchmark_name = method_dict['benchmark_name']
-
-                Trajectory_train, Trajectory_test = load_data(
-                    train_size=100, 
-                    test_size=200, # 20000
-                    dataset_path=method_dict['dataset_path'],
-                )
-                components = extract_abstract_representation(
-                    Trajectory_test, 
-                    x_l=method_dict['x_l'], 
-                    x_r=method_dict['x_r'], 
-                    num_components=100)
-
-                import import_hub as hub
-                importlib.reload(hub)
-                from import_hub import *
-
-                ini_states = initialization_components_point(x_l=method_dict['x_l'], x_r=method_dict['x_r'])
-                extract_trajectory(
-                    method_dict=method_dict,
-                    ini_states=ini_states,
-                    category='concrete',
-                    epoch=epoch,
-                )
-                # exit(0)
-                abstract_states = create_abstract_states_from_components(components)
-                ini_states = initialize_components(abstract_states)
-                extract_trajectory(
-                    method_dict=method_dict,
-                    ini_states=ini_states,
-                    category='symbolic',
-                    epoch=epoch,
-                )
-                print(f"-- FINISH TRAJECTORY -- {benchmark} & {method} -- {time.time() - start_time} s.")
-
 
 
