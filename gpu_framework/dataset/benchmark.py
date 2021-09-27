@@ -475,6 +475,7 @@ def pattern1_a(x, safe_bound):
 
     return trajectory_list
 
+# trajectory_list.append(([x, 0], [isOn, 0.0]))
 
 def pattern1_b(x, safe_bound):
     # x in [-5, 5]
@@ -488,7 +489,7 @@ def pattern1_b(x, safe_bound):
         z = 10.0
     else:
         z = 1
-    trajectory_list.append((x, z))
+    trajectory_list.append(([x], [z]))
 
     return trajectory_list
 
@@ -496,6 +497,7 @@ def pattern1_b(x, safe_bound):
 def pattern2(x, safe_bound):
     # x in [-5, 5]
     # safe area: z: [-oo, 0]
+    # ax+b \in [10, 30]
     a = 2.0
     b = 20.0
     bar = 1.0
@@ -505,8 +507,41 @@ def pattern2(x, safe_bound):
         z = x + 10
     else:
         z = x - 5
-    trajectory_list.append((x, z))
+    trajectory_list.append(([x], [z]))
 
+    return trajectory_list
+
+
+def nn_example(x):
+    if x > 5:
+        y = math.sin(x) # , random.random() + (- 0.4) # 1 + 0.01 * random.random()
+    else:
+        if x <= -2.5:
+            y = math.sin(x) + 1.00000000000001
+        elif x <= 0: # >-2.5, <= 0
+            y = max(x * x, 1 + random.random())
+        elif x <= 2.5: # > 0, x<= 2.5
+            y = math.cos(x) + 1.00000000000001
+        else: # x>2.5 && x<= 5
+            y = max((x - 4) * (x - 4), 1.00000000000001) # 1 + (x - 1) * random.random() * (x - 1) * random.random()
+    return y # , acc
+
+
+def pattern_example(x, safe_bound):
+    # x in [-5, 5]
+    # safe area: z: [-oo, 1]
+    bar = 1.0
+    trajectory_list = list()
+    for i in range(2):
+        y = nn_example(x)
+        # x >= 0: y <= 1, acc <= -5
+        # x < 0: y > 1, 
+        trajectory_list.append(([x], [y]))
+        if y <= bar: # -x >= 0 # x > 0 
+            z = x + 10
+        else: # x >= 0
+            z = x - 5
+    
     return trajectory_list
 
 
@@ -539,14 +574,14 @@ def pattern3_b(x, safe_bound):
         z = 10 - y
     else:
         z = 1
-    trajectory_list.append((x, z))
+    trajectory_list.append(([x], [z]))
 
     return trajectory_list
 
 
 def pattern31_a(x, safe_bound):
     # x in [-5, 5]
-    # safe area: z: [1, 1]
+    # safe area: z: [-oo, 1]
     a = 2.0
     b = -20.0
     bar = - 1.0
@@ -556,7 +591,7 @@ def pattern31_a(x, safe_bound):
         z = 1
     else:
         z = 2 + y*y
-    trajectory_list.append((x, z))
+    trajectory_list.append(([x], [z]))
 
     return trajectory_list
 
@@ -573,7 +608,7 @@ def pattern31_b(x, safe_bound):
         z = 1
     else:
         z = 10 - y
-    trajectory_list.append((x, z))
+    trajectory_list.append(([x], [z]))
 
     return trajectory_list
 
@@ -591,7 +626,7 @@ def pattern5_a(x, safe_bound):
         z = nn(x, w1, b1)
     else:
         z = 1
-    trajectory_list.append((x, z))
+    trajectory_list.append(([x], [z]))
 
     return trajectory_list
 
@@ -609,7 +644,7 @@ def pattern5_b(x, safe_bound):
         z = nn(x, w1, b1)
     else:
         z = 1
-    trajectory_list.append((x, z))
+    trajectory_list.append(([x], [z]))
 
     return trajectory_list
 
@@ -623,12 +658,12 @@ def pattern6(x, safe_bound):
     bar = 0.0
     trajectory_list = list()
     y = nn(x, a, b)
+
+    trajectory_list.append(([x], [y+random.random()]))
     if y <= bar:
-        z = y # + random.random()
+        z = y #  + random.random()
     else:
         z = - 10.0
-    trajectory_list.append((x, z))
-
     return trajectory_list
 
 
@@ -1700,7 +1735,7 @@ def aircraft_collision_refined(x, safe_bound):
     return trajectory_list
 
 
-def classifier_stage(x1, y1, x2, y2, step, stage):
+def classifier_stage(x1, y1, x2, y2, stage, step):
     p0, p1, p2, p3 = 0, 0, 0, 0
     critical_distance_square = 250
     if stage == 0:
@@ -1731,7 +1766,7 @@ def classifier_stage(x1, y1, x2, y2, step, stage):
     else:
         p3 = 1
     
-    return p0, p1, p2, p3, stage, step
+    return p0, p1, p2, p3, stage, step, aircraft_distance(x1, y1, x2, y2)
 
 
 # the output of the classifier is a vector of four
@@ -1745,7 +1780,7 @@ def aircraft_collision_refined_classifier(x, safe_bound):
     trajectory_list = list()
     for i in range(steps):
         # assign stage based on the branch
-        p0, p1, p2, p3, stage, step = classifier_stage(x1, y1, x2, y2, stage, step)
+        p0, p1, p2, p3, stage, step, aircraft_distance = classifier_stage(x1, y1, x2, y2, stage, step)
         trajectory_list.append(([x1, y1, x2, y2, stage], [p0, p1, p2, p3]))
         if p0 == 1:
             pass # stage = 0
@@ -1757,11 +1792,109 @@ def aircraft_collision_refined_classifier(x, safe_bound):
             x1 =  x1 + 5.0 # stage = 3
         y1 = y1 + straight_speed
         x2 = x2 + straight_speed
+        if aircraft_distance < 40:
+            print(f"Collision: {aircraft_distance}")
     
     return trajectory_list
 
 
-def classifier_stage_refined_classifier_ITE(x1, y1, x2, y2, step, stage):
+def classifier_stage_new(x1, y1, x2, y2, stage, step):
+    p0, p1, p2, p3 = 0, 0, 0, 0
+    critical_distance_square = 250
+    # print(f"input state: {aircraft_distance(x1, y1, x2, y2), stage, step}")
+    if stage == 0:
+        if aircraft_distance(x1-5, y1+5, x2+5, y2) < 40:
+            stage = 3 
+            step = 0
+        elif aircraft_distance(x1, y1+5, x2+5, y2) < 40 or aircraft_distance(x1, y1, x2, y2) <= critical_distance_square:
+            stage = 1
+            step = 0
+    elif stage == 1:
+        step += 1
+        if step > 3:
+            stage = 2
+            step = 0
+    elif stage == 2:
+        step += 1
+        if step > 2:
+            stage = 3
+            step = 0
+    elif stage == 3:
+        step += 1
+        if step > 3:
+            stage = 0
+    
+    if stage == 0: 
+        p0 = 1
+    elif stage == 1:
+        p1 = 1
+    elif stage == 2:
+        p2 = 1
+    else:
+        p3 = 1
+    # print(f"output state: {stage, step}")
+    
+    return p0, p1, p2, p3, stage, step, aircraft_distance(x1, y1, x2, y2)
+
+
+def aircraft_collision_new(x, safe_bound):
+    stage = 0.0
+    steps = 15
+    straight_speed= 5.0
+    x1, y1, x2, y2 = x, -15.0, 0.0, 0.0
+    step = 0
+    trajectory_list = list()
+    for i in range(steps):
+        # assign stage based on the branch
+        p0, p1, p2, p3, stage, step, aircraft_distance = classifier_stage_new(x1, y1, x2, y2, stage, step)
+        trajectory_list.append(([x1, y1, x2, y2, stage], [p0, p1, p2, p3]))        
+        # print(x1, y1, x2, y2, stage, aircraft_distance)
+        if p0 == 1:
+            pass # stage = 0
+        elif p1 == 1:
+            x1 = x1 - 5.0 # stage = 1
+        elif p2 == 1:
+            pass # stage = 2
+        else:
+            x1 =  x1 + 5.0 # stage = 3
+        y1 = y1 + straight_speed
+        x2 = x2 + straight_speed
+        if aircraft_distance < 40:
+            print(f"Collision: {aircraft_distance}")
+    
+    return trajectory_list
+
+
+def aircraft_collision_new_1(x, safe_bound): # TODO: an updated version using steps
+    stage = 0.0
+    steps = 15
+    straight_speed= 5.0
+    x1, y1, x2, y2 = x, -15.0, 0.0, 0.0
+    step = 0
+    trajectory_list = list()
+    for i in range(steps):
+        # assign stage based on the branch
+        before_step = step
+        p0, p1, p2, p3, stage, step, aircraft_distance = classifier_stage_new(x1, y1, x2, y2, stage, step)
+        trajectory_list.append(([x1, y1, x2, y2, stage, before_step], [p0, p1, p2, p3, step]))        
+        # print(x1, y1, x2, y2, stage, aircraft_distance)
+        if p0 == 1:
+            pass # stage = 0
+        elif p1 == 1:
+            x1 = x1 - 5.0 # stage = 1
+        elif p2 == 1:
+            pass # stage = 2
+        else:
+            x1 =  x1 + 5.0 # stage = 3
+        y1 = y1 + straight_speed
+        x2 = x2 + straight_speed
+        if aircraft_distance < 40:
+            print(f"Collision: {aircraft_distance}")
+    
+    return trajectory_list
+
+
+def classifier_stage_refined_classifier_ITE(x1, y1, x2, y2, stage, step):
     p0, p1, p2, p3 = 0, 0, 0, 0
     critical_distance_square = 250
     if stage == 0:
@@ -1817,6 +1950,31 @@ def aircraft_collision_refined_classifier_ITE(x, safe_bound):
         x2 = x2 + straight_speed
     
     return trajectory_list
+
+
+# the additional benchmark
+def perception(img,  x, safe_bound):
+    p0, p1 = NN_img(img)
+    light = argmax(p0, p1)
+    if light == 0:
+        right, straight, stop = NN_green_walker(x)
+    elif light == 1:
+        right, straight, stop = NN_red_walker(x)
+    action = argmax(right, straight, stop)
+    
+    # safety check
+    if img==red:
+        if walker > 2:
+            res =  stop
+        else:
+            res = right
+    if img==green:
+        if walker > 2:
+            res = straight
+        else:
+            res = right or straight
+    return 
+
 
 
 

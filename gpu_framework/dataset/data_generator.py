@@ -85,6 +85,10 @@ def dataset_arg(dataset):
         range_ = [12.0, 16.0]
     elif benchmark_name == "aircraft_collision_refined_classifier_ITE":
         range_ = [12.0, 16.0]
+    elif benchmark_name == "aircraft_collision_new":
+        range_ = [12.0, 16.0]
+    elif benchmark_name == "aircraft_collision_new_1":
+        range_ = [12.0, 16.0]
     
     return range_
 
@@ -200,6 +204,8 @@ def run(safe_bound):
         func = benchmark.pattern7
     elif benchmark_name == "pattern8":
         func = benchmark.pattern8
+    elif benchmark_name == "pattern_example":
+        func = benchmark.pattern_example
     elif benchmark_name == "racetrack_easy":
         func = benchmark.racetrack_easy
     elif benchmark_name == "racetrack_easy_classifier":
@@ -242,6 +248,10 @@ def run(safe_bound):
         func = benchmark.aircraft_collision_refined_classifier
     elif benchmark_name == "aircraft_collision_refined_classifier_ITE":
         func = benchmark.aircraft_collision_refined_classifier_ITE
+    elif benchmark_name == "aircraft_collision_new":
+        func = benchmark.aircraft_collision_new
+    elif benchmark_name == "aircraft_collision_new_1":
+        func = benchmark.aircraft_collision_new_1
     # elif benchmark_name == "fairness_1":
     #     func = benchmark.fairness_1
     # elif benchmark_name == "fairness_1":
