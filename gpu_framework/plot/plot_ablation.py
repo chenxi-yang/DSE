@@ -64,7 +64,8 @@ def plot_data_size(safety_portion_dict, data_loss_dict, config):
     # x = config['trajectory_size_list']
     x = [k * config['benchmark_length'] for k in config['trajectory_size_list']]
 
-    fig, ax = plt.subplots()
+    fig = plt.figure(figsize=(6, 4.5), constrained_layout=True)
+    plt.rcParams['font.size'] = '10'
     handles = list()
     labels = list()
     for method, safety_portion_method_dict in safety_portion_dict.items():
@@ -96,7 +97,9 @@ def plot_data_size(safety_portion_dict, data_loss_dict, config):
     plt.savefig(f"figures/data_size/{config['benchmark_name']}_safety_portion.png")
     plt.close()
 
-    fig, ax = plt.subplots()
+    # fig, ax = plt.subplots()
+    fig = plt.figure(figsize=(6, 4.5), constrained_layout=True)
+    plt.rcParams['font.size'] = '10'
     handles = list()
     labels = list()
     for method, data_loss_method_dict in data_loss_dict.items():

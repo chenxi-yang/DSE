@@ -54,11 +54,16 @@ def preprocess_loss(loss_dict, configs):
 
 def plot_loss(loss_dict, configs, category):
     benchmark = configs['benchmark']
-    fig, ax = plt.subplots()
+
+    fig = plt.figure(figsize=(6, 4.5), constrained_layout=True)
+    plt.rcParams['font.size'] = '10'
+    # fig, ax = plt.subplots(figsize=(8,6), dpi=100)
     handles = list()
     labels = list()
     for method, loss in loss_dict.items():
         l, r = loss[0], loss[1]
+        if benchmark == 'Racetrack' and method == 'DiffAI+':
+            l, r = l[:6000], r[:6000]
         x = [i for i in range(len(l))]
         # if a single line, reduce error a bit
         for idx, loss in enumerate(l):
@@ -77,26 +82,26 @@ def plot_loss(loss_dict, configs, category):
         if benchmark == 'Thermostat':
             plt.ylim(0,35)
         if benchmark == 'AC':
-            plt.ylim(0,15)
+            plt.ylim(0,8)
         if benchmark == 'Racetrack':
-            plt.xlim(0,6001)
+            # plt.xlim(0,6001)
             plt.ylim(0,10)
 
     plt.legend(handles=handles, labels=labels)
     plt.title(f"{configs['benchmark']} {category} Loss")
-    plt.savefig(f"figures/loss_trend/{benchmark}_{category}.png")
+    plt.savefig(f"figures/loss_trend/{benchmark}_{category}.png")#, bbox_inches='tight')
 
 
 def f_loss(configs):
-    diffai_data, diffai_safety = read_loss(configs['DiffAI'])
+    diffai_data, diffai_safety = read_loss(configs['DiffAI+'])
     dse_data, dse_safety = read_loss(configs['DSE'])
     loss_dict = {
         'data': {
-            'DiffAI': diffai_data,
+            'DiffAI+': diffai_data,
             'DSE': dse_data,
         },
         'safety': {
-            'DiffAI': diffai_safety,
+            'DiffAI+': diffai_safety,
             'DSE': dse_safety,
         }
     }
@@ -107,23 +112,22 @@ def f_loss(configs):
 
 
 if __name__ == "__main__":
-    benchmarks = ['only_data', 'DSE']
     trajectory_size = 10
     configs = dict()
     configs['Thermostat'] = dict()
     configs['Racetrack'] = dict()
     configs['AircraftCollision'] = dict()
-    configs['Thermostat']['DiffAI'] = {
+    configs['Thermostat']['DiffAI+'] = {
         'trajectory_path': f"../gpu_DiffAI/result/thermostat_new_complex_64_2_100_{trajectory_size}_{trajectory_size}_[83.0]_volume_10000.txt",
         'method': 'DiffAI+',
         'benchmark': 'Thermostat',
     }
-    configs['Racetrack']['DiffAI'] = {
+    configs['Racetrack']['DiffAI+'] = {
         'trajectory_path': f"../gpu_DiffAI/result/racetrack_relaxed_multi_complex_64_2_10_{trajectory_size}_{trajectory_size}_[0]_volume_10000.txt",
         'method': 'DiffAI+',
         'benchmark': 'Racetrack',
     }
-    configs['AircraftCollision']['DiffAI'] = {
+    configs['AircraftCollision']['DiffAI+'] = {
         'trajectory_path': f"../gpu_DiffAI/result/aircraft_collision_new_1_complex_64_2_100_{trajectory_size}_{trajectory_size}_[100000.0]_volume_10000.txt",
         'method': 'DiffAI+',
         'benchmark': 'AC',
