@@ -52,7 +52,8 @@ def initialize_components(abstract_states):
     input_center, input_width = center[:, :1], width[:, :1]
     states = {
         'x': domain.Box(torch.cat((input_center, padding, padding), 1), torch.cat((input_width, padding, padding), 1)),
-        'trajectories': [[] for i in range(B)],
+        'trajectories_l': [[] for i in range(B)],
+        'trajectories_r': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
         'p_list': [var(0.0) for i in range(B)], # might be changed to batch
         'alpha_list': [var(1.0) for i in range(B)],
@@ -72,7 +73,8 @@ def initialization_components_point():
     input_center[0], input_width[0] = 1.0, 0.0
     states = {
         'x': domain.Box(torch.cat((input_center, padding, padding), 1), torch.cat((input_width, padding, padding), 1)),
-        'trajectories': [[] for i in range(B)],
+        'trajectories_l': [[] for i in range(B)],
+        'trajectories_r': [[] for i in range(B)],
         'idx_list': [i for i in range(B)],
         'p_list': [var(0.0) for i in range(B)], # might be changed to batch
         'alpha_list': [var(1.0) for i in range(B)],
@@ -98,13 +100,20 @@ class LinearNNComplex(nn.Module):
     def __init__(self, l=4):
         super().__init__()
         self.linear1 = Linear(in_channels=1, out_channels=l)
-        self.linear2 = Linear(in_channels=l, out_channels=1)
+        self.linear2 = Linear(in_channels=l, out_channels=l)
+        self.linear3 = Linear(in_channels=l, out_channels=l)
+        self.linear4 = Linear(in_channels=l, out_channels=1)
         self.relu = ReLU()
 
     def forward(self, x):
         res = self.linear1(x)
         res = self.relu(res)
         res = self.linear2(res)
+        res = self.relu(res)
+        res = self.linear3(res)
+        res = self.relu(res)
+        res = self.linear4(res)
+
         return res
 
 def f_assign_min_z(x):
@@ -139,10 +148,10 @@ class Program(nn.Module):
     def forward(self, input, version=None):
         if version == "single_nn_learning":
             y = self.nn(input)
-            x = torch.clone(y)
-            x[y <= float(self.bar)] = x[y <= float(self.bar)]
-            x[y > float(self.bar)] = float(min_v)
-            res = x
+            # x = torch.clone(y)
+            # x[y <= float(self.bar)] = x[y <= float(self.bar)]
+            # x[y > float(self.bar)] = float(min_v)
+            res = y
         else:
             res = self.program(input)
         return res

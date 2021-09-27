@@ -212,6 +212,22 @@ if benchmark_name == "pattern2":
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
+if benchmark_name == "pattern_example":
+    x_l = [-5.0]
+    x_r = [5.0]
+
+    safe_range_list = [[-10000, 1.0]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['test']
+
+    safe_range_start=1.0
+    safe_range_end=1.5
+    safe_range_step=1.0
+    safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
 if benchmark_name == "pattern3_a":
     x_l = [-5.0]
     x_r = [5.0]
@@ -248,7 +264,7 @@ if benchmark_name == "pattern31_a":
     x_l = [-5.0]
     x_r = [5.0]
 
-    safe_range_list = [[1.0, 1.0]]
+    safe_range_list = [[-10000.0, 1.0]]
     w_list = [1.0]
     method_list = ['all']
     name_list = ['test']
@@ -809,6 +825,52 @@ if benchmark_name == "aircraft_collision_refined_classifier_ITE":
 
     safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
+if benchmark_name == "aircraft_collision_new":
+    x_l = [12.0]
+    x_r = [16.0]
+    # safe_range_list = [[40.0, 100000.0]]
+    map_mode = True
+    map_safe_range = [[[0.0, 100000.0]],
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]],
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]],
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], 
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], 
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['x1']
+    safe_range_list = [0]
+
+    safe_range_start=100000.0
+    safe_range_end=100050.0
+    safe_range_step=100
+
+    safe_range_bound_list = [100000.0]
+
+
+if benchmark_name == "aircraft_collision_new_1":
+    x_l = [12.0]
+    x_r = [16.0]
+    # safe_range_list = [[40.0, 100000.0]]
+    map_mode = True
+    map_safe_range = [[[0.0, 100000.0]],
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]],
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]],
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], 
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], 
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['x1']
+    safe_range_list = [0]
+
+    safe_range_start=100000.0
+    safe_range_end=100050.0
+    safe_range_step=100
+
+    safe_range_bound_list = [100000.0]
 
 # args
 dataset_size = 50

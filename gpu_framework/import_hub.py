@@ -74,6 +74,10 @@ elif constants.benchmark_name == "pattern8":
     import benchmarks.pattern8 as p8
     importlib.reload(p8)
     from benchmarks.pattern8 import *
+elif constants.benchmark_name == "pattern_example":
+    import benchmarks.pattern_example as pe
+    importlib.reload(pe)
+    from benchmarks.pattern_example import *
 elif constants.benchmark_name == "racetrack_easy":
     import benchmarks.racetrack_easy as re
     importlib.reload(re)
@@ -158,7 +162,14 @@ elif constants.benchmark_name == "aircraft_collision_refined_classifier_ITE":
     import benchmarks.aircraft_collision_refined_classifier_ITE as ac
     importlib.reload(ac)
     from benchmarks.aircraft_collision_refined_classifier_ITE import *
-
+elif constants.benchmark_name == "aircraft_collision_new":
+    import benchmarks.aircraft_collision_new as ac
+    importlib.reload(ac)
+    from benchmarks.aircraft_collision_new import *
+elif constants.benchmark_name == "aircraft_collision_new_1":
+    import benchmarks.aircraft_collision_new_1 as ac
+    importlib.reload(ac)
+    from benchmarks.aircraft_collision_new_1 import *
 
 # print(constants.benchmark_name)
 
