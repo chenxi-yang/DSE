@@ -120,6 +120,17 @@ if __name__ == "__main__":
                         "distance": False,
                     }
                 )
+            elif benchmark_name == 'aircraft_collision_new':
+                 target.append(
+                    {   # constraint is in box domain
+                        "condition": None,
+                        "method": method_list[0],
+                        "name": name_list[0],
+                        "map_condition": None,
+                        "map_mode": map_mode,
+                        "distance": True,
+                    }
+                )
             else:
                 target.append(
                     {   # constraint is in box domain
@@ -150,10 +161,23 @@ if __name__ == "__main__":
                     target[0]['map_condition'] = distance_condition
                 else:
                     target[0]['map_condition'] = map_condition
+            # if benchmark_name == 'aircraft_collision_new':
+            #     for constraint_l in distance_safe_range:
+            #         interval_l = list()
+            #         for constraint in constraint_l:
+            #             interval_l.append(domain.Interval(var(constraint[0]), var(constraint[1])))
+            #         distance_condition.append(interval_l)
+            #     target[0]['map_condition'] = distance_condition
                 
             # Run 25 times
             if mode == 'DSE' or mode == 'DiffAI':
                 N = 5
+                if benchmark_name == "racetrack_relaxed_multi":
+                    N = 3
+                if benchmark_name == "aircraft_collision_new_1":
+                    N = 10
+                if 'pattern' in benchmark_name:
+                    N = 10
             if mode == 'only_data':
                 N = 10
             for i in range(N):
@@ -175,14 +199,14 @@ if __name__ == "__main__":
                     import gpu_only_data.train as gt
                     importlib.reload(gt)
                     from gpu_only_data.train import *
-                elif mode == 'symbol_data_loss_DSE':
-                    import gpu_symbol_data_loss_DSE.train as gt
-                    importlib.reload(gt)
-                    from gpu_symbol_data_loss_DSE.train import *
-                elif mode == 'DiffAI_sps':
-                    import gpu_DiffAI_sps.train as gt
-                    importlib.reload(gt)
-                    from gpu_DiffAI_sps.train import *
+                # elif mode == 'symbol_data_loss_DSE':
+                #     import gpu_symbol_data_loss_DSE.train as gt
+                #     importlib.reload(gt)
+                #     from gpu_symbol_data_loss_DSE.train import *
+                # elif mode == 'DiffAI_sps':
+                #     import gpu_DiffAI_sps.train as gt
+                #     importlib.reload(gt)
+                #     from gpu_DiffAI_sps.train import *
                 
                 preprocessing_time = time.time()
                 if benchmark_name in ["thermostat"]:

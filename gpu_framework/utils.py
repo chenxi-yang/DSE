@@ -46,6 +46,23 @@ def ini_trajectory(trajectory):
     return state, action
 
 
+def batch_pair_yield(trajectory_list, data_bs=None):
+    states, actions = list(), list()
+    random.shuffle(trajectory_list)
+    for trajectory in trajectory_list:
+        for (state, action) in trajectory:
+            states.append(state)
+            actions.append(action)
+    c = list(zip(states, actions))
+    random.shuffle(c)
+    states, actions = zip(*c)
+    states, actions = np.array(states), np.array(actions)
+    k = int((len(states) - 1) / data_bs)
+    # print(k)
+    for i in range(k+1):
+        yield states[data_bs*i:data_bs*(i+1)], actions[data_bs*i:data_bs*(i+1)]
+    
+
 def batch_pair(trajectory_list, data_bs=None):
     states, actions = list(), list()
     random.shuffle(trajectory_list)
@@ -58,6 +75,7 @@ def batch_pair(trajectory_list, data_bs=None):
     states, actions = zip(*c)
     states, actions = np.array(states), np.array(actions)
     return states[:data_bs], actions[:data_bs]
+    
 
 
 def batch_pair_endpoint(trajectory_list, data_bs=None):
