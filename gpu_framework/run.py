@@ -243,6 +243,7 @@ if __name__ == "__main__":
                             m = Program(l=l, nn_mode=nn_mode)
                     
                     print(f"parameters: {count_parameters(m)}")
+                    exit(0)
 
                     # try: 
                     _, loss, loss_list, q, c, time_out = learning(
