@@ -149,11 +149,13 @@ def plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, config
         plt.xlim([0, 20])
         plt.ylim([-5, 15])
     if configs['benchmark'] == 'Racetrack-Relaxed-Multi':
-        ax = fig.add_subplot(111, aspect=1.0)
+        # ax = fig.add_subplot(111, aspect=1.0)
         if property_index == 0:
+            ax = fig.add_subplot(111, aspect=0.5)
             plt.xlim([0, 21])
             plt.ylim([-2, 11])
         if property_index == 1:
+            ax = fig.add_subplot(111, aspect=1.0)
             plt.xlim([0, 21])
             plt.ylim([-0.5, 3.5])
 
@@ -989,13 +991,13 @@ if __name__ == "__main__":
 
 
     # Thermostat
-    configs['Thermostat-New']['DiffAI-10(Final)'] = {
-        'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_100_10_83.0_0_0_DiffAI+_1499_concrete.txt",
-        'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_100_10_83.0_0_0_DiffAI+_1499_symbolic.txt",
-        'unsafe_area': unsafe_map_thermostat_new, 
-        'starting_area': starting_area_thermostat_new,
-        'benchmark': 'Thermostat-New',
-    }
+    # configs['Thermostat-New']['DiffAI-10(Final)'] = {
+    #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_100_10_83.0_0_0_DiffAI+_1499_concrete.txt",
+    #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_100_10_83.0_0_0_DiffAI+_1499_symbolic.txt",
+    #     'unsafe_area': unsafe_map_thermostat_new, 
+    #     'starting_area': starting_area_thermostat_new,
+    #     'benchmark': 'Thermostat-New',
+    # }
     # configs['Thermostat-New']['DSE-10(Middle)'] = {
     #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_DSE_499_concrete.txt",
     #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_DSE_499_symbolic.txt",
@@ -1019,42 +1021,42 @@ if __name__ == "__main__":
     # }
 
     # # Racetrack
-    # configs['Racetrack-Relaxed-Multi']['Ablation-10(Final)'] = {
-    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_10_0_0_0_Ablation_1499_concrete.txt",
-    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_10_0_0_0_Ablation_1499_symbolic.txt",
-    #     'unsafe_area': unsafe_map_racetrack_relaxed_multi,
-    #     'starting_area': starting_area_racetrack_relaxed_multi,
-    #     'benchmark': 'Racetrack-Relaxed-Multi',
-    #     'name_list': ['position', 'distance'],
-    #     'idx_list': [[1, 2], [0]],
-    # }
-    # configs['Racetrack-Relaxed-Multi']['DSE-10(Middle)'] = {
-    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_2_10_0_0_0_DSE_1999_concrete.txt",
-    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_2_10_0_0_0_DSE_1999_symbolic.txt",
-    #     'unsafe_area': unsafe_map_racetrack_relaxed_multi,
-    #     'starting_area': starting_area_racetrack_relaxed_multi,
-    #     'benchmark': 'Racetrack-Relaxed-Multi',
-    #     'name_list': ['position', 'distance'],
-    #     'idx_list': [[1, 2], [0]],
-    # }
-    # configs['Racetrack-Relaxed-Multi']['DSE-10(Final)'] = {
-    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_2_10_0_0_0_DSE_5999_concrete.txt",
-    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_2_10_0_0_0_DSE_5999_symbolic.txt",
-    #     'unsafe_area': unsafe_map_racetrack_relaxed_multi,
-    #     'starting_area': starting_area_racetrack_relaxed_multi,
-    #     'benchmark': 'Racetrack-Relaxed-Multi',
-    #     'name_list': ['position', 'distance'],
-    #     'idx_list': [[1, 2], [0]],
-    # }
-    # configs['Racetrack-Relaxed-Multi']['DiffAI-10(Final)'] = {
-    #     'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_10_10_0_0_0_DiffAI+_5999_concrete.txt",
-    #     'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_10_10_0_0_0_DiffAI+_5999_symbolic.txt",
-    #     'unsafe_area': unsafe_map_racetrack_relaxed_multi,
-    #     'starting_area': starting_area_racetrack_relaxed_multi,
-    #     'benchmark': 'Racetrack-Relaxed-Multi',
-    #     'name_list': ['position', 'distance'],
-    #     'idx_list': [[1, 2], [0]],
-    # }
+    configs['Racetrack-Relaxed-Multi']['Ablation-10(Final)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_10_0_0_0_Ablation_1499_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_1_10_0_0_0_Ablation_1499_symbolic.txt",
+        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+        'starting_area': starting_area_racetrack_relaxed_multi,
+        'benchmark': 'Racetrack-Relaxed-Multi',
+        'name_list': ['position', 'distance'],
+        'idx_list': [[1, 2], [0]],
+    }
+    configs['Racetrack-Relaxed-Multi']['DSE-10(Middle)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_2_10_0_0_0_DSE_1999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_2_10_0_0_0_DSE_1999_symbolic.txt",
+        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+        'starting_area': starting_area_racetrack_relaxed_multi,
+        'benchmark': 'Racetrack-Relaxed-Multi',
+        'name_list': ['position', 'distance'],
+        'idx_list': [[1, 2], [0]],
+    }
+    configs['Racetrack-Relaxed-Multi']['DSE-10(Final)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_2_10_0_0_0_DSE_5999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_2_10_0_0_0_DSE_5999_symbolic.txt",
+        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+        'starting_area': starting_area_racetrack_relaxed_multi,
+        'benchmark': 'Racetrack-Relaxed-Multi',
+        'name_list': ['position', 'distance'],
+        'idx_list': [[1, 2], [0]],
+    }
+    configs['Racetrack-Relaxed-Multi']['DiffAI-10(Final)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_10_10_0_0_0_DiffAI+_5999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/racetrack_relaxed_multi_complex_64_2_10_10_0_0_0_DiffAI+_5999_symbolic.txt",
+        'unsafe_area': unsafe_map_racetrack_relaxed_multi,
+        'starting_area': starting_area_racetrack_relaxed_multi,
+        'benchmark': 'Racetrack-Relaxed-Multi',
+        'name_list': ['position', 'distance'],
+        'idx_list': [[1, 2], [0]],
+    }
 
     # # AC-New-1
     # configs['AC-New-1']['Ablation-10(Final)'] = {
