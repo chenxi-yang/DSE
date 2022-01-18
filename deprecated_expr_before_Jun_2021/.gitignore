@@ -1,8 +1,0 @@
-
-# python
-*.pyc
-*.DS_Store
-
-# data
-*.txt
-*.png
