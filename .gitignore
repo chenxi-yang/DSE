@@ -1,0 +1,11 @@
+
+# all processing file
+*.pyc
+*.DS_Store
+
+# all data
+*.txt
+*.png
+
+# all models
+**/models/**
