@@ -46,7 +46,6 @@ def handleNegative(interval):
     #         n = torch.ceil(var(-1.0).mul(interval.left).div(PI_TWICE))
     #         interval.left = interval.left.add(PI_TWICE.mul(n))
     #         interval.right = interval.right.add(PI_TWICE.mul(n))
-<<<<<<< HEAD
     # print('in handleNegative')
     # print(f"interval: {interval.left}, {interval.right}")
     # left_neg = interval.left < 0.0
@@ -79,20 +78,6 @@ def handleNegative(interval):
         r = interval.right
     return Interval(l, r)
 
-=======
-    
-    left_neg = interval.left < 0.0
-    left_neg_inf = interval.left[left_neg] <= float(N_INFINITY)
-    left_neg_finite = interval.left[left_neg] > float(N_INFINITY)
-    interval.left[left_neg][left_neg_inf] = 0
-    interval.right[left_neg][left_neg_inf] = float(P_INFINITY)
-
-    n = torch.ceil(-interval.left[left_neg][left_neg_finite] / float(PI_TWICE))
-    interval.left[left_neg][left_neg_finite] = interval.left[left_neg][left_neg_finite] + float(PI_TWICE) * n
-    interval.right[left_neg][left_neg_finite] = interval.right[left_neg][left_neg_finite] + float(PI_TWICE) * n
-
-    return interval
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
 # interval domain
 
@@ -350,19 +335,12 @@ class Interval:
     def cos(self):
         # show_cuda_memory(f"[cos] ini")
         cache = Interval(self.left, self.right)
-<<<<<<< HEAD
         # print(f"--In Interval COS--")
         cache = handleNegative(cache)
         # print('cache', cache.left, cache.right)
         
         t = cache.fmod(PI_TWICE)
         # print(f"t", t.left, t.right)
-=======
-
-        cache = handleNegative(cache)
-        
-        t = cache.fmod(PI_TWICE)
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         del cache
         torch.cuda.empty_cache()
         # show_cuda_memory(f"[cos] before volume")
@@ -524,8 +502,6 @@ class Box():
     
     def matmul(self, other):
         # print(f"in matmul, self.c: {self.c.shape}, self.delta: {self.delta.shape}, other: {other.shape}")
-<<<<<<< HEAD
-<<<<<<< HEAD
         if len(self.c.shape) == 3:
             self.c, self.delta = torch.squeeze(self.c, 1), torch.squeeze(self.delta, 1)
         return self.new(self.c.matmul(other), self.delta.matmul(other.abs()))
@@ -558,13 +534,7 @@ class Box():
         new_c = F.conv1d(c, weight, bias=bias, padding=padding)
         new_delta = F.conv1d(c, weight.abs(), bias=bias, padding=padding)
         return self.new(new_c, new_delta)
-    
-=======
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-        return self.new(self.c.matmul(other), self.delta.matmul(other.abs()))
-    
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+
     def add(self, other):
         if isinstance(other, torch.Tensor):
             c, d = self.c.add(other), self.delta
@@ -610,14 +580,10 @@ class Box():
                 new_box = self.new(new_c, new_delta)
                 interval = new_box.getInterval()
                 # show_cuda_memory(f"before cos")
-<<<<<<< HEAD
                 # print(interval.left, interval.right)
                 res_interval = interval.cos()
                 # print(res_interval.left, res_interval.right)
                 # exit(0)
-=======
-                res_interval = interval.cos()
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
                 # show_cuda_memory(f"after cos")
                 get_box = res_interval.getBox()
                 # print(c)
@@ -639,19 +605,15 @@ class Box():
             res = res_interval.getBox()
             return res
     
-<<<<<<< HEAD
     def sin(self):
         return self.sub_l(PI_HALF).cos()
         
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     def exp(self):
         a = self.delta.exp()
         b = (-self.delta).exp()
         return self.new(self.c.exp().mul((a+b)/2), self.c.exp().mul((a-b)/2))
     
     def div(self, other): # other / self
-<<<<<<< HEAD
         if isinstance(other, torch.Tensor):
             l, r = self.c - self.delta, self.c+self.delta
             # the cart-pole benchmark comes with always > 0 result
@@ -665,11 +627,6 @@ class Box():
             print(f"Current Not Implement.")
             exit(0)
         # return res_interval.getBox()
-=======
-        interval = self.getInterval()
-        res_interval = interval.div(other)
-        return res_interval.getBox()
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     
     def sigmoid(self): # monotonic function
         tp = torch.sigmoid(self.c + self.delta)

@@ -132,15 +132,7 @@ class Program(nn.Module):
     def __init__(self, l=1, nn_mode="simple"):
         super(Program, self).__init__()
         self.bar = var(1.0)
-<<<<<<< HEAD
-<<<<<<< HEAD
         self.steps = var(0) # here the loop condition is <= N, therefore, steps==1 -> 2 steps executed
-=======
-        self.steps = var(1) # here the loop condition is <= N, therefore, steps==1 -> 2 steps executed
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
-        self.steps = var(1) # here the loop condition is <= N, therefore, steps==1 -> 2 steps executed
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         if nn_mode == "simple":
             self.nn = LinearNN(l=l)
         if nn_mode == "complex":

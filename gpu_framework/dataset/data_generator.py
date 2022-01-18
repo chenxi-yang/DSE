@@ -77,8 +77,6 @@ def dataset_arg(dataset):
         range_ = [60.0, 64.0]
     elif benchmark_name == "thermostat_new":
         range_ = [60.0, 64.0]
-<<<<<<< HEAD
-<<<<<<< HEAD
     elif benchmark_name == "thermostat_new_cnn":
         range_ = [60.0, 64.0]
     elif benchmark_name == "thermostat_new_tinyinput":
@@ -91,10 +89,6 @@ def dataset_arg(dataset):
         range_ = [60.0, 64.0]
     elif benchmark_name == "thermostat_new_unsafe50":
         range_ = [60.0, 64.0]
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     elif benchmark_name == "aircraft_collision":
         range_ = [12.0, 16.0]
     elif benchmark_name == "aircraft_collision_refined":
@@ -107,16 +101,10 @@ def dataset_arg(dataset):
         range_ = [12.0, 16.0]
     elif benchmark_name == "aircraft_collision_new_1":
         range_ = [12.0, 16.0]
-<<<<<<< HEAD
-<<<<<<< HEAD
     elif benchmark_name == "aircraft_collision_new_1_cnn":
         range_ = [12.0, 16.0]
     elif benchmark_name == "aircraft_collision_new_1_unsafe25":
         range_ = [12.0, 16.0]
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     
     return range_
 
@@ -127,8 +115,6 @@ def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
     )
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 def show_unsafe_percentage(res_list):
     unsafe_area_dict = {
         'thermostat': [55.0, 83.0],
@@ -150,10 +136,6 @@ def show_unsafe_percentage(res_list):
     print(f"unsafe trajectory percentage: {unsafe_num / len(res_list)}")
 
 
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 def generate_dataset(func, distribution, input_range, safe_bound, data_size=20000):
     res_list = list()
     min_tra, max_tra = 100000, -100000
@@ -181,13 +163,8 @@ def generate_dataset(func, distribution, input_range, safe_bound, data_size=2000
         avg_tra_l = avg_tra_l + len(trajectory_list)
         # min_tra, max_tra = min(trajectory_l, min_tra), max(trajectory_r, max_tra)
     
-<<<<<<< HEAD
-<<<<<<< HEAD
     show_unsafe_percentage(res_list)
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+
     print(f"avg trajectory length: {avg_tra_l/len(x_list)}")
     print(f"max trajectory length: {max_tra_l}")
     # print(f"min-tra, max_tra: {min_tra}, {max_tra}")
@@ -302,8 +279,6 @@ def run(safe_bound):
         func = benchmark.thermostat_refined
     elif benchmark_name == "thermostat_new":
         func = benchmark.thermostat_new
-<<<<<<< HEAD
-<<<<<<< HEAD
     elif benchmark_name == "thermostat_new_cnn":
         func = benchmark.thermostat_new_cnn
     elif benchmark_name == "thermostat_new_tinyinput":
@@ -316,10 +291,6 @@ def run(safe_bound):
         func = benchmark.thermostat_new_unsafe25
     elif benchmark_name == "thermostat_new_unsafe50":
         func = benchmark.thermostat_new_unsafe50
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     elif benchmark_name == "aircraft_collision":
         func = benchmark.aircraft_collision
     elif benchmark_name == "aircraft_collision_refined":
@@ -332,16 +303,10 @@ def run(safe_bound):
         func = benchmark.aircraft_collision_new
     elif benchmark_name == "aircraft_collision_new_1":
         func = benchmark.aircraft_collision_new_1
-<<<<<<< HEAD
-<<<<<<< HEAD
     elif benchmark_name == "aircraft_collision_new_1_cnn":
         func = benchmark.aircraft_collision_new_1_cnn
     elif benchmark_name == "aircraft_collision_new_1_unsafe25":
         func = benchmark.aircraft_collision_new_1_unsafe25
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     # elif benchmark_name == "fairness_1":
     #     func = benchmark.fairness_1
     # elif benchmark_name == "fairness_1":

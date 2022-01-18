@@ -65,8 +65,6 @@ class Linear(nn.Module):
     def forward(self, x):
         # print(f"weight: \n {self.weight}")
         # print(f"bias: \n {self.bias}")
-<<<<<<< HEAD
-<<<<<<< HEAD
         if isinstance(x, torch.Tensor):
             if len(x.shape) == 3:
                 x = torch.squeeze(x, 1) 
@@ -98,17 +96,6 @@ class Conv1d(nn.Module):
             return F.conv1d(x, self.weight, bias=self.bias, padding=self.padding)
         return x.conv(self.weight, self.bias, self.padding)
 
-
-=======
-        return x.matmul(self.weight).add(self.bias)
-
-
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
-        return x.matmul(self.weight).add(self.bias)
-
-
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 class Sigmoid(nn.Module):
     def __init__(self):
         super().__init__()

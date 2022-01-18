@@ -532,15 +532,7 @@ def pattern_example(x, safe_bound):
     # safe area: z: [-oo, 1]
     bar = 1.0
     trajectory_list = list()
-<<<<<<< HEAD
-<<<<<<< HEAD
     for i in range(1):
-=======
-    for i in range(2):
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
-    for i in range(2):
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         y = nn_example(x)
         # x >= 0: y <= 1, acc <= -5
         # x < 0: y > 1, 
@@ -1626,8 +1618,6 @@ def thermostat_new(x, safe_bound):
     return trajectory_list
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 def thermostat_new_cnn(x, safe_bound):
     # x: [60.0, 64.0]
     # safe area for x: [55.0, 83.0]
@@ -1888,10 +1878,6 @@ def thermostat_new_unsafe50(x, safe_bound):
     return trajectory_list
 
 
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 def aircraft_distance(x1, y1, x2, y2):
     return (x1 - x2) ** 2 + (y1 - y2) **2
 
@@ -2168,8 +2154,6 @@ def aircraft_collision_new_1(x, safe_bound): # TODO: an updated version using st
     return trajectory_list
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 def aircraft_collision_new_1_cnn(x, safe_bound): # TODO: an updated version using steps
     stage = 0.0
     steps = 15
@@ -2303,10 +2287,6 @@ def aircraft_collision_new_1_unsafe25(x, safe_bound): # TODO: an updated version
     return trajectory_list
 
 
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 def classifier_stage_refined_classifier_ITE(x1, y1, x2, y2, stage, step):
     p0, p1, p2, p3 = 0, 0, 0, 0
     critical_distance_square = 250
@@ -2365,8 +2345,6 @@ def aircraft_collision_refined_classifier_ITE(x, safe_bound):
     return trajectory_list
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 def NN_green_walker(x):
     if x >= 2:
         right = random.random() * 0.5
@@ -2456,9 +2434,6 @@ def cart_pole(x): # [-4.8, 4.8]
         theta = theta + 0.02 * theta_dot
         theta_dot = theta_dot + 0.02 * thetaacc
         
-=======
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 # the additional benchmark
 def perception(img,  x, safe_bound):
     p0, p1 = NN_img(img)
@@ -2481,26 +2456,3 @@ def perception(img,  x, safe_bound):
         else:
             res = right or straight
     return 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-    
-<<<<<<< HEAD
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f

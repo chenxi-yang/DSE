@@ -75,15 +75,9 @@ def plot_data_size(safety_portion_dict, data_loss_dict, config):
         handles.append(plt.fill_between(x, l, r, alpha=0.1, color=color[method], linewidth=0.0))
         labels.append(method)
         plt.plot(x, y, color=color[method], label=method)
-<<<<<<< HEAD
-<<<<<<< HEAD
+
         print(f"{method}(Safety): {y}")
-=======
 
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
-
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         # bars = plt.bar(x_n+move[method], safety_portion_list, width=0.25, label=method, align='center')
         # # for index, value in enumerate(safety_portion_list):
         # #     print(value, x_n[index]+move[method])
@@ -97,15 +91,8 @@ def plot_data_size(safety_portion_dict, data_loss_dict, config):
     # plt.legend(handles=handles, labels=labels)
     plt.xticks(np.arange(0, x[-1]+1, int(x[-1]/5)))
     plt.xlabel('Training Dataset Size')
-<<<<<<< HEAD
-<<<<<<< HEAD
     plt.ylabel('Provably Safe Portion')
-=======
-    plt.ylabel('Provable Safety Portion')
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
-    plt.ylabel('Provable Safety Portion')
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+
     plt.legend(loc='upper right')
     # plt.xscale('log')
     # plt.yscale('log')
@@ -124,13 +111,7 @@ def plot_data_size(safety_portion_dict, data_loss_dict, config):
         handles.append(plt.fill_between(x, l, r, alpha=0.1, color=color[method], linewidth=0.0))
         labels.append(method)
         plt.plot(x, y, color=color[method], label=method)
-<<<<<<< HEAD
-<<<<<<< HEAD
         print(f"{method}(Test Data Loss): {y}")
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         # bars = plt.bar(x_n+move[method], data_loss_list, width=0.25, label=method, align='center')
         # for rect in bars:
         #     height = rect.get_height()
@@ -265,12 +246,6 @@ if __name__ == '__main__':
     }
 
     for benchmark_name, benchmark_config in configs.items():
-<<<<<<< HEAD
-<<<<<<< HEAD
         print(f"Benchmark name: {benchmark_name}")
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         visualize_data_size(benchmark_config)
 

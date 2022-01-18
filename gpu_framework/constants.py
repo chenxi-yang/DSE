@@ -747,37 +747,22 @@ if benchmark_name == "thermostat_refined":
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 if benchmark_name == "cartpole_v1":
     x_l = [-0.05, -0.05, -0.05, -0.05]
     x_r = [0.05, 0.05, 0.05, 0.05]
     safe_range_list = [[-0.418, 0.418]]
-=======
-if benchmark_name == "thermostat_new":
-    x_l = [60.0]
-    x_r = [64.0]
-    safe_range_list = [[55.0, 83.0]]
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     w_list = [1.0]
     method_list = ['all']
     name_list = ['x']
 
-<<<<<<< HEAD
     safe_range_start=0.418
     safe_range_end=0.518
     safe_range_step=0.1
-=======
-    safe_range_start=83.0
-    safe_range_end=83.5
-    safe_range_step=0.5
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
     safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
-<<<<<<< HEAD
 if benchmark_name == "cartpole_v2":
     x_l = [-0.05, -0.05, -0.05, -0.05]
     x_r = [0.05, 0.05, 0.05, 0.05]
@@ -789,25 +774,11 @@ if benchmark_name == "cartpole_v2":
     safe_range_start=0.1
     safe_range_end=0.2
     safe_range_step=0.1
-=======
-if benchmark_name == "aircraft_collision":
-    x_l = [12.0]
-    x_r = [16.0]
-    safe_range_list = [[20.0, 100000.0]]
-    w_list = [1.0]
-    method_list = ['all']
-    name_list = ['x1']
-
-    safe_range_start=100000.0
-    safe_range_end=100050.0
-    safe_range_step=100
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
     safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
-<<<<<<< HEAD
 if benchmark_name == "cartpole_v3":
     x_l = [-0.05, -0.05, -0.05, -0.05]
     x_r = [0.05, 0.05, 0.05, 0.05]
@@ -819,27 +790,11 @@ if benchmark_name == "cartpole_v3":
     safe_range_start=0.210
     safe_range_end=0.309
     safe_range_step=0.1
-=======
-if benchmark_name == "aircraft_collision_refined":
-    x_l = [12.0]
-    x_r = [16.0]
-    safe_range_list = [[40.0, 100000.0]]
-    w_list = [1.0]
-    method_list = ['all']
-    name_list = ['x1']
-
-    safe_range_start=100000.0
-    safe_range_end=100050.0
-    safe_range_step=100
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
     safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
-<<<<<<< HEAD
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 if benchmark_name == "thermostat_new":
     x_l = [60.0]
     x_r = [64.0]
@@ -851,7 +806,10 @@ if benchmark_name == "thermostat_new":
     safe_range_start=83.0
     safe_range_end=83.5
     safe_range_step=0.5
-=======
+    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
 if benchmark_name == "aircraft_collision_refined_classifier":
     x_l = [12.0]
     x_r = [16.0]
@@ -863,77 +821,11 @@ if benchmark_name == "aircraft_collision_refined_classifier":
     safe_range_start=100000.0
     safe_range_end=100050.0
     safe_range_step=100
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-
-    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
-    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
-
-<<<<<<< HEAD
-=======
-
-if benchmark_name == "aircraft_collision_refined_classifier_ITE":
-    x_l = [12.0]
-    x_r = [16.0]
-    safe_range_list = [[40.0, 100000.0]]
-    w_list = [1.0]
-    method_list = ['all']
-    name_list = ['x1']
-
-    safe_range_start=100000.0
-    safe_range_end=100050.0
-    safe_range_step=100
 
     safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
-if benchmark_name == "aircraft_collision_new":
-    x_l = [12.0]
-    x_r = [16.0]
-    # safe_range_list = [[40.0, 100000.0]]
-    map_mode = True
-    map_safe_range = [[[0.0, 100000.0]],
-                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]],
-                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]],
-                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], 
-                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], 
-                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]]]
-    w_list = [1.0]
-    method_list = ['all']
-    name_list = ['x1']
-    safe_range_list = [0]
-
-    safe_range_start=100000.0
-    safe_range_end=100050.0
-    safe_range_step=100
-
-    safe_range_bound_list = [100000.0]
-
-
-if benchmark_name == "aircraft_collision_new_1":
-    x_l = [12.0]
-    x_r = [16.0]
-    # safe_range_list = [[40.0, 100000.0]]
-    map_mode = True
-    map_safe_range = [[[0.0, 100000.0]],
-                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]],
-                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]],
-                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], 
-                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], 
-                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]]]
-    w_list = [1.0]
-    method_list = ['all']
-    name_list = ['x1']
-    safe_range_list = [0]
-
-    safe_range_start=100000.0
-    safe_range_end=100050.0
-    safe_range_step=100
-
-    safe_range_bound_list = [100000.0]
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
-
-<<<<<<< HEAD
 if benchmark_name == "thermostat_new_cnn":
     x_l = [60.0]
     x_r = [64.0]
@@ -1030,8 +922,6 @@ if benchmark_name == "thermostat_new_unsafe50":
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 if benchmark_name == "aircraft_collision":
     x_l = [12.0]
     x_r = [16.0]
@@ -1141,7 +1031,6 @@ if benchmark_name == "aircraft_collision_new_1":
 
     safe_range_bound_list = [100000.0]
 
-<<<<<<< HEAD
 
 if benchmark_name == "aircraft_collision_new_1_cnn":
     x_l = [12.0]
@@ -1188,8 +1077,6 @@ if benchmark_name == "aircraft_collision_new_1_unsafe25":
 
     safe_range_bound_list = [100000.0]
 
-=======
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 # args
 dataset_size = 50
 lambda_ = 100.0
