@@ -1,0 +1,149 @@
+data generation: theta 2.6 tensor(2.6000, dtype=torch.float64)
+f3 input
+[tensor(-6.8516, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(1.8121, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0357, dtype=torch.float64)
+data generation [-0.14657929720924126, -4.990805714462786, 0.0, 2.0, 2.5, 0.9120568130036077]
+f3 input
+[tensor(-6.8850, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(2.0183, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0772, dtype=torch.float64)
+data generation [-0.040926819628720384, -4.966501775876907, 0.0, 2.0, 2.5, 1.118263506783141]
+f3 input
+[tensor(-6.8247, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(2.1975, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0210, dtype=torch.float64)
+data generation [0.05470671271244876, -4.928015678739022, 0.0, 2.0, 2.5, 1.2974811343088797]
+---Data Generation---
+--- 2.29518633 seconds ---
+---Data Range---[-0.8263850930815471,0.7370209529138665]
+---Safe Range---[-7.07723277844505,4.950862566962623]
+in plot_sep_quan_safe_trend
+optimization 2.6 tensor(2.6000, dtype=torch.float64)
+f3 input
+[tensor(-6.8516, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(1.8121, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0357, dtype=torch.float64)
+f3 input
+[tensor(-6.8516, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(1.8121, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0357, dtype=torch.float64)
+f3 input
+[tensor(-7.0357, dtype=torch.float64), tensor(1.1975, dtype=torch.float64), tensor(1.9121, dtype=torch.float64), tensor(0.8717, dtype=torch.float64)]
+in f3 tensor(-7.2028, dtype=torch.float64)
+f3 input
+[tensor(-6.8850, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(2.0183, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0772, dtype=torch.float64)
+f3 input
+[tensor(-6.8850, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(2.0183, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0772, dtype=torch.float64)
+f3 input
+[tensor(-7.0772, dtype=torch.float64), tensor(1.1975, dtype=torch.float64), tensor(2.1183, dtype=torch.float64), tensor(0.8717, dtype=torch.float64)]
+in f3 tensor(-7.2524, dtype=torch.float64)
+f3 input
+[tensor(-6.8247, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(2.1975, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0210, dtype=torch.float64)
+f3 input
+[tensor(-6.8247, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(2.1975, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0210, dtype=torch.float64)
+f3 input
+[tensor(-7.0210, dtype=torch.float64), tensor(1.1975, dtype=torch.float64), tensor(2.2975, dtype=torch.float64), tensor(0.8717, dtype=torch.float64)]
+in f3 tensor(-7.2012, dtype=torch.float64)
+f3 input
+[tensor(-6.9608, dtype=torch.float64), tensor(1.1975, dtype=torch.float64), tensor(2.4272, dtype=torch.float64), tensor(0.8717, dtype=torch.float64)]
+in f3 tensor(-7.1431, dtype=torch.float64)
+f3 input
+[tensor(-6.8247, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(2.1975, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0210, dtype=torch.float64)
+f3 input
+[tensor(-6.8247, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(2.1975, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0210, dtype=torch.float64)
+f3 input
+[tensor(-7.0210, dtype=torch.float64), tensor(1.1975, dtype=torch.float64), tensor(2.2975, dtype=torch.float64), tensor(0.8717, dtype=torch.float64)]
+in f3 tensor(-7.2012, dtype=torch.float64)
+f3 input
+[tensor(-6.8516, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(1.8121, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0357, dtype=torch.float64)
+f3 input
+[tensor(-6.8516, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(1.8121, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0357, dtype=torch.float64)
+f3 input
+[tensor(-7.0357, dtype=torch.float64), tensor(1.1975, dtype=torch.float64), tensor(1.9121, dtype=torch.float64), tensor(0.8717, dtype=torch.float64)]
+in f3 tensor(-7.2028, dtype=torch.float64)
+f3 input
+[tensor(-6.8850, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(2.0183, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0772, dtype=torch.float64)
+f3 input
+[tensor(-6.8850, dtype=torch.float64), tensor(1.2605, dtype=torch.float64), tensor(2.0183, dtype=torch.float64), tensor(0.9686, dtype=torch.float64)]
+in f3 tensor(-7.0772, dtype=torch.float64)
+f3 input
+[tensor(-7.0772, dtype=torch.float64), tensor(1.1975, dtype=torch.float64), tensor(2.1183, dtype=torch.float64), tensor(0.8717, dtype=torch.float64)]
+in f3 tensor(-7.2524, dtype=torch.float64)
+f3 input
+[tensor(-6.9204, dtype=torch.float64), tensor(1.1975, dtype=torch.float64), tensor(2.4658, dtype=torch.float64), tensor(0.8717, dtype=torch.float64)]
+in f3 tensor(-7.1032, dtype=torch.float64)
+====finish smooth point computing
+point dist 0.03931964086119271
+in f3 domain
+tensor(-5., dtype=torch.float64) tensor(5., dtype=torch.float64)
+tensor(2., dtype=torch.float64) tensor(2., dtype=torch.float64)
+tensor(0., dtype=torch.float64) tensor(2., dtype=torch.float64)
+tensor(2.5000, dtype=torch.float64) tensor(2.5000, dtype=torch.float64)
+in f3 domain tensor(-5.0481, dtype=torch.float64) tensor(5., dtype=torch.float64)
+in f3 domain
+tensor(-5.0481, dtype=torch.float64) tensor(5., dtype=torch.float64)
+tensor(1.9000, dtype=torch.float64) tensor(1.9000, dtype=torch.float64)
+tensor(0.1000, dtype=torch.float64) tensor(2.1000, dtype=torch.float64)
+tensor(2.2500, dtype=torch.float64) tensor(2.2500, dtype=torch.float64)
+in f3 domain tensor(-5.1228, dtype=torch.float64) tensor(4.9758, dtype=torch.float64)
+in f3 domain
+tensor(-5.1228, dtype=torch.float64) tensor(4.9758, dtype=torch.float64)
+tensor(1.8050, dtype=torch.float64) tensor(1.8050, dtype=torch.float64)
+tensor(0.2000, dtype=torch.float64) tensor(2.2000, dtype=torch.float64)
+tensor(2.0250, dtype=torch.float64) tensor(2.0250, dtype=torch.float64)
+in f3 domain tensor(-5.2244, dtype=torch.float64) tensor(4.9243, dtype=torch.float64)
+in f3 domain
+tensor(-5.2244, dtype=torch.float64) tensor(4.9243, dtype=torch.float64)
+tensor(1.7147, dtype=torch.float64) tensor(1.7147, dtype=torch.float64)
+tensor(0.3000, dtype=torch.float64) tensor(2.3000, dtype=torch.float64)
+tensor(1.8225, dtype=torch.float64) tensor(1.8225, dtype=torch.float64)
+in f3 domain tensor(-5.3514, dtype=torch.float64) tensor(4.8480, dtype=torch.float64)
+in f3 domain
+tensor(-5.3514, dtype=torch.float64) tensor(4.8480, dtype=torch.float64)
+tensor(1.6290, dtype=torch.float64) tensor(1.6290, dtype=torch.float64)
+tensor(0.4000, dtype=torch.float64) tensor(2.4000, dtype=torch.float64)
+tensor(1.6402, dtype=torch.float64) tensor(1.6402, dtype=torch.float64)
+in f3 domain tensor(-5.5004, dtype=torch.float64) tensor(4.7522, dtype=torch.float64)
+in f3 domain
+tensor(-5.5004, dtype=torch.float64) tensor(4.7522, dtype=torch.float64)
+tensor(1.5476, dtype=torch.float64) tensor(1.5476, dtype=torch.float64)
+tensor(0.5000, dtype=torch.float64) tensor(2.5000, dtype=torch.float64)
+tensor(1.4762, dtype=torch.float64) tensor(1.4762, dtype=torch.float64)
+in f3 domain tensor(-5.6672, dtype=torch.float64) tensor(4.6432, dtype=torch.float64)
+in f3 domain
+tensor(-5.6672, dtype=torch.float64) tensor(4.6432, dtype=torch.float64)
+tensor(1.4702, dtype=torch.float64) tensor(1.4702, dtype=torch.float64)
+tensor(0.6000, dtype=torch.float64) tensor(2.6000, dtype=torch.float64)
+tensor(1.3286, dtype=torch.float64) tensor(1.3286, dtype=torch.float64)
+in f3 domain tensor(-5.8466, dtype=torch.float64) tensor(4.5270, dtype=torch.float64)
+in f3 domain
+tensor(-5.8466, dtype=torch.float64) tensor(4.5270, dtype=torch.float64)
+tensor(1.3967, dtype=torch.float64) tensor(1.3967, dtype=torch.float64)
+tensor(0.7000, dtype=torch.float64) tensor(2.6000, dtype=torch.float64)
+tensor(1.1957, dtype=torch.float64) tensor(1.1957, dtype=torch.float64)
+in f3 domain tensor(-6.0426, dtype=torch.float64) tensor(4.4088, dtype=torch.float64)
+in f3 domain
+tensor(-6.0426, dtype=torch.float64) tensor(4.4088, dtype=torch.float64)
+tensor(1.3268, dtype=torch.float64) tensor(1.3268, dtype=torch.float64)
+tensor(0.8000, dtype=torch.float64) tensor(2.6000, dtype=torch.float64)
+tensor(1.0762, dtype=torch.float64) tensor(1.0762, dtype=torch.float64)
+in f3 domain tensor(-6.2431, dtype=torch.float64) tensor(4.2928, dtype=torch.float64)
+in f3 domain
+tensor(-6.2431, dtype=torch.float64) tensor(4.2928, dtype=torch.float64)
+tensor(1.2605, dtype=torch.float64) tensor(1.2605, dtype=torch.float64)
+tensor(0.9000, dtype=torch.float64) tensor(2.6000, dtype=torch.float64)
+tensor(0.9686, dtype=torch.float64) tensor(0.9686, dtype=torch.float64)
+in f3 domain tensor(-6.4388, dtype=torch.float64) tensor(4.1821, dtype=torch.float64)
+in f3 domain
+tensor(-6.4388, dtype=torch.float64) tensor(4.1821, dtype=torch.float64)
+tensor(1.1975, dtype=torch.float64) tensor(1.1975, dtype=torch.float64)
+tensor(1.0000, dtype=torch.float64) tensor(2.6000, dtype=torch.float64)
+tensor(0.8717, dtype=torch.float64) tensor(0.8717, dtype=torch.float64)
+in f3 domain tensor(-6.6225, dtype=torch.float64) tensor(4.0787, dtype=torch.float64)
+====final intervals==== 7
+2.6 0.03931964086119271 0.6190633149949621 -6.622469570318478 5.0 -7.07723277844505 4.893364471658882

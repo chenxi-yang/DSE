@@ -1,0 +1,196 @@
+====Start Training====
+real data_loss: 214.21397399902344
+real safe_loss: 0.017276659607887268, data and safe TIME: 43.32507801055908
+real data_loss: 228.6104278564453
+real safe_loss: 0.018880395218729973, data and safe TIME: 43.967225790023804
+real data_loss: 176.80462646484375
+real safe_loss: 0.01625828444957733, data and safe TIME: 43.43785572052002
+real data_loss: 252.7829132080078
+real safe_loss: 0.017618173733353615, data and safe TIME: 44.22278904914856
+real data_loss: 71.96814727783203
+real safe_loss: 0.007898598909378052, data and safe TIME: 44.180718660354614
+0-th Epochs Time: 219.37404441833496
+-----finish 0-th epoch-----, the batch loss: q: 71.96814727783203, c: 0.007898598909378052
+-----finish 0-th epoch-----, q: 944.3800659179688, c: 0.07793211191892624
+real data_loss: 16.734464645385742
+real safe_loss: 0.0009725425625219941, data and safe TIME: 42.90539050102234
+real data_loss: 68.64631652832031
+real safe_loss: 0.006831457372754812, data and safe TIME: 44.1004581451416
+real data_loss: 13.084444999694824
+real safe_loss: 0.002597465179860592, data and safe TIME: 42.870213985443115
+real data_loss: 20.067806243896484
+real safe_loss: 0.0018916527042165399, data and safe TIME: 43.17345905303955
+real data_loss: 11.894965171813965
+real safe_loss: 0.0004240390844643116, data and safe TIME: 43.59444499015808
+1-th Epochs Time: 218.37241089344025
+-----finish 1-th epoch-----, the batch loss: q: 11.894965171813965, c: 0.0004240390844643116
+-----finish 1-th epoch-----, q: 130.42799377441406, c: 0.01271715760231018
+real data_loss: 60.74239730834961
+real safe_loss: 0.004598093684762716, data and safe TIME: 43.361018896102905
+real data_loss: 14.936427116394043
+real safe_loss: 0.0032336802687495947, data and safe TIME: 42.8654580116272
+real data_loss: 13.015181541442871
+real safe_loss: 0.00058575882576406, data and safe TIME: 42.5212721824646
+real data_loss: 11.143450736999512
+real safe_loss: 5.3186820878181607e-05, data and safe TIME: 43.31790089607239
+real data_loss: 12.784138679504395
+real safe_loss: 0.0012289216974750161, data and safe TIME: 42.67198920249939
+2-th Epochs Time: 217.43397068977356
+-----finish 2-th epoch-----, the batch loss: q: 12.784138679504395, c: 0.0012289216974750161
+-----finish 2-th epoch-----, q: 112.62159729003906, c: 0.009699641726911068
+real data_loss: 14.34642505645752
+real safe_loss: 0.011414581909775734, data and safe TIME: 44.703227043151855
+real data_loss: 19.81890869140625
+real safe_loss: 0.01112501323223114, data and safe TIME: 43.91796112060547
+real data_loss: 53.349395751953125
+real safe_loss: 0.01861383020877838, data and safe TIME: 45.20436930656433
+real data_loss: 36.286434173583984
+real safe_loss: 0.022698037326335907, data and safe TIME: 45.97526717185974
+real data_loss: 23.767942428588867
+real safe_loss: 0.01618579402565956, data and safe TIME: 44.620681285858154
+3-th Epochs Time: 219.42055076360703
+-----finish 3-th epoch-----, the batch loss: q: 23.767942428588867, c: 0.01618579402565956
+-----finish 3-th epoch-----, q: 147.56910705566406, c: 0.08003725111484528
+real data_loss: 18.91398811340332
+real safe_loss: 0.014203823171555996, data and safe TIME: 44.12519073486328
+real data_loss: 28.719511032104492
+real safe_loss: 0.01706886850297451, data and safe TIME: 45.91725182533264
+real data_loss: 36.12788009643555
+real safe_loss: 0.01878076232969761, data and safe TIME: 45.54827427864075
+real data_loss: 11.184782981872559
+real safe_loss: 5.702464477508329e-05, data and safe TIME: 43.656742334365845
+real data_loss: 11.695581436157227
+real safe_loss: 1.6905809388845228e-05, data and safe TIME: 43.87164354324341
+4-th Epochs Time: 220.33853387832642
+-----finish 4-th epoch-----, the batch loss: q: 11.695581436157227, c: 1.6905809388845228e-05
+-----finish 4-th epoch-----, q: 106.6417465209961, c: 0.050127383321523666
+real data_loss: 11.921935081481934
+real safe_loss: 0.00043682410614565015, data and safe TIME: 43.118592977523804
+real data_loss: 9.396025657653809
+real safe_loss: 2.3630642317584716e-05, data and safe TIME: 42.943708658218384
+real data_loss: 10.639664649963379
+real safe_loss: 5.806716580991633e-05, data and safe TIME: 42.12354516983032
+real data_loss: 34.70003890991211
+real safe_loss: 0.00754555081948638, data and safe TIME: 42.74722409248352
+real data_loss: 14.914360046386719
+real safe_loss: 0.001743593136779964, data and safe TIME: 43.75711154937744
+5-th Epochs Time: 219.5378889242808
+-----finish 5-th epoch-----, the batch loss: q: 14.914360046386719, c: 0.001743593136779964
+-----finish 5-th epoch-----, q: 81.57202911376953, c: 0.009807665832340717
+real data_loss: 28.37367820739746
+real safe_loss: 0.001899662078358233, data and safe TIME: 42.40924859046936
+real data_loss: 9.38885498046875
+real safe_loss: 1.3167456017981749e-05, data and safe TIME: 42.54621934890747
+real data_loss: 10.490805625915527
+real safe_loss: 4.5106316974852234e-05, data and safe TIME: 43.95152711868286
+real data_loss: 11.277813911437988
+real safe_loss: 0.00010581706010270864, data and safe TIME: 43.17961406707764
+real data_loss: 11.69914722442627
+real safe_loss: 4.6515542635461316e-06, data and safe TIME: 42.03773593902588
+6-th Epochs Time: 218.88765396390642
+-----finish 6-th epoch-----, the batch loss: q: 11.69914722442627, c: 4.6515542635461316e-06
+-----finish 6-th epoch-----, q: 71.23030090332031, c: 0.0020684045739471912
+real data_loss: 11.657696723937988
+real safe_loss: 0.00016326688637491316, data and safe TIME: 43.59180736541748
+real data_loss: 22.65424156188965
+real safe_loss: 0.0031058250460773706, data and safe TIME: 43.06134271621704
+real data_loss: 14.233542442321777
+real safe_loss: 0.0008440490928478539, data and safe TIME: 43.83662271499634
+real data_loss: 12.49618148803711
+real safe_loss: 0.0003824917075689882, data and safe TIME: 43.575820207595825
+real data_loss: 11.679072380065918
+real safe_loss: 5.786372184957145e-06, data and safe TIME: 42.7231547832489
+7-th Epochs Time: 218.73352655768394
+-----finish 7-th epoch-----, the batch loss: q: 11.679072380065918, c: 5.786372184957145e-06
+-----finish 7-th epoch-----, q: 72.72073364257812, c: 0.0045014191418886185
+real data_loss: 11.055994987487793
+real safe_loss: 0.0, data and safe TIME: 43.61738681793213
+real data_loss: 9.343937873840332
+real safe_loss: 7.66076391300885e-06, data and safe TIME: 42.26548957824707
+real data_loss: 10.42113208770752
+real safe_loss: 9.327645784651395e-06, data and safe TIME: 43.12592935562134
+real data_loss: 11.012826919555664
+real safe_loss: 5.198188773647416e-06, data and safe TIME: 41.55558514595032
+real data_loss: 11.6790189743042
+real safe_loss: 4.923103460896527e-06, data and safe TIME: 42.25259447097778
+8-th Epochs Time: 218.16687570677863
+-----finish 8-th epoch-----, the batch loss: q: 11.6790189743042, c: 4.923103460896527e-06
+-----finish 8-th epoch-----, q: 53.51291275024414, c: 2.710970329644624e-05
+real data_loss: 11.055853843688965
+real safe_loss: 0.0, data and safe TIME: 42.5155291557312
+real data_loss: 9.343937873840332
+real safe_loss: 9.7431702670292e-06, data and safe TIME: 43.25372576713562
+real data_loss: 10.421134948730469
+real safe_loss: 8.754632290219888e-06, data and safe TIME: 42.843422174453735
+real data_loss: 11.012826919555664
+real safe_loss: 8.095070370472968e-06, data and safe TIME: 43.13637971878052
+real data_loss: 11.6790189743042
+real safe_loss: 6.006566309224581e-06, data and safe TIME: 42.73227548599243
+9-th Epochs Time: 217.8808725118637
+-----finish 9-th epoch-----, the batch loss: q: 11.6790189743042, c: 6.006566309224581e-06
+-----finish 9-th epoch-----, q: 53.51277542114258, c: 3.259943696320988e-05
+real data_loss: 11.05590534210205
+real safe_loss: 0.0, data and safe TIME: 43.23487710952759
+real data_loss: 9.343937873840332
+real safe_loss: 8.596728548582178e-06, data and safe TIME: 42.964943170547485
+real data_loss: 10.42113208770752
+real safe_loss: 8.770834938331973e-06, data and safe TIME: 42.86672854423523
+real data_loss: 11.012826919555664
+real safe_loss: 7.750934855721425e-06, data and safe TIME: 43.1442813873291
+real data_loss: 11.6790189743042
+real safe_loss: 5.601017619483173e-06, data and safe TIME: 42.345776319503784
+10-th Epochs Time: 217.6472825787284
+-----finish 10-th epoch-----, the batch loss: q: 11.6790189743042, c: 5.601017619483173e-06
+-----finish 10-th epoch-----, q: 53.512821197509766, c: 3.071951505262405e-05
+real data_loss: 11.055907249450684
+real safe_loss: 0.0, data and safe TIME: 43.22082495689392
+real data_loss: 9.343992233276367
+real safe_loss: 7.1787326305639e-06, data and safe TIME: 42.284409284591675
+real data_loss: 10.42113208770752
+real safe_loss: 9.018971468321979e-06, data and safe TIME: 43.063262701034546
+real data_loss: 11.013556480407715
+real safe_loss: 7.951474799483549e-06, data and safe TIME: 43.8329644203186
+real data_loss: 11.679322242736816
+real safe_loss: 6.6606380642042495e-06, data and safe TIME: 43.32365298271179
+11-th Epochs Time: 217.55547813574472
+-----finish 11-th epoch-----, the batch loss: q: 11.679322242736816, c: 6.6606380642042495e-06
+-----finish 11-th epoch-----, q: 53.51390838623047, c: 3.080981696257368e-05
+real data_loss: 11.05601692199707
+real safe_loss: 0.0, data and safe TIME: 42.76562166213989
+real data_loss: 9.343941688537598
+real safe_loss: 9.31707563722739e-06, data and safe TIME: 42.99668264389038
+real data_loss: 10.422922134399414
+real safe_loss: 8.094988515949808e-06, data and safe TIME: 42.8315052986145
+real data_loss: 11.012826919555664
+real safe_loss: 5.607208549918141e-06, data and safe TIME: 41.96821737289429
+real data_loss: 11.6790189743042
+real safe_loss: 6.901450888108229e-06, data and safe TIME: 43.313116788864136
+12-th Epochs Time: 217.33568527148321
+-----finish 12-th epoch-----, the batch loss: q: 11.6790189743042, c: 6.901450888108229e-06
+-----finish 12-th epoch-----, q: 53.51472854614258, c: 2.9920725864940323e-05
+real data_loss: 11.055853843688965
+real safe_loss: 0.0, data and safe TIME: 43.2063422203064
+real data_loss: 9.343937873840332
+real safe_loss: 8.987350156530738e-06, data and safe TIME: 43.09764766693115
+real data_loss: 10.42113208770752
+real safe_loss: 8.913743840821553e-06, data and safe TIME: 43.26289772987366
+real data_loss: 11.012826919555664
+real safe_loss: 7.102570179995382e-06, data and safe TIME: 42.96825122833252
+real data_loss: 11.6790189743042
+real safe_loss: 6.3638603933213744e-06, data and safe TIME: 43.2579550743103
+13-th Epochs Time: 217.28697081974573
+-----finish 13-th epoch-----, the batch loss: q: 11.6790189743042, c: 6.3638603933213744e-06
+-----finish 13-th epoch-----, q: 53.51276779174805, c: 3.1367522751679644e-05
+real data_loss: 11.055853843688965
+real safe_loss: 0.0, data and safe TIME: 43.39016556739807
+real data_loss: 9.343937873840332
+real safe_loss: 9.221221262123436e-06, data and safe TIME: 43.3820526599884
+real data_loss: 10.42113208770752
+real safe_loss: 9.563159437675495e-06, data and safe TIME: 43.56273078918457
+real data_loss: 11.012826919555664
+real safe_loss: 6.7014161686529405e-06, data and safe TIME: 42.458447217941284
+real data_loss: 11.6790189743042
+real safe_loss: 6.480921001639217e-06, data and safe TIME: 43.260671615600586
+14-th Epochs Time: 217.25916821161906
+-----finish 14-th epoch-----, the batch loss: q: 11.6790189743042, c: 6.480921001639217e-06
+-----finish 14-th epoch-----, q: 53.51276779174805, c: 3.1966716051101685e-05
