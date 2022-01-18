@@ -6,5 +6,7 @@
     "latex-workshop.view.pdf.external.viewer.command": "",
     "latex-workshop.view.pdf.external.viewer.args": [
         ""
-    ]
+    ],
+    "python.pythonPath": "/home/cyang/miniconda3/bin/python",
+    "git.ignoreLimitWarning": true
 }

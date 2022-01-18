@@ -1,429 +1,510 @@
-import torch
-import time
 import random
-from torch.autograd import Variable
-import nlopt
-import numpy as np
+import time
+
 import matplotlib.pyplot as plt
-import copy
-
-from constants import benchmark_name
-
-if benchmark_name == "thermostat":
-    from gpu_DSE.thermostat_nn import * 
-if benchmark_name == "mountain_car":
-    from gpu_DSE.mountain_car import *
-
-from gpu_DSE.data_generator import *
+import numpy as np
+import torch
+import constants 
+from torch.autograd import Variable
+import importlib
 
 from utils import (
-    generate_distribution,
-    ini_trajectory,
-    batch_pair, 
-)
+    batch_pair,
+    divide_chunks,
+    save_model,
+    aggregate_sampling_states,
+    )
+
+import import_hub as hub
+importlib.reload(hub)
+from import_hub import *
 
 random.seed(1)
 
-def distance_f_point(pred_y, y):
-    return torch.abs(pred_y.sub(y)) # l1-distance
-    # return torch.square(pred_y.sub(y)) # l2-distance
-
-
-def get_intersection(interval_1, interval_2):
+def get_intersection(l, r, l1, r1):
     res_interval = domain.Interval()
-    res_interval.left = torch.max(interval_1.left, interval_2.left)
-    res_interval.right = torch.min(interval_1.right, interval_2.right)
+    res_interval.left = torch.max(l, l1)
+    res_interval.right = torch.min(r, r1)
     return res_interval
 
 
-def distance_f_interval(symbol_table_list, target):
-    if len(symbol_table_list) == 0:
-        return var(1.0)
-    res = var(0.0)
+def extract_safe_loss_old(component, target_component, target_idx):
+    # component: {'trajectories', 'p_list'}
 
-    for symbol_table in symbol_table_list:
-        X = symbol_table['safe_range']
-        p = symbol_table['probability']
-
-        # print(f"X: {X.left.data.item(), X.right.data.item()}, p: {p}")
-        # print(f"target: {target.left, target.right}")
-        intersection_interval = get_intersection(X, target)
-        
-        #  calculate the reward of each partition
-        if intersection_interval.isEmpty():
-            # print(f"in empty")
-            reward = torch.max(target.left.sub(X.left), X.right.sub(target.right)).div(X.getLength())
-        else:
-            # print(f"not empty")
-            # print(f"intersection interval get length: {intersection_interval.getLength()}")
-            # print(f"X get length: {X.getLength()}")
-            reward = var(1.0).sub(intersection_interval.getLength().div(X.getLength()))
-        # print(f"reward for one partition: {reward}")
-    
-        tmp_res = reward.mul(p)
-        res = res.add(tmp_res)
-    res = res.div(var(len(symbol_table_list)).add(EPSILON))
-
-    # print(f"safe loss, res: {res}")
-    # res = res_up.div(res_basse)
-    return res
-
-
-def extract_abstract_state_safe_loss(abstract_state, target_component, target_idx):
-    # weighted sum of symbol_table loss in one abstract_state
-    unsafe_probability_condition = target_component["phi"]
-    safe_interval = target_component["condition"]
+    if target_component["map_mode"] is False:
+        safe_interval = target_component["condition"]
+    # print(f"safe interval: {float(safe_interval.left)}, {float(safe_interval.right)}")
     method = target_component["method"]
-    abstract_loss = var_list([0.0])
-    symbol_table_wise_loss_list = list()
-    for symbol_table in abstract_state:
+    component_loss = var_list([0.0])
+    real_safety_loss = 0.0
+    min_l, max_r = 100000, -100000
+
+    for trajectory, p in zip(component['trajectories'], component['p_list']):
         if method == "last":
-            trajectory = [symbol_table['trajectory'][-1]]
-        elif method == "all":
-            trajectory = symbol_table['trajectory'][:]
+            trajectory = [trajectory[-1]]
+        elif method in ["all", "map_each"]:
+            trajectory = trajectory
         else:
             raise NotImplementedError("Error: No trajectory method detected!")
-        symbol_table['trajectory_loss'] = list()
-        tmp_symbol_table_tra_loss = list()
 
-        trajectory_loss = var_list([0.0])
-        # print(f"start trajectory: ")
-        for state in trajectory:
-            # print(f"state: {state}")
-            X = state[target_idx] # select the variable to measure
-            # print(f"real state: [0]: {state[0].left.data.item(), state[0].right.data.item()}; \
-            #     [1]: {state[1].left.data.item(), state[1].right.data.item()}")
-            # print(f"target_idx: {target_idx}")
-            # print(f"X: {X.left.data.item()}, {X.right.data.item()}")
-            # print(f"safe condition: {safe_interval.left.data.item()}, {safe_interval.right.data.item()}")
-            intersection_interval = get_intersection(X, safe_interval)
-            if intersection_interval.isEmpty():
-                # print(f"point: {X.isPoint()}")
-                # print(f"empty")
-                if X.isPoint():
-                    # min point to interval
-                    unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
+        unsafe_penalty = var_list([0.0])
+        p0_left_list, p1_left_list, p2_left_list = list(), list(), list()
+        a_list, b_list, c_list = list(), list(), list()
+        x_left_list,  x_right_list, unsafe_value_list = list(), list(), list()
+        for state_idx, state in enumerate(trajectory):
+            # X = state[target_idx]
+            l, r = state[0][target_idx], state[1][target_idx]
+            # print(f"trajectory length: {len(trajectory)}")
+            # print(state_idx)
+            if target_component["map_mode"] is True:
+                safe_interval_l = target_component["map_condition"][state_idx] # the constraint over the k-th step
+                unsafe_value = var(100000000.0)
+                for safe_interval in safe_interval_l:
+                    intersection = get_intersection(l, r, safe_interval)
+                    if intersection.isEmpty():
+                        # update safe loss
+                        cur_unsafe_value = torch.max(l.sub(safe_interval.right), safe_interval.left.sub(r))
+                        cur_unsafe_value = unsafe_value + 1.0
+                        # if X.isPoint():
+                        #     unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
+                        # else:
+                        #     unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength() + constants.eps)
+                    else:
+                        safe_portion = (intersection.getLength() + eps).div((r - l) + eps)
+                        cur_unsafe_value = 1 - safe_portion
+                    unsafe_value = min(unsafe_value, cur_unsafe_value)
+            else:
+                intersection = get_intersection(l, r, safe_interval)
+                if intersection.isEmpty():
+                    # update safe loss
+                    unsafe_value = torch.max(l.sub(safe_interval.right), safe_interval.left.sub(r))
+                    unsafe_value = unsafe_value + 1.0
+                    # if X.isPoint():
+                    #     unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right))
+                    # else:
+                    #     unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength() + constants.eps)
                 else:
-                    unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(EPSILON))
-                # unsafe_value = torch.max(safe_interval.left.sub(X.left), X.right.sub(safe_interval.right)).div(X.getLength().add(EPSILON))
-            else:
-                # print(f"not empty: {intersection_interval.getLength()}, {X.getLength()}")
-                safe_portion = intersection_interval.getLength().div(X.getLength().add(EPSILON))
-                unsafe_value = 1 - safe_portion
-            # print(f"unsafe value: {unsafe_value}")
-            if outside_trajectory_loss:
-                tmp_symbol_table_tra_loss.append(unsafe_value * symbol_table['probability'])
-            else:
-                trajectory_loss = torch.max(trajectory_loss, unsafe_value)
-            # symbol_table['']
+                    safe_portion = (intersection.getLength() + eps).div((r - l) + eps)
+                    unsafe_value = 1 - safe_portion
+            
+            # use sum
+            # try use the sum to penalize
+            # unsafe_penalty = unsafe_penalty + unsafe_value
+            unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
+
+            # print(f"x1: {float(state[1].left), float(state[1].right)}, y1: {float(state[2].left), float(state[2].right)}")
+            # print(f"x2: {float(state[3].left), float(state[3].right)}, y2: {float(state[4].left), float(state[4].right)}")
+            # print(f"p0: {float(state[5].left), float(state[5].right)}, p1: {float(state[6].left), float(state[6].right)}")
+            # print(f"p2: {float(state[7].left), float(state[7].right)}, p3: {float(state[8].left), float(state[8].right)}")
+            
+            # race_track
+            # print(f"p0: {float(state[2].left), float(state[2].right)}, p1: {float(state[3].left), float(state[3].right)}")
+            # print(f"p2: {float(state[4].left), float(state[4].right)}")
+            # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
+            # if float(X.left) == 0.0:
+            #     exit(0)
+            # p0_left_list.append(float(state[2].left))
+            # p1_left_list.append(float(state[3].left))
+            # p2_left_list.append(float(state[4].left))
+            # a_list.append((float(state[5].left), float(state[5].right)))
+            # b_list.append((float(state[6].left), float(state[6].right)))
+            # c_list.append((float(state[7].left), float(state[7].right)))
+            # x_left_list.append(float(X.left))
+            # x_right_list.append(float(X.right))
+            # unsafe_value_list.append(float(unsafe_value))
+            # if state_idx == len(trajectory) - 1:
+            #     # print(f"p0: {float(state[2].left), float(state[2].right)}, p1: {float(state[3].left), float(state[3].right)}")
+            #     # print(f"p2: {float(state[4].left), float(state[4].right)}")
+            #     print(f"last step X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
+            min_l, max_r = min(min_l, float(l)), max(max_r, float(r))
+        # print(len(trajectory))
+        # print(f"p0: {p0_left_list}")
+        # print(f"p1: {p1_left_list}")
+        # print(f"p2: {p2_left_list}")
+        # print(f"a: {a_list}\nb: {b_list}\nc: {c_list}")
+        # print(f"x left: {x_left_list}")
+        # print(f"x right: {x_right_list}")
+        # print(f"unsafe_value list: {unsafe_value_list}")
+        # print(f"p: {float(p)}, unsafe_penalty: {float(unsafe_penalty)}")
         # exit(0)
-        # if trajectory_loss.data.item() > 100.0:
-        #     print(f"add part: {trajectory_loss, symbol_table['probability']}")
-            # exit(0)
-        if outside_trajectory_loss:
-            symbol_table_wise_loss_list.append(tmp_symbol_table_tra_loss)
-
-        # print(f"add part: {trajectory_loss, symbol_table['probability']}")
-        if not outside_trajectory_loss:
-            abstract_loss += trajectory_loss * symbol_table['probability']
-        # print(f"abstract_loss: {abstract_loss}")
-    if outside_trajectory_loss:
-        abstract_state_wise_trajectory_loss = zip(*symbol_table_wise_loss_list)
-        abstract_loss = var_list([0.0])
-        for l in abstract_state_wise_trajectory_loss:
-            # print(l)
-            abstract_loss = torch.max(abstract_loss, torch.sum(torch.stack(l)))
-
-    return abstract_loss
+        component_loss += p * float(unsafe_penalty) + unsafe_penalty
+        real_safety_loss += float(unsafe_penalty)
     
+    component_loss /= len(component['p_list'])
+    real_safety_loss /= len(component['p_list'])
 
-def safe_distance(abstract_state_list, target):
+    return component_loss, real_safety_loss, (min_l, max_r)
+
+
+def extract_safe_loss(component, target_component, target_idx):
+    # component: {'trajectories', 'p_list'}
+
+    if target_component["map_mode"] is False:
+        safe_interval_l, safe_interval_r = target_component["condition"].left, target_component["condition"].right
+    else:
+        safe_interval_list = target_component["map_condition"]
+    # print(f"safe interval: {float(safe_interval.left)}, {float(safe_interval.right)}")
+    # method = target_component["method"]
+    # component_loss = 0.0
+    # real_safety_loss = 0.0
+    # min_l, max_r = 100000, -100000
+    # trajectories have the same length
+    # print(len(component['trajectories']))
+
+    # if target_component["distance"] is False:
+    #     return var([0.0]), 0.0, (0.0, 0.0)
+
+    trajectories_l = component['trajectories_l']
+    trajectories_r = component['trajectories_r']
+    p_list = torch.stack(component['p_list'])
+    converted_trajectories_l, converted_trajectories_r = list(zip(*trajectories_l)), list(zip(*trajectories_r))
+    stacked_trajectories_l = [torch.stack(i) for i in converted_trajectories_l]
+    stacked_trajectories_r = [torch.stack(i) for i in converted_trajectories_r]
+
+    B, C = len(trajectories_l), len(converted_trajectories_l)
+    unsafe_value = torch.zeros((B, C))
+    if torch.cuda.is_available():
+        unsafe_value = unsafe_value.cuda()
+    min_l, max_r = 100000, -100000
+
+    for state_idx, stacked_state in enumerate(stacked_trajectories_l):
+        if target_component['distance'] and state_idx == 0:
+            continue
+        # print(stacked_state.shape, target_idx)
+        pre_l = stacked_state[:, target_idx]
+        pre_r = stacked_trajectories_r[state_idx][:, target_idx]
+        if target_component['distance']:
+            l = torch.zeros(pre_l.shape)
+            l_zeros = torch.zeros(pre_l.shape)
+            r = torch.zeros(pre_r.shape)
+            if torch.cuda.is_available():
+                l = l.cuda()
+                r = r.cuda()
+                l_zeros = l_zeros.cuda()
+            all_neg_index = torch.logical_and(pre_l<0, pre_r<=0)
+            across_index = torch.logical_and(pre_l<0, pre_r>0)
+            all_pos_index = torch.logical_and(pre_l>=0, pre_r>0)
+            l[all_neg_index], r[all_neg_index] = pre_r[all_neg_index].abs(), pre_l[all_neg_index].abs()
+            l[across_index], r[across_index] = torch.max(pre_l[across_index], l_zeros[across_index]), torch.max(pre_l[across_index].abs(), pre_r[across_index])
+            # l[across_index], r[across_index] = pre_l[across_index], pre_r[across_index] # give a direction to update the gradient
+            l[all_pos_index], r[all_pos_index] = pre_l[all_pos_index], pre_r[all_pos_index]
+        else:
+            l = pre_l
+            r = pre_r
+        # if state_idx == 1 or state_idx == 2:
+        #     print(f"state_idx: {state_idx}")
+        #     print(f"l: {l.detach().cpu().numpy().tolist()}")
+        #     print(f"r: {r.detach().cpu().numpy().tolist()}")
+        # if target_component['distance']:
+        #     # print(f"min l: {float(torch.min(l))}, max l: {float(torch.max(l))}, number of non-zero: {torch.count_nonzero(l.detach())}")
+        #     print(f"min l: {float(torch.min(l))}, max l: {float(torch.max(l))}; min r: {float(torch.min(r))}, max r: {float(torch.max(r))}; number of non-zero: {torch.count_nonzero(l.detach())}")
+        # print(f"state idx: {state_idx}")
+        # print(f"l: {l}")
+        # print(f"r: {r}")
+        # exit(0)
+        if target_component["map_mode"] is True:
+            safe_interval_sub_list = safe_interval_list[state_idx] # the constraint over the k-th step
+            tmp_unsafe_value_list = list()
+            for safe_interval in safe_interval_sub_list:
+                tmp_unsafe_value = torch.zeros((B, 1))
+                if torch.cuda.is_available():
+                    tmp_unsafe_value = tmp_unsafe_value.cuda()
+                safe_interval_l, safe_interval_r = safe_interval.left, safe_interval.right
+                intersection_l, intersection_r = torch.max(l, safe_interval_l), torch.min(r, safe_interval_r)
+                empty_idx = intersection_r < intersection_l
+                # other_idx = intersection_r >= intersection_l
+                other_idx = ~ empty_idx
+                # print(unsafe_value.shape, empty_idx.shape, state_idx)
+                tmp_unsafe_value[empty_idx, 0] = torch.max(l[empty_idx] - safe_interval_r, safe_interval_l - r[empty_idx]) + 1.0
+                tmp_unsafe_value[other_idx, 0] = 1 - (intersection_r[other_idx] - intersection_l[other_idx] + eps) / (r[other_idx] - l[other_idx] + eps)
+                min_l, max_r = min(float(torch.min(l)), min_l), max(float(torch.max(r)), max_r)
+                tmp_unsafe_value_list.append(tmp_unsafe_value)
+            # at most two value are compared, in our benchmarks
+            if len(tmp_unsafe_value_list) > 1:
+                unsafe_value[:, state_idx] = torch.min(tmp_unsafe_value_list[0], tmp_unsafe_value_list[1]).squeeze()
+            else:
+                # print(unsafe_value[:, state_idx].shape, tmp_unsafe_value_list[0].shape, tmp_unsafe_value_list[0].squeeze().shape)
+                unsafe_value[:, state_idx] = tmp_unsafe_value_list[0].squeeze()
+        else:
+            intersection_l, intersection_r = torch.max(l, safe_interval_l), torch.min(r, safe_interval_r)
+            empty_idx = intersection_r < intersection_l
+            # other_idx = intersection_r >= intersection_l
+            other_idx = ~ empty_idx
+            # print(unsafe_value.shape, empty_idx.shape, state_idx)
+            unsafe_value[empty_idx, state_idx] = torch.max(l[empty_idx] - safe_interval_r, safe_interval_l - r[empty_idx]) + 1.0
+            unsafe_value[other_idx, state_idx] = 1 - (intersection_r[other_idx] - intersection_l[other_idx] + eps) / (r[other_idx] - l[other_idx] + eps)
+            min_l, max_r = min(float(torch.min(l)), min_l), max(float(torch.max(r)), max_r)
+            # print(unsafe_value)
+
+    # sum over one trajectories
+    unsafe_penalty = torch.sum(unsafe_value, 1)
+    # max over one trajectory
+    # unsafe_penalty = torch.max(unsafe_value, 1)[0]
+    # print(f"unsafe penalty: {unsafe_penalty}")
+    
+    # print(unsafe_penalty.shape, torch.sum(unsafe_penalty))
+    # print(f"unsafe_value: {unsafe_value}")
+    print(f"p: {p_list.squeeze().detach().cpu().numpy().tolist()}")
+    print(f"unsafe penalty: {unsafe_penalty.detach().cpu().numpy().tolist()}")
+    sum_penalty = torch.sum(unsafe_penalty)
+    print(f"sum penalty: {sum_penalty}")
+    # !!! detach!!!
+    # print(p_list.shape, unsafe_penalty.shape)
+    component_loss = torch.dot(p_list.squeeze(), unsafe_penalty.detach()) + sum_penalty
+    real_safety_loss = float(sum_penalty)
+
+    component_loss /= len(component['p_list'])
+    real_safety_loss /= len(component['p_list'])
+    # print(f"real safety loss: {float(real_safety_loss)}")
+
+    return component_loss, real_safety_loss, (min_l, max_r)
+
+
+def safe_distance(component_result_list, target):
     # measure safe distance in DSE
-    # I am using sampling, and many samples the eventual average will be the same as the expectation
-    # limited number of abstract states, so count sequentially based on target is ok
+    # take the average over components
     
     loss = var_list([0.0])
+    real_safety_loss = 0.0
+    # min_l, max_r = 100000, -100000
+    # sum the safety loss together
     for idx, target_component in enumerate(target):
         target_loss = var_list([0.0])
-        for abstract_state in abstract_state_list:
-            abstract_state_safe_loss = extract_abstract_state_safe_loss(
-                abstract_state, target_component, target_idx=idx, 
+        real_target_loss = 0.0
+        min_l, max_r = 100000, -100000
+        # print(f"len abstract_state_list: {len(abstract_state_list)}")
+        for component in component_result_list:
+            component_safe_loss, component_real_safety_loss, (tmp_min_l, tmp_max_r) = extract_safe_loss(
+                component, target_component, target_idx=idx, 
             )
-            target_loss += abstract_state_safe_loss
-        target_loss = target_loss / var(len(abstract_state_list)).add(EPSILON)
-        # Weighted loss of different state variables
-        target_loss = target_component["w"] * (target_loss - target_component['phi'])
-        # TODO: max(loss - target, 0)
-        target_loss = torch.max(target_loss, var(0.0))
+            target_loss += component_safe_loss
+            real_target_loss += component_real_safety_loss
+            min_l, max_r = min(min_l, tmp_min_l), max(max_r, tmp_max_r)
+        target_loss = target_loss / len(component_result_list)
+        real_target_loss = real_target_loss / len(component_result_list)
         loss += target_loss
-    # print(f"loss: {loss}")
+        real_safety_loss += real_target_loss
+        # print(f"in target real safety loss: {real_safety_loss}")
+        print(f"{target_component['name']}, range of trajectory: {min_l, max_r}")
     # exit(0)
+    if not constants.debug:
+        log_file = open(constants.file_dir, 'a')
+        log_file.write(f"range of trajectory: {min_l, max_r}\n")
+        log_file.flush()
+    return loss, real_safety_loss
 
-    return loss
 
-
-def cal_data_loss(m, trajectory_list, criterion):
+def cal_data_loss(m, trajectories, criterion):
     # for the point in the same batch
     # calculate the data loss of each point
     # add the point data loss together
-    X, y = batch_pair(trajectory_list, data_bs=128)
-    # print(f"after batch pair: {X.shape}, {y.shape}")
-    X, y = torch.from_numpy(X).float().cuda(), torch.from_numpy(y).float().cuda()
-    # print(X.shape, y.shape)
-    yp = m(X, version="single_nn_learning")
-    data_loss = criterion(yp, y)
-    # print(f"data_loss: {data_loss}")s
-    return data_loss
+    if len(trajectories) == 0:
+        return var_list([0.0])
+
+    expec_data_loss = var_list([0.0])
+    count = 0
+    # print(f"in data loss", len(trajectories))
+    for X, y in batch_pair_yield(trajectories, data_bs=512):
+        # print('in data loss')
+        X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
+        # print(f"after batch pair: {X.shape}")
+        if torch.cuda.is_available():
+            X = X.cuda()
+            y = y.cuda()
+        yp = m(X, version="single_nn_learning")
+        data_loss = criterion(yp, y)
+        # print('yp:', yp)
+        # print('y:', y)
+        expec_data_loss += data_loss
+        count += 1
+    expec_data_loss = expec_data_loss / count
+
+    return expec_data_loss
 
 
-def cal_safe_loss(m, abstract_state, target):
+def cal_safe_loss(m, abstract_states, target):
     '''
     DSE: sample paths
     abstract_state = list<{
         'center': vector, 
         'width': vector, 
-        'p': var
     }>
     '''
-    ini_abstract_state_list = initialization_abstract_state(abstract_state)
-    assert(len(ini_abstract_state_list) == 1)
-    res_abstract_state_list = list()
-
-    for i in range(constants.SAMPLE_SIZE):
-        # sample one path each time
-        # sample_time = time.time()
-        # print(f"DSE: in M")
-        abstract_list = m(ini_abstract_state_list, 'abstract')
-        res_abstract_state_list.append(abstract_list[0]) # only one abstract state returned
-    # print(f"length: {len(y_abstract_list)}")
-        # print(f"result: {abstract_list[0][0]['x'].c, abstract_list[0][0]['x'].delta}")
-        # print(f"run one time")
+    # show_component(abstract_state)
+    ini_states = initialize_components(abstract_states)
+    component_result_list = list()
+    for i in range(len(ini_states['idx_list'])):
+        component = {
+            'trajectories_l': list(),
+            'trajectories_r': list(),
+            'p_list': list(),
+        }
+        component_result_list.append(component)
     
-    # TODO: the new safe loss function
-    safe_loss = safe_distance(res_abstract_state_list, target)
-    return safe_loss
+    # TODO: sample simultanuously
+    # aggregate abstract states based on sample_size
+    aggregated_abstract_states_list = aggregate_sampling_states(abstract_states, constants.SAMPLE_SIZE)
+    if constants.profile:
+        start = time.time()
+    for aggregated_abstract_states in aggregated_abstract_states_list:
+        ini_states = initialize_components(aggregated_abstract_states)
+        # print(f"start safe AI")
+        output_states = m(ini_states, 'abstract')
+        trajectories_l = output_states['trajectories_l']
+        trajectories_r = output_states['trajectories_r']
+        idx_list = output_states['idx_list']
+        p_list = output_states['p_list']
 
+        ziped_result = zip(idx_list, trajectories_l, trajectories_r, p_list)
+        sample_result = [(x, y, z, i) for x, y, z, i in sorted(ziped_result, key=lambda tuple: tuple[0])]
+        for idx, trajectory_l, trajectory_r, p in sample_result:
+            component_result_list[0]['trajectories_l'].append(trajectory_l)
+            component_result_list[0]['trajectories_r'].append(trajectory_r)
+            component_result_list[0]['p_list'].append(p)
+    if constants.profile:
+        end = time.time()
+        print(f"--SAFE OUTPUT EXTRACTION: {end - start}")
+        start_safety_loss_calculation = time.time()
+    safe_loss, real_safety_loss = safe_distance([component_result_list[0]], target)
+    if constants.profile:
+        end_safety_loss_calculation = time.time()
+        print(f"--SAFETY LOSS CALCULATION: {end_safety_loss_calculation - start_safety_loss_calculation}")
+    
+    # list of trajectories, p_list
+    # for i in range(constants.SAMPLE_SIZE):
+    #     ini_states = initialize_components(abstract_states)
+    #     # print(f"start safe AI")
+    #     output_states = m(ini_states, 'abstract')
+    #     trajectories = output_states['trajectories']
+    #     idx_list = output_states['idx_list']
+    #     p_list = output_states['p_list']
 
-def divide_chunks(component_list, bs=1):
-    '''
-    component: {
-        'center': 
-        'width':
-        'p':
-        'trajectory_list':
-    }
-    return the component={
-        'center':
-        'width':
-        'p':
-    }, trajectory
-    '''
-    for i in range(0, len(component_list), bs):
-        components = component_list[i:i + bs]
-        abstract_states = list()
-        trajectory_list, y_list = list(), list()
-        for component in components:
-            abstract_state = {
-                'center': component['center'],
-                'width': component['width'],
-                'p': component['p'],
-            }
-            trajectory_list.extend(component['trajectory_list'])
-            abstract_states.append(abstract_state)
-            # print(f"component probability: {component['p']}")
-        yield trajectory_list, abstract_states
-
-
-def update_model_parameter(m, theta):
-    # for a given parameter module: theta
-    # update the parameters in m with theta
-    # no grad required
-    # TODO: use theta to actually update the element in m.parameters
-    with torch.no_grad():
-        for idx, p in enumerate(list(m.parameters())):
-            p.copy_(theta[idx])
-    return m
-
-
-def normal_pdf(x, mean, std):
-    # print(f"----normal_pdf-----\n x: {x} \n mean: {mean} \n std: {std} \n -------")
-    y = torch.exp((-((x-mean)**2)/(2*std*std)))/ (std* torch.sqrt(2*var(math.pi)))
-    # res = torch.prod(y)
-    res = torch.sum(torch.log(y))
-    # res *= var(1e)
-
-    return res
-
-
-def sampled(x):
-    res = torch.normal(mean=x, std=var(1.0))
-    log_p = normal_pdf(res, mean=x, std=var(1.0))
-    # print(f"res: {res} \n p: {p}")
+    #     ziped_result = zip(idx_list, trajectories, p_list)
+    #     sample_result = [(x, y, z) for x, y, z in sorted(ziped_result, key=lambda tuple: tuple[0])]
+    #     for idx, trajectory, p in sample_result:
+    #         component_result_list[idx]['trajectories'].append(trajectory)
+    #         component_result_list[idx]['p_list'].append(p)
     # exit(0)
-    return res, log_p
 
-
-def sample_parameters(Theta, n=5):
-    # theta_0 is a parameter method
-    # sample n theta based on the normal distribution with mean=Theta std=1.0
-    # return a list of <theta, theta_p>
-    # each theta, Theta is a list of Tensor
-    theta_list = list()
-    for i in range(n):
-        sampled_theta = list()
-        theta_p = var(1.0)
-        for array in Theta:
-            sampled_array, sampled_p = sampled(array)
-            sampled_theta.append(sampled_array)
-            # sum the log(p)
-            theta_p += sampled_p
-            # theta_p *= sampled_p # !incorrect
-        # print(f"each sampled theta: {sampled_theta}")
-        # print(f"each probability: {theta_p}")
-        theta_list.append((sampled_theta, theta_p))
-
-    return theta_list
-
-
-def extract_parameters(m):
-    # extract the parameters in m into the Theta
-    # this is for future sampling and derivative extraction
-    Theta = list()
-    for value in enumerate(m.parameters()):
-        Theta.append(value[1].clone())
-    return Theta
+    # safe_loss, real_safety_loss = safe_distance(component_result_list, target)
+    return safe_loss, real_safety_loss
 
 
 def learning(
         m, 
-        component_list,
-        lambda_=lambda_,
-        stop_val=0.01, 
+        components,
+        lambda_=None, 
         epoch=1000,
         target=None, 
-        lr=0.00001, 
-        bs=10, 
-        n=5,
+        lr=0.00001,
+        bs=10,
         nn_mode='all',
         l=10,
-        module='linearrelu',
-        use_smooth_kernel=use_smooth_kernel,
-        save=save,
+        save=None,
         epochs_to_skip=None,
-        model_name=None
+        model_name=None,
+        data_bs=None,
         ):
     print("--------------------------------------------------------------")
-    print('====Start Training====')
+    print('====Start Training DSE====')
 
     TIME_OUT = False
+    end_count = 0
 
-    # m = ThermostatNN(l=l, nn_mode=nn_mode, module=module)
-    # print(m)
-    m.cuda()
-
-    criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.SGD(m.parameters(), lr=lr)
+    if torch.cuda.is_available():
+        m.cuda()
     
+    criterion = torch.nn.MSELoss()
+    optimizer = torch.optim.Adam(m.parameters(), lr=lr, weight_decay=1e-06)
+
     if epochs_to_skip is None:
         epochs_to_skip = -1
-    
+
     start_time = time.time()
+
+    print(f"epochs_to_skip: {epochs_to_skip}")
+
     for i in range(epoch):
         if i <= epochs_to_skip:
             continue
-        q_loss, c_loss = var_list([0.0]), var_list([0.0])
-        count = 0
-        for trajectory_list, abstract_states in divide_chunks(component_list, bs=bs):
-            # print(f"x length: {len(x)}")
-            batch_time = time.time()
-            grad_data_loss, grad_safe_loss = var_list([0.0]), var_list([0.0])
-            real_data_loss, real_safe_loss = var_list([0.0]), var_list([0.0])
-            
-            Theta = extract_parameters(m) # extract the parameters now, and then sample around it
-            # print(f"Theta before: {Theta}")
-            for (sample_theta, sample_theta_p) in sample_parameters(Theta, n=n):
-                m = update_model_parameter(m, sample_theta)
-                sample_time = time.time()
 
-                data_loss = cal_data_loss(m, trajectory_list, criterion)
-                safe_loss = cal_safe_loss(m, abstract_states, target)
+        for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
+            # if constants.profile:
+            #     start_forward = time.time()
+            data_loss = cal_data_loss(m, trajectories, criterion)
+            # if constants.profile:
+            #     end_data_loss = time.time()
+            #     print(f"DATA LOSS: {end_data_loss - start_forward}")
+            # data_loss = var(0.0)
+            safe_loss, real_safety_loss = cal_safe_loss(m, abstract_states, target)
+            # safe_loss = var(1.0)
 
-                print(f"data_loss: {data_loss.data.item()}, safe_loss: {safe_loss.data.item()}, Loss TIME: {time.time() - sample_time}")
-                # print(f"{'#' * 15}")
-                grad_data_loss += var(data_loss.data.item()) * sample_theta_p #  torch.log(sample_theta_p) # real_q = \expec_{\theta ~ \theta_0}[data_loss]
-                real_data_loss += var(data_loss.data.item())
-                grad_safe_loss += var(safe_loss.data.item()) * sample_theta_p # torch.log(sample_theta_p) # real_c = \expec_{\theta ~ \theta_0}[safe_loss]
-                real_safe_loss += var(safe_loss.data.item())
-                # print(f"grad_data_loss: {grad_data_loss.data.item()}, grad_safe_loss: {grad_safe_loss.data.item()}")
+            # print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}, real_safety_loss: {real_safety_loss}")
+            loss = (data_loss + lambda_ * safe_loss) / lambda_
+            # if constants.profile:
+            #     end_forward = time.time()
+            #     print(f"--FORWARD: {end_forward - start_forward}")
 
-            # To maintain the real theta
-            m = update_model_parameter(m, Theta)
-
-            real_data_loss /= n
-            real_safe_loss /= n
-
-            if time.time() - batch_time > 2000/(len(component_list)/bs):
-                TIME_OUT = True
-                break
-
-            print(f"real data_loss: {real_data_loss.data.item()}, real safe_loss: {real_safe_loss.data.item()}, data and safe TIME: {time.time() - batch_time}")
-            q_loss += real_data_loss
-            c_loss += real_safe_loss
-
-            loss = grad_data_loss + lambda_.mul(grad_safe_loss)
-            loss.backward()
-            for partial_theta in Theta:
-                torch.nn.utils.clip_grad_norm_(partial_theta, 1)
-            # print(m.nn.linear1.weight.grad)
-            # print(m.nn.linear2.weight.grad)
+            # if constants.profile:
+            #     start_sgd = time.time()
+            loss.backward(retain_graph=True)
+            # if constants.profile:
+            #     end_sgd = time.time()
+            #     print(f"--BACK SGD: {end_sgd - start_sgd}")
+            # print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
+            torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
+            # print(f"grad before step, weight: {m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.grad.detach().cpu().numpy().tolist()[0]}")
+            # if constants.profile:
+            #     start_step = time.time()
             optimizer.step()
+            # print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
-            # new_theta = extract_parameters(m)
-            # print(f"Theta after step: {new_theta}")
-
-            count += 1
-            # if count >= 10:
-            #     exit(0)
+            # if constants.profile:
+            #     end_step = time.time()
+            #     print(f"--OPTIMIZATION STEP: {end_step - start_step}")
         
         if save:
-            if not debug:
-                save_model(m, MODEL_PATH, name=model_name, epoch=i)
+            save_model(m, constants.MODEL_PATH, name=model_name, epoch=i)
+            print(f"save model")
+                
+        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i - epochs_to_skip)}")
+        print(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}, real_c: {real_safety_loss}")
+        # if constants.profile:
+        #     exit(0)
+        if not constants.debug:
+            log_file = open(constants.file_dir, 'a')
+            log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i - epochs_to_skip)}\n")
+            log_file.write(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}, real_c: {real_safety_loss}\n")
+            log_file.flush()
+        
+        if constants.early_stop is True:
+            if abs(float(safe_loss)) <= float(EPSILON):
+                end_count += 1
+            else:
+                end_count = 0
             
-        if i >= 5 and i%2 == 0:
-            for param_group in optimizer.param_groups:
-                param_group["lr"] *= 0.5
-        
-        # f_loss = q_loss + lambda_ * c_loss
-        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}")
-        print(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}")
-        print(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}")
-        if not debug:
-            log_file = open(file_dir, 'a')
-            log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
-            log_file.write(f"-----finish {i}-th epoch-----, the batch loss: q: {real_data_loss.data.item()}, c: {real_safe_loss.data.item()}\n")
-            log_file.write(f"-----finish {i}-th epoch-----, q: {q_loss.data.item()}, c: {c_loss.data.item()}\n")
+            if end_count >= 5: # the signal to early stop
+                if not constants.debug:
+                    log_file = open(file_dir, 'a')
+                    log_file.write('EARLY STOP: Get safe results \n')
+                    log_file.close()
+                break
 
-        # print(f"------{i}-th epoch------, avg q: {q_loss_wo_p.div(len(X_train))}, avg c: {c_loss_wo_p.div(len(X_train)/bs)}")
-        # if torch.abs(f_loss.data) < var(stop_val):
-        #     break
-        # if c_loss.data.item() < EPSILON.data.item():
-        #     break
-        
-        if (time.time() - start_time)/(i+1) > 2000 or TIME_OUT:
-            log_file = open(file_dir, 'a')
-            log_file.write('TIMEOUT: avg epoch time > 2000s \n')
-            log_file.close()
+        if (time.time() - start_time)/(i+1) > 3600 or TIME_OUT:
+            if not constants.debug:
+                log_file = open(file_dir, 'a')
+                log_file.write('TIMEOUT: avg epoch time > 3600sec \n')
+                log_file.close()
             TIME_OUT = True
             break
-    
-    res = real_data_loss + lambda_ * real_safe_loss# loss # f_loss.div(len(X_train))
 
-    log_file = open(file_dir, 'a')
-    spend_time = time.time() - start_time
-    log_file.write('One train: Optimization--' + str(spend_time) + ',' + str(i+1) + ',' + str(spend_time/(i+1)) + '\n')
-    log_file.close()
+    if not constants.debug:
+        log_file = open(constants.file_dir, 'a')
+        spend_time = time.time() - start_time
+        log_file.write(f"One train: Optimization-- ' + total time: {spend_time}, total epochs: {i + 1}, avg time: {spend_time/(i + 1)}\n")
+        log_file.close()
     
-    return m, res, [], data_loss, safe_loss, TIME_OUT
+    return [], 0.0, [], 0.0, 0.0, TIME_OUT
 
 
 def cal_c(X_train, y_train, m, target):
@@ -445,19 +526,7 @@ def cal_c(X_train, y_train, m, target):
 
 def cal_q(X_train, y_train, m):
     root_point = construct_syntax_tree_point(theta)
-    # q = var(0.0)
-
     data_loss = cal_data_loss(m, X_train, y_train)
-
-    # for idx, x in enumerate(X_train):
-    #     x, y = x, y_train[idx]
-    #     symbol_table_point = initialization_point(x)
-    #     symbol_table_point = root_point['entry'].execute(symbol_table_point)
-
-    #     # print('x, pred_y, y', x, symbol_table_point['x'].data.item(), y)
-    #     q = q.add(distance_f_point(symbol_table_point['res'], var(y)))
-
-    # q = q.div(var(len(X_train)))
     print(f"cal_q, {data_loss}")
     
     return q

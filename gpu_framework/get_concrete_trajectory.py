@@ -29,11 +29,32 @@ def store_trajectory(output_states, trajectory_path, category=None):
     return 
 
 
+def is_safe_trajectory(trajectory, safe_range_list):
+    for state in trajectory:
+        for x in state:
+            if x >= safe_range_list[0] and x<= safe_range_list[1]:
+                pass
+            else:
+                return False
+    return True
+
+
+def count_concrete_trajectories_safety(output_states, safe_range_list):
+    total_trajectories = 0
+    safe_trajectories = 0
+    for trajectory_idx, trajectory in enumerate(output_states['trajectories']):
+        if is_safe_trajectory(trajectory):
+            safe_trajectories += 1
+        total_trajectories += 1
+    print(f"Concrete Safe Trajectory Percentage: {safe_trajectories/total_trajectories}")
+
+
 def extract_trajectory(
         model_path,
         model_name,
         ini_states,
         trajectory_path,
+        safe_range_list,
     ):
     m = Program(l=l, nn_mode=nn_mode)
 
@@ -50,7 +71,8 @@ def extract_trajectory(
         param.requires_grad = False
     
     output_states = m(ini_states)
-    store_trajectory(output_states, trajectory_path, category="single")
+    # store_trajectory(output_states, trajectory_path, category="single")
+    count_concrete_trajectories_safety(output_states, safe_range_list)
 
 
 if __name__ == "__main__":
@@ -65,11 +87,12 @@ if __name__ == "__main__":
             importlib.reload(hub)
             from import_hub import *
 
-            ini_states = initialization_components_point()
+            ini_states = initialization_components_point(x_l, x_r)
 
             extract_trajectory(
                 model_path=MODEL_PATH,
                 model_name=f"{model_name_prefix}_{safe_range_bound}_{i}_{0}",
                 ini_states=ini_states,
-                trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
+                trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}",
+                safe_range_list=safe_range_list[0],
             )

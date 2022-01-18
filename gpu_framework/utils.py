@@ -46,6 +46,23 @@ def ini_trajectory(trajectory):
     return state, action
 
 
+def batch_pair_yield(trajectory_list, data_bs=None):
+    states, actions = list(), list()
+    random.shuffle(trajectory_list)
+    for trajectory in trajectory_list:
+        for (state, action) in trajectory:
+            states.append(state)
+            actions.append(action)
+    c = list(zip(states, actions))
+    random.shuffle(c)
+    states, actions = zip(*c)
+    states, actions = np.array(states), np.array(actions)
+    k = int((len(states) - 1) / data_bs)
+    # print(k)
+    for i in range(k+1):
+        yield states[data_bs*i:data_bs*(i+1)], actions[data_bs*i:data_bs*(i+1)]
+    
+
 def batch_pair(trajectory_list, data_bs=None):
     states, actions = list(), list()
     random.shuffle(trajectory_list)
@@ -58,6 +75,7 @@ def batch_pair(trajectory_list, data_bs=None):
     states, actions = zip(*c)
     states, actions = np.array(states), np.array(actions)
     return states[:data_bs], actions[:data_bs]
+    
 
 
 def batch_pair_endpoint(trajectory_list, data_bs=None):
@@ -68,6 +86,7 @@ def batch_pair_endpoint(trajectory_list, data_bs=None):
         last_state, last_action = trajectory[-1]
         states.append(ini_state)
         actions.append([last_action])
+    
     c = list(zip(states, actions))
     random.shuffle(c)
     states, actions = zip(*c)
@@ -174,19 +193,57 @@ def append_log(f_list, log_txt):
         f.close()
 
 
-def create_components(x_min, x_max, num_components):
+def create_components(x_l, x_r, num_components):
+    # num_components: each dimension
+    # just cut the x[0] space
+    x_min, x_max = x_l[0], x_r[0]
+    x_c, x_width = list(), list()
+    # print(x_l, x_r)
+    for idx, idx_l in enumerate(x_l):
+        idx_r = x_r[idx]
+        x_c.append((idx_r + idx_l)/2)
+        x_width.append((idx_r - idx_l)/2)
     component_length = (x_max - x_min) / num_components
     components = list()
-    for i in range(num_components):
-        l = x_min + i * component_length
-        r = x_min + (i + 1) * component_length
-        center = [(r + l) / 2.0]
-        width = [(r - l) / 2.0]
-        component_group = {
-            'center': center,
-            'width': width,
-        }
-        components.append(component_group)
+    if len(x_l) == 1:
+        for i in range(num_components):
+            l = x_min + i * component_length
+            r = x_min + (i + 1) * component_length
+            center = [(r + l) / 2.0]
+            width = [(r - l) / 2.0]
+            for temp_c in x_c[1:]:
+                center.append(temp_c)
+            for temp_width in x_width[1:]:
+                width.append(temp_width)
+            # print(x_c[1:])
+            # print(center, x_c)
+            # center.extend[x_c[1:]]
+            # width.extend[x_width[1:]]
+            component_group = {
+                'center': center,
+                'width': width,
+            }
+            components.append(component_group)
+    elif len(x_l) == 4: # for cartpole task: for same dimensions
+        for i in range(num_components):
+            l = x_min + i * component_length
+            r = x_min + (i + 1) * component_length
+            center_0 = (r + l) / 2.0
+            width_0 = (r - l) / 2.0
+            for j in range(num_components):
+                l_1, r_1 = x_min + j * component_length, x_min + (j + 1) * component_length
+                center_1, width_1 = (r_1 + l_1) / 2.0, (r_1 - l_1) / 2.0
+                for m in range(num_components):
+                    l_2, r_2 = x_min + m * component_length, x_min + (m + 1) * component_length
+                    center_2, width_2 = (r_2 + l_2) / 2.0, (r_2 - l_2) / 2.0
+                    for n in range(num_components):
+                        l_3, r_3 = x_min + n * component_length, x_min + (n + 1) * component_length
+                        center_3, width_3 = (r_3 + l_3) / 2.0, (r_3 - l_3) / 2.0
+                        component_group = {
+                            'center': [center_0, center_1, center_2, center_3],
+                            'width': [width_0, width_1, width_2, width_3],
+                        }
+                        components.append(component_group)
     return components
 
 
@@ -206,8 +263,8 @@ def extract_abstract_representation(trajectories, x_l, x_r, num_components):
     # extract components
     # interval
     # and all the trajectories starting from that interval
-    x_min, x_max = x_l[0], x_r[0]
-    components = create_components(x_min, x_max, num_components)
+    # x_min, x_max = x_l[0], x_r[0]
+    components = create_components(x_l, x_r, num_components)
     for idx, component in enumerate(components):
         component.update(
             {
@@ -359,7 +416,65 @@ def product(it):
     return product
 
 
-def set_second_dimension_zero(x, index):
-    x[torch.arange(x.size(0)), index] = 0
-    return x
+def index_conversion_second_dim(x, index):
+    return (torch.arange(x.size(0)), index)
+
+
+def select_argmax(interval_left, interval_right):
+    # lower bound and upper bound of the interval concretization
+    assert(interval_left.shape == interval_right.shape)
+
+    B, M = interval_right.shape
+    index_mask = torch.zeros((B, M), dtype=torch.bool)
+    all_ones = torch.ones(interval_right.shape) + 1.0 # should be larger than 1.0
+    if torch.cuda.is_available():
+        index_mask = index_mask.cuda()
+        all_ones = all_ones.cuda()
+    
+    # print(f"interval_left: {interval_left}")
+    # print(f"interval_right: {interval_right}")
+    
+    # interval: K x M
+    max_right_index = index_conversion_second_dim(interval_right, torch.argmax(interval_right, dim=1))
+    for i in range(M - 1):
+        # print(f"max_right_index: {max_right_index}")
+        # convert to the shape of K x M
+        max_left_value = interval_left[max_right_index][:, None]
+        # print(f"max_left_value: {max_left_value}")
+        # if an interval's right >= the max interval's left, it is markd in max as well
+        # >= is for the interval where delta == 0
+        # print(f"in index: {interval_right >= max_left_value}")
+        index_mask[interval_right >= max_left_value] = True
+
+        # select all the lower bound of a interval in the argmax set, otherwise 1.0
+        left_already_in = torch.where(index_mask, interval_left, all_ones)
+        # print(f"left_already_in: {left_already_in}")
+
+        max_right_index = index_conversion_second_dim(interval_right, torch.argmin(left_already_in, dim=1))
+    
+    # print(f"index_mask: {index_mask}")
+    # exit(0)
+    return index_mask
+
+
+def aggregate_sampling_states(abstract_states, sample_size, max_allowed=600):
+    aggregated_abstract_states_list = list()
+    center, width = abstract_states['center'], abstract_states['width']
+    
+    aggregated_center = center.repeat(sample_size, 1)
+    aggregated_width = width.repeat(sample_size, 1)
+
+    B, D = aggregated_center.shape
+    unit = int((B - 1) / max_allowed) + 1
+    for i in range(unit):
+        aggregated_abstract_states = {
+            'center': aggregated_center[i * max_allowed: (i+1) * max_allowed, :],
+            'width': aggregated_width[i * max_allowed: (i+1) * max_allowed, :],
+        }
+        aggregated_abstract_states_list.append(aggregated_abstract_states)
+    
+    # print(len(aggregated_abstract_states_list))
+    return aggregated_abstract_states_list
+
+
 

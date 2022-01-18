@@ -1,15 +1,19 @@
 import copy
 import random
 import time
+
+import matplotlib.pyplot as plt
+import nlopt
+import numpy as np
 import torch
 import constants 
+from torch.autograd import Variable
 import importlib
 
 from utils import (
     batch_pair,
     divide_chunks,
     save_model,
-    batch_pair_yield,
     )
 
 import import_hub as hub
@@ -26,11 +30,10 @@ def get_intersection(interval_1, interval_2):
     return res_interval
 
 
-def extract_safe_loss_old(component, target_component, target_idx):
+def extract_safe_loss(component, target_component, target_idx):
     # component: {'trajectories', 'p_list'}
 
-    if target_component["map_mode"] is False:
-        safe_interval = target_component["condition"]
+    safe_interval = target_component["condition"]
     # print(f"safe interval: {float(safe_interval.left)}, {float(safe_interval.right)}")
     method = target_component["method"]
     component_loss = var_list([0.0])
@@ -39,16 +42,14 @@ def extract_safe_loss_old(component, target_component, target_idx):
     for trajectory in component['trajectories']:
         if method == "last":
             trajectory = [trajectory[-1]]
-        elif method in ["all", "map_each"]:
+        elif method == "all":
             trajectory = trajectory
         else:
             raise NotImplementedError("Error: No trajectory method detected!")
 
         unsafe_penalty = var_list([0.0])
-        for state_idx, state in enumerate(trajectory):
-            X = domain.Interval(state[0][target_idx], state[1][target_idx])
-            if target_component["map_mode"] is True:
-                safe_interval = target_component["map_condition"][state_idx] # the constraint over the k-th step
+        for state in trajectory:
+            X = state[target_idx]
             intersection_interval = get_intersection(X, safe_interval)
             if intersection_interval.isEmpty():
                 if X.isPoint():
@@ -58,100 +59,14 @@ def extract_safe_loss_old(component, target_component, target_idx):
             else:
                 safe_portion = (intersection_interval.getLength() + eps).div(X.getLength() + eps)
                 unsafe_value = 1 - safe_portion
-            
-            # sum
-            unsafe_penalty = unsafe_penalty + unsafe_value
-            # TODO: sum or max?
-            # unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
+            # unsafe_penalty = unsafe_penalty + unsafe_value
+            unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
             # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(X.left)), max(max_r, float(X.right))
-        # exit(0)
-        # TODO: max range increase, loss reduce?????
+        # print(f"p: {p}, unsafe_penalty: {unsafe_penalty}")
         component_loss += unsafe_penalty
     
     component_loss /= len(component['trajectories'])
-    return component_loss, (min_l, max_r)
-
-
-def extract_safe_loss(component, target_component, target_idx):
-    # component: {'trajectories', 'p_list'}
-
-    if target_component["map_mode"] is False:
-        safe_interval_l, safe_interval_r = target_component["condition"].left, target_component["condition"].right
-    else:
-        safe_interval_list = target_component["map_condition"]
-
-    trajectories_l = component['trajectories_l']
-    trajectories_r = component['trajectories_r']
-    converted_trajectories_l, converted_trajectories_r = list(zip(*trajectories_l)), list(zip(*trajectories_r))
-    stacked_trajectories_l = [torch.stack(i) for i in converted_trajectories_l]
-    stacked_trajectories_r = [torch.stack(i) for i in converted_trajectories_r]
-    # exit(0)
-
-    B, C = len(trajectories_l), len(converted_trajectories_l)
-    unsafe_value = torch.zeros((B, C))
-    if torch.cuda.is_available():
-        unsafe_value = unsafe_value.cuda()
-    min_l, max_r = 100000, -100000
-
-    for state_idx, stacked_state in enumerate(stacked_trajectories_l):
-        # print(stacked_state.shape, target_idx)
-        pre_l = stacked_state[:, target_idx]
-        pre_r = stacked_trajectories_r[state_idx][:, target_idx]
-        if target_component['distance']:
-            l = torch.zeros(pre_l.shape)
-            r = torch.zeros(pre_r.shape)
-            if torch.cuda.is_available():
-                l = l.cuda()
-                r = r.cuda()
-            all_neg_index = torch.logical_and(pre_l<=0, pre_r<=0)
-            across_index = torch.logical_and(pre_l<=0, pre_r>0)
-            all_pos_index = torch.logical_and(pre_l>0, pre_r>0)
-            l[all_neg_index], r[all_neg_index] = pre_r[all_neg_index].abs(), pre_l[all_neg_index].abs()
-            l[across_index], r[across_index] = 0, pre_r[across_index]
-            l[all_pos_index], r[all_pos_index] = pre_l[all_pos_index], pre_r[all_pos_index]
-        else:
-            l = pre_l
-            r = pre_r
-            
-        if target_component["map_mode"] is True:
-            safe_interval_sub_list = safe_interval_list[state_idx] 
-            tmp_unsafe_value_list = list()
-            for safe_interval in safe_interval_sub_list:
-                tmp_unsafe_value = torch.zeros((B, 1))
-                if torch.cuda.is_available():
-                    tmp_unsafe_value = tmp_unsafe_value.cuda()
-                safe_interval_l, safe_interval_r = safe_interval.left, safe_interval.right # the constraint over the k-th step
-                intersection_l, intersection_r = torch.max(l, safe_interval_l), torch.min(r, safe_interval_r)
-                empty_idx = intersection_r < intersection_l
-                # other_idx = intersection_r >= intersection_l
-                other_idx = ~ empty_idx
-                # print(unsafe_value.shape, empty_idx.shape, state_idx)
-                tmp_unsafe_value[empty_idx, 0] = torch.max(l[empty_idx] - safe_interval_r, safe_interval_l - r[empty_idx]) + 1.0
-                tmp_unsafe_value[other_idx, 0] = 1 - (intersection_r[other_idx] - intersection_l[other_idx] + eps) / (r[other_idx] - l[other_idx] + eps)
-                min_l, max_r = min(float(torch.min(l)), min_l), max(float(torch.max(r)), max_r)
-                tmp_unsafe_value_list.append(tmp_unsafe_value)
-            if len(tmp_unsafe_value_list) > 1:
-                unsafe_value[:, state_idx] = torch.min(tmp_unsafe_value_list[0], tmp_unsafe_value_list[1]).squeeze()
-            else:
-                # print(unsafe_value[:, state_idx].shape, tmp_unsafe_value_list[0].shape, tmp_unsafe_value_list[0].squeeze().shape)
-                unsafe_value[:, state_idx] = tmp_unsafe_value_list[0].squeeze()
-        else:
-            intersection_l, intersection_r = torch.max(l, safe_interval_l), torch.min(r, safe_interval_r)
-            empty_idx = intersection_r < intersection_l
-            # other_idx = intersection_r >= intersection_l
-            other_idx = ~ empty_idx
-            # print(unsafe_value.shape, empty_idx.shape, state_idx)
-            unsafe_value[empty_idx, state_idx] = torch.max(l[empty_idx] - safe_interval_r, safe_interval_l - r[empty_idx]) + 1.0
-            unsafe_value[other_idx, state_idx] = 1 - (intersection_r[other_idx] - intersection_l[other_idx] + eps) / (r[other_idx] - l[other_idx] + eps)
-            min_l, max_r = min(float(torch.min(l)), min_l), max(float(torch.max(r)), max_r)
-
-    unsafe_penalty = torch.max(unsafe_value, 1)[0]
-    # print(unsafe_penalty.shape, torch.sum(unsafe_penalty))
-    component_loss = torch.sum(unsafe_penalty)
-
-    component_loss /= len(component['trajectories_l'])
-
     return component_loss, (min_l, max_r)
     
 
@@ -160,10 +75,10 @@ def safe_distance(component_result_list, target):
     # take the average over components
     
     loss = var_list([0.0])
+    p_list = list()
     min_l, max_r = 100000, -100000
     for idx, target_component in enumerate(target):
         target_loss = var_list([0.0])
-        min_l, max_r = 100000, -100000
         # print(f"len abstract_state_list: {len(abstract_state_list)}")
         for component in component_result_list:
             component_safe_loss, (tmp_min_l, tmp_max_r) = extract_safe_loss(
@@ -173,7 +88,7 @@ def safe_distance(component_result_list, target):
             min_l, max_r = min(min_l, tmp_min_l), max(max_r, tmp_max_r)
         target_loss = target_loss / len(component_result_list)
         loss += target_loss
-        print(f"range of trajectory: {min_l, max_r}")
+    print(f"range of trajectory: {min_l, max_r}")
     if not constants.debug:
         log_file = open(constants.file_dir, 'a')
         log_file.write(f"range of trajectory: {min_l, max_r}\n")
@@ -187,21 +102,42 @@ def cal_data_loss(m, trajectories, criterion):
     # add the point data loss together
     if len(trajectories) == 0:
         return var_list([0.0])
-
-    expec_data_loss = var_list([0.0])
-    count = 0
-    for X, y in batch_pair_yield(trajectories, data_bs=512):
-        X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
+    # print('only data')
+    if constants.benchmark_name in ['thermostat']:
+        X, y_trajectory = batch_pair_trajectory(trajectories, data_bs=None, standard_value=70.0)
+        X, y_trajectory = torch.from_numpy(X).float(), [torch.from_numpy(y).float() for y in y_trajectory]
         # print(f"after batch pair: {X.shape}")
+        if torch.cuda.is_available():
+            X, y_trajectory = X.cuda(), [y.cuda() for y in y_trajectory]
+        yp_trajectory = m(X, version="single_nn_learning")
+        data_loss = var(0.0)
+        for idx, yp in enumerate(yp_trajectory):
+            # print(yp.shape, y_trajectory[idx].shape)
+            data_loss = data_loss + criterion(yp, y_trajectory[idx])
+            data_loss /= len(yp_trajectory)
+    else:
+        X, y = batch_pair(trajectories, data_bs=512)
+        X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
+        print(f"after batch pair: {X.shape}")
         if torch.cuda.is_available():
             X = X.cuda()
             y = y.cuda()
         yp = m(X, version="single_nn_learning")
         data_loss = criterion(yp, y)
-        expec_data_loss += data_loss
-        count += 1
-    expec_data_loss = expec_data_loss / count
-    return expec_data_loss
+    
+    if constants.debug:
+        yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+        y_list = y.squeeze().detach().cpu().numpy().tolist()
+        print(f"yp: {yp_list[:5]}, {min(yp_list)}, {max(yp_list)}")
+    
+        # print(f"x: {X}")
+        yp_list = yp.squeeze().detach().cpu().numpy().tolist()
+        y_list = y.squeeze().detach().cpu().numpy().tolist()
+
+        print(f"yp: {min(yp_list)}, {max(yp_list)}")
+        print(f"y: {min(y_list)}, {max(y_list)}")
+    
+    return data_loss
 
 
 def cal_safe_loss(m, abstract_states, target):
@@ -214,6 +150,7 @@ def cal_safe_loss(m, abstract_states, target):
     '''
     # show_component(abstract_state)
     ini_states = initialize_components(abstract_states)
+    component_result_list = list()
 
     # TODO: sample simultanuously
     # list of trajectories, p_list
@@ -239,10 +176,10 @@ def learning(
         data_bs=None,
         ):
     print("--------------------------------------------------------------")
-    print('====Start Training DiffAI====')
+    print('====Start Training DiffAI SPS====')
 
     TIME_OUT = False
-    end_count = 0
+    end_count= 0
 
     if torch.cuda.is_available():
         m.cuda()
@@ -262,19 +199,13 @@ def learning(
             continue
 
         for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
-            if constants.profile:
-                start_forward = time.time()
+
             data_loss = cal_data_loss(m, trajectories, criterion)
-            # data_loss = var(0.0)
             safe_loss = cal_safe_loss(m, abstract_states, target)
-            # safe_loss = var(1.0)
 
             print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}")
             
             loss = (data_loss + lambda_ * safe_loss) / lambda_
-            if constants.profile:
-                end_forward = time.time()
-                print(f"--FORWARD: {end_forward - start_forward}")
 
             loss.backward(retain_graph=True)
             # print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
@@ -288,27 +219,26 @@ def learning(
             save_model(m, constants.MODEL_PATH, name=model_name, epoch=i)
             print(f"save model")
                 
-        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i - epochs_to_skip)}")
+        print(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1 - epochs_to_skip)}")
         print(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}")
         if not constants.debug:
             log_file = open(constants.file_dir, 'a')
-            log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i - epochs_to_skip)}\n")
+            log_file.write(f"{i}-th Epochs Time: {(time.time() - start_time)/(i+1)}\n")
             log_file.write(f"-----finish {i}-th epoch-----, q: {float(data_loss)}, c: {float(safe_loss)}\n")
             log_file.flush()
+        
+        if float(safe_loss) == 0.0:
+            end_count += 1
+        else:
+            end_count = 0
+        if end_count >= 3:
+            if not constants.debug:
+                log_file = open(file_dir, 'a')
+                log_file.write('EARLY STOP: Get safe results \n')
+                log_file.close()
+            break
 
-        if constants.early_stop is True:
-            if float(safe_loss) == 0.0:
-                end_count += 1
-            else:
-                end_count = 0
-            if end_count >= 3:
-                if not constants.debug:
-                    log_file = open(file_dir, 'a')
-                    log_file.write('EARLY STOP: Get safe results \n')
-                    log_file.close()
-                break
-
-        if (time.time() - start_time)/(i+1) > 3600*5 or TIME_OUT:
+        if (time.time() - start_time)/(i+1) > 5*3600 or TIME_OUT:
             if not constants.debug:
                 log_file = open(file_dir, 'a')
                 log_file.write('TIMEOUT: avg epoch time > 3600sec \n')

@@ -4,7 +4,6 @@ import torch.nn as nn
 
 from random import shuffle
 from torch.distributions.bernoulli import Bernoulli
-from torch.distributions.categorical import Categorical
 
 import domain
 from constants import *
@@ -12,29 +11,10 @@ import constants
 
 from domain_utils import (
     concatenate_states,
-    concatenate_states_list,
-)
-
-from utils import (
-    select_argmax,
 )
 
 import math
-
-
-def show_tra_l(l):
-    for abstract_state in l:
-        print("in one abstract state")
-        tra_len_l = list()
-        for symbol_table in abstract_state:
-            if len(symbol_table) > 1:
-                tra_len_l.append(len(symbol_table['trajectory']))
-                print(f"c: {symbol_table['x'].c},  delta: {symbol_table['x'].delta}")
-            else:
-                tra_len_l.append(0)
-        # print(tra_len_l)
-        print(f"end abstract state")
-        break
+import time
 
 '''
 Module used as functions
@@ -52,9 +32,6 @@ class Linear(nn.Module):
     def reset_parameters(self):
         if not hasattr(self,'weight') or self.weight is None:
             return
-        # print(f"weight size: {self.weight.size()}")
-        # print(f"product: {product(self.weight.size())}")
-
         n = product(self.weight.size()) / self.out_channels
         stdv = 1 / math.sqrt(n)
 
@@ -63,38 +40,7 @@ class Linear(nn.Module):
             self.bias.data.uniform_(-stdv, stdv)
 
     def forward(self, x):
-        # print(f"weight: \n {self.weight}")
-        # print(f"bias: \n {self.bias}")
-        if isinstance(x, torch.Tensor):
-            if len(x.shape) == 3:
-                x = torch.squeeze(x, 1) 
         return x.matmul(self.weight).add(self.bias)
-
-
-class Conv1d(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=1, padding=1):
-        super().__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.kernel_size = kernel_size
-        self.padding = padding
-        self.weight = torch.nn.Parameter(torch.Tensor(out_channels, in_channels, kernel_size))
-        self.bias = torch.nn.Parameter(torch.Tensor(self.out_channels))
-        self.reset_parameters()
-        
-    def reset_parameters(self):
-        self.k = 1/(self.in_channels * self.kernel_size)
-        stdv = 1 / math.sqrt(self.k)
-        self.weight.data.uniform_(-stdv, stdv)
-        if self.bias is not None:
-            self.bias.data.uniform_(-stdv, stdv)
-    
-    def forward(self, x):
-        if isinstance(x, torch.Tensor):
-            if len(x.shape) == 2:
-                x = x[:, None, :]
-            return F.conv1d(x, self.weight, bias=self.bias, padding=self.padding)
-        return x.conv(self.weight, self.bias, self.padding)
 
 
 class Sigmoid(nn.Module):
@@ -149,6 +95,12 @@ def extract_branch_probability(target, test):
     cross_idx = torch.logical_and(target.getRight() > test, target.getLeft() <= test)
 
     p_test[cross_idx] = (test - target.getLeft()[cross_idx]) / (target.getRight()[cross_idx] - target.getLeft()[cross_idx])
+    # p_test = (test - target.getLeft()) / (target.getRight() - target.getLeft())
+    # print(f"p_test grad: {p_test.grad}; len: {target.getRight() - target.getLeft()}")
+    # print(p_test)
+    # p_test[p_test < 0.0] = 0.0
+    # p_test[p_test > 1.0] = 1.0
+    # print(p_test)
 
     return p_test, 1 - p_test
 
@@ -173,11 +125,6 @@ def calculate_branch(target_idx, test, states):
 
     p_left, p_right = extract_branch_probability(target, test)
     left, right = sample_from_p(p_left, p_right)
-    # print(left, right)
-    if constants.debug_verifier:
-        print(f"target c: {target.c}, delta: {target.delta}")
-        print(f"left probability: {p_left}")
-        print(f"right probability: {p_right}")
 
     if True in left: # split to left
         left_idx = left.nonzero(as_tuple=True)[0].tolist()
@@ -192,7 +139,7 @@ def calculate_branch(target_idx, test, states):
         body_states['x'] = x_left
         body_states['trajectories'] = [states['trajectories'][i] for i in left_idx]
         body_states['idx_list'] = [states['idx_list'][i] for i in left_idx]
-        body_states['p_list'] = [states['p_list'][i].mul(p_left[i]) for i in left_idx]
+        body_states['p_list'] = [states['p_list'][i].add(torch.log(p_left[i])) for i in left_idx]
     
     if True in right: # split to right
         right_idx = right.nonzero(as_tuple=True)[0].tolist()
@@ -207,91 +154,10 @@ def calculate_branch(target_idx, test, states):
         orelse_states['x'] = x_right
         orelse_states['trajectories'] = [states['trajectories'][i] for i in right_idx]
         orelse_states['idx_list'] = [states['idx_list'][i] for i in right_idx]
-        orelse_states['p_list'] = [states['p_list'][i].mul(p_right[i]) for i in right_idx]
+        orelse_states['p_list'] = [states['p_list'][i].add(torch.log(p_right[i])) for i in right_idx]
     
     return body_states, orelse_states
-
-
-def extract_branch_probability_list(target, index_mask):
-    # volume_based probability assignment
-    # return a list of boolean tensor where the k-th boolean tensor represents the states fall into the k-th branch
-    zeros = torch.zeros(index_mask.shape)
-    branch = torch.zeros(index_mask.shape, dtype=torch.bool)
-    if torch.cuda.is_available():
-        zeros = zeros.cuda()
-        branch = branch.cuda()
-
-    # print(f"c, delta: {target.c.detach().cpu().numpy()}, {target.delta.detach().cpu().numpy()}")
-    # add the influnce from c
-    volume = 2 * target.delta
-    # print(f"volume: {volume.detach().cpu().numpy()}")
-    # print(f"index_mask: {index_mask}")
-    # all the volumes belonging to the argmax index set are selected, otherwise 0.0
-    selected_volume = torch.where(index_mask, volume, zeros)
-    # selected_volume might be all zero
-    # print(EPSILON)
-    selected_volume[index_mask] = torch.max(selected_volume[index_mask], EPSILON)
-
-    # print(f"selected_volume: {selected_volume.detach().cpu().numpy()}")
-    sumed_volume = torch.sum(selected_volume, dim=1)[:, None]
-    p_volume = selected_volume / sumed_volume
-
-    if constants.score_f == 'hybrid':
-        pre_score = p_volume + target.c
-        sumed_score = torch.sum(pre_score, dim=1)[:, None]
-        p_volume = pre_score / sumed_score
         
-    # print(f"p_volume:\n {p_volume.detach().cpu().numpy()}")
-
-    m = Categorical(p_volume)
-    res = m.sample()
-    branch[(torch.arange(p_volume.size(0)), res)] = True
-    p_volume = torch.where(branch, p_volume, zeros)
-
-    return branch, p_volume
-
-
-def assign_states(states, branch, p_volume):
-    # K batches, M branches, # no change to the x itself
-    K, M = branch.shape
-    states_list = list()
-    x = states['x']
-
-    for i in range(M):
-        new_states = dict()
-        p = p_volume[:, i]
-        this_branch = branch[:, i]
-        if True in this_branch:
-            this_idx = this_branch.nonzero(as_tuple=True)[0].tolist()
-            x_this = domain.Box(x.c[this_branch], x.delta[this_branch])
-            new_states['x'] = x_this
-            new_states['trajectories'] = [states['trajectories'][idx] for idx in this_idx]
-            new_states['idx_list'] = [states['idx_list'][idx] for idx in this_idx]
-            new_states['p_list'] = [states['p_list'][idx].add(torch.log(p[idx])) for idx in this_idx]
-        states_list.append(new_states)
-
-    return states_list 
-
-
-def calculate_branches(arg_idx, states):
-    # TODO: finish all the methods
-    # TODO Plus: update the trajectories, idx_list, p_list
-    # arg_idx: [0, 1, 2, 3], target is a new box only having values with these indexes
-
-    x = states['x']
-    target = x.select_from_index(1, arg_idx)
-    # TODO: potential problem: tensor is too dense?
-    # index_mask is a boolean tensor
-    index_mask = select_argmax(target.c - target.delta, target.c + target.delta)
-    # no split of boxes/states, only use the volume based probability distribution
-    # branch: boolean tensor k-th colume represents the k-th branch, 
-    # p_volume: real tensor, k-th column represents the probability to select the k-th branch(after samping)
-    branch, p_volume = extract_branch_probability_list(target, index_mask)
-    # print(f"p_volume:\n {p_volume.detach().cpu().numpy()}")
-
-    states_list = assign_states(states, branch, p_volume)
-    return states_list
-
 
 class Skip(nn.Module):
     def __init__(self):
@@ -330,8 +196,8 @@ class IfElse(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, states):
+        test = self.f_test(self.test)
         body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
-    
         if len(body_states) > 0:
             body_states = self.body(body_states)
         if len(orelse_states) > 0:
@@ -342,25 +208,6 @@ class IfElse(nn.Module):
 
         return res_states
 
-
-class ArgMax(nn.Module):
-    def __init__(self, arg_idx, branch_list):
-        super().__init__()
-        self.arg_idx = torch.tensor(arg_idx)
-        self.branch_list = branch_list
-        if torch.cuda.is_available():
-            self.arg_idx = self.arg_idx.cuda()
-    
-    def forward(self, states):
-        res_states_list = list()
-        states_list = calculate_branches(self.arg_idx, states)
-
-        for idx, state in enumerate(states_list):
-            if len(state) > 0:
-                res_states_list.append(self.branch_list[idx](state))
-        res_states = concatenate_states_list(res_states_list)
-
-        return res_states
 
 class While(nn.Module):
     def __init__(self, target_idx, test, body):

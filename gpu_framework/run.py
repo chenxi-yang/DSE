@@ -85,20 +85,107 @@ if __name__ == "__main__":
         # update target, fix the left endpoint, varify the right endpoint
         target = list()
         for idx, safe_range in enumerate(safe_range_list):
-            target.append(
-                {   # constraint is in box domain
-                    "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
-                    "method": method_list[idx],
-                    "name": name_list[idx],
-                    "map_condition": [
-                      domain.Interval(var(constraint[0]), var(constraint[1])) for constraint in map_safe_range
-                    ] if map_mode is True else None,
-                    "map_mode": map_mode,
-                }
-            )
-
-            # Run 25 times
-            for i in range(25):
+            if multi_agent_mode is True:
+                # target distance, x1, x2
+                # distance
+                target.append(
+                    {   # constraint is in box domain
+                        "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
+                        "method": method_list[0],
+                        "name": name_list[0],
+                        "map_condition": None,
+                        "map_mode": map_mode,
+                        "distance": True,
+                    }
+                )
+                # agent1
+                target.append(
+                    {   # constraint is in box domain
+                        "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
+                        "method": method_list[1],
+                        "name": name_list[1],
+                        "map_condition": None,
+                        "map_mode": map_mode,
+                        "distance": False,
+                    }
+                )
+                # agent2
+                target.append(
+                    {   # constraint is in box domain
+                        "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
+                        "method": method_list[2],
+                        "name": name_list[2],
+                        "map_condition": None,
+                        "map_mode": map_mode,
+                        "distance": False,
+                    }
+                )
+            elif benchmark_name == 'aircraft_collision_new':
+                 target.append(
+                    {   # constraint is in box domain
+                        "condition": None,
+                        "method": method_list[0],
+                        "name": name_list[0],
+                        "map_condition": None,
+                        "map_mode": map_mode,
+                        "distance": True,
+                    }
+                )
+            else:
+                target.append(
+                    {   # constraint is in box domain
+                        "condition": domain.Interval(var(safe_range[0]), var(safe_range_bound)) if map_mode is False else None,
+                        "method": method_list[idx],
+                        "name": name_list[idx],
+                        "map_condition": None,
+                        "map_mode": map_mode,
+                        "distance": False,
+                    }
+                )
+            if map_mode is True:
+                map_condition = list()
+                for constraint_l in map_safe_range:
+                    interval_l = list()
+                    for constraint in constraint_l:
+                        interval_l.append(domain.Interval(var(constraint[0]), var(constraint[1])))
+                    map_condition.append(interval_l)
+                if multi_agent_mode is True:
+                    target[1]['map_condition'] = map_condition
+                    target[2]['map_condition'] = map_condition
+                    distance_condition = list()
+                    for constraint_l in distance_safe_range:
+                        interval_l = list()
+                        for constraint in constraint_l:
+                            interval_l.append(domain.Interval(var(constraint[0]), var(constraint[1])))
+                        distance_condition.append(interval_l)
+                    target[0]['map_condition'] = distance_condition
+                else:
+                    target[0]['map_condition'] = map_condition
+            # if benchmark_name == 'aircraft_collision_new':
+            #     for constraint_l in distance_safe_range:
+            #         interval_l = list()
+            #         for constraint in constraint_l:
+            #             interval_l.append(domain.Interval(var(constraint[0]), var(constraint[1])))
+            #         distance_condition.append(interval_l)
+            #     target[0]['map_condition'] = distance_condition
+                
+            if mode == 'DSE' or mode == 'DiffAI':
+                N = 5
+                if benchmark_name == "racetrack_relaxed_multi":
+                    N = 3
+                if benchmark_name == "aircraft_collision_new_1":
+                    N = 10
+                    # experiments during rebuttal
+                    # N = 3
+                if 'pattern' in benchmark_name:
+                    N = 10
+            if mode == 'only_data':
+                N = 10
+            # experiments during rebuttal
+            if N > 3:
+                N = 3
+            for i in range(N):
+                # i += 1
                 constants.status = 'train'
                 import import_hub as hub
                 importlib.reload(hub)
@@ -116,14 +203,14 @@ if __name__ == "__main__":
                     import gpu_only_data.train as gt
                     importlib.reload(gt)
                     from gpu_only_data.train import *
-                elif mode == 'symbol_data_loss_DSE':
-                    import gpu_symbol_data_loss_DSE.train as gt
-                    importlib.reload(gt)
-                    from gpu_symbol_data_loss_DSE.train import *
-                elif mode == 'DiffAI_sps':
-                    import gpu_DiffAI_sps.train as gt
-                    importlib.reload(gt)
-                    from gpu_DiffAI_sps.train import *
+                # elif mode == 'symbol_data_loss_DSE':
+                #     import gpu_symbol_data_loss_DSE.train as gt
+                #     importlib.reload(gt)
+                #     from gpu_symbol_data_loss_DSE.train import *
+                # elif mode == 'DiffAI_sps':
+                #     import gpu_DiffAI_sps.train as gt
+                #     importlib.reload(gt)
+                #     from gpu_DiffAI_sps.train import *
                 
                 preprocessing_time = time.time()
                 if benchmark_name in ["thermostat"]:
@@ -145,6 +232,9 @@ if __name__ == "__main__":
 
                     m = Program(l=l, nn_mode=nn_mode)
                     epochs_to_skip, m = load_model(m, MODEL_PATH, name=target_model_name)
+                    if constants.profile:
+                        epochs_to_skip = -1
+                        m = None
                     if test_mode:
                         if m is None:
                             print(f"No Model to test.")
@@ -157,6 +247,7 @@ if __name__ == "__main__":
                             m = Program(l=l, nn_mode=nn_mode)
                     
                     print(f"parameters: {count_parameters(m)}")
+                    # exit(0)
 
                     # try: 
                     _, loss, loss_list, q, c, time_out = learning(
@@ -218,20 +309,20 @@ if __name__ == "__main__":
                 )
                 print(f"---verification AI time: {time.time() - verification_time} sec---")
 
-                constants.status = 'verify_SE'
-                import verifier_SE as vS
-                importlib.reload(vS)
-                from verifier_SE import *
+                # constants.status = 'verify_SE'
+                # import verifier_SE as vS
+                # importlib.reload(vS)
+                # from verifier_SE import *
                 
-                verification_time = time.time()
-                verifier_SE(
-                    model_path=MODEL_PATH, 
-                    model_name=target_model_name,
-                    components=SE_components,
-                    target=target,
-                    trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
-                )
-                print(f"---verification SE time: {time.time() - verification_time} sec---")
+                # verification_time = time.time()
+                # verifier_SE(
+                #     model_path=MODEL_PATH, 
+                #     model_name=target_model_name,
+                #     components=SE_components,
+                #     target=target,
+                #     trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
+                # )
+                # print(f"---verification SE time: {time.time() - verification_time} sec---")
 
                 import tester as t
                 importlib.reload(t)

@@ -27,7 +27,7 @@ def get_parser():
 
     p.add_argument("--w", default=0.5, type=float, help="the measure between two lagarangian iteration")
 
-    p.add_argument("--benchmark_name", default="benchmark", help="represent the benchmark")
+    p.add_argument("--benchmark_name", default=None, help="represent the benchmark")
     p.add_argument("--data_size", default=10000, type=int, help="size of dataset, both for training and testing")
     
     p.add_argument("--num_epoch", default=100, type=int, help="number of epochs for training")
@@ -54,6 +54,12 @@ def get_parser():
     p.add_argument("--perturbation_width", default=0.3, type=float, help="the perturbation width in extracting input distribution")
 
     # training
+    p.add_argument(
+        "--score_f", 
+        default="volume", 
+        choices=['volume', 'hybrid', 'distance'], # volume: volume based, hybrid: volume + distance based
+        help="define the score function used to calculate the sampling probability"
+    )
     p.add_argument("--use_smooth_kernel", default=False, type=str2bool, help="decide whether to use smooth kernel")
     p.add_argument("--save", default=True, type=str2bool, help="decide whether to save the model or not")
     p.add_argument("--mode", help="which method used for training")
@@ -70,6 +76,12 @@ def get_parser():
         default=False, 
         type=str2bool, 
         help="only use data loss"
+    )
+    p.add_argument(
+        "--early_stop", 
+        default=True, 
+        type=str2bool, 
+        help="early stop"
     )
     p.add_argument("--data_bs", default=2, type=int, help="number of trajectories to use for data loss")
     p.add_argument("--use_data_loss", default=True, type=str2bool, help="use data loss")
@@ -123,6 +135,7 @@ def get_parser():
     p.add_argument("--cuda_debug", default=False, type=str2bool,  help="decide whether de cuda memory bug")
     p.add_argument("--simple_debug", default=False, type=str2bool, help="change max iteration")
     p.add_argument("--run_time_debug", default=False, type=str2bool, help="whether print sub time")
+    p.add_argument("--profile", default=False, type=str2bool, help="print the running time of per part")
     
     # plot
     p.add_argument("--plot", default=False, type=str2bool, help="plot or not")

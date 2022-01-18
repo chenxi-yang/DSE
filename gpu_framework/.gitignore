@@ -1,0 +1,11 @@
+
+# python
+*.pyc
+*.DS_Store
+
+# data/results
+*.txt
+*.png
+
+# models
+**/models
