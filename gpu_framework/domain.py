@@ -920,8 +920,6 @@ class HybridZonotope:
         self.beta = beta
         
 
-
-
 if __name__ == "__main__":
     a = Interval()
     b = Interval()
