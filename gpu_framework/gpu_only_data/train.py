@@ -42,9 +42,13 @@ def cal_data_loss(m, trajectories, criterion):
             data_loss /= len(yp_trajectory)
     else:
 <<<<<<< HEAD
+<<<<<<< HEAD
         # X, y = batch_pair(trajectories, data_bs=512)
         # just for test
         X, y = batch_pair(trajectories, data_bs=10)
+=======
+        X, y = batch_pair(trajectories, data_bs=512)
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
         X, y = batch_pair(trajectories, data_bs=512)
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
@@ -113,7 +117,11 @@ def learning(
         if i <= epochs_to_skip:
             continue
 <<<<<<< HEAD
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
 
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f

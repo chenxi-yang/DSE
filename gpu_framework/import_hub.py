@@ -127,6 +127,7 @@ elif constants.benchmark_name == "thermostat_new":
     importlib.reload(tr)
     from benchmarks.thermostat_new import *
 <<<<<<< HEAD
+<<<<<<< HEAD
 elif constants.benchmark_name == "thermostat_new_cnn":
     import benchmarks.thermostat_new_cnn as tr
     importlib.reload(tr)
@@ -151,6 +152,8 @@ elif constants.benchmark_name == "thermostat_new_unsafe50":
     import benchmarks.thermostat_new_unsafe50 as tr
     importlib.reload(tr)
     from benchmarks.thermostat_new_unsafe50 import *
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 elif constants.benchmark_name == "racetrack_easy_sample":
@@ -198,6 +201,7 @@ elif constants.benchmark_name == "aircraft_collision_new_1":
     importlib.reload(ac)
     from benchmarks.aircraft_collision_new_1 import *
 <<<<<<< HEAD
+<<<<<<< HEAD
 elif constants.benchmark_name == "aircraft_collision_new_1_cnn":
     import benchmarks.aircraft_collision_new_1_cnn as ac
     importlib.reload(ac)
@@ -218,6 +222,8 @@ elif constants.benchmark_name == "cartpole_v3":
     import benchmarks.cartpole_v3 as ac
     importlib.reload(ac)
     from benchmarks.cartpole_v3 import *
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 

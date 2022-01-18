@@ -36,6 +36,7 @@ def preprocess_loss(loss_dict, configs):
         for method, l in loss_dict[category].items():
             # list of list of losses
 <<<<<<< HEAD
+<<<<<<< HEAD
             
             loss_range_l_list, loss_range_r_list = list(), list()
             loss_sum_list = list()
@@ -55,6 +56,8 @@ def preprocess_loss(loss_dict, configs):
                     loss_sum_list = [0.0 for i in loss_sum_list]
                     loss_length_list = [0 for i in loss_length_list]
 =======
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
             loss_range_l_list, loss_range_r_list = list(), list()
             for loss_idx, loss_list in enumerate(l):    
                 # print(len(loss_list), len(loss_range_l_list), len(loss_range_r_list))
@@ -63,11 +66,15 @@ def preprocess_loss(loss_dict, configs):
                 if len(loss_range_l_list) == 0:
                     loss_range_l_list = copy.deepcopy(loss_list)
                     loss_range_r_list = copy.deepcopy(loss_list)
+<<<<<<< HEAD
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+=======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
                 else:
                     for idx, loss in enumerate(loss_list):
                         loss_range_l_list[idx] = min(loss_range_l_list[idx], loss)
                         loss_range_r_list[idx] = max(loss_range_r_list[idx], loss)
+<<<<<<< HEAD
 <<<<<<< HEAD
                         loss_sum_list[idx] += loss
                         loss_length_list[idx] += 1
@@ -80,13 +87,19 @@ def preprocess_loss(loss_dict, configs):
             print(f"{configs['benchmark']}, {category}, {method}, {loss_sum_list[-1]/loss_length_list[-1]}")
 =======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
             # print(f"{category}, {method}: \n{loss_range_l_list}\n{loss_range_r_list}")
             loss_dict[category][method] = (loss_range_l_list, loss_range_r_list)
     return loss_dict
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def plot_loss(loss_dict, configs, data_size, category):
+=======
+def plot_loss(loss_dict, configs, category):
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
 def plot_loss(loss_dict, configs, category):
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
@@ -109,7 +122,11 @@ def plot_loss(loss_dict, configs, category):
                 r[idx] = r[idx] + 0.1
                 if method == 'AC': # to highlight the value
 <<<<<<< HEAD
+<<<<<<< HEAD
                     r[idx] = r[idx] + random.random() * 0.5 # to show the line in the plot, otherwise it's a line and can not be seen
+=======
+                    r[idx] = r[idx] + random.random() * 0.5
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
                     r[idx] = r[idx] + random.random() * 0.5
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
@@ -122,7 +139,11 @@ def plot_loss(loss_dict, configs, category):
     if category == 'Safety':
         if benchmark == 'Thermostat':
 <<<<<<< HEAD
+<<<<<<< HEAD
             plt.ylim(0,15)
+=======
+            plt.ylim(0,35)
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
             plt.ylim(0,35)
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
@@ -131,6 +152,7 @@ def plot_loss(loss_dict, configs, category):
         if benchmark == 'Racetrack':
             # plt.xlim(0,6001)
             plt.ylim(0,10)
+<<<<<<< HEAD
 <<<<<<< HEAD
     if category == 'Data':
         if benchmark == 'Thermostat':
@@ -143,6 +165,8 @@ def plot_loss(loss_dict, configs, category):
 
 def f_loss(configs, data_size):
 =======
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
     plt.legend(handles=handles, labels=labels)
     plt.title(f"{configs['benchmark']} {category} Loss")
@@ -150,6 +174,9 @@ def f_loss(configs, data_size):
 
 
 def f_loss(configs):
+<<<<<<< HEAD
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+=======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     diffai_data, diffai_safety = read_loss(configs['DiffAI+'])
     dse_data, dse_safety = read_loss(configs['DSE'])
@@ -165,8 +192,13 @@ def f_loss(configs):
     }
     loss_dict = preprocess_loss(loss_dict, configs)
 <<<<<<< HEAD
+<<<<<<< HEAD
     plot_loss(loss_dict['data'], configs, data_size, category='Data')
     plot_loss(loss_dict['safety'], configs, data_size, category='Safety')
+=======
+    plot_loss(loss_dict['data'], configs, category='Data')
+    plot_loss(loss_dict['safety'], configs, category='Safety')
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
     plot_loss(loss_dict['data'], configs, category='Data')
     plot_loss(loss_dict['safety'], configs, category='Safety')
@@ -175,6 +207,7 @@ def f_loss(configs):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
 <<<<<<< HEAD
     trajectory_size_list = [10, 50, 100, 250, 500]
     # trajectory_size = 10
@@ -222,6 +255,8 @@ if __name__ == "__main__":
         f_loss(configs['Racetrack'], data_size=trajectory_size*20)
         f_loss(configs['AircraftCollision'], data_size=trajectory_size*15)
 =======
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     trajectory_size = 10
     configs = dict()
     configs['Thermostat'] = dict()
@@ -263,5 +298,9 @@ if __name__ == "__main__":
     
     f_loss(configs['Thermostat'])
     f_loss(configs['Racetrack'])
+<<<<<<< HEAD
+    f_loss(configs['AircraftCollision'])
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+=======
     f_loss(configs['AircraftCollision'])
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f

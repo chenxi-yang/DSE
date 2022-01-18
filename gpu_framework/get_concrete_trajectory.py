@@ -30,6 +30,7 @@ def store_trajectory(output_states, trajectory_path, category=None):
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def is_safe_trajectory(trajectory, safe_range_list):
     for state in trajectory:
         for x in state:
@@ -52,13 +53,18 @@ def count_concrete_trajectories_safety(output_states, safe_range_list):
 
 =======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 def extract_trajectory(
         model_path,
         model_name,
         ini_states,
         trajectory_path,
 <<<<<<< HEAD
+<<<<<<< HEAD
         safe_range_list,
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     ):
@@ -78,8 +84,12 @@ def extract_trajectory(
     
     output_states = m(ini_states)
 <<<<<<< HEAD
+<<<<<<< HEAD
     # store_trajectory(output_states, trajectory_path, category="single")
     count_concrete_trajectories_safety(output_states, safe_range_list)
+=======
+    store_trajectory(output_states, trajectory_path, category="single")
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
     store_trajectory(output_states, trajectory_path, category="single")
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
@@ -98,7 +108,11 @@ if __name__ == "__main__":
             from import_hub import *
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             ini_states = initialization_components_point(x_l, x_r)
+=======
+            ini_states = initialization_components_point()
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
             ini_states = initialization_components_point()
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
@@ -108,8 +122,12 @@ if __name__ == "__main__":
                 model_name=f"{model_name_prefix}_{safe_range_bound}_{i}_{0}",
                 ini_states=ini_states,
 <<<<<<< HEAD
+<<<<<<< HEAD
                 trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}",
                 safe_range_list=safe_range_list[0],
+=======
+                trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
                 trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f

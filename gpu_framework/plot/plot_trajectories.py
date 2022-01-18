@@ -242,6 +242,7 @@ def plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, config
     # plot concrete trajectories
     print(f"len concrete trajectory: {len(concrete_trajectory_list)}")
 <<<<<<< HEAD
+<<<<<<< HEAD
     unsafe_trajectories_num = 0
     total_concrete_trajectories_num = len(concrete_trajectory_list)
     if 'Thermostat' in configs['benchmark']:
@@ -259,6 +260,8 @@ def plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, config
 
 =======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     for concrete_trajectory in concrete_trajectory_list:
         x = [i + 0.5 for i in range(len(concrete_trajectory))]
         if 'idx_list' in configs:
@@ -267,6 +270,7 @@ def plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, config
                 # print(len(concrete_trajectory[0]))
                 y = [v[concrete_position_idx] for v in concrete_trajectory]
                 plt.plot(x, y, color='red', linewidth=0.25)
+<<<<<<< HEAD
 <<<<<<< HEAD
                 if 'Racetrack' in configs['benchmark'] and property_index == 0:
                     for y_idx, y_value in enumerate(y[1:]):
@@ -286,12 +290,17 @@ def plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, config
     plt.axis('off')
     # plt.savefig(f"figures/trajectories/{configs['benchmark']}_{configs['method']}_{property_index}.png",  bbox_inches='tight', pad_inches = 0)
 =======
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         else:
             y = [v[0] for v in concrete_trajectory]
             plt.plot(x, y, color='red', linewidth=0.25)
     
     plt.axis('off')
     plt.savefig(f"figures/trajectories/{configs['benchmark']}_{configs['method']}_{property_index}.png",  bbox_inches='tight', pad_inches = 0)
+<<<<<<< HEAD
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+=======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
     return
@@ -1059,7 +1068,11 @@ if __name__ == "__main__":
     # }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     # # # Racetrack
+=======
+    # # Racetrack
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
     # # Racetrack
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
@@ -1102,6 +1115,7 @@ if __name__ == "__main__":
 
     # # AC-New-1
 <<<<<<< HEAD
+<<<<<<< HEAD
     # configs['AC-New-1']['Ablation-10(Final)'] = {
     #     'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_Ablation_999_concrete.txt",
     #     'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_Ablation_999_symbolic.txt",
@@ -1131,6 +1145,8 @@ if __name__ == "__main__":
     #     'benchmark': 'AC-New-1',
     # }
 =======
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     configs['AC-New-1']['Ablation-10(Final)'] = {
         'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_Ablation_999_concrete.txt",
         'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_Ablation_999_symbolic.txt",
@@ -1159,6 +1175,9 @@ if __name__ == "__main__":
         'starting_area': starting_area_ac_new,
         'benchmark': 'AC-New-1',
     }
+<<<<<<< HEAD
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+=======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
     for benchmark, benchmark_dict in configs.items():

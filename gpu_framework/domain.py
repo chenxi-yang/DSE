@@ -525,6 +525,7 @@ class Box():
     def matmul(self, other):
         # print(f"in matmul, self.c: {self.c.shape}, self.delta: {self.delta.shape}, other: {other.shape}")
 <<<<<<< HEAD
+<<<<<<< HEAD
         if len(self.c.shape) == 3:
             self.c, self.delta = torch.squeeze(self.c, 1), torch.squeeze(self.delta, 1)
         return self.new(self.c.matmul(other), self.delta.matmul(other.abs()))
@@ -559,6 +560,8 @@ class Box():
         return self.new(new_c, new_delta)
     
 =======
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         return self.new(self.c.matmul(other), self.delta.matmul(other.abs()))
     
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f

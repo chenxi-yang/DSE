@@ -192,8 +192,6 @@ def append_log(f_list, log_txt):
         f.write(log_txt)
         f.close()
 
-
-<<<<<<< HEAD
 def create_components(x_l, x_r, num_components):
     # num_components: each dimension
     # just cut the x[0] space
@@ -245,21 +243,7 @@ def create_components(x_l, x_r, num_components):
                             'width': [width_0, width_1, width_2, width_3],
                         }
                         components.append(component_group)
-=======
-def create_components(x_min, x_max, num_components):
-    component_length = (x_max - x_min) / num_components
-    components = list()
-    for i in range(num_components):
-        l = x_min + i * component_length
-        r = x_min + (i + 1) * component_length
-        center = [(r + l) / 2.0]
-        width = [(r - l) / 2.0]
-        component_group = {
-            'center': center,
-            'width': width,
-        }
-        components.append(component_group)
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+
     return components
 
 
@@ -279,13 +263,10 @@ def extract_abstract_representation(trajectories, x_l, x_r, num_components):
     # extract components
     # interval
     # and all the trajectories starting from that interval
-<<<<<<< HEAD
     # x_min, x_max = x_l[0], x_r[0]
-    components = create_components(x_l, x_r, num_components)
-=======
+    # components = create_components(x_l, x_r, num_components)
     x_min, x_max = x_l[0], x_r[0]
     components = create_components(x_min, x_max, num_components)
->>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     for idx, component in enumerate(components):
         component.update(
             {

@@ -290,8 +290,13 @@ def safe_distance(component_result_list, target):
         log_file.write(f"range of trajectory: {min_l, max_r}\n")
         log_file.flush()
     return loss, real_safety_loss
+<<<<<<< HEAD
 
 
+=======
+
+
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 def cal_data_loss(m, trajectories, criterion):
     # for the point in the same batch
     # calculate the data loss of each point
@@ -301,9 +306,13 @@ def cal_data_loss(m, trajectories, criterion):
 
     expec_data_loss = var_list([0.0])
     count = 0
+<<<<<<< HEAD
     # print(f"in data loss", len(trajectories))
     for X, y in batch_pair_yield(trajectories, data_bs=512):
         # print('in data loss')
+=======
+    for X, y in batch_pair_yield(trajectories, data_bs=512):
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
         # print(f"after batch pair: {X.shape}")
         if torch.cuda.is_available():
@@ -311,8 +320,11 @@ def cal_data_loss(m, trajectories, criterion):
             y = y.cuda()
         yp = m(X, version="single_nn_learning")
         data_loss = criterion(yp, y)
+<<<<<<< HEAD
         # print('yp:', yp)
         # print('y:', y)
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         expec_data_loss += data_loss
         count += 1
     expec_data_loss = expec_data_loss / count
@@ -437,7 +449,11 @@ def learning(
             safe_loss, real_safety_loss = cal_safe_loss(m, abstract_states, target)
             # safe_loss = var(1.0)
 
+<<<<<<< HEAD
             # print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}, real_safety_loss: {real_safety_loss}")
+=======
+            print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}, real_safety_loss: {real_safety_loss}")
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
             loss = (data_loss + lambda_ * safe_loss) / lambda_
             # if constants.profile:
             #     end_forward = time.time()

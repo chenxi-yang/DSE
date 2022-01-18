@@ -40,6 +40,7 @@ def store_trajectory(output_states, trajectory_path):
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def is_safe_trajectory(trajectory, safe_range_list):
     for state in trajectory:
         for x in state:
@@ -70,13 +71,18 @@ def calculate_safety(output_states, safe_range_list):
 
 =======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 def extract_trajectory(
         method_dict,
         ini_states,
         category,
         epoch,
 <<<<<<< HEAD
+<<<<<<< HEAD
         safe_range_list=None,
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     ):
@@ -101,7 +107,10 @@ def extract_trajectory(
         trajectory_path=f"plot/plot_trajectories/{method_dict['model_name']}_{method_dict['method']}_{epoch}_{category}.txt",
     )
 <<<<<<< HEAD
+<<<<<<< HEAD
     calculate_safety(output_states, safe_range_list)
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
@@ -126,8 +135,11 @@ if __name__ == "__main__":
     configs['AC-New'] = dict() # 3
     configs['AC-New-1'] = dict()
 <<<<<<< HEAD
+<<<<<<< HEAD
     configs['cartpole_v3'] = dict()
     configs['cartpole_v2'] = dict()
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 =======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
@@ -157,6 +169,7 @@ if __name__ == "__main__":
     #     'x_r': [64.0],
     # }
 <<<<<<< HEAD
+<<<<<<< HEAD
     # configs['Thermostat-New']['DiffAI'] = {
     #     'model_path': f"gpu_DiffAI/models",
     #     'model_name': f"thermostat_new_complex_64_2_100_10_83.0_1_0",
@@ -171,6 +184,8 @@ if __name__ == "__main__":
     #     'x_r': [64.0],
     # }
 =======
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     configs['Thermostat-New']['DiffAI'] = {
         'model_path': f"gpu_DiffAI/models",
         'model_name': f"thermostat_new_complex_64_2_100_10_83.0_1_0",
@@ -184,6 +199,9 @@ if __name__ == "__main__":
         'x_l': [60.0],
         'x_r': [64.0],
     }
+<<<<<<< HEAD
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+=======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
     # AC-New-1
@@ -266,6 +284,7 @@ if __name__ == "__main__":
     #     'x_l': [5.0],
     #     'x_r': [6.0],
     # }
+<<<<<<< HEAD
 <<<<<<< HEAD
     # configs['Racetrack-Relaxed-Multi']['DiffAI'] = {
     #     'model_path': f"gpu_DiffAI/models",
@@ -354,6 +373,10 @@ if __name__ == "__main__":
     
 
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+=======
+    
+
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
     torch.autograd.set_detect_anomaly(True)
     print(f"#### Extract Trajectory ####")
@@ -387,6 +410,7 @@ if __name__ == "__main__":
                     category='concrete',
                     epoch=epoch,
 <<<<<<< HEAD
+<<<<<<< HEAD
                     safe_range_list=method_dict['safe_range_list'],
                 )
                 # no symbolic trajectories
@@ -400,6 +424,8 @@ if __name__ == "__main__":
                 #     epoch=epoch,
                 # )
 =======
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
                 )
                 # exit(0)
                 abstract_states = create_abstract_states_from_components(components)
@@ -410,6 +436,9 @@ if __name__ == "__main__":
                     category='symbolic',
                     epoch=epoch,
                 )
+<<<<<<< HEAD
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
+=======
 >>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
                 print(f"-- FINISH TRAJECTORY -- {benchmark} & {method} -- {time.time() - start_time} s.")
 
