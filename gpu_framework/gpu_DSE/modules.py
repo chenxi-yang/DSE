@@ -45,6 +45,7 @@ class Linear(nn.Module):
             self.bias.data.uniform_(-stdv, stdv)
 
     def forward(self, x):
+<<<<<<< HEAD
         if isinstance(x, torch.Tensor):
             if len(x.shape) == 3:
                 x = torch.squeeze(x, 1) 
@@ -78,6 +79,11 @@ class Conv1d(nn.Module):
         return x.conv(self.weight, self.bias, self.padding)
 
 
+=======
+        return x.matmul(self.weight).add(self.bias)
+
+
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 class Sigmoid(nn.Module):
     def __init__(self):
         super().__init__()
@@ -482,7 +488,10 @@ class While(nn.Module):
             body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
             res_states = concatenate_states(res_states, orelse_states)
             if len(body_states) == 0:
+<<<<<<< HEAD
                 # exit(0)
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
                 return res_states
             # if constants.profile:
             #     start = time.time()
@@ -499,7 +508,11 @@ class While(nn.Module):
             #         print(f"trajectory length: {len(trajectory)}")
         res_states = concatenate_states(res_states, orelse_states)
         res_states = concatenate_states(res_states, body_states)
+<<<<<<< HEAD
         # exit(0)
+=======
+
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         return res_states
 
 
@@ -537,9 +550,12 @@ class Trajectory(nn.Module):
         input = x.select_from_index(1, self.target_idx)
         input_interval = input.getInterval()
         _, K = input_interval.left.shape
+<<<<<<< HEAD
         # print(f"--update trajectory")
         # print(input_interval.left)
         # print(input_interval.right)
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         for x_idx in range(B):
             trajectories_l[x_idx].append(input_interval.left[x_idx])
             trajectories_r[x_idx].append(input_interval.right[x_idx])

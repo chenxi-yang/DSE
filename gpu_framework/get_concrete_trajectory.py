@@ -29,6 +29,7 @@ def store_trajectory(output_states, trajectory_path, category=None):
     return 
 
 
+<<<<<<< HEAD
 def is_safe_trajectory(trajectory, safe_range_list):
     for state in trajectory:
         for x in state:
@@ -49,12 +50,17 @@ def count_concrete_trajectories_safety(output_states, safe_range_list):
     print(f"Concrete Safe Trajectory Percentage: {safe_trajectories/total_trajectories}")
 
 
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 def extract_trajectory(
         model_path,
         model_name,
         ini_states,
         trajectory_path,
+<<<<<<< HEAD
         safe_range_list,
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     ):
     m = Program(l=l, nn_mode=nn_mode)
 
@@ -71,8 +77,12 @@ def extract_trajectory(
         param.requires_grad = False
     
     output_states = m(ini_states)
+<<<<<<< HEAD
     # store_trajectory(output_states, trajectory_path, category="single")
     count_concrete_trajectories_safety(output_states, safe_range_list)
+=======
+    store_trajectory(output_states, trajectory_path, category="single")
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
 
 if __name__ == "__main__":
@@ -87,12 +97,20 @@ if __name__ == "__main__":
             importlib.reload(hub)
             from import_hub import *
 
+<<<<<<< HEAD
             ini_states = initialization_components_point(x_l, x_r)
+=======
+            ini_states = initialization_components_point()
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
             extract_trajectory(
                 model_path=MODEL_PATH,
                 model_name=f"{model_name_prefix}_{safe_range_bound}_{i}_{0}",
                 ini_states=ini_states,
+<<<<<<< HEAD
                 trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}",
                 safe_range_list=safe_range_list[0],
+=======
+                trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
             )

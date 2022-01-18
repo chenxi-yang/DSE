@@ -747,6 +747,7 @@ if benchmark_name == "thermostat_refined":
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
+<<<<<<< HEAD
 if benchmark_name == "cartpole_v1":
     x_l = [-0.05, -0.05, -0.05, -0.05]
     x_r = [0.05, 0.05, 0.05, 0.05]
@@ -795,6 +796,8 @@ if benchmark_name == "cartpole_v3":
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 if benchmark_name == "thermostat_new":
     x_l = [60.0]
     x_r = [64.0]
@@ -811,6 +814,7 @@ if benchmark_name == "thermostat_new":
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
+<<<<<<< HEAD
 if benchmark_name == "thermostat_new_cnn":
     x_l = [60.0]
     x_r = [64.0]
@@ -907,6 +911,8 @@ if benchmark_name == "thermostat_new_unsafe50":
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 if benchmark_name == "aircraft_collision":
     x_l = [12.0]
     x_r = [16.0]
@@ -1016,6 +1022,7 @@ if benchmark_name == "aircraft_collision_new_1":
 
     safe_range_bound_list = [100000.0]
 
+<<<<<<< HEAD
 
 if benchmark_name == "aircraft_collision_new_1_cnn":
     x_l = [12.0]
@@ -1062,6 +1069,8 @@ if benchmark_name == "aircraft_collision_new_1_unsafe25":
 
     safe_range_bound_list = [100000.0]
 
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 # args
 dataset_size = 50
 lambda_ = 100.0

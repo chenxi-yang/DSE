@@ -169,21 +169,31 @@ if __name__ == "__main__":
             #         distance_condition.append(interval_l)
             #     target[0]['map_condition'] = distance_condition
                 
+<<<<<<< HEAD
+=======
+            # Run 25 times
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
             if mode == 'DSE' or mode == 'DiffAI':
                 N = 5
                 if benchmark_name == "racetrack_relaxed_multi":
                     N = 3
                 if benchmark_name == "aircraft_collision_new_1":
                     N = 10
+<<<<<<< HEAD
                     # experiments during rebuttal
                     # N = 3
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
                 if 'pattern' in benchmark_name:
                     N = 10
             if mode == 'only_data':
                 N = 10
+<<<<<<< HEAD
             # experiments during rebuttal
             if N > 3:
                 N = 3
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
             for i in range(N):
                 # i += 1
                 constants.status = 'train'
@@ -247,7 +257,11 @@ if __name__ == "__main__":
                             m = Program(l=l, nn_mode=nn_mode)
                     
                     print(f"parameters: {count_parameters(m)}")
+<<<<<<< HEAD
                     # exit(0)
+=======
+                    exit(0)
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
                     # try: 
                     _, loss, loss_list, q, c, time_out = learning(

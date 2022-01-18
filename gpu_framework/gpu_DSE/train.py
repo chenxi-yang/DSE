@@ -234,17 +234,26 @@ def extract_safe_loss(component, target_component, target_idx):
             unsafe_value[empty_idx, state_idx] = torch.max(l[empty_idx] - safe_interval_r, safe_interval_l - r[empty_idx]) + 1.0
             unsafe_value[other_idx, state_idx] = 1 - (intersection_r[other_idx] - intersection_l[other_idx] + eps) / (r[other_idx] - l[other_idx] + eps)
             min_l, max_r = min(float(torch.min(l)), min_l), max(float(torch.max(r)), max_r)
+<<<<<<< HEAD
             # print(unsafe_value)
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
     # sum over one trajectories
     unsafe_penalty = torch.sum(unsafe_value, 1)
     # max over one trajectory
     # unsafe_penalty = torch.max(unsafe_value, 1)[0]
     # print(f"unsafe penalty: {unsafe_penalty}")
+<<<<<<< HEAD
     
     # print(unsafe_penalty.shape, torch.sum(unsafe_penalty))
     # print(f"unsafe_value: {unsafe_value}")
     print(f"p: {p_list.squeeze().detach().cpu().numpy().tolist()}")
+=======
+    # exit(0)
+    # print(unsafe_penalty.shape, torch.sum(unsafe_penalty))
+    # print(f"unsafe_value: {unsafe_value}")
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     print(f"unsafe penalty: {unsafe_penalty.detach().cpu().numpy().tolist()}")
     sum_penalty = torch.sum(unsafe_penalty)
     print(f"sum penalty: {sum_penalty}")
@@ -303,9 +312,13 @@ def cal_data_loss(m, trajectories, criterion):
 
     expec_data_loss = var_list([0.0])
     count = 0
+<<<<<<< HEAD
     # print(f"in data loss", len(trajectories))
     for X, y in batch_pair_yield(trajectories, data_bs=512):
         # print('in data loss')
+=======
+    for X, y in batch_pair_yield(trajectories, data_bs=512):
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
         # print(f"after batch pair: {X.shape}")
         if torch.cuda.is_available():
@@ -313,8 +326,11 @@ def cal_data_loss(m, trajectories, criterion):
             y = y.cuda()
         yp = m(X, version="single_nn_learning")
         data_loss = criterion(yp, y)
+<<<<<<< HEAD
         # print('yp:', yp)
         # print('y:', y)
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         expec_data_loss += data_loss
         count += 1
     expec_data_loss = expec_data_loss / count
@@ -439,7 +455,11 @@ def learning(
             safe_loss, real_safety_loss = cal_safe_loss(m, abstract_states, target)
             # safe_loss = var(1.0)
 
+<<<<<<< HEAD
             # print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}, real_safety_loss: {real_safety_loss}")
+=======
+            print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}, real_safety_loss: {real_safety_loss}")
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
             loss = (data_loss + lambda_ * safe_loss) / lambda_
             # if constants.profile:
             #     end_forward = time.time()

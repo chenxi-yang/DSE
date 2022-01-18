@@ -41,9 +41,13 @@ def cal_data_loss(m, trajectories, criterion):
             data_loss = data_loss + criterion(yp, y_trajectory[idx])
             data_loss /= len(yp_trajectory)
     else:
+<<<<<<< HEAD
         # X, y = batch_pair(trajectories, data_bs=512)
         # just for test
         X, y = batch_pair(trajectories, data_bs=10)
+=======
+        X, y = batch_pair(trajectories, data_bs=512)
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
         # print(f"after batch pair: {X.shape}")
         if torch.cuda.is_available():
@@ -108,7 +112,11 @@ def learning(
     for i in range(epoch):
         if i <= epochs_to_skip:
             continue
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
         epoch_data_loss = 0.0
         batch_count = 0
         for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=data_bs):

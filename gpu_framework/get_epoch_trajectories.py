@@ -39,6 +39,7 @@ def store_trajectory(output_states, trajectory_path):
     return 
 
 
+<<<<<<< HEAD
 def is_safe_trajectory(trajectory, safe_range_list):
     for state in trajectory:
         for x in state:
@@ -67,12 +68,17 @@ def calculate_safety(output_states, safe_range_list):
     print(f"Concrete Safe Trajectory Percentage: {safe_trajectories/total_trajectories}")
 
 
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 def extract_trajectory(
         method_dict,
         ini_states,
         category,
         epoch,
+<<<<<<< HEAD
         safe_range_list=None,
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
     ):
     model_path, model_name = method_dict['model_path'], method_dict['model_name']
     m = Program(l=64, nn_mode='complex')
@@ -94,7 +100,10 @@ def extract_trajectory(
         output_states, 
         trajectory_path=f"plot/plot_trajectories/{method_dict['model_name']}_{method_dict['method']}_{epoch}_{category}.txt",
     )
+<<<<<<< HEAD
     calculate_safety(output_states, safe_range_list)
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
 
 if __name__ == "__main__":
@@ -116,8 +125,11 @@ if __name__ == "__main__":
     configs['AircraftCollision'] = dict() 
     configs['AC-New'] = dict() # 3
     configs['AC-New-1'] = dict()
+<<<<<<< HEAD
     configs['cartpole_v3'] = dict()
     configs['cartpole_v2'] = dict()
+=======
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
     # Thermostat
     # configs['Thermostat-New']['Ablation'] = {
@@ -144,6 +156,7 @@ if __name__ == "__main__":
     #     'x_l': [60.0],
     #     'x_r': [64.0],
     # }
+<<<<<<< HEAD
     # configs['Thermostat-New']['DiffAI'] = {
     #     'model_path': f"gpu_DiffAI/models",
     #     'model_name': f"thermostat_new_complex_64_2_100_10_83.0_1_0",
@@ -157,6 +170,21 @@ if __name__ == "__main__":
     #     'x_l': [60.0],
     #     'x_r': [64.0],
     # }
+=======
+    configs['Thermostat-New']['DiffAI'] = {
+        'model_path': f"gpu_DiffAI/models",
+        'model_name': f"thermostat_new_complex_64_2_100_10_83.0_1_0",
+        'method': 'DiffAI+',
+        'benchmark': 'Thermostat-New',
+        # 'epoch_list': [0, 1499],
+        'epoch_list': [1499],
+        # 'epoch_list': [4999],
+        'benchmark_name': 'thermostat_new',
+        'dataset_path': "dataset/thermostat_new_83.0.txt",
+        'x_l': [60.0],
+        'x_r': [64.0],
+    }
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
     # AC-New-1
     # configs['AC-New-1']['Ablation(10)'] = {
@@ -238,6 +266,7 @@ if __name__ == "__main__":
     #     'x_l': [5.0],
     #     'x_r': [6.0],
     # }
+<<<<<<< HEAD
     # configs['Racetrack-Relaxed-Multi']['DiffAI'] = {
     #     'model_path': f"gpu_DiffAI/models",
     #     'model_name': f"racetrack_relaxed_multi_complex_64_2_10_10_0_0_0",
@@ -321,6 +350,10 @@ if __name__ == "__main__":
         'x_r': [0.05, 0.05, 0.05, 0.05],
         'safe_range_list': [-0.1, 0.1],
     }
+=======
+    
+
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
 
     torch.autograd.set_detect_anomaly(True)
     print(f"#### Extract Trajectory ####")
@@ -353,6 +386,7 @@ if __name__ == "__main__":
                     ini_states=ini_states,
                     category='concrete',
                     epoch=epoch,
+<<<<<<< HEAD
                     safe_range_list=method_dict['safe_range_list'],
                 )
                 # no symbolic trajectories
@@ -365,6 +399,18 @@ if __name__ == "__main__":
                 #     category='symbolic',
                 #     epoch=epoch,
                 # )
+=======
+                )
+                # exit(0)
+                abstract_states = create_abstract_states_from_components(components)
+                ini_states = initialize_components(abstract_states)
+                extract_trajectory(
+                    method_dict=method_dict,
+                    ini_states=ini_states,
+                    category='symbolic',
+                    epoch=epoch,
+                )
+>>>>>>> 69e3c7c6074948b0d898e3ae03f538ae3313895f
                 print(f"-- FINISH TRAJECTORY -- {benchmark} & {method} -- {time.time() - start_time} s.")
 
     # configs['Thermostat']['Ablation'] = {
