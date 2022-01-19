@@ -9,3 +9,6 @@
 
 # all models
 **/models/**
+
+# .vscode
+**/.vscode

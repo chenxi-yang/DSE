@@ -157,6 +157,8 @@ if __name__ == "__main__":
         configs['Thermostat'] = dict()
         configs['Racetrack'] = dict()
         configs['AircraftCollision'] = dict()
+        configs['CartPole'] = dict()
+        # Settings for DiffAI+
         configs['Thermostat']['DiffAI+'] = {
             'trajectory_path': f"../gpu_DiffAI/result/thermostat_new_complex_64_2_100_{trajectory_size}_{trajectory_size}_[83.0]_volume_10000.txt",
             'method': 'DiffAI+',
@@ -172,6 +174,12 @@ if __name__ == "__main__":
             'method': 'DiffAI+',
             'benchmark': 'AC',
         }
+        configs['AircraftCollision']['DiffAI+'] = {
+            'trajectory_path': f"../gpu_DiffAI/result/aircraft_collision_new_1_complex_64_2_100_{trajectory_size}_{trajectory_size}_[100000.0]_volume_10000.txt",
+            'method': 'DiffAI+',
+            'benchmark': 'AC',
+        }
+
         configs['Thermostat']['DSE'] = {
             'trajectory_path': f"../gpu_DSE/result/thermostat_new_complex_64_2_1_{trajectory_size}_{trajectory_size}_[83.0]_volume_10000.txt",
             'method': 'DSE',
@@ -191,7 +199,8 @@ if __name__ == "__main__":
         configs['Racetrack']['benchmark'] = 'Racetrack'
         configs['AircraftCollision']['benchmark'] = 'AC'
         
-        f_loss(configs['Thermostat'], data_size=trajectory_size*20)
-        f_loss(configs['Racetrack'], data_size=trajectory_size*20)
-        f_loss(configs['AircraftCollision'], data_size=trajectory_size*15)
+        # f_loss(configs['Thermostat'], data_size=trajectory_size*20)
+        # f_loss(configs['Racetrack'], data_size=trajectory_size*20)
+        # f_loss(configs['AircraftCollision'], data_size=trajectory_size*15)
+        f_loss(configs['AircraftCollision'], data_size=trajectory_size/10*15)
 
