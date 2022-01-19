@@ -319,9 +319,9 @@ def extract_abstract_representation(trajectories, x_l, x_r, num_components):
     # interval
     # and all the trajectories starting from that interval
     # x_min, x_max = x_l[0], x_r[0]
-    # components = create_components(x_l, x_r, num_components)
-    x_min, x_max = x_l[0], x_r[0]
-    components = create_components(x_min, x_max, num_components)
+    components = create_components(x_l, x_r, num_components)
+    # x_min, x_max = x_l[0], x_r[0]
+    # components = create_components(x_min, x_max, num_components)
     for idx, component in enumerate(components):
         component.update(
             {
