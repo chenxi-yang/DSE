@@ -38,7 +38,6 @@ if torch.cuda.is_available():
     index3 = index3.cuda()
 
 # i, x, x_dot, theta, theta_dot, costheta, sintheta, action, force, temp, thetaacc, xacc 
-# stage: [0, 1, 2, 3] == ['CRUISE', 'LEFT', 'STRAIGHT', 'RIGHT']
 def initialize_components(abstract_states):
     center, width = abstract_states['center'], abstract_states['width']
     B, D = center.shape
@@ -259,7 +258,7 @@ class Program(nn.Module):
             self.assign_theta,
             self.assign_theta_dot,
         )
-        self.trajectory_update = Trajectory(target_idx=[1, 2, 3, 4]) # update theta, x, x_dot, theta_dot
+        self.trajectory_update = Trajectory(target_idx=[1, 2, 3, 4]) # update x, x_dot, theta, theta_dot
         self.whileblock = nn.Sequential(
             # self.assign_distance, 
             self.assign_action,  
