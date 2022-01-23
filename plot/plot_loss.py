@@ -4,6 +4,7 @@ import random
 
 def read_loss(configs):
     file_name = configs['trajectory_path']
+    # print(f"file_name: {file_name}")
     f = open(file_name, 'r')
     f.readline()
     f.readline()
@@ -55,6 +56,8 @@ def preprocess_loss(loss_dict, configs):
             #         loss_length_list = [0 for i in loss_length_list]
 
             loss_range_l_list, loss_range_r_list = list(), list()
+            loss_sum_list = list()
+            loss_length_list = list()
             for loss_idx, loss_list in enumerate(l):    
                 # print(len(loss_list), len(loss_range_l_list), len(loss_range_r_list))
                 if configs['benchmark'] == 'Racetrack' and loss_idx == 1:
@@ -62,6 +65,10 @@ def preprocess_loss(loss_dict, configs):
                 if len(loss_range_l_list) == 0:
                     loss_range_l_list = copy.deepcopy(loss_list)
                     loss_range_r_list = copy.deepcopy(loss_list)
+                    loss_sum_list = copy.deepcopy(loss_list)
+                    loss_length_list = copy.deepcopy(loss_list)
+                    loss_sum_list = [0.0 for i in loss_sum_list]
+                    loss_length_list = [0 for i in loss_length_list]
                 else:
                     for idx, loss in enumerate(loss_list):
                         loss_range_l_list[idx] = min(loss_range_l_list[idx], loss)
@@ -127,7 +134,7 @@ def plot_loss(loss_dict, configs, data_size, category):
     plt.close()
 
 
-def f_loss(configs):
+def f_loss(configs, data_size):
     diffai_data, diffai_safety = read_loss(configs['DiffAI+'])
     dse_data, dse_safety = read_loss(configs['DSE'])
     loss_dict = {
@@ -174,10 +181,10 @@ if __name__ == "__main__":
             'method': 'DiffAI+',
             'benchmark': 'AC',
         }
-        configs['AircraftCollision']['DiffAI+'] = {
-            'trajectory_path': f"../gpu_DiffAI/result/aircraft_collision_new_1_complex_64_2_100_{trajectory_size}_{trajectory_size}_[100000.0]_volume_10000.txt",
+        configs['CartPole']['DiffAI+'] = {
+            'trajectory_path': f"../gpu_DiffAI/result/cartpole_v2_complex_64_2_3_{int(trajectory_size/10)}_{int(trajectory_size/10)}_[0.1]_volume_20.txt",
             'method': 'DiffAI+',
-            'benchmark': 'AC',
+            'benchmark': 'CartPole',
         }
 
         configs['Thermostat']['DSE'] = {
@@ -195,12 +202,18 @@ if __name__ == "__main__":
             'method': 'DSE',
             'benchmark': 'AC',
         }
+        configs['CartPole']['DSE'] = {
+            'trajectory_path': f"../gpu_DSE/result/cartpole_v2_complex_64_2_1_{int(trajectory_size/10)}_{int(trajectory_size/10)}_[0.1]_volume_20.txt",
+            'method': 'DSE',
+            'benchmark': 'CartPole',
+        }
         configs['Thermostat']['benchmark'] = 'Thermostat'
         configs['Racetrack']['benchmark'] = 'Racetrack'
         configs['AircraftCollision']['benchmark'] = 'AC'
+        configs['CartPole']['benchmark'] = 'CartPole'
         
         # f_loss(configs['Thermostat'], data_size=trajectory_size*20)
         # f_loss(configs['Racetrack'], data_size=trajectory_size*20)
         # f_loss(configs['AircraftCollision'], data_size=trajectory_size*15)
-        f_loss(configs['AircraftCollision'], data_size=trajectory_size/10*15)
+        f_loss(configs['CartPole'], data_size=int(trajectory_size/10*200))
 
