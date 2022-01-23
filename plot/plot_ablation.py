@@ -154,98 +154,113 @@ if __name__ == '__main__':
         'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000, 50000],
         'benchmark_length': 20,
     }
-    configs['Thermostat']['Ablation'] = {
+    configs['Cartpole'] = {
+        'benchmark_name': "Cartpole",
+        'trajectory_size_list': [1, 5, 10, 25, 50], # 1000, 2500, 5000, 50000],
+        'benchmark_length': 200,
+    }
+
+    # configs['Thermostat']['Ablation'] = {
+    #    'log_path': f"../gpu_only_data/result/",
+    #    'result_prefix': f"thermostat_new_complex_64_2_1",
+    #    'result_suffix': f"[83.0]_volume_10000_evaluation.txt",
+    #    'benchmark_name': "Thermostat",
+    #    'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
+    #    'benchmark_length': 20,
+    # }
+    # configs['Thermostat']['DSE'] = {
+    #    'log_path': f"../gpu_DSE/result/",
+    #    'result_prefix': f"thermostat_new_complex_64_2_1",
+    #    'result_suffix': f"[83.0]_volume_10000_evaluation.txt",
+    #    'benchmark_name': "Thermostat",
+    #    'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
+    #    'benchmark_length': 20,
+    # }
+    # configs['Thermostat']['DiffAI+'] = {
+    #    'log_path': f"../gpu_DiffAI/result/",
+    #    'result_prefix': f"thermostat_new_complex_64_2_100",
+    #    'result_suffix': f"[83.0]_volume_10000_evaluation.txt",
+    #    'benchmark_name': "Thermostat",
+    #    'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
+    #    'benchmark_length': 20,
+    # }
+    # configs['AC']['Ablation'] = {
+    #    'log_path': f"../gpu_only_data/result/",
+    #    'result_prefix': f"aircraft_collision_new_1_complex_64_2_1",
+    #    'result_suffix': f"[100000.0]_volume_10000_evaluation.txt",
+    #    'benchmark_name': "AC",
+    #    'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
+    #    'benchmark_length': 15,
+    # }
+    # configs['AC']['DSE'] = {
+    #    'log_path': f"../gpu_DSE/result/",
+    #    'result_prefix': f"aircraft_collision_new_1_complex_64_2_1",
+    #    'result_suffix': f"[100000.0]_volume_10000_evaluation.txt",
+    #    'benchmark_name': "AC",
+    #    'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
+    #    'benchmark_length': 15,
+    # }
+    # configs['AC']['DiffAI+'] = {
+    #    'log_path': f"../gpu_DiffAI/result/",
+    #    'result_prefix': f"aircraft_collision_new_1_complex_64_2_100",
+    #    'result_suffix': f"[100000.0]_volume_10000_evaluation.txt",
+    #    'benchmark_name': "AC",
+    #    'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
+    #    'benchmark_length': 15,
+    # }
+    # configs['Racetrack']['Ablation'] = {
+    #    'log_path': f"../gpu_only_data/result/",
+    #    'result_prefix': f"racetrack_relaxed_multi_complex_64_2_1",
+    #    'result_suffix': f"[0]_volume_10000_evaluation.txt",
+    #    'benchmark_name': "Racetrack",
+    #    'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
+    #    'benchmark_length': 20,
+    # }
+    # configs['Racetrack']['DSE'] = {
+    #    'log_path': f"../gpu_DSE/result/",
+    #    'result_prefix': f"racetrack_relaxed_multi_complex_64_2_2",
+    #    'result_suffix': f"[0]_volume_10000_evaluation.txt",
+    #    'benchmark_name': "Racetrack",
+    #    'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
+    #    'benchmark_length': 20,
+    # }
+    # configs['Racetrack']['DiffAI+'] = {
+    #    'log_path': f"../gpu_DiffAI/result/",
+    #    'result_prefix': f"racetrack_relaxed_multi_complex_64_2_10",
+    #    'result_suffix': f"[0]_volume_10000_evaluation.txt",
+    #    'benchmark_name': "Racetrack",
+    #    'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
+    #    'benchmark_length': 20,
+    # }
+
+    configs['Cartpole']['Ablation'] = {
        'log_path': f"../gpu_only_data/result/",
-       'result_prefix': f"thermostat_new_complex_64_2_1",
-       'result_suffix': f"[83.0]_volume_10000_evaluation.txt",
-       'benchmark_name': "Thermostat",
-       'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
+       'result_prefix': f"cartpole_v2_complex_64_2_1",
+       'result_suffix': f"[0.1]_volume_20_evaluation.txt",
+       'benchmark_name': "Cartpole",
+       'trajectory_size_list': [1, 5, 10, 25, 50], # 1000, 2500, 5000],
        'benchmark_length': 20,
-    #    'safety_portion_bar': 1 - 0.0001,
-    #    'data_loss_bar': 0.2608449965715408,
     }
-    configs['Thermostat']['DSE'] = {
+    configs['Cartpole']['DSE'] = {
        'log_path': f"../gpu_DSE/result/",
-       'result_prefix': f"thermostat_new_complex_64_2_1",
-       'result_suffix': f"[83.0]_volume_10000_evaluation.txt",
-       'benchmark_name': "Thermostat",
-       'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
+       'result_prefix': f"cartpole_v2_complex_64_2_1",
+       'result_suffix': f"[0.1]_volume_20_evaluation.txt",
+       'benchmark_name': "Cartpole",
+       'trajectory_size_list': [1, 5, 10, 25, 50], # 1000, 2500, 5000],
        'benchmark_length': 20,
-    #    'safety_portion_bar': 1 - 0.0001,
-    #    'data_loss_bar': 0.2608449965715408,
     }
-    configs['Thermostat']['DiffAI+'] = {
+    configs['Cartpole']['DiffAI+'] = {
        'log_path': f"../gpu_DiffAI/result/",
-       'result_prefix': f"thermostat_new_complex_64_2_100",
-       'result_suffix': f"[83.0]_volume_10000_evaluation.txt",
-       'benchmark_name': "Thermostat",
-       'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
+       'result_prefix': f"cartpole_v2_complex_64_2_3",
+       'result_suffix': f"[0.1]_volume_20_evaluation.txt",
+       'benchmark_name': "Cartpole",
+       'trajectory_size_list': [1, 5, 10, 25, 50], # 1000, 2500, 5000],
        'benchmark_length': 20,
-    #    'safety_portion_bar': 1 - 0.0001,
-    #    'data_loss_bar': 0.2608449965715408,
-    }
-    configs['AC']['Ablation'] = {
-       'log_path': f"../gpu_only_data/result/",
-       'result_prefix': f"aircraft_collision_new_1_complex_64_2_1",
-       'result_suffix': f"[100000.0]_volume_10000_evaluation.txt",
-       'benchmark_name': "AC",
-       'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
-       'benchmark_length': 15,
-    #    'safety_portion_bar': 1 - 0.0001,
-    #    'data_loss_bar': 0.2608449965715408,
-    }
-    configs['AC']['DSE'] = {
-       'log_path': f"../gpu_DSE/result/",
-       'result_prefix': f"aircraft_collision_new_1_complex_64_2_1",
-       'result_suffix': f"[100000.0]_volume_10000_evaluation.txt",
-       'benchmark_name': "AC",
-       'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
-       'benchmark_length': 15,
-    #    'safety_portion_bar': 1 - 0.0001,
-    #    'data_loss_bar': 0.2608449965715408,
-    }
-    configs['AC']['DiffAI+'] = {
-       'log_path': f"../gpu_DiffAI/result/",
-       'result_prefix': f"aircraft_collision_new_1_complex_64_2_100",
-       'result_suffix': f"[100000.0]_volume_10000_evaluation.txt",
-       'benchmark_name': "AC",
-       'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
-       'benchmark_length': 15,
-    #    'safety_portion_bar': 1 - 0.0001,
-    #    'data_loss_bar': 0.2608449965715408,
-    }
-    configs['Racetrack']['Ablation'] = {
-       'log_path': f"../gpu_only_data/result/",
-       'result_prefix': f"racetrack_relaxed_multi_complex_64_2_1",
-       'result_suffix': f"[0]_volume_10000_evaluation.txt",
-       'benchmark_name': "Racetrack",
-       'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
-       'benchmark_length': 20,
-    #    'safety_portion_bar': 1 - 0.0001,
-    #    'data_loss_bar': 0.2608449965715408,
-    }
-    configs['Racetrack']['DSE'] = {
-       'log_path': f"../gpu_DSE/result/",
-       'result_prefix': f"racetrack_relaxed_multi_complex_64_2_2",
-       'result_suffix': f"[0]_volume_10000_evaluation.txt",
-       'benchmark_name': "Racetrack",
-       'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
-       'benchmark_length': 20,
-    #    'safety_portion_bar': 1 - 0.0001,
-    #    'data_loss_bar': 0.2608449965715408,
-    }
-    configs['Racetrack']['DiffAI+'] = {
-       'log_path': f"../gpu_DiffAI/result/",
-       'result_prefix': f"racetrack_relaxed_multi_complex_64_2_10",
-       'result_suffix': f"[0]_volume_10000_evaluation.txt",
-       'benchmark_name': "Racetrack",
-       'trajectory_size_list': [10, 50, 100, 250, 500], # 1000, 2500, 5000],
-       'benchmark_length': 20,
-    #    'safety_portion_bar': 1 - 0.0001,
-    #    'data_loss_bar': 0.2608449965715408,
     }
 
     for benchmark_name, benchmark_config in configs.items():
         print(f"Benchmark name: {benchmark_name}")
+        if benchmark_name != 'Cartpole':
+            continue
         visualize_data_size(benchmark_config)
 

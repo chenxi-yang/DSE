@@ -279,33 +279,33 @@ if __name__ == "__main__":
                 if time_out == True:
                     continue
 
-                # AI verification use many initial components, as more as possible
-                AI_components = extract_abstract_representation(Trajectory_test, x_l, x_r, AI_verifier_num_components)
-                # SE verification use one initial components
-                SE_components = extract_abstract_representation(Trajectory_test, x_l, x_r, SE_verifier_num_components)
-                # AI verification, SE verification, Test data loss
+                # # AI verification use many initial components, as more as possible
+                # AI_components = extract_abstract_representation(Trajectory_test, x_l, x_r, AI_verifier_num_components)
+                # # SE verification use one initial components
+                # SE_components = extract_abstract_representation(Trajectory_test, x_l, x_r, SE_verifier_num_components)
+                # # AI verification, SE verification, Test data loss
                 
-                # TODO: check replacement?
-                print(f"------------start verification------------")
-                print(f"to verify safe bound: {safe_range_bound}")
+                # # TODO: check replacement?
+                # print(f"------------start verification------------")
+                # print(f"to verify safe bound: {safe_range_bound}")
 
-                # print(f"sys.modules.keys: {sys.modules.keys()}")
-                constants.status = 'verify_AI'
-                import verifier_AI as vA
-                importlib.reload(vA)
-                from verifier_AI import *
+                # # print(f"sys.modules.keys: {sys.modules.keys()}")
+                # constants.status = 'verify_AI'
+                # import verifier_AI as vA
+                # importlib.reload(vA)
+                # from verifier_AI import *
 
-                verification_time = time.time()
-                # TODO: change extract_abstract_representation
+                # verification_time = time.time()
+                # # TODO: change extract_abstract_representation
                 
-                verifier_AI(
-                    model_path=MODEL_PATH, 
-                    model_name=target_model_name, 
-                    components=AI_components, 
-                    target=target,
-                    trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
-                )
-                print(f"---verification AI time: {time.time() - verification_time} sec---")
+                # verifier_AI(
+                #     model_path=MODEL_PATH, 
+                #     model_name=target_model_name, 
+                #     components=AI_components, 
+                #     target=target,
+                #     trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
+                # )
+                # print(f"---verification AI time: {time.time() - verification_time} sec---")
 
                 # constants.status = 'verify_SE'
                 # import verifier_SE as vS

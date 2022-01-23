@@ -41,9 +41,8 @@ def cal_data_loss(m, trajectories, criterion):
             data_loss = data_loss + criterion(yp, y_trajectory[idx])
             data_loss /= len(yp_trajectory)
     else:
-        # X, y = batch_pair(trajectories, data_bs=512)
         # just for test
-        X, y = batch_pair(trajectories, data_bs=10)
+        X, y = batch_pair(trajectories, data_bs=512)
         X, y = torch.from_numpy(X).float(), torch.from_numpy(y).float()
         # print(f"after batch pair: {X.shape}")
         if torch.cuda.is_available():

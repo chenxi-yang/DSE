@@ -37,7 +37,8 @@ def load_data(
     # print(f"data after shuffle:\n {data_list[0][0]}\n{data_list[1][0]}\n{data_list[2][0]}")
     trajectory_train_list = data_list[:train_size]
     trajectory_test_list = data_list[train_size:train_size + test_size]
-
+    print(f"train tra length: {len(trajectory_train_list)}, test tra length: {len(trajectory_test_list)}")
+    # exit(0)
     # X_train, X_test, y_train, y_test
     print("---Data Generation---")
     print("--- %s seconds ---" % (time.time() - start_t))

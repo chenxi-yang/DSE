@@ -47,27 +47,21 @@ def test_objective(m, trajectory_test, criterion, test_bs):
             test_data_loss = test_data_loss + criterion(yp, y_trajectory[idx])
             test_data_loss /= len(yp_trajectory)
     else:
-        for x, y in trajectory2points(trajectory_test, test_bs):
+        # for x, y in trajectory2points(trajectory_test, test_bs):
+        for x, y in batch_pair_yield(trajectory_test, data_bs=test_bs):
+            x, y = torch.from_numpy(x).float(), torch.from_numpy(y).float()
+            # print(f"after batch pair: {X.shape}")
+            if torch.cuda.is_available():
+                x = x.cuda()
+                y = y.cuda()
             yp = m(x, version="single_nn_learning")
             batch_data_loss = criterion(yp, y)
             if debug:
                 print(f"yp: {yp.squeeze()}, y: {y.squeeze()}")
                 print(f"batch data loss: {batch_data_loss}")
-
             count += 1
             data_loss += batch_data_loss
-            # update data_loss
-        # print/f.write()
         test_data_loss = data_loss / count
-        # X, y_trajectory = batch_pair_trajectory(trajectory_test, data_bs=None)
-        # X, y_trajectory = torch.from_numpy(X).float(), [torch.from_numpy(y).float() for y in y_trajectory]
-        # if torch.cuda.is_available():
-        #     X, y_trajectory = X.cuda(), [y.cuda() for y in y_trajectory]
-        # yp_trajectory = m(X, version="single_nn_learning")
-        # test_data_loss = var(0.0)
-        # for idx, yp in enumerate(yp_trajectory):
-        #     test_data_loss = test_data_loss + criterion(yp, y_trajectory[idx])
-        #     test_data_loss /= len(yp_trajectory)
 
     if not debug:
         log_file_evaluation = open(constants.file_dir_evaluation, 'a')
