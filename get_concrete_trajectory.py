@@ -71,7 +71,7 @@ def extract_trajectory(
         param.requires_grad = False
     
     output_states = m(ini_states)
-    # store_trajectory(output_states, trajectory_path, category="single")
+    store_trajectory(output_states, trajectory_path, category="single")
     count_concrete_trajectories_safety(output_states, safe_range_list)
 
 

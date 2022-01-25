@@ -58,9 +58,12 @@ def calculate_safety(output_states, safe_range_list):
         for state_idx, state_l in enumerate(trajectory_l):
             state_r = trajectory_r[state_idx]
             target_l, target_r = state_l[0], state_r[1]
+            # print(f"target_l: {target_l}; target_r: {target_r}; safe_range: {safe_range_list}")
             if target_l < safe_range_list[0] or target_r > safe_range_list[1]:
                 safe_flag = 0
+                # print(f"in")
                 break
+        # print(f"end one tra: {safe_flag}")
         if safe_flag == 1:
             safe_trajectories += 1
         total_trajectories += 1
@@ -157,19 +160,19 @@ if __name__ == "__main__":
     #     'x_l': [60.0],
     #     'x_r': [64.0],
     # }
-    configs['Thermostat-New']['DiffAI'] = {
-        'model_path': f"gpu_DiffAI/models",
-        'model_name': f"thermostat_new_complex_64_2_100_10_83.0_1_0",
-        'method': 'DiffAI+',
-        'benchmark': 'Thermostat-New',
-        # 'epoch_list': [0, 1499],
-        'epoch_list': [1499],
-        # 'epoch_list': [4999],
-        'benchmark_name': 'thermostat_new',
-        'dataset_path': "dataset/thermostat_new_83.0.txt",
-        'x_l': [60.0],
-        'x_r': [64.0],
-    }
+    # configs['Thermostat-New']['DiffAI'] = {
+    #     'model_path': f"gpu_DiffAI/models",
+    #     'model_name': f"thermostat_new_complex_64_2_100_10_83.0_1_0",
+    #     'method': 'DiffAI+',
+    #     'benchmark': 'Thermostat-New',
+    #     # 'epoch_list': [0, 1499],
+    #     'epoch_list': [1499],
+    #     # 'epoch_list': [4999],
+    #     'benchmark_name': 'thermostat_new',
+    #     'dataset_path': "dataset/thermostat_new_83.0.txt",
+    #     'x_l': [60.0],
+    #     'x_r': [64.0],
+    # }
 
     # AC-New-1
     # configs['AC-New-1']['Ablation(10)'] = {
@@ -262,45 +265,45 @@ if __name__ == "__main__":
     #     'x_l': [5.0],
     #     'x_r': [6.0],
     # }
-    configs['cartpole_v3']['DiffAI'] = {
-        'model_path': f"gpu_DiffAI/models",
-        'model_name': f"cartpole_v3_complex_64_2_1_50_0.21_0_0",
-        'method': 'DiffAI+',
-        'benchmark': 'cartpole_v3',
-        'epoch_list': [999],
-        'benchmark_name': 'cartpole_v3',
-        'dataset_path': "dataset/cartpole_v3_0.21.txt",
-        'x_l': [-0.05, -0.05, -0.05, -0.05],
-        'x_r': [0.05, 0.05, 0.05, 0.05],
-        'safe_range_list': [-0.210, 0.210],
-    }
-    configs['cartpole_v3']['DSE'] = {
-        'model_path': f"gpu_DSE/models",
-        'model_name': f"cartpole_v3_complex_64_2_1_50_0.21_0_0",
-        'method': 'DSE',
-        'benchmark': 'cartpole_v3',
-        'epoch_list': [999],
-        'benchmark_name': 'cartpole_v3',
-        'dataset_path': "dataset/cartpole_v3_0.21.txt",
-        'x_l': [-0.05, -0.05, -0.05, -0.05],
-        'x_r': [0.05, 0.05, 0.05, 0.05],
-        'safe_range_list': [-0.210, 0.210],
-    }
-    configs['cartpole_v3']['Ablation'] = {
-        'model_path': f"gpu_only_data/models",
-        'model_name': f"cartpole_v3_complex_64_2_1_50_0.21_0_0",
-        'method': 'Ablation',
-        'benchmark': 'cartpole_v3',
-        'epoch_list': [999],
-        'benchmark_name': 'cartpole_v3',
-        'dataset_path': "dataset/cartpole_v3_0.21.txt",
-        'x_l': [-0.05, -0.05, -0.05, -0.05],
-        'x_r': [0.05, 0.05, 0.05, 0.05],
-        'safe_range_list': [-0.210, 0.210],
-    }
+    # configs['cartpole_v3']['DiffAI'] = {
+    #     'model_path': f"gpu_DiffAI/models",
+    #     'model_name': f"cartpole_v3_complex_64_2_1_50_0.21_0_0",
+    #     'method': 'DiffAI+',
+    #     'benchmark': 'cartpole_v3',
+    #     'epoch_list': [999],
+    #     'benchmark_name': 'cartpole_v3',
+    #     'dataset_path': "dataset/cartpole_v3_0.21.txt",
+    #     'x_l': [-0.05, -0.05, -0.05, -0.05],
+    #     'x_r': [0.05, 0.05, 0.05, 0.05],
+    #     'safe_range_list': [-0.210, 0.210],
+    # }
+    # configs['cartpole_v3']['DSE'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"cartpole_v3_complex_64_2_1_50_0.21_0_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'cartpole_v3',
+    #     'epoch_list': [999],
+    #     'benchmark_name': 'cartpole_v3',
+    #     'dataset_path': "dataset/cartpole_v3_0.21.txt",
+    #     'x_l': [-0.05, -0.05, -0.05, -0.05],
+    #     'x_r': [0.05, 0.05, 0.05, 0.05],
+    #     'safe_range_list': [-0.210, 0.210],
+    # }
+    # configs['cartpole_v3']['Ablation'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"cartpole_v3_complex_64_2_1_50_0.21_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'cartpole_v3',
+    #     'epoch_list': [999],
+    #     'benchmark_name': 'cartpole_v3',
+    #     'dataset_path': "dataset/cartpole_v3_0.21.txt",
+    #     'x_l': [-0.05, -0.05, -0.05, -0.05],
+    #     'x_r': [0.05, 0.05, 0.05, 0.05],
+    #     'safe_range_list': [-0.210, 0.210],
+    # }
     configs['cartpole_v2']['DiffAI'] = {
         'model_path': f"gpu_DiffAI/models",
-        'model_name': f"cartpole_v2_complex_64_2_1_50_0.1_0_0",
+        'model_name': f"cartpole_v2_complex_64_2_3_50_0.1_0_0",
         'method': 'DiffAI+',
         'benchmark': 'cartpole_v2',
         'epoch_list': [999],
@@ -310,30 +313,30 @@ if __name__ == "__main__":
         'x_r': [0.05, 0.05, 0.05, 0.05],
         'safe_range_list': [-0.1, 0.1],
     }
-    configs['cartpole_v2']['DSE'] = {
-        'model_path': f"gpu_DSE/models",
-        'model_name': f"cartpole_v2_complex_64_2_1_50_0.1_0_0",
-        'method': 'DSE',
-        'benchmark': 'cartpole_v2',
-        'epoch_list': [999],
-        'benchmark_name': 'cartpole_v2',
-        'dataset_path': "dataset/cartpole_v2_0.1.txt",
-        'x_l': [-0.05, -0.05, -0.05, -0.05],
-        'x_r': [0.05, 0.05, 0.05, 0.05],
-        'safe_range_list': [-0.1, 0.1],
-    }
-    configs['cartpole_v2']['Ablation'] = {
-        'model_path': f"gpu_only_data/models",
-        'model_name': f"cartpole_v2_complex_64_2_1_50_0.1_0_0",
-        'method': 'Ablation',
-        'benchmark': 'cartpole_v2',
-        'epoch_list': [999],
-        'benchmark_name': 'cartpole_v2',
-        'dataset_path': "dataset/cartpole_v2_0.1.txt",
-        'x_l': [-0.05, -0.05, -0.05, -0.05],
-        'x_r': [0.05, 0.05, 0.05, 0.05],
-        'safe_range_list': [-0.1, 0.1],
-    }
+    # configs['cartpole_v2']['DSE'] = {
+    #     'model_path': f"gpu_DSE/models",
+    #     'model_name': f"cartpole_v2_complex_64_2_1_50_0.1_0_0",
+    #     'method': 'DSE',
+    #     'benchmark': 'cartpole_v2',
+    #     'epoch_list': [499, 999],
+    #     'benchmark_name': 'cartpole_v2',
+    #     'dataset_path': "dataset/cartpole_v2_0.1.txt",
+    #     'x_l': [-0.05, -0.05, -0.05, -0.05],
+    #     'x_r': [0.05, 0.05, 0.05, 0.05],
+    #     'safe_range_list': [-0.1, 0.1],
+    # }
+    # configs['cartpole_v2']['Ablation'] = {
+    #     'model_path': f"gpu_only_data/models",
+    #     'model_name': f"cartpole_v2_complex_64_2_1_50_0.1_0_0",
+    #     'method': 'Ablation',
+    #     'benchmark': 'cartpole_v2',
+    #     'epoch_list': [999],
+    #     'benchmark_name': 'cartpole_v2',
+    #     'dataset_path': "dataset/cartpole_v2_0.1.txt",
+    #     'x_l': [-0.05, -0.05, -0.05, -0.05],
+    #     'x_r': [0.05, 0.05, 0.05, 0.05],
+    #     'safe_range_list': [-0.1, 0.1],
+    # }
 
     torch.autograd.set_detect_anomaly(True)
     print(f"#### Extract Trajectory ####")
@@ -346,15 +349,15 @@ if __name__ == "__main__":
                 constants.benchmark_name = method_dict['benchmark_name']
 
                 Trajectory_train, Trajectory_test = load_data(
-                    train_size=100, 
-                    test_size=200, # 20000
+                    train_size=25, 
+                    test_size=50, # 20000
                     dataset_path=method_dict['dataset_path'],
                 )
                 components = extract_abstract_representation(
                     Trajectory_test, 
                     x_l=method_dict['x_l'], 
                     x_r=method_dict['x_r'], 
-                    num_components=100)
+                    num_components=5)
 
                 import import_hub as hub
                 importlib.reload(hub)
@@ -370,11 +373,12 @@ if __name__ == "__main__":
                 )
                 # no symbolic trajectories
                 # exit(0)
-                # abstract_states = create_abstract_states_from_components(components)
-                # ini_states = initialize_components(abstract_states)
-                # extract_trajectory(
-                #     method_dict=method_dict,
-                #     ini_states=ini_states,
-                #     category='symbolic',
-                #     epoch=epoch,
-                # )
+                abstract_states = create_abstract_states_from_components(components)
+                ini_states = initialize_components(abstract_states)
+                extract_trajectory(
+                    method_dict=method_dict,
+                    ini_states=ini_states,
+                    category='symbolic',
+                    epoch=epoch,
+                    safe_range_list=method_dict['safe_range_list'],
+                )

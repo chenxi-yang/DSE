@@ -187,6 +187,11 @@ def plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, config
         ax = fig.add_subplot(111, aspect=1.0)
         plt.xlim([0, 20])
         plt.ylim([-5, 15])
+    
+    if configs['benchmark'] == 'Cartpole':
+        ax = fig.add_subplot(111, aspect=6.18)
+        plt.xlim([0, 11])
+        plt.ylim([-0.15, 0.15])
 
     patches = []
     patches_unsafe = []
@@ -256,6 +261,8 @@ def plot_trajectories(concrete_trajectory_list, symbolic_trajectory_list, config
                             [4, 10], [4, 10], [4, 10], 
                             [0, 10], [0, 10], [0, 10], [0, 10], [0, 10], 
                             [0, 4]]
+    if 'Cartpole' in configs['benchmark']:
+        safe_interval = [-0.1, 0.1]
 
     for concrete_trajectory in concrete_trajectory_list:
         x = [i + 0.5 for i in range(len(concrete_trajectory))]
@@ -329,7 +336,15 @@ if __name__ == "__main__":
     starting_area_ac_new = [[
         (0, 0, 1.0, 0.1),
     ]]
+    unsafe_map_cartpole_new = [[
+        (0, -1, 11, 0.9),
+        (0, 0.1, 11, 1),
+    ]]
+    starting_area_cartpole_new = [[
+        (0, -0.05, 1.0, 0.1),
+    ]]
 
+    # back up setting
     unsafe_map_ac = [[
         (0, 0, 21, math.sqrt(40.0)),
     ]]
@@ -419,6 +434,8 @@ if __name__ == "__main__":
     configs['AircraftCollision'] = dict()
     configs['AC-New'] = dict() # 3
     configs['AC-New-1'] = dict() # 3
+    configs['Cartpole'] = dict()
+
     # configs['Thermostat-New']['Ablation-10(199)'] = {
     #     'concrete_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_Ablation_199_concrete.txt",
     #     'symbolic_trajectory_path': f"plot_trajectories/thermostat_new_complex_64_2_1_10_83.0_0_0_Ablation_199_symbolic.txt",
@@ -1114,33 +1131,35 @@ if __name__ == "__main__":
     #     'starting_area': starting_area_ac_new,
     #     'benchmark': 'AC-New-1',
     # }
-    configs['AC-New-1']['Ablation-10(Final)'] = {
-        'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_Ablation_999_concrete.txt",
-        'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_Ablation_999_symbolic.txt",
-        'unsafe_area': unsafe_map_ac_new, 
-        'starting_area': starting_area_ac_new,
-        'benchmark': 'AC-New-1',
+
+    # cartpole
+    configs['Cartpole']['Ablation-50(Final)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/cartpole_v2_complex_64_2_1_50_0.1_0_0_Ablation_999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/cartpole_v2_complex_64_2_1_50_0.1_0_0_Ablation_999_symbolic.txt",
+        'unsafe_area': unsafe_map_cartpole_new, 
+        'starting_area': starting_area_cartpole_new,
+        'benchmark': 'Cartpole',
     }
-    configs['AC-New-1']['DiffAI-10(Final)'] = {
-        'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_100_10_100000.0_1_0_DiffAI+_999_concrete.txt",
-        'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_100_10_100000.0_1_0_DiffAI+_999_symbolic.txt",
-        'unsafe_area': unsafe_map_ac_new, 
-        'starting_area': starting_area_ac_new,
-        'benchmark': 'AC-New-1',
+    configs['Cartpole']['DiffAI-50(Final)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/cartpole_v2_complex_64_2_3_50_0.1_0_0_DiffAI+_999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/cartpole_v2_complex_64_2_3_50_0.1_0_0_DiffAI+_999_symbolic.txt",
+        'unsafe_area': unsafe_map_cartpole_new, 
+        'starting_area': starting_area_cartpole_new,
+        'benchmark': 'Cartpole',
     }
-    configs['AC-New-1']['DSE-10(Middle)'] = {
-        'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_DSE_499_concrete.txt",
-        'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_DSE_499_symbolic.txt",
-        'unsafe_area': unsafe_map_ac_new, 
-        'starting_area': starting_area_ac_new,
-        'benchmark': 'AC-New-1',
+    configs['Cartpole']['DSE-50(Middle)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/cartpole_v2_complex_64_2_1_50_0.1_0_0_DSE_499_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/cartpole_v2_complex_64_2_1_50_0.1_0_0_DSE_499_symbolic.txt",
+        'unsafe_area': unsafe_map_cartpole_new, 
+        'starting_area': starting_area_cartpole_new,
+        'benchmark': 'Cartpole',
     }
-    configs['AC-New-1']['DSE-10(Final)'] = {
-        'concrete_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_DSE_999_concrete.txt",
-        'symbolic_trajectory_path': f"plot_trajectories/aircraft_collision_new_1_complex_64_2_1_10_100000.0_1_0_DSE_999_symbolic.txt",
-        'unsafe_area': unsafe_map_ac_new, 
-        'starting_area': starting_area_ac_new,
-        'benchmark': 'AC-New-1',
+    configs['Cartpole']['DSE-50(Final)'] = {
+        'concrete_trajectory_path': f"plot_trajectories/cartpole_v2_complex_64_2_1_50_0.1_0_0_DSE_999_concrete.txt",
+        'symbolic_trajectory_path': f"plot_trajectories/cartpole_v2_complex_64_2_1_50_0.1_0_0_DSE_999_symbolic.txt",
+        'unsafe_area': unsafe_map_cartpole_new, 
+        'starting_area': starting_area_cartpole_new,
+        'benchmark': 'Cartpole',
     }
 
     for benchmark, benchmark_dict in configs.items():

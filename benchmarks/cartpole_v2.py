@@ -46,7 +46,7 @@ def initialize_components(abstract_states):
     if torch.cuda.is_available():
         padding = padding.cuda()
         # padding_y1 = padding_y1.cuda()
-    # TODO
+
     x_center, x_width = center[:, :1], width[:, :1]
     x_dot_center, x_dot_width = center[:, 1:2], width[:, 1:2]
     theta_center, theta_width = center[:, 2:3], width[:, 2:3]
@@ -140,59 +140,6 @@ def f_assign_neg_force(x):
     return x.set_value(var(-10.0))
 def f_assign_pos_force(x):
     return x.set_value(var(10.0))
-# def f_assign_costheta(x):
-#     return x.cos()
-# def f_assign_sintheta(x):
-#     return x.sin()
-# def f_assign_temp(x):
-#     force = x.select_from_index(1, index0)
-#     theta_dot = x.select_from_index(1, index1)
-#     sintheta = x.select_from_index(1, index2)
-#     # print(f"---in temp---")
-#     # print('force', force.c.cpu().detach().numpy().tolist(), '\n', force.delta.cpu().detach().numpy().tolist())
-#     # print('theta_dot', theta_dot.c.cpu().detach().numpy().tolist(), '\n', theta_dot.delta.cpu().detach().numpy().tolist())
-#     # print('sintheta', sintheta.c.cpu().detach().numpy().tolist(), '\n', sintheta.delta.cpu().detach().numpy().tolist())
-#     subsum = sintheta.mul(theta_dot).mul(theta_dot)
-#     # print('subsum', subsum.c.cpu().detach().numpy().tolist(), '\n', subsum.delta.cpu().detach().numpy().tolist())
-#     return (force.add(subsum.mul(var(0.05)))).mul(var(1.0/1.1))
-
-# use linear approximation for the accelerator
-# def f_assign_thetaacc(x):
-#     sintheta = x.select_from_index(1, index0)
-#     costheta = x.select_from_index(1, index1)
-#     temp = x.select_from_index(1, index2)
-#     costheta_square = costheta.abs().mul(costheta.abs())
-#     upper = (sintheta.mul(var(9.8)).sub_l(costheta.mul(temp))).mul(var(2))
-#     down = costheta_square.mul(var(0.1/1.1)).sub_r(var(4/3))
-#     # print('temp', temp.c.cpu().detach().numpy().tolist(), '\n',temp.delta.cpu().detach().numpy().tolist())
-#     # print('costheta_square', costheta_square.c.cpu().detach().numpy().tolist(), '\n',costheta_square.delta.cpu().detach().numpy().tolist())
-#     # print('upper', upper.c.cpu().detach().numpy().tolist(), '\n',upper.delta.cpu().detach().numpy().tolist())
-#     # print('down', down.c.cpu().detach().numpy().tolist(), '\n', down.delta.cpu().detach().numpy().tolist())
-#     thetaacc = upper.mul(down.div(var(1.0)))
-#     # print('thetaacc', thetaacc.c.cpu().detach().numpy().tolist(), '\n', thetaacc.delta.cpu().detach().numpy().tolist())
-#     # exit(0)
-#     return thetaacc
-# def f_assign_xacc(x):
-#     temp = x.select_from_index(1, index0)
-#     thetaacc = x.select_from_index(1, index1)
-#     costheta = x.select_from_index(1, index2)
-#     return temp.sub_l(thetaacc.mul(costheta).mul(var(0.05/1.1)))
-# def f_assign_x(x):
-#     a = x.select_from_index(1, index0)
-#     x_dot = x.select_from_index(1, index1)
-#     return a.add(x_dot.mul(var(0.02)))
-# def f_assign_x_dot(x):
-#     x_dot = x.select_from_index(1, index0)
-#     xacc = x.select_from_index(1, index1)
-#     return x_dot.add(xacc.mul(var(0.02)))
-# def f_assign_theta(x):
-#     theta = x.select_from_index(1, index0)
-#     theta_dot = x.select_from_index(1, index1)
-#     return theta.add(theta_dot.mul(var(0.02)))
-# def f_assign_theta_dot(x):
-#     theta_dot = x.select_from_index(1, index0)
-#     thetaacc = x.select_from_index(1, index1)
-#     return theta_dot.add(thetaacc.mul(var(0.02)))
 
 # referred from a linear approximation of the dynamics in 
 # https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py
@@ -234,18 +181,6 @@ class Program(nn.Module):
         self.assign_pos_force = Assign(target_idx=[8], arg_idx=[8], f=f_assign_pos_force)
         self.ifelse_force = IfElse(target_idx=[7], test=self.comparison_bar, f_test=f_test, body=self.assign_neg_force, orelse=self.assign_pos_force)
         
-        # self.assign_costheta = Assign(target_idx=[5], arg_idx=[3], f=f_assign_costheta)
-        # self.assign_sintheta = Assign(target_idx=[6], arg_idx=[3], f=f_assign_sintheta)
-        # self.assign_temp = Assign(target_idx=[9], arg_idx=[8, 4, 6], f=f_assign_temp)
-        # self.assign_thetaacc = Assign(target_idx=[10], arg_idx=[6, 5, 9], f=f_assign_thetaacc)
-        # self.assign_xacc = Assign(target_idx=[11], arg_idx=[9, 10, 5], f=f_assign_xacc)
-        # self.assign_middle_states_block = nn.Sequential(
-        #     self.assign_costheta,
-        #     self.assign_sintheta,
-        #     self.assign_temp,
-        #     self.assign_thetaacc,
-        #     self.assign_xacc,
-        # )
         self.assign_x = Assign(target_idx=[1], arg_idx=[1, 2], f=f_assign_x)
         # self.assign_x_dot = Assign(target_idx=[2], arg_idx=[2, 11], f=f_assign_x_dot)
         self.assign_x_dot = Assign(target_idx=[2], arg_idx=[2, 8, 3], f=f_assign_x_dot)
