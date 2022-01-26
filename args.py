@@ -16,6 +16,9 @@ def str2bool(v):
 def get_parser():
     p = argparse.ArgumentParser()
 
+    # the outer loop
+    p.add_argument("--quick_mode", default=False, type=str2bool, help="whether increase the learning speed")
+
     # generate dataset
     p.add_argument("--dataset", default="thermostat", help="define the dataset")
     p.add_argument("--dataset_distribution", default="normal", help="define the distribution the dataset should follow")
@@ -26,6 +29,7 @@ def get_parser():
     p.add_argument("--t_epoch", default=1, type=int, help="epoch for lambda")
 
     p.add_argument("--w", default=0.5, type=float, help="the measure between two lagarangian iteration")
+    p.add_argument("--gamma", default=1.0, type=float, help="The threshold of two learning")
 
     p.add_argument("--benchmark_name", default=None, help="represent the benchmark")
     p.add_argument("--data_size", default=10000, type=int, help="size of dataset, both for training and testing")

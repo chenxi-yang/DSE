@@ -21,36 +21,45 @@ from utils import (
 
 
 #TODO:  change arguments
-def best_lambda(X_train, y_train, m, target):
-    # TODO: m is only a path
-    c = cal_c(X_train, y_train, m, target)
-    q = cal_q(X_train, y_train, m)
-
-    if c.data.item() <= 0.0:
+def best_lambda(q_hat, c_hat):
+    if c_hat.data.item() <= 0.0:
         res_lambda = var(0.0)
     else:
         res_lambda = B
-    return res_lambda, q.add(res_lambda.mul(c)) # lambda, L_max
+    return q_hat.add(res_lambda.mul(c_hat)) #L_max
 
 
 # TODO: change arguments
-def best_theta(component_list, lambda_, target):
-    m, loss, loss_list, q, c, time_out = learning(
-        component_list, 
-        lambda_=lambda_, 
-        stop_val=stop_val, 
+def best_theta(tmp_m_name,
+    components, 
+    lambda_, 
+    epoch, 
+    target, 
+    lr, 
+    bs, 
+    nn_mode, 
+    l, 
+    save, 
+    epochs_to_skip, 
+    data_bs):
+    m = Program(l=l, nn_mode=nn_mode)
+    _, loss, loss_list, q, c, time_out = learning(
+        m=m, 
+        components=components,
+        lambda_=new_lambda,
         epoch=num_epoch, 
-        lr=lr, 
-        bs=bs,
-        l=l,
-        n=n,
-        nn_mode=nn_mode,
-        module=module,
         target=target,
-        use_smooth_kernel=use_smooth_kernel,
+        lr=lr,
+        bs=bs,
+        nn_mode=nn_mode,
+        l=l,
+        save=save,
+        epochs_to_skip=epochs_to_skip,
+        model_name=target_model_name,
+        data_bs=data_bs,
         )
 
-    return m, loss, time_out
+    return q.add(new_lambda.mul(c))
 
 
 def outer_loop(lambda_list, model_list, q):
@@ -246,9 +255,6 @@ if __name__ == "__main__":
                         data_bs=data_bs,
                         )
                     
-                    #TODO: reduce time, because the gap between cal_c and cal_q does not influence a lot on the performance
-                    # m_t = m
-                    
                     if not quick_mode:
                         lambda_list.append(new_lambda)
                         model_list.append(target_model_name)
@@ -256,21 +262,30 @@ if __name__ == "__main__":
                         c_list.append(c)
                         selected_idx = random.choice([idx for idx in len(model_list)])
                         lambda_hat = torch.stack(lambda_list).sum() / len(lambda_list)
-                        L_max = best_lambda(c_hat=c_list[selected_idx])
-                        L_min = best_theta(
-                            tmp_m_name=f"{model_name_prefix}_{safe_range_bound}_{i}_{t}_tmp"
-                            components=extract_abstract_representation(Trajectory_train, x_l, x_r, num_components),
-                            lambda_=lambda_hat,
-                            epoch=num_epoch,
-                            target=target,
-                            lr=lr,
-                            bs=bs,
-                            nn_mode=nn_mode,
-                            l=l,
-                            save=save,
-                            epochs_to_skip=-1,
-                            data_bs=data_bs,
-                        )
+                        L_max = best_lambda(q_hat=q_list[selected_idx], c_hat=c_list[selected_idx])
+                        if t == 0:
+                            if c.data.item() <= 0.0:
+                                L_min = var(0.0)
+                            else:
+                                L_min = B
+                        else:
+                            L_min = best_theta(
+                                tmp_m_name=f"{model_name_prefix}_{safe_range_bound}_{i}_{t}_tmp",
+                                components=extract_abstract_representation(Trajectory_train, x_l, x_r, num_components),
+                                lambda_=lambda_hat,
+                                epoch=num_epoch,
+                                target=target,
+                                lr=lr,
+                                bs=bs,
+                                nn_mode=nn_mode,
+                                l=l,
+                                save=save,
+                                epochs_to_skip=-1,
+                                data_bs=data_bs,
+                            )
+                        if abs((L_max - L_min).data.item()) <= gamma:
+                            target_model_name = target_model_name
+                            break
                     else:
                         # one-time training with a fixed lambda
                         break
