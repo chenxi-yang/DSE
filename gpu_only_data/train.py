@@ -152,11 +152,10 @@ def learning(
         log_file.write(f"One train: Optimization-- ' + total time: {spend_time}, total epochs: {i + 1}, avg time: {spend_time/(i + 1)}\n")
         log_file.close()
     
-    return [], 0.0, [], 0.0, 0.0, TIME_OUT
+    return 0.0, 0.0, TIME_OUT # q, c in only_data are place holders
 
 
 def cal_c(X_train, y_train, m, target):
-    # TODO: to check the cal_c process
     # only for calculating the value instead of the gradient
     print(f"---in cal_c---")
     # print(f"theta, {theta}")

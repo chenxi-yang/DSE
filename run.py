@@ -43,7 +43,7 @@ def best_theta(tmp_m_name,
     epochs_to_skip, 
     data_bs):
     m = Program(l=l, nn_mode=nn_mode)
-    _, loss, loss_list, q, c, time_out = learning(
+    q, c, time_out = learning(
         m=m, 
         components=components,
         lambda_=new_lambda,
@@ -239,7 +239,7 @@ if __name__ == "__main__":
                     print(f"parameters: {count_parameters(m)}")
 
                     # try: 
-                    _, loss, loss_list, q, c, time_out = learning(
+                    q, c, time_out = learning(
                         m, 
                         components,
                         lambda_=new_lambda,
@@ -255,7 +255,7 @@ if __name__ == "__main__":
                         data_bs=data_bs,
                         )
                     
-                    if not quick_mode:
+                    if not quick_mode and mode != 'only_data':
                         lambda_list.append(new_lambda)
                         model_list.append(target_model_name)
                         q_list.append(q)

@@ -427,39 +427,14 @@ def learning(
             continue
 
         for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
-            # if constants.profile:
-            #     start_forward = time.time()
             data_loss = cal_data_loss(m, trajectories, criterion)
-            # if constants.profile:
-            #     end_data_loss = time.time()
-            #     print(f"DATA LOSS: {end_data_loss - start_forward}")
-            # data_loss = var(0.0)
             safe_loss, real_safety_loss = cal_safe_loss(m, abstract_states, target)
-            # safe_loss = var(1.0)
-
-            # print(f"data loss: {float(data_loss)}, safe loss: {float(safe_loss)}, real_safety_loss: {real_safety_loss}")
             loss = (data_loss + lambda_ * safe_loss) / lambda_
-            # if constants.profile:
-            #     end_forward = time.time()
-            #     print(f"--FORWARD: {end_forward - start_forward}")
 
-            # if constants.profile:
-            #     start_sgd = time.time()
             loss.backward(retain_graph=True)
-            # if constants.profile:
-            #     end_sgd = time.time()
-            #     print(f"--BACK SGD: {end_sgd - start_sgd}")
-            # print(f"value before clip, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             torch.nn.utils.clip_grad_norm_(m.parameters(), 1)
-            # print(f"grad before step, weight: {m.nn.linear1.weight.grad.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.grad.detach().cpu().numpy().tolist()[0]}")
-            # if constants.profile:
-            #     start_step = time.time()
             optimizer.step()
-            # print(f"value before step, weight: {m.nn.linear1.weight.detach().cpu().numpy().tolist()[0][:3]}, bias: {m.nn.linear1.bias.detach().cpu().numpy().tolist()[0]}")
             optimizer.zero_grad()
-            # if constants.profile:
-            #     end_step = time.time()
-            #     print(f"--OPTIMIZATION STEP: {end_step - start_step}")
         
         if save:
             save_model(m, constants.MODEL_PATH, name=model_name, epoch=i)
@@ -502,29 +477,29 @@ def learning(
         log_file.write(f"One train: Optimization-- ' + total time: {spend_time}, total epochs: {i + 1}, avg time: {spend_time/(i + 1)}\n")
         log_file.close()
     
-    return [], 0.0, [], 0.0, 0.0, TIME_OUT
+    return float(data_loss), real_safety_loss, TIME_OUT
 
 
-def cal_c(X_train, y_train, m, target):
-    # TODO: to check the cal_c process
-    # only for calculating the value instead of the gradient
-    print(f"---in cal_c---")
-    # print(f"theta, {theta}")
-    c_loss = var(0.0)
-    for idx, x in enumerate(X_train):
-        x, y = x, y_train[idx]
-        loss = var(0.0)
-        safe_loss = cal_safe_loss(m, x, width, target)
-        c_loss += safe_loss
-    c = c_loss.div(len(X_train))
-    print(f"---cal_c, {c}")
+# def cal_c(X_train, y_train, m, target):
+#     # TODO: to check the cal_c process
+#     # only for calculating the value instead of the gradient
+#     print(f"---in cal_c---")
+#     # print(f"theta, {theta}")
+#     c_loss = var(0.0)
+#     for idx, x in enumerate(X_train):
+#         x, y = x, y_train[idx]
+#         loss = var(0.0)
+#         safe_loss = cal_safe_loss(m, x, width, target)
+#         c_loss += safe_loss
+#     c = c_loss.div(len(X_train))
+#     print(f"---cal_c, {c}")
 
-    return c
+#     return c
 
 
-def cal_q(X_train, y_train, m):
-    root_point = construct_syntax_tree_point(theta)
-    data_loss = cal_data_loss(m, X_train, y_train)
-    print(f"cal_q, {data_loss}")
+# def cal_q(X_train, y_train, m):
+#     root_point = construct_syntax_tree_point(theta)
+#     data_loss = cal_data_loss(m, X_train, y_train)
+#     print(f"cal_q, {data_loss}")
     
-    return q
+#     return q

@@ -26,7 +26,7 @@ def get_parser():
     # other parameters
     p.add_argument("--lr", default=1e-03, type=float, help="learning rate")
     p.add_argument("--stop_val", default=0.05, type=float, help="error for stoping")
-    p.add_argument("--t_epoch", default=1, type=int, help="epoch for lambda")
+    p.add_argument("--t_epoch", default=4, type=int, help="epoch for lambda")
 
     p.add_argument("--w", default=0.5, type=float, help="the measure between two lagarangian iteration")
     p.add_argument("--gamma", default=1.0, type=float, help="The threshold of two learning")
