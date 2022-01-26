@@ -161,30 +161,19 @@ if __name__ == "__main__":
                     target[0]['map_condition'] = distance_condition
                 else:
                     target[0]['map_condition'] = map_condition
-            # if benchmark_name == 'aircraft_collision_new':
-            #     for constraint_l in distance_safe_range:
-            #         interval_l = list()
-            #         for constraint in constraint_l:
-            #             interval_l.append(domain.Interval(var(constraint[0]), var(constraint[1])))
-            #         distance_condition.append(interval_l)
-            #     target[0]['map_condition'] = distance_condition
                 
             if mode == 'DSE' or mode == 'DiffAI':
-                N = 5
-                if benchmark_name == "racetrack_relaxed_multi":
-                    N = 3
-                if benchmark_name == "aircraft_collision_new_1":
-                    N = 10
-                if 'pattern' in benchmark_name:
-                    N = 10
-            if mode == 'only_data':
                 N = 10
-            # experiments during rebuttal
-            if N > 3:
-                N = 3
+                if benchmark_name == "racetrack_relaxed_multi":
+                    N = 10
+                if benchmark_name == "aircraft_collision_new_1":
+                    N = 20
+                if 'pattern' in benchmark_name:
+                    N = 20
+            if mode == 'only_data':
+                N = 20
 
             for i in range(N):
-                # i += 1
                 constants.status = 'train'
                 import import_hub as hub
                 importlib.reload(hub)
@@ -202,14 +191,6 @@ if __name__ == "__main__":
                     import gpu_only_data.train as gt
                     importlib.reload(gt)
                     from gpu_only_data.train import *
-                # elif mode == 'symbol_data_loss_DSE':
-                #     import gpu_symbol_data_loss_DSE.train as gt
-                #     importlib.reload(gt)
-                #     from gpu_symbol_data_loss_DSE.train import *
-                # elif mode == 'DiffAI_sps':
-                #     import gpu_DiffAI_sps.train as gt
-                #     importlib.reload(gt)
-                #     from gpu_DiffAI_sps.train import *
                 
                 preprocessing_time = time.time()
                 if benchmark_name in ["thermostat"]:
@@ -217,12 +198,13 @@ if __name__ == "__main__":
                 else:
                     dataset_path = f"{dataset_path_prefix}_{safe_range_bound}.txt"
                 Trajectory_train, Trajectory_test = load_data(train_size=train_size, test_size=test_size, dataset_path=dataset_path)
-                # TODO: update component
                 components = extract_abstract_representation(Trajectory_train, x_l, x_r, num_components)
                 print(f"Prepare data: {time.time() - preprocessing_time} sec.")
 
                 lambda_list = list()
                 model_list = list()
+                q_list = list()
+                c_list = list()
                 q = var(0.0)
 
                 for t in range(t_epoch):
@@ -267,45 +249,62 @@ if __name__ == "__main__":
                     #TODO: reduce time, because the gap between cal_c and cal_q does not influence a lot on the performance
                     # m_t = m
                     
-                    if use_hoang:
+                    if not quick_mode:
                         lambda_list.append(new_lambda)
                         model_list.append(target_model_name)
-                        q, target_m = outer_loop(lambda_lost, model_list, q)
-                        if q is None:
-                            break
+                        q_list.append(q)
+                        c_list.append(c)
+                        selected_idx = random.choice([idx for idx in len(model_list)])
+                        lambda_hat = torch.stack(lambda_list).sum() / len(lambda_list)
+                        L_max = best_lambda(c_hat=c_list[selected_idx])
+                        L_min = best_theta(
+                            tmp_m_name=f"{model_name_prefix}_{safe_range_bound}_{i}_{t}_tmp"
+                            components=extract_abstract_representation(Trajectory_train, x_l, x_r, num_components),
+                            lambda_=lambda_hat,
+                            epoch=num_epoch,
+                            target=target,
+                            lr=lr,
+                            bs=bs,
+                            nn_mode=nn_mode,
+                            l=l,
+                            save=save,
+                            epochs_to_skip=-1,
+                            data_bs=data_bs,
+                        )
                     else:
+                        # one-time training with a fixed lambda
                         break
 
-                if time_out == True:
-                    continue
+                    if time_out == True:
+                        continue
 
-                # # AI verification use many initial components, as more as possible
-                # AI_components = extract_abstract_representation(Trajectory_test, x_l, x_r, AI_verifier_num_components)
-                # # SE verification use one initial components
-                # SE_components = extract_abstract_representation(Trajectory_test, x_l, x_r, SE_verifier_num_components)
-                # # AI verification, SE verification, Test data loss
+                # AI verification use many initial components, as more as possible
+                AI_components = extract_abstract_representation(Trajectory_test, x_l, x_r, AI_verifier_num_components)
+                # SE verification use one initial components
+                SE_components = extract_abstract_representation(Trajectory_test, x_l, x_r, SE_verifier_num_components)
+                # AI verification, SE verification, Test data loss
                 
-                # # TODO: check replacement?
-                # print(f"------------start verification------------")
-                # print(f"to verify safe bound: {safe_range_bound}")
+                # TODO: check replacement?
+                print(f"------------start verification------------")
+                print(f"to verify safe bound: {safe_range_bound}")
 
-                # # print(f"sys.modules.keys: {sys.modules.keys()}")
-                # constants.status = 'verify_AI'
-                # import verifier_AI as vA
-                # importlib.reload(vA)
-                # from verifier_AI import *
+                # print(f"sys.modules.keys: {sys.modules.keys()}")
+                constants.status = 'verify_AI'
+                import verifier_AI as vA
+                importlib.reload(vA)
+                from verifier_AI import *
 
-                # verification_time = time.time()
-                # # TODO: change extract_abstract_representation
+                verification_time = time.time()
+                # TODO: change extract_abstract_representation
                 
-                # verifier_AI(
-                #     model_path=MODEL_PATH, 
-                #     model_name=target_model_name, 
-                #     components=AI_components, 
-                #     target=target,
-                #     trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
-                # )
-                # print(f"---verification AI time: {time.time() - verification_time} sec---")
+                verifier_AI(
+                    model_path=MODEL_PATH, 
+                    model_name=target_model_name, 
+                    components=AI_components, 
+                    target=target,
+                    trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
+                )
+                print(f"---verification AI time: {time.time() - verification_time} sec---")
 
                 # constants.status = 'verify_SE'
                 # import verifier_SE as vS
