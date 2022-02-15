@@ -2456,3 +2456,7 @@ def perception(img,  x, safe_bound):
         else:
             res = right or straight
     return 
+
+
+def pcc():
+    return
