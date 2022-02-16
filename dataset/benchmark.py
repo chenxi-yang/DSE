@@ -2458,5 +2458,15 @@ def perception(img,  x, safe_bound):
     return 
 
 
-def pcc():
-    return
+# build a version of pcc first
+# def pcc():
+#     sender1, sender2
+#     return
+# fack pcc
+def pcc(x):
+    pass
+
+
+
+# client
+# server

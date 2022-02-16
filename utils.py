@@ -278,6 +278,20 @@ def create_components(x_l, x_r, num_components):
                 'width': width,
             }
             components.append(component_group)
+    elif len(x_l)==2: # for two parameters
+        for i in range(num_components):
+            l = x_min + i * component_length
+            r = x_min + (i + 1) * component_length
+            center_0 = (r + l) / 2.0
+            width_0 = (r - l) / 2.0
+            for j in range(num_components):
+                l_1, r_1 = x_min + j * component_length, x_min + (j + 1) * component_length
+                center_1, width_1 = (r_1 + l_1) / 2.0, (r_1 - l_1) / 2.0
+                component_group = {
+                    'center': [center_0, center_1],
+                    'width': [width_0, width_1],
+                }
+                components.append(component_group)
     elif len(x_l) == 4: # for cartpole task: for same dimensions
         for i in range(num_components):
             l = x_min + i * component_length

@@ -214,6 +214,9 @@ elif constants.benchmark_name == "cartpole_v3":
     import benchmarks.cartpole_v3 as ac
     importlib.reload(ac)
     from benchmarks.cartpole_v3 import *
-
+elif constants.benchmark_name == "pcc":
+    import benchmarks.pcc as pcc
+    importlib.reload(pcc)
+    from benchmarks.pcc import *
 # print(constants.benchmark_name)
 

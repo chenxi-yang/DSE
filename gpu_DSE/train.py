@@ -427,7 +427,8 @@ def learning(
             continue
 
         for trajectories, abstract_states in divide_chunks(components, bs=bs, data_bs=None):
-            data_loss = cal_data_loss(m, trajectories, criterion)
+            # data_loss = cal_data_loss(m, trajectories, criterion)
+            data_loss = var(0.0)
             safe_loss, real_safety_loss = cal_safe_loss(m, abstract_states, target)
             loss = (data_loss + lambda_ * safe_loss) / lambda_
 

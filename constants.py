@@ -31,6 +31,7 @@ data_attr = args.data_attr
 # print(f"test_mode: {test_mode}")
 
 mode = args.mode
+quick_mode = args.quick_mode
 debug = args.debug
 debug_verifier = args.debug_verifier
 run_time_debug = args.run_time_debug
@@ -1333,3 +1334,19 @@ if benchmark_name == "mountain_car_1":
     safe_range_step=0.1
     safe_range_bound_list = np.around(np.arange(safe_range_start, safe_range_end, safe_range_step), 2).tolist()
     analysis_name_list = ['acceleration', 'position']
+
+
+if benchmark_name == "pcc":
+    x_l = [0.0, -0.1] # loss, sender_rate
+    x_r = [0.05, 0.1]
+    safe_range_list = [[0.0, 1.0]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['x']
+
+    safe_range_start=0.0
+    safe_range_end=0.2
+    safe_range_step=0.5
+
+    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
