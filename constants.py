@@ -72,6 +72,23 @@ multi_agent_mode = False
 
 status = ''
 
+
+if benchmark_name == "pcc":
+    x_l = [0.0, -0.1] # loss, sender_rate
+    x_r = [0.05, 0.1]
+    safe_range_list = [[0.0, 1.0]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['x']
+
+    safe_range_start=0.0
+    safe_range_end=0.2
+    safe_range_step=0.5
+
+    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+    
 if benchmark_name == "thermostat":
     x_l = [55.0]
     x_r = [70.0]
@@ -1336,17 +1353,3 @@ if benchmark_name == "mountain_car_1":
     analysis_name_list = ['acceleration', 'position']
 
 
-if benchmark_name == "pcc":
-    x_l = [0.0, -0.1] # loss, sender_rate
-    x_r = [0.05, 0.1]
-    safe_range_list = [[0.0, 1.0]]
-    w_list = [1.0]
-    method_list = ['all']
-    name_list = ['x']
-
-    safe_range_start=0.0
-    safe_range_end=0.2
-    safe_range_step=0.5
-
-    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
-    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
