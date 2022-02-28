@@ -10,7 +10,7 @@ by Chenxi Yang, Swarat Chaudhuri. Published in ICLR 2022.
 This repository requires to run on Python 3.8.12. and install PyTorch 1.10.2.
 
 ### Usage
-Train and evaluate with the $run.py$
+Train and evaluate with the `run.py`
 
 
 ## Add new Benchmarks
