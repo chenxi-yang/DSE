@@ -1,6 +1,14 @@
 import constants
 import importlib
 
+#### Please follow the form below for new benchmarks ####
+'''
+if constants.benchmark_name == "new_benchmark_name":
+    import benchmarks.new_benchmark_name as xx
+    importlib.reload(xx)
+    from benchmarks.new_benchmark_name import *
+'''
+
 # a protocol for adding benchmarks
 if constants.benchmark_name == "thermostat":
     import benchmarks.thermostat as tm

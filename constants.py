@@ -56,11 +56,6 @@ SE_verifier_num_components = args.SE_verifier_num_components
 SE_verifier_run_times = args.SE_verifier_run_times
 train_sample_size = args.train_sample_size
 
-# assert(profile != save)
-
-# thermostat: 0.3
-# mountain_car: 0.01
-
 K_DISJUNCTS = 10000000
 SAMPLE_SIZE = train_sample_size
 DOMAIN = "interval" # [interval, zonotope]
@@ -71,13 +66,126 @@ multi_agent_mode = False
 
 status = ''
 
-if benchmark_name == "thermostat":
-    x_l = [55.0]
-    x_r = [70.0]
-    safe_range_list = [[50.0, 82.0]]
+###################################################################################
+####### Below are configurations for Thermostat, AC, Racetrack and Cartpole #######
+###################################################################################
+'''
+new benchmark configuration is in the form of:
+if benchmark_name == "new_benchmark_name":
+    x_l = [x1_l, x2_l, ...] # the left bound for each input variable
+    x_r = [x1_r, x2_r, ...] # the right bound for each input variable
+    safe_range_list = [[o1_l, o1_r], ...] # the output range bound for each output variable
+    # oi_l and oi_r is the left and right bound for the i-th output variable.
+    w_list = [1.0] # default setting, this is not usually used when creating new benchmarks
+    method_list = ['all'] # default setting, this is not usually used when creating new benchmarks
+    name_list = ['x'] # default setting, for the variable name
+
+    # Set the sequence of safe constraint (for right bound)
+    safe_range_start=xx
+    safe_range_end=xx
+    safe_range_step=xx
+    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+'''
+
+if benchmark_name == "thermostat_new":
+    x_l = [60.0]
+    x_r = [64.0]
+    safe_range_list = [[55.0, 83.0]]
     w_list = [1.0]
     method_list = ['all']
     name_list = ['x']
+
+    safe_range_start=83.0
+    safe_range_end=83.5
+    safe_range_step=0.5
+    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
+if benchmark_name == "aircraft_collision_new":
+    x_l = [12.0]
+    x_r = [16.0]
+    # safe_range_list = [[40.0, 100000.0]]
+    map_mode = True
+    map_safe_range = [[[0.0, 100000.0]],
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]],
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]],
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], 
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], 
+                            [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]], [[40.0, 100000.0]]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['x1']
+    safe_range_list = [0]
+
+    safe_range_start=100000.0
+    safe_range_end=100050.0
+    safe_range_step=100
+
+    safe_range_bound_list = [100000.0]
+
+
+if benchmark_name == "racetrack_relaxed_multi":
+    # two agents start from one point, 
+    # they should be no-crash and the distance between two agents should be larger than 0.5 except the first one
+    x_l = [5.0]
+    x_r = [6.0]
+    safe_range_list = [0]
+    map_mode = True
+    multi_agent_mode = True
+    # y's range
+    map_safe_range = [
+        [[5.0, 6.0]], # the first step
+        [[4.0, 7.0]], [[4.0, 7.0]], [[4.0, 7.0]], [[4.0, 7.0]],
+        [[4.0, 8.0]], [[4.0, 8.0]], [[4.0, 8.0]], [[4.0, 8.0]],
+        [[4.0, 9.0]], [[4.0, 9.0]], [[4.0, 9.0]], [[4.0, 9.0]],
+        [[4.0, 10.0]],[[4.0, 10.0]],[[4.0, 10.0]],[[0.0, 10.0]], 
+        [[0.0, 10.0]],[[0.0, 10.0]],[[0.0, 10.0]],[[0.0, 4.0]],
+    ]
+    distance_safe_range = [
+        [[0.0, 10000.0]],
+        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]],
+        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], 
+        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]],
+        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]],
+        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]],
+    ]
+    # map k-column in map[k] interval
+    # 0 is the basic version
+    method_list = ['map_each', 'map_each', 'map_each'] # each element in the trajectory is 
+    name_list = ['distance', 'position1', 'position2']
+    safe_range_bound_list = [0]
+
+
+if benchmark_name == "cartpole_v2":
+    x_l = [-0.05, -0.05, -0.05, -0.05]
+    x_r = [0.05, 0.05, 0.05, 0.05]
+    safe_range_list = [[-0.1, 0.1]]
+    w_list = [1.0]
+    method_list = ['all']
+    name_list = ['x']
+
+    safe_range_start=0.1
+    safe_range_end=0.2
+    safe_range_step=0.1
+
+    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
+    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
+
+
+###################################################################
+####### Below are other configurations for other benchmarks #######
+###################################################################
+
+
+if benchmark_name == "thermostat":
+    x_l = [55.0] # the left bound
+    x_r = [70.0] # the right bound
+    safe_range_list = [[50.0, 82.0]]
+    w_list = [1.0] # default setting
+    method_list = ['all'] # default setting
+    name_list = ['x'] # default setting
 
     safe_range_start=85.0
     safe_range_end=91.0
@@ -449,37 +557,6 @@ if benchmark_name == "racetrack_easy_multi":
     safe_range_bound_list = [0]
 
 
-if benchmark_name == "racetrack_relaxed_multi":
-    # two agents start from one point, 
-    # they should be no-crash and the distance between two agents should be larger than 0.5 except the first one
-    x_l = [5.0]
-    x_r = [6.0]
-    safe_range_list = [0]
-    map_mode = True
-    multi_agent_mode = True
-    # y's range
-    map_safe_range = [
-        [[5.0, 6.0]], # the first step
-        [[4.0, 7.0]], [[4.0, 7.0]], [[4.0, 7.0]], [[4.0, 7.0]],
-        [[4.0, 8.0]], [[4.0, 8.0]], [[4.0, 8.0]], [[4.0, 8.0]],
-        [[4.0, 9.0]], [[4.0, 9.0]], [[4.0, 9.0]], [[4.0, 9.0]],
-        [[4.0, 10.0]],[[4.0, 10.0]],[[4.0, 10.0]],[[0.0, 10.0]], 
-        [[0.0, 10.0]],[[0.0, 10.0]],[[0.0, 10.0]],[[0.0, 4.0]],
-    ]
-    distance_safe_range = [
-        [[0.0, 10000.0]],
-        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]],
-        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], 
-        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]],
-        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]],
-        [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]], [[0.5, 10000.0]],
-    ]
-    # map k-column in map[k] interval
-    # 0 is the basic version
-    method_list = ['map_each', 'map_each', 'map_each'] # each element in the trajectory is 
-    name_list = ['distance', 'position1', 'position2']
-    safe_range_bound_list = [0]
-
 
 if benchmark_name == "racetrack_relaxed_multi2":
     # two agents start from one point, 
@@ -795,19 +872,7 @@ if benchmark_name == "cartpole_v3":
     safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
-if benchmark_name == "thermostat_new":
-    x_l = [60.0]
-    x_r = [64.0]
-    safe_range_list = [[55.0, 83.0]]
-    w_list = [1.0]
-    method_list = ['all']
-    name_list = ['x']
 
-    safe_range_start=83.0
-    safe_range_end=83.5
-    safe_range_step=0.5
-    safe_range_bound_list = np.arange(safe_range_start, safe_range_end, safe_range_step).tolist()
-    safe_range_bound_list = safe_range_bound_list[bound_start:bound_end]
 
 
 if benchmark_name == "aircraft_collision_refined_classifier":
