@@ -148,17 +148,8 @@ if __name__ == "__main__":
                 else:
                     target[0]['map_condition'] = map_condition
                 
-            if mode == 'DSE' or mode == 'DiffAI':
-                N = 10
-                if benchmark_name == "racetrack_relaxed_multi":
-                    N = 10
-                if benchmark_name == "aircraft_collision_new_1":
-                    N = 20
-                if 'pattern' in benchmark_name:
-                    N = 20
-            if mode == 'only_data':
-                N = 20
-
+            N = 20
+            
             for i in range(N):
                 constants.status = 'train'
                 import import_hub as hub
