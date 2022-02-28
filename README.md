@@ -14,6 +14,9 @@ We study the problem of learning worst-case-safe parameters for programs that us
 ### Pre-requisites
 This repository requires to run on Python 3.8.12. and install PyTorch 1.10.2.
 
+## Datasets
+The trajectory datasets are available in our [Google drive](https://drive.google.com/drive/folders/1Icj5gYvRMdpm5_Ys_vE2T1W5HKTMnVul?usp=sharing). Please unzip the `Datasets.zip` and put the dataset under the directory of `dataset/` of this repository.
+
 ### Usage
 Train and evaluate with the `run.py` with the common options:
 
@@ -58,8 +61,8 @@ run.py
 * `bound_start`, `bound_end` is the index of the safety constraint list. For each benchmark, we allow multiple safety constraints. By default, the number of safety constraint is 1.
 * `nn_mode`, `l` are the neural network parameters. `nn_mode` is the neural network structure. `l` is the number of parameters. One benchmark has multiple neural network structures. 
 
-## Datasets
-
+## Add new benchmarks
+When new datasets are in the form of the ones in the `Datasets.zip`, adding new benchmarks is available. You can add a new `.py` file under `benchmarks/` with the model version of the new benchmark, register the new benchmark in `import_hub.py`, and add the configurations in `constants.py`. More detailed instructions for the format are in `import_hub.py` and `constants.py`.
 
 ## References
 
