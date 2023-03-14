@@ -24,6 +24,7 @@ num_components = args.num_components
 save = args.save
 test_mode = args.test_mode
 early_stop = args.early_stop
+quick_mode = args.quick_mode
 
 data_attr = args.data_attr
 # thermostat: normal_55.0_62.0
