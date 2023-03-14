@@ -33,8 +33,6 @@ class Linear(nn.Module):
     def reset_parameters(self):
         if not hasattr(self,'weight') or self.weight is None:
             return
-        # print(f"weight size: {self.weight.size()}")
-        # print(f"product: {product(self.weight.size())}")
 
         n = product(self.weight.size()) / self.out_channels
         stdv = 1 / math.sqrt(n)
@@ -44,12 +42,9 @@ class Linear(nn.Module):
             self.bias.data.uniform_(-stdv, stdv)
 
     def forward(self, x):
-        # print(f"weight: \n {self.weight}")
-        # print(f"bias: \n {self.bias}")
         if isinstance(x, torch.Tensor):
             if len(x.shape) == 3:
                 x = torch.squeeze(x, 1) 
-        # print(x.shape, weight.shape)
         return x.matmul(self.weight).add(self.bias)
 
 
@@ -204,13 +199,6 @@ def sound_join(states1, states2):
             idx2 += 1
             idx1 += 1
 
-    # for tra in res_states['trajectories']:
-    #     print(f"res_states new trajectory")
-    #     for states in tra:
-    #         print(f"{float(states[0].left), float(states[0].right)}")
-    # print(f"******* end sound join *******")
-    # pdb.set_trace()
-
     return res_states
 
 
@@ -228,12 +216,6 @@ def calculate_states(target_idx, arg_idx, f, states):
     x = states['x']
     input = x.select_from_index(1, arg_idx)
     res = f(input)
-    # TODO: check
-    # print(f'cal')
-    # print(f)
-    # print(x.c.shape, x.delta.shape)
-    # print(target_idx)
-    # print(res.c.shape, res.c.shape)
     x.c[:, target_idx] = res.c 
     x.delta[:, target_idx] = res.delta
     states['x'] = x
@@ -403,7 +385,6 @@ class While(nn.Module):
         self.test = test
         self.body = body
         if torch.cuda.is_available():
-            # print(f"CHECK: cuda")
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, states):
@@ -411,8 +392,6 @@ class While(nn.Module):
         res_states = list()
         while(len(states) > 0):
             body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
-            # TODO: update
-            # print(f"body_states: {body_states['x'].c}, {body_states['x'].delta}")
             res_states = sound_join(res_states, orelse_states)
             if len(body_states) == 0:
                 return res_states
@@ -422,12 +401,10 @@ class While(nn.Module):
                 break
         res_states = sound_join(res_states, orelse_states)
         res_states = sound_join(res_states, body_states)
-        # exit(0)
         return res_states
 
 
 class Trajectory(nn.Module):
-    # TODO: update, add state in trajectory list
     def __init__(self, target_idx):
         super().__init__()
         self.target_idx = torch.tensor(target_idx)
@@ -435,8 +412,6 @@ class Trajectory(nn.Module):
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, states):
-        # if constants.profile:
-        #     start = time.time()
         x = states['x']
         trajectories_l = states['trajectories_l']
         trajectories_r = states['trajectories_r']

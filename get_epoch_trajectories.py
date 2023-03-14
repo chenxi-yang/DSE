@@ -23,10 +23,7 @@ from data_loader import (
 def store_trajectory(output_states, trajectory_path):
     trajectory_log_file = open(trajectory_path, 'w')
     trajectory_log_file.write(f"###\n")
-    # print(f"trajectory starts")
     for trajectory_idx, trajectory_l in enumerate(output_states['trajectories_l']):
-        # print(f"{trajectory_l}")
-        # continue
         trajectory_r = output_states['trajectories_r'][trajectory_idx]
         trajectory_log_file.write(f"trajectory_idx {trajectory_idx}\n")
         for state_idx, state_l in enumerate(trajectory_l):
@@ -58,12 +55,9 @@ def calculate_safety(output_states, safe_range_list):
         for state_idx, state_l in enumerate(trajectory_l):
             state_r = trajectory_r[state_idx]
             target_l, target_r = state_l[0], state_r[1]
-            # print(f"target_l: {target_l}; target_r: {target_r}; safe_range: {safe_range_list}")
             if target_l < safe_range_list[0] or target_r > safe_range_list[1]:
                 safe_flag = 0
-                # print(f"in")
                 break
-        # print(f"end one tra: {safe_flag}")
         if safe_flag == 1:
             safe_trajectories += 1
         total_trajectories += 1
@@ -84,7 +78,6 @@ def extract_trajectory(
     if m is None:
         print(f"model path: {model_path}/{model_name} no model to extract trajectory")
         return 
-        # raise ValueError(f"No model to extract concrete trajectory!")
     if torch.cuda.is_available():
         m.cuda()
     m.eval()

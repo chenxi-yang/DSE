@@ -32,7 +32,6 @@ def show_tra_l(l):
                 print(f"c: {symbol_table['x'].c},  delta: {symbol_table['x'].delta}")
             else:
                 tra_len_l.append(0)
-        # print(tra_len_l)
         print(f"end abstract state")
         break
 
@@ -52,8 +51,6 @@ class Linear(nn.Module):
     def reset_parameters(self):
         if not hasattr(self,'weight') or self.weight is None:
             return
-        # print(f"weight size: {self.weight.size()}")
-        # print(f"product: {product(self.weight.size())}")
 
         n = product(self.weight.size()) / self.out_channels
         stdv = 1 / math.sqrt(n)
@@ -63,8 +60,6 @@ class Linear(nn.Module):
             self.bias.data.uniform_(-stdv, stdv)
 
     def forward(self, x):
-        # print(f"weight: \n {self.weight}")
-        # print(f"bias: \n {self.bias}")
         if isinstance(x, torch.Tensor):
             if len(x.shape) == 3:
                 x = torch.squeeze(x, 1) 
@@ -220,18 +215,13 @@ def extract_branch_probability_list(target, index_mask):
         zeros = zeros.cuda()
         branch = branch.cuda()
 
-    # print(f"c, delta: {target.c.detach().cpu().numpy()}, {target.delta.detach().cpu().numpy()}")
     # add the influnce from c
     volume = 2 * target.delta
-    # print(f"volume: {volume.detach().cpu().numpy()}")
-    # print(f"index_mask: {index_mask}")
     # all the volumes belonging to the argmax index set are selected, otherwise 0.0
     selected_volume = torch.where(index_mask, volume, zeros)
     # selected_volume might be all zero
-    # print(EPSILON)
     selected_volume[index_mask] = torch.max(selected_volume[index_mask], EPSILON)
 
-    # print(f"selected_volume: {selected_volume.detach().cpu().numpy()}")
     sumed_volume = torch.sum(selected_volume, dim=1)[:, None]
     p_volume = selected_volume / sumed_volume
 
@@ -239,8 +229,6 @@ def extract_branch_probability_list(target, index_mask):
         pre_score = p_volume + target.c
         sumed_score = torch.sum(pre_score, dim=1)[:, None]
         p_volume = pre_score / sumed_score
-        
-    # print(f"p_volume:\n {p_volume.detach().cpu().numpy()}")
 
     m = Categorical(p_volume)
     res = m.sample()
@@ -273,20 +261,16 @@ def assign_states(states, branch, p_volume):
 
 
 def calculate_branches(arg_idx, states):
-    # TODO: finish all the methods
-    # TODO Plus: update the trajectories, idx_list, p_list
     # arg_idx: [0, 1, 2, 3], target is a new box only having values with these indexes
 
     x = states['x']
     target = x.select_from_index(1, arg_idx)
-    # TODO: potential problem: tensor is too dense?
     # index_mask is a boolean tensor
     index_mask = select_argmax(target.c - target.delta, target.c + target.delta)
     # no split of boxes/states, only use the volume based probability distribution
     # branch: boolean tensor k-th colume represents the k-th branch, 
     # p_volume: real tensor, k-th column represents the probability to select the k-th branch(after samping)
     branch, p_volume = extract_branch_probability_list(target, index_mask)
-    # print(f"p_volume:\n {p_volume.detach().cpu().numpy()}")
 
     states_list = assign_states(states, branch, p_volume)
     return states_list
@@ -311,7 +295,6 @@ class Assign(nn.Module):
             self.arg_idx = self.arg_idx.cuda()
     
     def forward(self, states):
-        # TODO: update
         res_states = calculate_states(self.target_idx, self.arg_idx, self.f, states)
 
         return res_states
@@ -368,7 +351,6 @@ class While(nn.Module):
         self.test = test
         self.body = body
         if torch.cuda.is_available():
-            # print(f"CHECK: cuda")
             self.target_idx = self.target_idx.cuda()
     
     def forward(self, states):
@@ -376,7 +358,6 @@ class While(nn.Module):
         res_states = dict()
         while(len(states) > 0):
             body_states, orelse_states = calculate_branch(self.target_idx, self.test, states)
-            # TODO: sound append
             res_states = concatenate_states(res_states, orelse_states)
             if len(body_states) == 0:
                 return res_states
@@ -391,7 +372,6 @@ class While(nn.Module):
 
 
 class Trajectory(nn.Module):
-    # TODO: update, add state in trajectory list
     def __init__(self, target_idx):
         super().__init__()
         self.target_idx = torch.tensor(target_idx)
