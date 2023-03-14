@@ -62,27 +62,6 @@ def best_theta(tmp_m_name,
     return q.add(new_lambda.mul(c))
 
 
-def outer_loop(lambda_list, model_list, q):
-    m_t = random.choice(model_list)
-    lambda_t = var(0.0)
-    for i in lambda_list:
-        lambda_t = lambda_t.add(i)
-    lambda_t = lambda_t.div(var(len(lambda_list)))
-
-    _, l_max = best_lambda(X_train, y_train, m_t, target)
-    _, l_min, time_out = best_theta(X, Y, abstract_representation, lambda_t, target)
-
-    print('-------------------------------')
-    print('l_max, l_min', l_max, l_min)
-
-    if (torch.abs(l_max.sub(l_min))).data.item() < w:
-        return None, m_t
-    
-    q = q.add(var(lr).mul(cal_c(X_train, y_train, m_t, theta)))
-
-    return q, None
-
-
 if __name__ == "__main__":
     torch.autograd.set_detect_anomaly(True)
 
@@ -320,21 +299,6 @@ if __name__ == "__main__":
                     trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
                 )
                 print(f"---verification AI time: {time.time() - verification_time} sec---")
-
-                # constants.status = 'verify_SE'
-                # import verifier_SE as vS
-                # importlib.reload(vS)
-                # from verifier_SE import *
-                
-                # verification_time = time.time()
-                # verifier_SE(
-                #     model_path=MODEL_PATH, 
-                #     model_name=target_model_name,
-                #     components=SE_components,
-                #     target=target,
-                #     trajectory_path=f"{trajectory_log_prefix}_{safe_range_bound}_{i}"
-                # )
-                # print(f"---verification SE time: {time.time() - verification_time} sec---")
 
                 import tester as t
                 importlib.reload(t)
