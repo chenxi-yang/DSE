@@ -33,7 +33,6 @@ def extract_safe_loss_old(component, target_component, target_idx):
 
     if target_component["map_mode"] is False:
         safe_interval = target_component["condition"]
-    # print(f"safe interval: {float(safe_interval.left)}, {float(safe_interval.right)}")
     method = target_component["method"]
     component_loss = var_list([0.0])
     real_safety_loss = 0.0
@@ -48,14 +47,8 @@ def extract_safe_loss_old(component, target_component, target_idx):
             raise NotImplementedError("Error: No trajectory method detected!")
 
         unsafe_penalty = var_list([0.0])
-        p0_left_list, p1_left_list, p2_left_list = list(), list(), list()
-        a_list, b_list, c_list = list(), list(), list()
-        x_left_list,  x_right_list, unsafe_value_list = list(), list(), list()
         for state_idx, state in enumerate(trajectory):
-            # X = state[target_idx]
             l, r = state[0][target_idx], state[1][target_idx]
-            # print(f"trajectory length: {len(trajectory)}")
-            # print(state_idx)
             if target_component["map_mode"] is True:
                 safe_interval_l = target_component["map_condition"][state_idx] # the constraint over the k-th step
                 unsafe_value = var(100000000.0)
@@ -88,45 +81,9 @@ def extract_safe_loss_old(component, target_component, target_idx):
                     unsafe_value = 1 - safe_portion
             
             # use sum
-            # try use the sum to penalize
-            # unsafe_penalty = unsafe_penalty + unsafe_value
             unsafe_penalty = torch.max(unsafe_penalty, unsafe_value)
-
-            # print(f"x1: {float(state[1].left), float(state[1].right)}, y1: {float(state[2].left), float(state[2].right)}")
-            # print(f"x2: {float(state[3].left), float(state[3].right)}, y2: {float(state[4].left), float(state[4].right)}")
-            # print(f"p0: {float(state[5].left), float(state[5].right)}, p1: {float(state[6].left), float(state[6].right)}")
-            # print(f"p2: {float(state[7].left), float(state[7].right)}, p3: {float(state[8].left), float(state[8].right)}")
-            
-            # race_track
-            # print(f"p0: {float(state[2].left), float(state[2].right)}, p1: {float(state[3].left), float(state[3].right)}")
-            # print(f"p2: {float(state[4].left), float(state[4].right)}")
-            # print(f"X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
-            # if float(X.left) == 0.0:
-            #     exit(0)
-            # p0_left_list.append(float(state[2].left))
-            # p1_left_list.append(float(state[3].left))
-            # p2_left_list.append(float(state[4].left))
-            # a_list.append((float(state[5].left), float(state[5].right)))
-            # b_list.append((float(state[6].left), float(state[6].right)))
-            # c_list.append((float(state[7].left), float(state[7].right)))
-            # x_left_list.append(float(X.left))
-            # x_right_list.append(float(X.right))
-            # unsafe_value_list.append(float(unsafe_value))
-            # if state_idx == len(trajectory) - 1:
-            #     # print(f"p0: {float(state[2].left), float(state[2].right)}, p1: {float(state[3].left), float(state[3].right)}")
-            #     # print(f"p2: {float(state[4].left), float(state[4].right)}")
-            #     print(f"last step X: {float(X.left), float(X.right)}, unsafe_value: {float(unsafe_value)}")
             min_l, max_r = min(min_l, float(l)), max(max_r, float(r))
-        # print(len(trajectory))
-        # print(f"p0: {p0_left_list}")
-        # print(f"p1: {p1_left_list}")
-        # print(f"p2: {p2_left_list}")
-        # print(f"a: {a_list}\nb: {b_list}\nc: {c_list}")
-        # print(f"x left: {x_left_list}")
-        # print(f"x right: {x_right_list}")
-        # print(f"unsafe_value list: {unsafe_value_list}")
-        # print(f"p: {float(p)}, unsafe_penalty: {float(unsafe_penalty)}")
-        # exit(0)
+
         component_loss += p * float(unsafe_penalty) + unsafe_penalty
         real_safety_loss += float(unsafe_penalty)
     
@@ -143,16 +100,6 @@ def extract_safe_loss(component, target_component, target_idx):
         safe_interval_l, safe_interval_r = target_component["condition"].left, target_component["condition"].right
     else:
         safe_interval_list = target_component["map_condition"]
-    # print(f"safe interval: {float(safe_interval.left)}, {float(safe_interval.right)}")
-    # method = target_component["method"]
-    # component_loss = 0.0
-    # real_safety_loss = 0.0
-    # min_l, max_r = 100000, -100000
-    # trajectories have the same length
-    # print(len(component['trajectories']))
-
-    # if target_component["distance"] is False:
-    #     return var([0.0]), 0.0, (0.0, 0.0)
 
     trajectories_l = component['trajectories_l']
     trajectories_r = component['trajectories_r']
@@ -186,22 +133,10 @@ def extract_safe_loss(component, target_component, target_idx):
             all_pos_index = torch.logical_and(pre_l>=0, pre_r>0)
             l[all_neg_index], r[all_neg_index] = pre_r[all_neg_index].abs(), pre_l[all_neg_index].abs()
             l[across_index], r[across_index] = torch.max(pre_l[across_index], l_zeros[across_index]), torch.max(pre_l[across_index].abs(), pre_r[across_index])
-            # l[across_index], r[across_index] = pre_l[across_index], pre_r[across_index] # give a direction to update the gradient
             l[all_pos_index], r[all_pos_index] = pre_l[all_pos_index], pre_r[all_pos_index]
         else:
             l = pre_l
             r = pre_r
-        # if state_idx == 1 or state_idx == 2:
-        #     print(f"state_idx: {state_idx}")
-        #     print(f"l: {l.detach().cpu().numpy().tolist()}")
-        #     print(f"r: {r.detach().cpu().numpy().tolist()}")
-        # if target_component['distance']:
-        #     # print(f"min l: {float(torch.min(l))}, max l: {float(torch.max(l))}, number of non-zero: {torch.count_nonzero(l.detach())}")
-        #     print(f"min l: {float(torch.min(l))}, max l: {float(torch.max(l))}; min r: {float(torch.min(r))}, max r: {float(torch.max(r))}; number of non-zero: {torch.count_nonzero(l.detach())}")
-        # print(f"state idx: {state_idx}")
-        # print(f"l: {l}")
-        # print(f"r: {r}")
-        # exit(0)
         if target_component["map_mode"] is True:
             safe_interval_sub_list = safe_interval_list[state_idx] # the constraint over the k-th step
             tmp_unsafe_value_list = list()
@@ -212,7 +147,6 @@ def extract_safe_loss(component, target_component, target_idx):
                 safe_interval_l, safe_interval_r = safe_interval.left, safe_interval.right
                 intersection_l, intersection_r = torch.max(l, safe_interval_l), torch.min(r, safe_interval_r)
                 empty_idx = intersection_r < intersection_l
-                # other_idx = intersection_r >= intersection_l
                 other_idx = ~ empty_idx
                 # print(unsafe_value.shape, empty_idx.shape, state_idx)
                 tmp_unsafe_value[empty_idx, 0] = torch.max(l[empty_idx] - safe_interval_r, safe_interval_l - r[empty_idx]) + 1.0
@@ -230,30 +164,20 @@ def extract_safe_loss(component, target_component, target_idx):
             empty_idx = intersection_r < intersection_l
             # other_idx = intersection_r >= intersection_l
             other_idx = ~ empty_idx
-            # print(unsafe_value.shape, empty_idx.shape, state_idx)
             unsafe_value[empty_idx, state_idx] = torch.max(l[empty_idx] - safe_interval_r, safe_interval_l - r[empty_idx]) + 1.0
             unsafe_value[other_idx, state_idx] = 1 - (intersection_r[other_idx] - intersection_l[other_idx] + eps) / (r[other_idx] - l[other_idx] + eps)
             min_l, max_r = min(float(torch.min(l)), min_l), max(float(torch.max(r)), max_r)
 
     # sum over one trajectories
     unsafe_penalty = torch.sum(unsafe_value, 1)
-    # max over one trajectory
-    # unsafe_penalty = torch.max(unsafe_value, 1)[0]
-    # print(f"unsafe penalty: {unsafe_penalty}")
-    # exit(0)
-    # print(unsafe_penalty.shape, torch.sum(unsafe_penalty))
-    # print(f"unsafe_value: {unsafe_value}")
     print(f"unsafe penalty: {unsafe_penalty.detach().cpu().numpy().tolist()}")
     sum_penalty = torch.sum(unsafe_penalty)
     print(f"sum penalty: {sum_penalty}")
-    # !!! detach!!!
-    # print(p_list.shape, unsafe_penalty.shape)
     component_loss = torch.dot(p_list.squeeze(), unsafe_penalty.detach()) + sum_penalty
     real_safety_loss = float(sum_penalty)
 
     component_loss /= len(component['p_list'])
     real_safety_loss /= len(component['p_list'])
-    # print(f"real safety loss: {float(real_safety_loss)}")
 
     return component_loss, real_safety_loss, (min_l, max_r)
 
@@ -264,13 +188,10 @@ def safe_distance(component_result_list, target):
     
     loss = var_list([0.0])
     real_safety_loss = 0.0
-    # min_l, max_r = 100000, -100000
-    # sum the safety loss together
     for idx, target_component in enumerate(target):
         target_loss = var_list([0.0])
         real_target_loss = 0.0
         min_l, max_r = 100000, -100000
-        # print(f"len abstract_state_list: {len(abstract_state_list)}")
         for component in component_result_list:
             component_safe_loss, component_real_safety_loss, (tmp_min_l, tmp_max_r) = extract_safe_loss(
                 component, target_component, target_idx=idx, 
@@ -282,9 +203,7 @@ def safe_distance(component_result_list, target):
         real_target_loss = real_target_loss / len(component_result_list)
         loss += target_loss
         real_safety_loss += real_target_loss
-        # print(f"in target real safety loss: {real_safety_loss}")
         print(f"{target_component['name']}, range of trajectory: {min_l, max_r}")
-    # exit(0)
     if not constants.debug:
         log_file = open(constants.file_dir, 'a')
         log_file.write(f"range of trajectory: {min_l, max_r}\n")
@@ -367,22 +286,6 @@ def cal_safe_loss(m, abstract_states, target):
     if constants.profile:
         end_safety_loss_calculation = time.time()
         print(f"--SAFETY LOSS CALCULATION: {end_safety_loss_calculation - start_safety_loss_calculation}")
-    
-    # list of trajectories, p_list
-    # for i in range(constants.SAMPLE_SIZE):
-    #     ini_states = initialize_components(abstract_states)
-    #     # print(f"start safe AI")
-    #     output_states = m(ini_states, 'abstract')
-    #     trajectories = output_states['trajectories']
-    #     idx_list = output_states['idx_list']
-    #     p_list = output_states['p_list']
-
-    #     ziped_result = zip(idx_list, trajectories, p_list)
-    #     sample_result = [(x, y, z) for x, y, z in sorted(ziped_result, key=lambda tuple: tuple[0])]
-    #     for idx, trajectory, p in sample_result:
-    #         component_result_list[idx]['trajectories'].append(trajectory)
-    #         component_result_list[idx]['p_list'].append(p)
-    # exit(0)
 
     # safe_loss, real_safety_loss = safe_distance(component_result_list, target)
     return safe_loss, real_safety_loss
@@ -479,28 +382,3 @@ def learning(
         log_file.close()
     
     return float(data_loss), real_safety_loss, TIME_OUT
-
-
-# def cal_c(X_train, y_train, m, target):
-#     # TODO: to check the cal_c process
-#     # only for calculating the value instead of the gradient
-#     print(f"---in cal_c---")
-#     # print(f"theta, {theta}")
-#     c_loss = var(0.0)
-#     for idx, x in enumerate(X_train):
-#         x, y = x, y_train[idx]
-#         loss = var(0.0)
-#         safe_loss = cal_safe_loss(m, x, width, target)
-#         c_loss += safe_loss
-#     c = c_loss.div(len(X_train))
-#     print(f"---cal_c, {c}")
-
-#     return c
-
-
-# def cal_q(X_train, y_train, m):
-#     root_point = construct_syntax_tree_point(theta)
-#     data_loss = cal_data_loss(m, X_train, y_train)
-#     print(f"cal_q, {data_loss}")
-    
-#     return q
