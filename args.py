@@ -17,7 +17,7 @@ def get_parser():
     p = argparse.ArgumentParser()
 
     # the outer loop
-    p.add_argument("--quick_mode", default=False, type=str2bool, help="whether increase the learning speed")
+    p.add_argument("--quick_mode", default=True, type=str2bool, help="whether increase the learning speed")
 
     # generate dataset
     p.add_argument("--dataset", default="thermostat", help="define the dataset")
